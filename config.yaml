@@ -1,0 +1,16 @@
+core:
+    cycle_duration: 0.25
+    use_x_cores: 2
+terminals:
+    sync: True
+game:
+    look_around:
+        frequency: 1
+    engage:
+        frequency: 1
+    move:
+        walk_ref_time: 3
+        run_ref_time: 1
+        crawl_ref_time: 10
+global:
+    debug: true
