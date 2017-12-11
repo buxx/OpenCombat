@@ -13,5 +13,6 @@ PyYAML==3.12
 redis==2.10.6
 six==1.11.0
 tmx==1.9.1
+pytest
 git+https://github.com/buxx/synergine2.git@master
 git+https://github.com/buxx/cocos.git@tileset
