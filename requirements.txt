@@ -1,5 +1,4 @@
 attrs==17.3.0
-cocos2d==0.6.5
 Dijkstar==2.3.0
 freezegun==0.3.9
 future==0.16.0
@@ -13,5 +12,6 @@ python-dateutil==2.6.1
 PyYAML==3.12
 redis==2.10.6
 six==1.11.0
-synergine2==1.0
 tmx==1.9.1
+git+https://github.com/buxx/synergine2.git@master
+git+https://github.com/buxx/cocos.git@tileset

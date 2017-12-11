@@ -28,7 +28,8 @@ def main(map_dir_path: str, seed_value: int=None):
 
     config = Config()
     config.load_yaml('config.yaml')
-    logger = get_default_logger(level=logging.ERROR)
+    level = logging.getLevelName(config.resolve('global.logging_level', 'ERROR'))
+    logger = get_default_logger(level=level)
 
     map_file_path = get_map_file_path_from_dir(map_dir_path)
 

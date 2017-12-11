@@ -18,5 +18,13 @@
    <property name="opacity" type="float" value="100.0"/>
    <property name="height" type="float" value="2.0"/>
   </properties>
+ <tile id="2">
+  <properties>
+   <property name="name" type="str" value="Bitume"/>
+   <property name="traversable_by_man" type="bool" value="true"/>
+   <property name="traversable_by_vehicle" type="bool" value="true"/>
+   <property name="opacity" type="float" value="0.0"/>
+   <property name="height" type="float" value="0.0"/>
+  </properties>
  </tile>
 </tileset>
