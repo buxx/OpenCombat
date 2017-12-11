@@ -18,6 +18,7 @@
    <property name="opacity" type="float" value="100.0"/>
    <property name="height" type="float" value="2.0"/>
   </properties>
+ </tile>
  <tile id="2">
   <properties>
    <property name="name" type="str" value="Bitume"/>
