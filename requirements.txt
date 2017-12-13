@@ -9,6 +9,7 @@ py==1.5.2
 pyglet==1.3.0
 pytest==3.3.0
 python-dateutil==2.6.1
+Pillow==4.3.0
 PyYAML==3.12
 redis==2.10.6
 six==1.11.0

@@ -1,5 +1,6 @@
 # coding: utf-8
 from synergine2_xyz.map import TMXMap
+from PIL import Image
 
 from opencc.simulation.interior import InteriorManager
 
@@ -112,6 +113,7 @@ def test_interiors_zones__active_zones():
     interiors = manager.get_interiors(where_positions=[(0, 1), (4, 2)])
 
     assert 2 == len(interiors)
+    interiors = sorted(interiors)
 
     assert (0, 1) in interiors[0]
     assert (1, 1) in interiors[0]
@@ -128,3 +130,14 @@ def test_interiors_zones__active_zones():
     assert (3, 3) in interiors[1]
     assert (4, 3) in interiors[1]
     assert 6 == len(interiors[1])
+
+
+def test_interiors_zones__make_image_transparent__just_replace():
+    map_ = TMXMap('tests/fixtures/one_interior.tmx')
+    manager = InteriorManager(map_)
+    interiors = manager.get_interiors()
+    image = Image.open('tests/fixtures/white_40x40.png')
+    after_image_bytes = Image.open('tests/fixtures/white_one_interior_40x40.png').tobytes()
+
+    manager.update_image_for_interiors(image, interiors, 8, 8)
+    assert after_image_bytes == image.tobytes()

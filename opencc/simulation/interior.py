@@ -1,6 +1,7 @@
 # coding: utf-8
 import typing
 
+from PIL.PngImagePlugin import PngImageFile
 from synergine2_xyz.map import TMXMap
 from synergine2_xyz.utils import get_direct_around_positions_of_position
 
@@ -87,3 +88,21 @@ class InteriorManager(object):
                 if where_position in interior and interior not in interiors:
                     interiors.append(interior)
         return interiors
+
+    def update_image_for_interiors(
+        self,
+        image: PngImageFile,
+        interiors: typing.List[typing.List[typing.Tuple[int, int]]],
+        tile_width: int,
+        tile_height: int,
+    ) -> None:
+        # TODO BS 20171213: Optimization can be done: keep in cache modifications on image instead change it entirely
+        pixels = image.load()
+
+        for interior in interiors:
+            for tile_x, tile_y in interior:
+                start_x = tile_x * tile_width
+                start_y = tile_y * tile_height
+                for x in range(start_x, start_x+tile_width):
+                    for y in range(start_y, start_y+tile_height):
+                        pixels[x, y] = (0, 0, 0, 0)
