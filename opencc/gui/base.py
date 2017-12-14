@@ -1,13 +1,21 @@
 # coding: utf-8
+import io
 import os
 import random
 import typing
 
 import pyglet
+import time
+
+import tmx
+from PIL import Image
 from pyglet.window import key
 
 from cocos.actions import MoveTo as BaseMoveTo
 from cocos.audio.pygame.mixer import Sound
+
+from opencc.simulation.interior import InteriorManager
+from opencc.simulation.tmx import TileMap
 from opencc.user_action import UserAction
 from synergine2.config import Config
 from synergine2.log import SynergineLogger
@@ -34,6 +42,11 @@ class EditLayer(BaseEditLayer):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+        # TODO BS 20171213: Into other layer !
+        self.last_interior_draw = 0
+        # FIXME BS: hardcoded (move into other layer)
+        self.interior_manager = InteriorManager(TileMap('opencc/maps/003/003.tmx'))
+
     def _on_key_press(self, k, m):
         if self.selection:
             if k == key.M:
@@ -44,6 +57,34 @@ class EditLayer(BaseEditLayer):
                 self.user_action_pending = UserAction.ORDER_MOVE_CRAWL
             if k == key.F:
                 self.user_action_pending = UserAction.ORDER_FIRE
+
+    def draw(self) -> None:
+        super().draw()
+        self.draw_interiors()
+
+    def draw_interiors(self):
+        # TODO BS 20171213: Into other layer !
+        now = time.time()
+        # FIXME: config
+        if now - self.last_interior_draw > 2:
+            self.last_interior_draw = now
+            subject_grid_positions = [
+                a.subject.position for a
+                in self.layer_manager.subject_layer.subjects_index.values()
+            ]
+            interiors = self.interior_manager.get_interiors(where_positions=subject_grid_positions)
+
+            if interiors:
+                # FIXME: hardcoded
+                image = Image.open('opencc/maps/003/background.png')
+                image_fake_file = io.BytesIO()
+                # FIXME: tile height/width !
+                self.interior_manager.update_image_for_interiors(image, interiors, 8, 8)
+                image.save(image_fake_file, format='PNG')
+                self.layer_manager.background_sprite.image = pyglet.image.load(
+                    'new_background.png',
+                    file=image_fake_file,
+                )
 
 
 class TileLayerManager(LayerManager):

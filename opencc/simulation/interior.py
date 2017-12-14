@@ -36,6 +36,8 @@ class InteriorManager(object):
         layer_tiles = self.map.layer_tiles(self.configuration.layer_name)
         for tile_xy, tile in layer_tiles.items():
 
+            # FIXME: on se retrouve avec des tuiles Grass la ou l'on a pas mis de tuile interior/exterior.
+            # Faut pouvoir dire c'est tel tile la tile par defaut de tel layer
             if tile.property('id') == self.configuration.interior_id:
                 x, y = map(int, tile_xy.split('.'))
                 if not any([(x, y) in i for i in interiors]):
@@ -77,9 +79,9 @@ class InteriorManager(object):
 
     def get_interiors(
         self,
-        where_positions: typing.List[typing.Tuple[int, int]]=None,
+        where_positions: typing.Iterable[typing.Tuple[int, int]]=None,
     ) -> typing.List[typing.List[typing.Tuple[int, int]]]:
-        if not where_positions:
+        if where_positions is None:
             return self.interiors
         interiors = []
 
@@ -95,6 +97,7 @@ class InteriorManager(object):
         interiors: typing.List[typing.List[typing.Tuple[int, int]]],
         tile_width: int,
         tile_height: int,
+        invert_y: bool=True,
     ) -> None:
         # TODO BS 20171213: Optimization can be done: keep in cache modifications on image instead change it entirely
         pixels = image.load()
@@ -105,4 +108,9 @@ class InteriorManager(object):
                 start_y = tile_y * tile_height
                 for x in range(start_x, start_x+tile_width):
                     for y in range(start_y, start_y+tile_height):
-                        pixels[x, y] = (0, 0, 0, 0)
+
+                        real_y = y
+                        if invert_y:
+                            real_y = image.height - 1 - y
+
+                        pixels[x, real_y] = (0, 0, 0, 0)

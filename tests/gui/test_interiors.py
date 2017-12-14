@@ -141,3 +141,25 @@ def test_interiors_zones__make_image_transparent__just_replace():
 
     manager.update_image_for_interiors(image, interiors, 8, 8)
     assert after_image_bytes == image.tobytes()
+
+
+def test_interiors_zones__make_image_complex_transparent__just_replace():
+    map_ = TMXMap('tests/fixtures/one_interior.tmx')
+    manager = InteriorManager(map_)
+    interiors = manager.get_interiors()
+    image = Image.open('tests/fixtures/complex_40x40.png')
+    after_image_bytes = Image.open('tests/fixtures/complex_one_interior_40x40.png').tobytes()
+
+    manager.update_image_for_interiors(image, interiors, 8, 8)
+    assert after_image_bytes == image.tobytes()
+
+
+def test_interiors_zones__make_image_corner_transparent__just_replace():
+    map_ = TMXMap('tests/fixtures/corner_interior.tmx')
+    manager = InteriorManager(map_)
+    interiors = manager.get_interiors()
+    image = Image.open('tests/fixtures/white_40x40.png')
+    after_image_bytes = Image.open('tests/fixtures/white_corner_interior_40x40.png').tobytes()
+
+    manager.update_image_for_interiors(image, interiors, 8, 8)
+    assert after_image_bytes == image.tobytes()

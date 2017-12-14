@@ -13,5 +13,5 @@ game:
         run_ref_time: 1
         crawl_ref_time: 10
 global:
-    logging_level: DEBUG
-    debug: true
+    logging_level: ERROR
+    debug: false

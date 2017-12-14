@@ -11,6 +11,10 @@ class TerrainTile(XYZTile):
 
 class TileMap(TMXMap):
     xyz_tile_class = TerrainTile
+    default_layer_tilesets = {
+        'interiors': 'interiors',
+        'terrain': 'terrain',
+    }
 
     def get_default_tileset(self) -> tmx.Tileset:
         return self.tmx_tilesets['terrain']
