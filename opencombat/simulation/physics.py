@@ -1,15 +1,15 @@
 # coding: utf-8
 import typing
 
-from opencc.simulation.tmx import TileMap
-from opencc.simulation.tmx import TerrainTile
+from opencombat.simulation.tmx import TileMap
+from opencombat.simulation.tmx import TerrainTile
 from synergine2_xyz.physics import MoveCostComputer
 from synergine2_xyz.physics import TMXPhysics
 from synergine2_xyz.subjects import XYZSubject
 
 if typing.TYPE_CHECKING:
-    from opencc.simulation.base import BaseSubject
-    from opencc.simulation.subject import TileSubject
+    from opencombat.simulation.base import BaseSubject
+    from opencombat.simulation.subject import TileSubject
 
 
 class TileMoveCostComputer(MoveCostComputer):

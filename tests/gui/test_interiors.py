@@ -2,7 +2,7 @@
 from synergine2_xyz.map import TMXMap
 from PIL import Image
 
-from opencc.simulation.interior import InteriorManager
+from opencombat.simulation.interior import InteriorManager
 
 
 def test_interior_zones__one_zone():

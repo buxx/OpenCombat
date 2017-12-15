@@ -1,6 +1,6 @@
 # coding: utf-8
-from opencc.const import COLLECTION_ALIVE
-from opencc.simulation.physics import TilePhysics
+from opencombat.const import COLLECTION_ALIVE
+from opencombat.simulation.physics import TilePhysics
 from synergine2.config import Config
 from synergine2.simulation import SubjectBehaviour
 from synergine2_xyz.physics import Physics

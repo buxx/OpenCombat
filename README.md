@@ -1,10 +1,10 @@
-# OpenCC
+# OpenCombat
 
 Open source close combat inspired game
 
 # Install
 
-OpenCC is in development mode. Considering in your virtual environment, install synergine2:
+OpenCombat is in development mode. Considering in your virtual environment, install synergine2:
 
     git clone https://github.com/buxx/synergine2.git
     cd synergine2
@@ -19,4 +19,4 @@ Then install additional or specific version of development environment:
 
 Example run:
 
-    python run.py opencc/maps/003
+    python run.py opencombat/maps/003

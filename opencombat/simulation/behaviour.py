@@ -3,14 +3,14 @@ import random
 import time
 import typing
 
-from opencc.const import COLLECTION_ALIVE
-from opencc.simulation.base import AliveSubjectBehaviour
-from opencc.simulation.event import NoLongerVisibleOpponent
-from opencc.simulation.event import FireEvent
-from opencc.simulation.event import DieEvent
-from opencc.simulation.event import NewVisibleOpponent
-from opencc.simulation.mechanism import OpponentVisibleMechanism
-from opencc.user_action import UserAction
+from opencombat.const import COLLECTION_ALIVE
+from opencombat.simulation.base import AliveSubjectBehaviour
+from opencombat.simulation.event import NoLongerVisibleOpponent
+from opencombat.simulation.event import FireEvent
+from opencombat.simulation.event import DieEvent
+from opencombat.simulation.event import NewVisibleOpponent
+from opencombat.simulation.mechanism import OpponentVisibleMechanism
+from opencombat.user_action import UserAction
 from synergine2.config import Config
 from synergine2.simulation import Simulation
 from synergine2.simulation import Event

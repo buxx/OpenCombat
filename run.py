@@ -11,15 +11,15 @@ from synergine2.core import Core
 from synergine2.cycle import CycleManager
 from synergine2.terminals import TerminalManager
 
-from opencc.const import FLAG, SIDE
-from opencc.const import FLAG_DE
-from opencc.const import DE_COLOR
-from opencc.const import URSS_COLOR
-from opencc.const import FLAG_URSS
-from opencc.simulation.subject import TileSubject
-from opencc.simulation.base import TileStrategySimulation
-from opencc.simulation.base import TileStrategySubjects
-from opencc.terminal.base import CocosTerminal
+from opencombat.const import FLAG, SIDE
+from opencombat.const import FLAG_DE
+from opencombat.const import DE_COLOR
+from opencombat.const import URSS_COLOR
+from opencombat.const import FLAG_URSS
+from opencombat.simulation.subject import TileSubject
+from opencombat.simulation.base import TileStrategySimulation
+from opencombat.simulation.base import TileStrategySubjects
+from opencombat.terminal.base import CocosTerminal
 
 
 def main(map_dir_path: str, seed_value: int=None):

@@ -1,9 +1,9 @@
 # coding: utf-8
-from opencc.const import COLLECTION_ALIVE, COMBAT_MODE_DEFENSE
-from opencc.simulation.base import BaseSubject
-from opencc.simulation.behaviour import MoveToBehaviour
-from opencc.simulation.behaviour import EngageOpponent
-from opencc.simulation.behaviour import LookAroundBehaviour
+from opencombat.const import COLLECTION_ALIVE, COMBAT_MODE_DEFENSE
+from opencombat.simulation.base import BaseSubject
+from opencombat.simulation.behaviour import MoveToBehaviour
+from opencombat.simulation.behaviour import EngageOpponent
+from opencombat.simulation.behaviour import LookAroundBehaviour
 from synergine2.share import shared
 
 

@@ -2,7 +2,7 @@
 import typing
 
 from synergine2_cocos2d.interaction import BaseActorInteraction
-from opencc.user_action import UserAction
+from opencombat.user_action import UserAction
 from synergine2.simulation import SimulationBehaviour
 from synergine2_cocos2d.actor import Actor
 from synergine2_cocos2d.gl import draw_line

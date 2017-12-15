@@ -1,7 +1,7 @@
 # coding: utf-8
 import typing
 
-from opencc.const import SIDE, COLLECTION_ALIVE
+from opencombat.const import SIDE, COLLECTION_ALIVE
 from synergine2_xyz.subjects import XYZSubject
 from synergine2_xyz.visible.simulation import VisibleMechanism
 

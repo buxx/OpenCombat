@@ -1,11 +1,11 @@
 # coding: utf-8
-from opencc.simulation.event import NewVisibleOpponent
-from opencc.simulation.event import FireEvent
-from opencc.simulation.event import DieEvent
-from opencc.simulation.event import NoLongerVisibleOpponent
-from opencc.simulation.physics import TilePhysics
-from opencc.simulation.subject import TileSubject as ManSubject
-from opencc.gui.actor import Man as ManActor
+from opencombat.simulation.event import NewVisibleOpponent
+from opencombat.simulation.event import FireEvent
+from opencombat.simulation.event import DieEvent
+from opencombat.simulation.event import NoLongerVisibleOpponent
+from opencombat.simulation.physics import TilePhysics
+from opencombat.simulation.subject import TileSubject as ManSubject
+from opencombat.gui.actor import Man as ManActor
 from synergine2_cocos2d.terminal import GameTerminal
 from synergine2_cocos2d.util import get_map_file_path_from_dir
 from synergine2_xyz.move.simulation import FinishMoveEvent
@@ -33,7 +33,7 @@ class CocosTerminal(GameTerminal):
         self.map_dir_path = map_dir_path
 
     def run(self):
-        from opencc.gui.base import Game
+        from opencombat.gui.base import Game
         from synergine2_cocos2d.gui import SubjectMapper
 
         self.gui = Game(

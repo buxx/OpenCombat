@@ -14,9 +14,9 @@ from pyglet.window import key
 from cocos.actions import MoveTo as BaseMoveTo
 from cocos.audio.pygame.mixer import Sound
 
-from opencc.simulation.interior import InteriorManager
-from opencc.simulation.tmx import TileMap
-from opencc.user_action import UserAction
+from opencombat.simulation.interior import InteriorManager
+from opencombat.simulation.tmx import TileMap
+from opencombat.user_action import UserAction
 from synergine2.config import Config
 from synergine2.log import SynergineLogger
 from synergine2.terminals import Terminal
@@ -32,10 +32,10 @@ from synergine2_xyz.move.simulation import FinishMoveEvent
 from synergine2_xyz.move.simulation import StartMoveEvent
 from synergine2_xyz.physics import Physics
 from synergine2_xyz.utils import get_angle
-from opencc.simulation.event import NewVisibleOpponent
-from opencc.simulation.event import NoLongerVisibleOpponent
-from opencc.simulation.event import FireEvent
-from opencc.simulation.event import DieEvent
+from opencombat.simulation.event import NewVisibleOpponent
+from opencombat.simulation.event import NoLongerVisibleOpponent
+from opencombat.simulation.event import FireEvent
+from opencombat.simulation.event import DieEvent
 
 
 class EditLayer(BaseEditLayer):
@@ -45,7 +45,7 @@ class EditLayer(BaseEditLayer):
         # TODO BS 20171213: Into other layer !
         self.last_interior_draw = 0
         # FIXME BS: hardcoded (move into other layer)
-        self.interior_manager = InteriorManager(TileMap('opencc/maps/003/003.tmx'))
+        self.interior_manager = InteriorManager(TileMap('opencombat/maps/003/003.tmx'))
 
     def _on_key_press(self, k, m):
         if self.selection:
@@ -76,7 +76,7 @@ class EditLayer(BaseEditLayer):
 
             if interiors:
                 # FIXME: hardcoded
-                image = Image.open('opencc/maps/003/background.png')
+                image = Image.open('opencombat/maps/003/background.png')
                 image_fake_file = io.BytesIO()
                 # FIXME: tile height/width !
                 self.interior_manager.update_image_for_interiors(image, interiors, 8, 8)
@@ -128,7 +128,7 @@ class Game(TMXGui):
             read_queue_interval=read_queue_interval,
             map_dir_path=map_dir_path,
         )
-        self.sound_lib = AudioLibrary('opencc/sounds/')
+        self.sound_lib = AudioLibrary('opencombat/sounds/')
 
         self.terminal.register_event_handler(
             FinishMoveEvent,
@@ -166,10 +166,10 @@ class Game(TMXGui):
         self.move_crawl_duration_ref = float(self.config.resolve('game.move.crawl_ref_time'))
 
     def before_run(self) -> None:
-        from opencc.gui.move import MoveActorInteraction
-        from opencc.gui.move import MoveFastActorInteraction
-        from opencc.gui.move import MoveCrawlActorInteraction
-        from opencc.gui.fire import FireActorInteraction
+        from opencombat.gui.move import MoveActorInteraction
+        from opencombat.gui.move import MoveFastActorInteraction
+        from opencombat.gui.move import MoveCrawlActorInteraction
+        from opencombat.gui.fire import FireActorInteraction
 
         self.layer_manager.interaction_manager.register(MoveActorInteraction, self.layer_manager)
         self.layer_manager.interaction_manager.register(MoveFastActorInteraction, self.layer_manager)
@@ -275,6 +275,6 @@ class Game(TMXGui):
 
     def subject_die(self, event: DieEvent) -> None:
         killed_actor = self.layer_manager.subject_layer.subjects_index[event.shoot_subject_id]
-        dead_image = pyglet.resource.image('opencc/maps/003/actors/man_d1.png')
+        dead_image = pyglet.resource.image('opencombat/maps/003/actors/man_d1.png')
         killed_actor.update_image(dead_image)
         killed_actor.freeze()
