@@ -4,7 +4,9 @@ Open source close combat inspired game
 
 # Install
 
-OpenCombat is in development mode. Considering in your virtual environment, install synergine2:
+Note: OpenCombat is in development mode. 
+
+Considering in your virtual environment, install synergine2:
 
     git clone https://github.com/buxx/synergine2.git
     cd synergine2
@@ -14,6 +16,8 @@ OpenCombat is in development mode. Considering in your virtual environment, inst
 Then install additional or specific version of development environment:
 
     pip install -r requirements.txt
+
+You also need a running redis server (used db number is `0`, soon configurable). 
 
 # Run
 
