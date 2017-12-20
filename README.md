@@ -24,3 +24,12 @@ You also need a running redis server (used db number is `0`, soon configurable).
 Example run:
 
     python run.py opencombat/maps/003
+
+# Actual keys
+
+When unit selected: 
+
+* R: run
+* C: crouch
+* M: move
+* F: fire (not implemented)
