@@ -13,6 +13,8 @@ from synergine2_xyz.move.simulation import StartMoveEvent
 
 
 class CocosTerminal(GameTerminal):
+    main_process = True
+
     subscribed_events = [
         FinishMoveEvent,
         StartMoveEvent,
