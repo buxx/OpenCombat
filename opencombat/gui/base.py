@@ -4,28 +4,30 @@ import os
 import random
 import typing
 
+import cocos
 import pyglet
 import time
 
-import tmx
 from PIL import Image
 from pyglet.window import key
 
 from cocos.actions import MoveTo as BaseMoveTo
 from cocos.audio.pygame.mixer import Sound
+from synergine2_cocos2d.interaction import InteractionManager
+from synergine2_cocos2d.middleware import MapMiddleware
 
 from opencombat.simulation.interior import InteriorManager
 from opencombat.simulation.tmx import TileMap
 from opencombat.user_action import UserAction
 from synergine2.config import Config
-from synergine2.log import SynergineLogger
 from synergine2.terminals import Terminal
 from synergine2_cocos2d.actions import MoveTo
-from synergine2_cocos2d.animation import ANIMATION_CRAWL
-from synergine2_cocos2d.animation import ANIMATION_WALK
+from opencombat.gui.animation import ANIMATION_CRAWL
+from opencombat.gui.animation import ANIMATION_WALK
 from synergine2_cocos2d.animation import Animate
 from synergine2_cocos2d.gl import draw_line
 from synergine2_cocos2d.gui import EditLayer as BaseEditLayer
+from synergine2_cocos2d.gui import Gui
 from synergine2_cocos2d.gui import TMXGui
 from synergine2_cocos2d.layer import LayerManager
 from synergine2_xyz.move.simulation import FinishMoveEvent
@@ -89,6 +91,45 @@ class EditLayer(BaseEditLayer):
 
 class TileLayerManager(LayerManager):
     edit_layer_class = EditLayer
+
+    def __init__(
+        self,
+        config: Config,
+        middleware: MapMiddleware,
+        interaction_manager: 'InteractionManager',
+        gui: 'Gui',
+    ) -> None:
+        super().__init__(
+            config,
+            middleware,
+            interaction_manager,
+            gui,
+        )
+        self.background_sprite = None  # type: cocos.sprite.Sprite
+        self.interior_sprite = None  # type: cocos.sprite.Sprite
+        self.ground_layer = None  # type: cocos.tiles.RectMapLayer
+        self.top_layer = None  # type: cocos.tiles.RectMapLayer
+
+    def init(self) -> None:
+        super().init()
+        self.interior_sprite = self.middleware.get_interior_sprite()
+        self.background_sprite = self.middleware.get_background_sprite()
+        self.ground_layer = self.middleware.get_ground_layer()
+        self.top_layer = self.middleware.get_top_layer()
+
+    def connect_layers(self) -> None:
+        self.main_layer.add(self.interior_sprite)
+        self.main_layer.add(self.background_sprite)
+        self.main_layer.add(self.ground_layer)
+        super().connect_layers()
+        self.main_layer.add(self.top_layer)
+
+    def center(self) -> None:
+        super().center()
+        self.interior_sprite.position = 0 + (self.interior_sprite.width / 2), 0 + (self.interior_sprite.height / 2)  # nopep8
+        self.background_sprite.position = 0 + (self.background_sprite.width / 2), 0 + (self.background_sprite.height/2)  # nopep8
+        self.ground_layer.set_view(0, 0, self.ground_layer.px_width, self.ground_layer.px_height,)  # nopep8
+        self.top_layer.set_view(0, 0, self.top_layer.px_width, self.top_layer.px_height)
 
 
 # TODO: Move into synergine2cocos2d

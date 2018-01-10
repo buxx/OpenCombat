@@ -3,8 +3,8 @@ import pyglet
 
 from synergine2.simulation import Subject
 from synergine2_cocos2d.actor import Actor
-from synergine2_cocos2d.animation import ANIMATION_WALK
-from synergine2_cocos2d.animation import ANIMATION_CRAWL
+from opencombat.gui.animation import ANIMATION_WALK
+from opencombat.gui.animation import ANIMATION_CRAWL
 
 
 FLAG_DE = 'DE'
