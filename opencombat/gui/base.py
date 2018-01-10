@@ -114,7 +114,6 @@ class Game(TMXGui):
     def __init__(
         self,
         config: Config,
-        logger: SynergineLogger,
         terminal: Terminal,
         physics: Physics,
         read_queue_interval: float = 1 / 60.0,
@@ -122,7 +121,6 @@ class Game(TMXGui):
     ):
         super().__init__(
             config,
-            logger,
             terminal,
             physics=physics,
             read_queue_interval=read_queue_interval,

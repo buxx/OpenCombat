@@ -66,19 +66,15 @@ def main(map_dir_path: str, seed_value: int=None):
 
     core = Core(
         config=config,
-        logger=logger,
         simulation=simulation,
         cycle_manager=CycleManager(
             config=config,
-            logger=logger,
             simulation=simulation,
         ),
         terminal_manager=TerminalManager(
             config=config,
-            logger=logger,
             terminals=[CocosTerminal(
                 config,
-                logger,
                 asynchronous=False,
                 map_dir_path=map_dir_path,
             )]

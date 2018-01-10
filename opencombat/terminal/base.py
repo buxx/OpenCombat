@@ -40,7 +40,6 @@ class CocosTerminal(GameTerminal):
 
         self.gui = Game(
             self.config,
-            self.logger,
             self,
             physics=self.physics,
             map_dir_path=self.map_dir_path,
