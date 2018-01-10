@@ -1,12 +1,12 @@
 # OpenCombat
 
-Open source close combat inspired game
+Open source close combat inspired game. Presentation here: http://www.closecombatseries.net/CCS/modules.php?name=Forums&file=viewtopic&t=11696
+
+**Important note**: OpenCombat is in development and is developed under linux. Windows support is planned but not actually tested.
 
 # Install
 
 OS require: build-essential libsdl1.2debian libsdl-image1.2 libsdl-image1.2-dev libsdl-ttf2.0-0 libsdl-ttf2.0-dev libsdl-mixer1.2 libsdl-mixer1.2-dev
-
-Note: OpenCombat is in development mode. 
 
 Considering in your virtual environment, install synergine2:
 
