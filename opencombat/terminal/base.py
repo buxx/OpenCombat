@@ -1,4 +1,8 @@
 # coding: utf-8
+import pyglet
+from cocos.director import event_loop
+from synergine2.terminals import TerminalPackage
+
 from opencombat.simulation.event import NewVisibleOpponent
 from opencombat.simulation.event import FireEvent
 from opencombat.simulation.event import DieEvent
@@ -44,6 +48,15 @@ class CocosTerminal(GameTerminal):
             physics=self.physics,
             map_dir_path=self.map_dir_path,
         )
+
+        @event_loop.event
+        def on_window_close(window):
+            event_loop.exit()
+            self.send(TerminalPackage(sigterm=True))
+
+            self.core_process.join(timeout=120)
+
+            return pyglet.event.EVENT_HANDLED
 
         # TODO: Defind on some other place ?
         self.gui.subject_mapper_factory.register_mapper(
