@@ -41,14 +41,6 @@ from opencombat.simulation.event import DieEvent
 
 
 class EditLayer(BaseEditLayer):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-        # TODO BS 20171213: Into other layer !
-        self.last_interior_draw = 0
-        # FIXME BS: hardcoded (move into other layer)
-        self.interior_manager = InteriorManager(TileMap('opencombat/maps/003/003.tmx'))
-
     def _on_key_press(self, k, m):
         if self.selection:
             if k == key.M:
@@ -62,19 +54,35 @@ class EditLayer(BaseEditLayer):
 
     def draw(self) -> None:
         super().draw()
+
+
+class BackgroundLayer(cocos.layer.Layer):
+    def __init__(
+        self,
+        layer_manager: LayerManager,
+        background_sprite: cocos.sprite.Sprite,
+    ) -> None:
+        super().__init__()
+        self.layer_manager = layer_manager
+        self.background_sprite = background_sprite
+        self.last_interior_draw_timestamp = 0
+        self.interior_manager = InteriorManager(TileMap('opencombat/maps/003/003.tmx'))
+
+    def draw(self, *args, **kwargs):
+        super().draw(*args, **kwargs)
         self.draw_interiors()
 
     def draw_interiors(self):
-        # TODO BS 20171213: Into other layer !
         now = time.time()
         # FIXME: config
-        if now - self.last_interior_draw > 2:
-            self.last_interior_draw = now
+        if now - self.last_interior_draw_timestamp > 2:
+            self.last_interior_draw_timestamp = now
             subject_grid_positions = [
                 a.subject.position for a
                 in self.layer_manager.subject_layer.subjects_index.values()
             ]
-            interiors = self.interior_manager.get_interiors(where_positions=subject_grid_positions)
+            interiors = self.interior_manager.get_interiors(
+                where_positions=subject_grid_positions)
 
             if interiors:
                 # FIXME: hardcoded
@@ -83,7 +91,7 @@ class EditLayer(BaseEditLayer):
                 # FIXME: tile height/width !
                 self.interior_manager.update_image_for_interiors(image, interiors, 8, 8)
                 image.save(image_fake_file, format='PNG')
-                self.layer_manager.background_sprite.image = pyglet.image.load(
+                self.background_sprite.image = pyglet.image.load(
                     'new_background.png',
                     file=image_fake_file,
                 )
@@ -105,7 +113,7 @@ class TileLayerManager(LayerManager):
             interaction_manager,
             gui,
         )
-        self.background_sprite = None  # type: cocos.sprite.Sprite
+        self.background_layer = None  # type: BackgroundLayer
         self.interior_sprite = None  # type: cocos.sprite.Sprite
         self.ground_layer = None  # type: cocos.tiles.RectMapLayer
         self.top_layer = None  # type: cocos.tiles.RectMapLayer
@@ -113,23 +121,32 @@ class TileLayerManager(LayerManager):
     def init(self) -> None:
         super().init()
         self.interior_sprite = self.middleware.get_interior_sprite()
-        self.background_sprite = self.middleware.get_background_sprite()
+        background_sprite = self.middleware.get_background_sprite()
+        self.background_layer = BackgroundLayer(self, background_sprite)
+        self.background_layer.add(background_sprite)
         self.ground_layer = self.middleware.get_ground_layer()
         self.top_layer = self.middleware.get_top_layer()
 
     def connect_layers(self) -> None:
         self.main_layer.add(self.interior_sprite)
-        self.main_layer.add(self.background_sprite)
+        self.main_layer.add(self.background_layer)
         self.main_layer.add(self.ground_layer)
         super().connect_layers()
         self.main_layer.add(self.top_layer)
 
     def center(self) -> None:
         super().center()
-        self.interior_sprite.position = 0 + (self.interior_sprite.width / 2), 0 + (self.interior_sprite.height / 2)  # nopep8
-        self.background_sprite.position = 0 + (self.background_sprite.width / 2), 0 + (self.background_sprite.height/2)  # nopep8
-        self.ground_layer.set_view(0, 0, self.ground_layer.px_width, self.ground_layer.px_height,)  # nopep8
-        self.top_layer.set_view(0, 0, self.top_layer.px_width, self.top_layer.px_height)
+        self.interior_sprite.position = \
+            0 + (self.interior_sprite.width / 2), 0 + (self.interior_sprite.height / 2)
+        self.background_layer.background_sprite.position = \
+            0 + (self.background_layer.background_sprite.width / 2), 0 +\
+            (self.background_layer.background_sprite.height/2)
+        self.ground_layer.set_view(
+            0, 0, self.ground_layer.px_width, self.ground_layer.px_height,
+        )
+        self.top_layer.set_view(
+            0, 0, self.top_layer.px_width, self.top_layer.px_height,
+        )
 
 
 # TODO: Move into synergine2cocos2d
