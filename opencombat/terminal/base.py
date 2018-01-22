@@ -61,7 +61,7 @@ class CocosTerminal(GameTerminal):
         # TODO: Defind on some other place ?
         self.gui.subject_mapper_factory.register_mapper(
             ManSubject,
-            SubjectMapper(ManActor),
+            SubjectMapper(self.config, ManActor),
         )
 
         self.gui.run()

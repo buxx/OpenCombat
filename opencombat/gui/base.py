@@ -15,6 +15,7 @@ from cocos.actions import MoveTo as BaseMoveTo
 from cocos.audio.pygame.mixer import Sound
 from synergine2_cocos2d.interaction import InteractionManager
 from synergine2_cocos2d.middleware import MapMiddleware
+from synergine2_cocos2d.util import PathManager
 
 from opencombat.simulation.interior import InteriorManager
 from opencombat.simulation.tmx import TileMap
@@ -155,8 +156,9 @@ class AudioLibrary(object):
         'gunshot_default': '204010__duckduckpony__homemade-gunshot-2.ogg',
     }
 
-    def __init__(self, sound_dir_path: str) -> None:
-        self._sound_dir_path = sound_dir_path
+    def __init__(self, config: Config) -> None:
+        self.config = config
+        self._path_manager = PathManager(config.resolve('global.include_path.sounds'))
         self._sounds = {}
 
     def get_sound(self, name: str) -> Sound:
@@ -184,7 +186,7 @@ class Game(TMXGui):
             read_queue_interval=read_queue_interval,
             map_dir_path=map_dir_path,
         )
-        self.sound_lib = AudioLibrary('opencombat/sounds/')
+        self.sound_lib = AudioLibrary(self.config)
 
         self.terminal.register_event_handler(
             FinishMoveEvent,

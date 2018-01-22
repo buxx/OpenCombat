@@ -1,5 +1,6 @@
 # coding: utf-8
 import pyglet
+from synergine2.config import Config
 
 from synergine2.simulation import Subject
 from synergine2_cocos2d.actor import Actor
@@ -37,6 +38,7 @@ class Man(Actor):
 
     def __init__(
         self,
+        config: Config,
         subject: Subject,
     ) -> None:
-        super().__init__(pyglet.resource.image('actors/man.png'), subject=subject)
+        super().__init__('actors/man.png', subject=subject, config=config)
