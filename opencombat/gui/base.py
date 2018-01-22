@@ -67,7 +67,9 @@ class BackgroundLayer(cocos.layer.Layer):
         self.layer_manager = layer_manager
         self.background_sprite = background_sprite
         self.last_interior_draw_timestamp = 0
-        self.interior_manager = InteriorManager(TileMap('opencombat/maps/003/003.tmx'))
+        self.interior_manager = InteriorManager(TileMap(
+            layer_manager.middleware.get_map_file_path(),
+        ))
 
     def draw(self, *args, **kwargs):
         super().draw(*args, **kwargs)
@@ -86,8 +88,10 @@ class BackgroundLayer(cocos.layer.Layer):
                 where_positions=subject_grid_positions)
 
             if interiors:
-                # FIXME: hardcoded
-                image = Image.open('opencombat/maps/003/background.png')
+                image = Image.open(os.path.join(
+                    self.layer_manager.middleware.map_dir_path,
+                    'background.png',
+                ))
                 image_fake_file = io.BytesIO()
                 # FIXME: tile height/width !
                 self.interior_manager.update_image_for_interiors(image, interiors, 8, 8)
