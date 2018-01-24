@@ -1,10 +1,12 @@
 # coding: utf-8
-
-
-# TODO: Reprendre les events Move, pour les lister tous ici
 import typing
 
 from synergine2.simulation import Event
+
+from opencombat.const import COLLECTION_ALIVE
+
+if typing.TYPE_CHECKING:
+    from opencombat.simulation.subject import TileSubject
 
 
 class NewVisibleOpponent(Event):
@@ -38,6 +40,11 @@ class FireEvent(Event):
 
 
 class DieEvent(Event):
+    @classmethod
+    def apply_subject_death(cls, subject: 'TileSubject') -> None:
+        subject.remove_collection(COLLECTION_ALIVE)
+        subject.intentions.remove_all()
+
     def __init__(
         self,
         shooter_subject_id: int,

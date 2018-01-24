@@ -120,13 +120,11 @@ class EngageOpponent(AliveSubjectBehaviour):
 
         # Must be check if target is not already dead (killed same cycle)
         if kill and COLLECTION_ALIVE in target_subject.collections:
-            # TODO: refact ? All in same place for dead ?
-            target_subject.collections.remove(COLLECTION_ALIVE)
-            # FIXME: Must be automatic when manipulate subject collections !
-            self.simulation.collections[COLLECTION_ALIVE].remove(target_subject_id)
-            self.simulation.collections[COLLECTION_ALIVE] = self.simulation.collections[COLLECTION_ALIVE]
-            events.append(DieEvent(shooter_subject_id=self.subject.id, shoot_subject_id=target_subject_id))
-            target_subject.intentions.remove_all()
+            DieEvent.apply_subject_death(target_subject)
+            events.append(DieEvent(
+                shooter_subject_id=self.subject.id,
+                shoot_subject_id=target_subject_id,
+            ))
 
         return events
 
