@@ -179,7 +179,8 @@ class AudioLibrary(object):
     def get_sound(self, name: str) -> Sound:
         if name not in self._sounds:
             sound_file_name = self.sound_file_paths[name]
-            self._sounds[name] = Sound(os.path.join(self._sound_dir_path, sound_file_name))
+            sound_file_path = self._path_manager.path(sound_file_name)
+            self._sounds[name] = Sound(sound_file_path)
         return self._sounds[name]
 
 
