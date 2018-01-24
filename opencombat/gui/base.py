@@ -203,6 +203,9 @@ class Game(TMXGui):
             map_dir_path=map_dir_path,
         )
         self.sound_lib = AudioLibrary(self.config)
+        self.graphic_path_manager = PathManager(self.config.resolve(
+            'global.include_path.graphics',
+        ))
 
         self.terminal.register_event_handler(
             FinishMoveEvent,
@@ -243,6 +246,9 @@ class Game(TMXGui):
         ))
         self.move_crawl_duration_ref = float(self.config.resolve(
             'game.move.crawl_ref_time',
+        ))
+        self.dead_soldier_image = pyglet.resource.image(self.graphic_path_manager.path(
+            'actors/man_d1.png',
         ))
 
     def before_run(self) -> None:
@@ -357,6 +363,5 @@ class Game(TMXGui):
 
     def subject_die(self, event: DieEvent) -> None:
         killed_actor = self.layer_manager.subject_layer.subjects_index[event.shoot_subject_id]
-        dead_image = pyglet.resource.image('opencombat/maps/003/actors/man_d1.png')
-        killed_actor.update_image(dead_image)
+        killed_actor.update_image(self.dead_soldier_image)
         killed_actor.freeze()
