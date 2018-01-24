@@ -234,10 +234,16 @@ class Game(TMXGui):
             self.subject_die,
         )
 
-        # configs
-        self.move_duration_ref = float(self.config.resolve('game.move.walk_ref_time'))
-        self.move_fast_duration_ref = float(self.config.resolve('game.move.run_ref_time'))
-        self.move_crawl_duration_ref = float(self.config.resolve('game.move.crawl_ref_time'))
+        # configs / resources
+        self.move_duration_ref = float(self.config.resolve(
+            'game.move.walk_ref_time',
+        ))
+        self.move_fast_duration_ref = float(self.config.resolve(
+            'game.move.run_ref_time',
+        ))
+        self.move_crawl_duration_ref = float(self.config.resolve(
+            'game.move.crawl_ref_time',
+        ))
 
     def before_run(self) -> None:
         from opencombat.gui.move import MoveActorInteraction
