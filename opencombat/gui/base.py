@@ -330,6 +330,8 @@ class Game(TMXGui):
             self.sound_lib.get_sound('gunshot_default').play()
 
         # To avoid all in same time
+        # TODO BS 2018-01-24: This should be unecessary when core events sending will be
+        # base on time base instead cycle base. Remove it to ensure.
         delay = random.uniform(0.0, 0.6)
 
         self.layer_manager.edit_layer.append_callback(gunshot_trace, duration=0.1, delay=delay)
