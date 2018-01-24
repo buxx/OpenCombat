@@ -12,7 +12,7 @@ from PIL import Image
 from pyglet.window import key
 
 from cocos.actions import MoveTo as BaseMoveTo
-from cocos.audio.pygame.mixer import Sound
+from synergine2_cocos2d.audio import AudioLibrary as BaseAudioLibrary
 from synergine2_cocos2d.interaction import InteractionManager
 from synergine2_cocos2d.middleware import MapMiddleware
 from synergine2_cocos2d.util import PathManager
@@ -165,23 +165,10 @@ class TileLayerManager(LayerManager):
         )
 
 
-# TODO: Move into synergine2cocos2d
-class AudioLibrary(object):
+class AudioLibrary(BaseAudioLibrary):
     sound_file_paths = {
         'gunshot_default': '204010__duckduckpony__homemade-gunshot-2.ogg',
     }
-
-    def __init__(self, config: Config) -> None:
-        self.config = config
-        self._path_manager = PathManager(config.resolve('global.include_path.sounds'))
-        self._sounds = {}
-
-    def get_sound(self, name: str) -> Sound:
-        if name not in self._sounds:
-            sound_file_name = self.sound_file_paths[name]
-            sound_file_path = self._path_manager.path(sound_file_name)
-            self._sounds[name] = Sound(sound_file_path)
-        return self._sounds[name]
 
 
 class Game(TMXGui):
@@ -202,7 +189,7 @@ class Game(TMXGui):
             read_queue_interval=read_queue_interval,
             map_dir_path=map_dir_path,
         )
-        self.sound_lib = AudioLibrary(self.config)
+        self.sound_lib = AudioLibrary(config.resolve('global.include_path.sounds'))
         self.graphic_path_manager = PathManager(self.config.resolve(
             'global.include_path.graphics',
         ))
