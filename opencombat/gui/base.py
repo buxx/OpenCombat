@@ -60,13 +60,19 @@ class EditLayer(BaseEditLayer):
 class BackgroundLayer(cocos.layer.Layer):
     def __init__(
         self,
+        config: Config,
         layer_manager: LayerManager,
         background_sprite: cocos.sprite.Sprite,
     ) -> None:
         super().__init__()
+        self.config = config
         self.layer_manager = layer_manager
         self.background_sprite = background_sprite
         self.last_interior_draw_timestamp = 0
+        self.draw_interiors_gap = self.config.resolve(
+            'game.building.draw_interior_gap',
+            2,
+        )
         self.interior_manager = InteriorManager(TileMap(
             layer_manager.middleware.get_map_file_path(),
         ))
@@ -77,8 +83,7 @@ class BackgroundLayer(cocos.layer.Layer):
 
     def draw_interiors(self):
         now = time.time()
-        # FIXME: config
-        if now - self.last_interior_draw_timestamp > 2:
+        if now - self.last_interior_draw_timestamp > self.draw_interiors_gap:
             self.last_interior_draw_timestamp = now
             subject_grid_positions = [
                 a.subject.position for a
@@ -127,7 +132,7 @@ class TileLayerManager(LayerManager):
         super().init()
         self.interior_sprite = self.middleware.get_interior_sprite()
         background_sprite = self.middleware.get_background_sprite()
-        self.background_layer = BackgroundLayer(self, background_sprite)
+        self.background_layer = BackgroundLayer(self.config, self, background_sprite)
         self.background_layer.add(background_sprite)
         self.ground_layer = self.middleware.get_ground_layer()
         self.top_layer = self.middleware.get_top_layer()
