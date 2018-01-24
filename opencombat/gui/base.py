@@ -76,6 +76,8 @@ class BackgroundLayer(cocos.layer.Layer):
         self.interior_manager = InteriorManager(TileMap(
             layer_manager.middleware.get_map_file_path(),
         ))
+        self.map_tile_width = self.layer_manager.middleware.get_cell_width()
+        self.map_tile_height = self.layer_manager.middleware.get_cell_height()
 
     def draw(self, *args, **kwargs):
         super().draw(*args, **kwargs)
@@ -98,8 +100,12 @@ class BackgroundLayer(cocos.layer.Layer):
                     'background.png',
                 ))
                 image_fake_file = io.BytesIO()
-                # FIXME: tile height/width !
-                self.interior_manager.update_image_for_interiors(image, interiors, 8, 8)
+                self.interior_manager.update_image_for_interiors(
+                    image,
+                    interiors,
+                    self.map_tile_width,
+                    self.map_tile_height,
+                )
                 image.save(image_fake_file, format='PNG')
                 self.background_sprite.image = pyglet.image.load(
                     'new_background.png',
