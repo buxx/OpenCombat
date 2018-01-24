@@ -280,33 +280,33 @@ class Game(TMXGui):
         event: typing.Union[NoLongerVisibleOpponent, NewVisibleOpponent],
         line_color,
     ) -> None:
-        if self.layer_manager.debug:
-            observer_actor = self.layer_manager.subject_layer.subjects_index[event.observer_subject_id]
-            observed_actor = self.layer_manager.subject_layer.subjects_index[event.observed_subject_id]
+        if not self.layer_manager.debug:
+            return
 
-            observer_pixel_position = self.layer_manager.scrolling_manager.world_to_screen(
-                *self.layer_manager.grid_manager.get_world_position_of_grid_position(
-                    observer_actor.subject.position,
-                )
+        observer_actor = self.layer_manager.subject_layer.subjects_index[event.observer_subject_id]
+        observed_actor = self.layer_manager.subject_layer.subjects_index[event.observed_subject_id]
+
+        observer_pixel_position = self.layer_manager.scrolling_manager.world_to_screen(
+            *self.layer_manager.grid_manager.get_world_position_of_grid_position(
+                observer_actor.subject.position,
             )
-            observed_pixel_position = self.layer_manager.scrolling_manager.world_to_screen(
-                *self.layer_manager.grid_manager.get_world_position_of_grid_position(
-                    observed_actor.subject.position,
-                )
+        )
+        observed_pixel_position = self.layer_manager.scrolling_manager.world_to_screen(
+            *self.layer_manager.grid_manager.get_world_position_of_grid_position(
+                observed_actor.subject.position,
+            )
+        )
+
+        def draw_visible_opponent():
+            draw_line(
+                observer_pixel_position,
+                observed_pixel_position,
+                line_color,
             )
 
-            def draw_visible_opponent():
-                draw_line(
-                    observer_pixel_position,
-                    observed_pixel_position,
-                    line_color,
-                )
-
-            # TODO: Not in edit layer !
-            self.layer_manager.edit_layer.append_callback(draw_visible_opponent, 1.0)
+        self.layer_manager.edit_layer.append_callback(draw_visible_opponent, 1.0)
 
     def fire_happen(self, event: FireEvent) -> None:
-        # TODO: Not in edit layer !
         shooter_actor = self.layer_manager.subject_layer.subjects_index[event.shooter_subject_id]
         shooter_pixel_position = self.layer_manager.scrolling_manager.world_to_screen(
             *self.layer_manager.grid_manager.get_world_position_of_grid_position(
