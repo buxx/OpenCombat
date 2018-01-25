@@ -32,6 +32,7 @@ class InteriorManager(object):
         self.original_image = original_image
         self.configuration = configuration or InteriorMapConfiguration()
         self.interiors = self._compute_interiors()
+        self._cache = {}  # type: typing.Dict[str, PngImageFile]
 
     def _compute_interiors(self) -> typing.List[typing.List[typing.Tuple[int, int]]]:
         interiors = []
@@ -91,6 +92,20 @@ class InteriorManager(object):
                     interiors.append(interior)
         return interiors
 
+    def _get_interior_unique_key(
+        self,
+        interiors: typing.List[typing.List[typing.Tuple[int, int]]],
+    ) -> str:
+        """
+        Compute a key for given interior list. WARNING: For performance reasons,
+        actual unique key is interior list ID concatenation:
+        So, if same interior list is given, but in different python object, key will be
+        different !
+        :param interiors: Interior list to build unique key
+        :return: String or Int who id unique key of given interiors
+        """
+        return '.'.join([str(id(i)) for i in interiors])
+
     def update_image_for_interiors(
         self,
         interiors: typing.List[typing.List[typing.Tuple[int, int]]],
@@ -98,7 +113,11 @@ class InteriorManager(object):
         tile_height: int,
         invert_y: bool=True,
     ) -> PngImageFile:
-        # TODO BS 20171213: Optimization can be done: keep in cache modifications on image instead change it entirely
+        try:
+            return self._cache[self._get_interior_unique_key(interiors)]
+        except KeyError:
+            pass  # compute it
+
         image = self.original_image.copy()
         image_height = image.height
         pixels = image.load()
@@ -116,4 +135,5 @@ class InteriorManager(object):
 
                         pixels[x, real_y] = (0, 0, 0, 0)
 
+        self._cache[self._get_interior_unique_key(interiors)] = image
         return image
