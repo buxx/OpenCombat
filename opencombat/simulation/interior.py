@@ -24,10 +24,12 @@ class InteriorManager(object):
     def __init__(
         self,
         map_: TMXMap,
+        original_image: PngImageFile,
         configuration: InteriorMapConfiguration=None,
     ) -> None:
         self.interiors = []
         self.map = map_
+        self.original_image = original_image
         self.configuration = configuration or InteriorMapConfiguration()
         self.interiors = self._compute_interiors()
 
@@ -91,13 +93,14 @@ class InteriorManager(object):
 
     def update_image_for_interiors(
         self,
-        image: PngImageFile,
         interiors: typing.List[typing.List[typing.Tuple[int, int]]],
         tile_width: int,
         tile_height: int,
         invert_y: bool=True,
-    ) -> None:
+    ) -> PngImageFile:
         # TODO BS 20171213: Optimization can be done: keep in cache modifications on image instead change it entirely
+        image = self.original_image.copy()
+        image_height = image.height
         pixels = image.load()
 
         for interior in interiors:
@@ -109,6 +112,8 @@ class InteriorManager(object):
 
                         real_y = y
                         if invert_y:
-                            real_y = image.height - 1 - y
+                            real_y = image_height - 1 - y
 
                         pixels[x, real_y] = (0, 0, 0, 0)
+
+        return image

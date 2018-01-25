@@ -73,9 +73,14 @@ class BackgroundLayer(cocos.layer.Layer):
             'game.building.draw_interior_gap',
             2,
         )
-        self.interior_manager = InteriorManager(TileMap(
-            layer_manager.middleware.get_map_file_path(),
+        self.background_image = Image.open(os.path.join(
+            self.layer_manager.middleware.map_dir_path,
+            'background.png',
         ))
+        self.interior_manager = InteriorManager(
+            TileMap(layer_manager.middleware.get_map_file_path()),
+            original_image=self.background_image,
+        )
         self.map_tile_width = self.layer_manager.middleware.get_cell_width()
         self.map_tile_height = self.layer_manager.middleware.get_cell_height()
 
@@ -94,19 +99,15 @@ class BackgroundLayer(cocos.layer.Layer):
             interiors = self.interior_manager.get_interiors(
                 where_positions=subject_grid_positions)
 
+            # FIXME BS 2018-01-25: if not, put original background image
             if interiors:
-                image = Image.open(os.path.join(
-                    self.layer_manager.middleware.map_dir_path,
-                    'background.png',
-                ))
                 image_fake_file = io.BytesIO()
-                self.interior_manager.update_image_for_interiors(
-                    image,
+                new_background_image = self.interior_manager.update_image_for_interiors(
                     interiors,
                     self.map_tile_width,
                     self.map_tile_height,
                 )
-                image.save(image_fake_file, format='PNG')
+                new_background_image.save(image_fake_file, format='PNG')
                 self.background_sprite.image = pyglet.image.load(
                     'new_background.png',
                     file=image_fake_file,
