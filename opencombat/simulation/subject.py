@@ -1,5 +1,6 @@
 # coding: utf-8
-from opencombat.const import COLLECTION_ALIVE, COMBAT_MODE_DEFENSE
+from opencombat.const import COLLECTION_ALIVE
+from opencombat.const import COMBAT_MODE_DEFENSE
 from opencombat.simulation.base import BaseSubject
 from opencombat.simulation.behaviour import MoveToBehaviour
 from opencombat.simulation.behaviour import EngageOpponent
