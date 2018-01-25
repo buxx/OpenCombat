@@ -36,8 +36,6 @@ class InteriorManager(object):
         layer_tiles = self.map.layer_tiles(self.configuration.layer_name)
         for tile_xy, tile in layer_tiles.items():
 
-            # FIXME: on se retrouve avec des tuiles Grass la ou l'on a pas mis de tuile interior/exterior.
-            # Faut pouvoir dire c'est tel tile la tile par defaut de tel layer
             if tile.property('id') == self.configuration.interior_id:
                 x, y = map(int, tile_xy.split('.'))
                 if not any([(x, y) in i for i in interiors]):
