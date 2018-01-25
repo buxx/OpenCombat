@@ -21,7 +21,7 @@ class TileMoveCostComputer(MoveCostComputer):
         next_node: str,
         unknown,
     ) -> float:
-        # TODO: Objets/IT qui compute les couts de déplacement
+        # TODO #MoveCost: Write move cost system
 
         if not tile.property('traversable_by_man'):
             return 100
@@ -62,7 +62,7 @@ class TilePhysics(TMXPhysics):
             value_name=opacity_property_name,
         )
 
-        # FIXME: This algo is not ok, it is for test
+        # TODO #Visibility: Write visibility system
         actual_opacity = 0
         for i, path_opacity in enumerate(path_opacities):
             actual_opacity += path_opacity
