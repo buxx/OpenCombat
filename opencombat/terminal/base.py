@@ -8,8 +8,6 @@ from opencombat.simulation.event import FireEvent
 from opencombat.simulation.event import DieEvent
 from opencombat.simulation.event import NoLongerVisibleOpponent
 from opencombat.simulation.physics import TilePhysics
-from opencombat.simulation.subject import TileSubject as ManSubject
-from opencombat.gui.actor import Man as ManActor
 from synergine2_cocos2d.terminal import GameTerminal
 from synergine2_cocos2d.util import get_map_file_path_from_dir
 from synergine2_xyz.move.simulation import FinishMoveEvent
@@ -40,7 +38,6 @@ class CocosTerminal(GameTerminal):
 
     def run(self):
         from opencombat.gui.base import Game
-        from synergine2_cocos2d.gui import SubjectMapper
 
         self.gui = Game(
             self.config,
@@ -57,11 +54,5 @@ class CocosTerminal(GameTerminal):
             self.core_process.join(timeout=120)
 
             return pyglet.event.EVENT_HANDLED
-
-        # TODO: Defind on some other place ?
-        self.gui.subject_mapper_factory.register_mapper(
-            ManSubject,
-            SubjectMapper(self.config, ManActor),
-        )
 
         self.gui.run()

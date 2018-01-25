@@ -28,6 +28,7 @@ from opencombat.gui.animation import ANIMATION_WALK
 from synergine2_cocos2d.animation import Animate
 from synergine2_cocos2d.gl import draw_line
 from synergine2_cocos2d.gui import EditLayer as BaseEditLayer
+from synergine2_cocos2d.gui import SubjectMapper
 from synergine2_cocos2d.gui import Gui
 from synergine2_cocos2d.gui import TMXGui
 from synergine2_cocos2d.layer import LayerManager
@@ -39,6 +40,8 @@ from opencombat.simulation.event import NewVisibleOpponent
 from opencombat.simulation.event import NoLongerVisibleOpponent
 from opencombat.simulation.event import FireEvent
 from opencombat.simulation.event import DieEvent
+from opencombat.simulation.subject import TileSubject as ManSubject
+from opencombat.gui.actor import Man as ManActor
 
 
 class EditLayer(BaseEditLayer):
@@ -238,6 +241,12 @@ class Game(TMXGui):
         self.dead_soldier_image = pyglet.resource.image(self.graphic_path_manager.path(
             'actors/man_d1.png',
         ))
+
+        # subject/actor mapping
+        self.subject_mapper_factory.register_mapper(
+            ManSubject,
+            SubjectMapper(self.config, ManActor),
+        )
 
     def before_run(self) -> None:
         from opencombat.gui.move import MoveActorInteraction
