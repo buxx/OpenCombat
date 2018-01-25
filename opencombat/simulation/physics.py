@@ -24,7 +24,6 @@ class TileMoveCostComputer(MoveCostComputer):
         # TODO: Objets/IT qui compute les couts de déplacement
 
         if not tile.property('traversable_by_man'):
-            # TODO: revoir la lib disjkstar because les mecs traverses quand meme ...
             return 100
 
         return 1.0
