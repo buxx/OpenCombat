@@ -113,6 +113,15 @@ class InteriorManager(object):
         tile_height: int,
         invert_y: bool=True,
     ) -> PngImageFile:
+        """
+
+        :param interiors: List of list of interior tile positions
+        :param tile_width: Width of a tile
+        :param tile_height: Height of a tile
+        :param invert_y: If y reference is top left instead bottom left
+        :return: Image givan at __init__ with all tile pixels replaces by transparent
+        pixel
+        """
         try:
             return self._cache[self._get_interior_unique_key(interiors)]
         except KeyError:
