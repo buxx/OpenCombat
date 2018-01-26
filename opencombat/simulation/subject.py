@@ -60,6 +60,15 @@ class ManSubject(TileSubject):
     pass
 
 class TankSubject(TileSubject):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        # TODO BS 2018-01-26: This coeff will be dependent of real
+        # unit type (tiger 2, etc)
+        self._global_move_coeff = self.config.resolve(
+            'game.move.subject.tank1.global_move_coeff',
+            3,
+        )
+
     @property
     def global_move_coeff(self) -> float:
-        return 3
+        return self._global_move_coeff

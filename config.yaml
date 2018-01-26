@@ -12,6 +12,9 @@ game:
         walk_ref_time: 3
         run_ref_time: 1
         crawl_ref_time: 10
+        subject:
+          tank1:
+            global_move_coeff: 3
     building:
       draw_interior_gap: 2
 
