@@ -26,5 +26,5 @@ global:
         - "medias/images"
       sounds:
         - "medias/sounds"
-    logging_level: DEBUG
+    logging_level: ERROR
     debug: true
