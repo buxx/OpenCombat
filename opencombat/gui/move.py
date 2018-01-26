@@ -16,8 +16,12 @@ class BaseMoveActorInteraction(BaseActorInteraction):
 
     def draw_pending(self) -> None:
         for actor in self.layer_manager.edit_layer.selection:
-            grid_position = self.layer_manager.grid_manager.get_grid_position(actor.position)
-            pixel_position = self.layer_manager.grid_manager.get_world_position_of_grid_position(grid_position)
+            grid_position = self.layer_manager\
+                .grid_manager\
+                .get_grid_position(actor.position)
+            pixel_position = self.layer_manager\
+                .grid_manager\
+                .get_world_position_of_grid_position(grid_position)
 
             draw_line(
                 self.layer_manager.scrolling_manager.world_to_screen(*pixel_position),
@@ -25,7 +29,11 @@ class BaseMoveActorInteraction(BaseActorInteraction):
                 self.color,
             )
 
-    def get_behaviour(self, actor: Actor, mouse_grid_position) -> typing.Tuple[typing.Type[SimulationBehaviour], dict]:
+    def get_behaviour(
+        self,
+        actor: Actor,
+        mouse_grid_position,
+    ) -> typing.Tuple[typing.Type[SimulationBehaviour], dict]:
         return self.request_move_behaviour_class, {
             'subject_id': actor.subject.id,
             'move_to': mouse_grid_position,
