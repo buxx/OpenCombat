@@ -6,6 +6,8 @@ from synergine2.config import Config
 
 from synergine2.simulation import Subject
 from synergine2_cocos2d.actor import Actor
+
+from opencombat.exception import UnknownWeapon
 from opencombat.gui.animation import ANIMATION_WALK
 from opencombat.gui.animation import ANIMATION_CRAWL
 from opencombat.gui.weapon import WeaponImageApplier
@@ -19,6 +21,7 @@ FLAG_COLORS = {
 }
 
 MAN_STAND_UP = 'MAN_STAND_UP'
+MAN_CRAWLING = 'MAN_CRAWLING'
 
 
 class BaseActor(Actor):
@@ -28,12 +31,13 @@ class BaseActor(Actor):
         config: Config,
         subject: Subject,
     ) -> None:
+        self._mode = MAN_STAND_UP
         self.weapon_image_applier = WeaponImageApplier(config, self)
         super().__init__(image_path, subject=subject, config=config)
 
     @property
     def mode(self) -> str:
-        return MAN_STAND_UP
+        return self._mode
 
     @property
     def weapons(self) -> typing.List[str]:
@@ -49,6 +53,25 @@ class BaseActor(Actor):
                 self.weapons[0],
             )
         ]
+
+    def get_animation_appliable_images(
+        self,
+        animation_name: str,
+        animation_position: int,
+    ) -> typing.List[Image.Image]:
+        if not self.weapons:
+            return []
+
+        try:
+            return [
+                self.weapon_image_applier.get_animation_image_for_weapon(
+                    animation_name,
+                    self.weapons[0],
+                    animation_position,
+                )
+            ]
+        except UnknownWeapon:
+            return []
 
     def firing(self) -> None:
         pass

@@ -29,9 +29,23 @@ class WeaponImageApplier(ImageApplier):
 
     def get_images_scheme(self) -> typing.Dict[str, typing.Dict[str, str]]:
         from opencombat.gui.actor import MAN_STAND_UP
+        from opencombat.gui.actor import MAN_CRAWLING
         return {
             MAN_STAND_UP: {
-                RIFFLE: 'actors/man_weap1.png',
+                RIFFLE: [
+                    'actors/man_weap1.png'
+                ],
+            },
+            # FIXME NOW
+            # MAN_CRAWLING: {
+            'CRAWL': {
+                RIFFLE: [
+                    'actors/man_c1_weap1.png',
+                    'actors/man_c2_weap1.png',
+                    'actors/man_c3_weap1.png',
+                    'actors/man_c4_weap1.png',
+                ],
+
             }
         }
 
@@ -39,7 +53,24 @@ class WeaponImageApplier(ImageApplier):
         try:
             # FIXME Cache
             image_file_path = self.path_manager.path(
-                self._images_scheme[mode][weapon_type],
+                self._images_scheme[mode][weapon_type][0],
+            )
+            return Image.open(image_file_path)
+        except KeyError:
+            raise UnknownWeapon(
+                'Unknown weapon "{}" for mode "{}"'.format(weapon_type, mode),
+            )
+
+    def get_animation_image_for_weapon(
+        self,
+        mode: str,
+        weapon_type: str,
+        animation_position: int,
+    ) -> Image.Image:
+        try:
+            # FIXME Cache
+            image_file_path = self.path_manager.path(
+                self._images_scheme[mode][weapon_type][animation_position],
             )
             return Image.open(image_file_path)
         except KeyError:
