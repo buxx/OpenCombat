@@ -11,10 +11,7 @@ from opencombat.simulation.event import DieEvent
 from opencombat.simulation.event import NewVisibleOpponent
 from opencombat.simulation.mechanism import OpponentVisibleMechanism
 from opencombat.user_action import UserAction
-from synergine2.config import Config
-from synergine2.simulation import Simulation
 from synergine2.simulation import Event
-from synergine2.simulation import Subject
 from synergine2_xyz.move.simulation import MoveToBehaviour as BaseMoveToBehaviour
 
 
