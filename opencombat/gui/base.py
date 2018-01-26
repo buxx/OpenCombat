@@ -346,13 +346,29 @@ class Game(TMXGui):
         def gunshot_sound():
             self.sound_lib.get_sound('gunshot_default').play()
 
+        def actor_firing():
+            shooter_actor.firing(event.weapon_type)
+
         # To avoid all in same time
         # TODO BS 2018-01-24: This should be unecessary when core events sending will be
         # base on time base instead cycle base. Remove it to ensure.
         delay = random.uniform(0.0, 0.6)
 
-        self.layer_manager.edit_layer.append_callback(gunshot_trace, duration=0.1, delay=delay)
-        self.layer_manager.edit_layer.append_callback(gunshot_sound, duration=0.0, delay=delay)
+        self.layer_manager.edit_layer.append_callback(
+            gunshot_trace,
+            duration=0.1,
+            delay=delay,
+        )
+        self.layer_manager.edit_layer.append_callback(
+            gunshot_sound,
+            duration=0.0,
+            delay=delay,
+        )
+        self.layer_manager.edit_layer.append_callback(
+            actor_firing,
+            duration=0.2,  # TODO BS 2018-01-25: Wil depend of weapon type
+            delay=delay,
+        )
 
     def subject_die(self, event: DieEvent) -> None:
         killed_actor = self.layer_manager.subject_layer.subjects_index[event.shoot_subject_id]

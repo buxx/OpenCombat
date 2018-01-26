@@ -19,6 +19,7 @@ game:
       draw_interior_gap: 2
 
 global:
+    cache_dir_path: 'cache'
     include_path:
       maps:
         - "maps"

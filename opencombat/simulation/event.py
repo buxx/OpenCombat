@@ -8,6 +8,8 @@ from opencombat.const import COLLECTION_ALIVE
 if typing.TYPE_CHECKING:
     from opencombat.simulation.subject import TileSubject
 
+DEFAULT_WEAPON_TYPE = 'DEFAULT_WEAPON_TYPE'
+
 
 class NewVisibleOpponent(Event):
     def __init__(
@@ -34,9 +36,11 @@ class FireEvent(Event):
         self,
         shooter_subject_id: int,
         target_position: typing.Tuple[int, int],
+        weapon_type: str=DEFAULT_WEAPON_TYPE,
     ) -> None:
         self.shooter_subject_id = shooter_subject_id
         self.target_position = target_position
+        self.weapon_type = weapon_type
 
 
 class DieEvent(Event):
