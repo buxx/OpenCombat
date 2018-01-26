@@ -42,3 +42,21 @@ class Man(Actor):
         subject: Subject,
     ) -> None:
         super().__init__('actors/man.png', subject=subject, config=config)
+
+
+class HeavyVehicle(Actor):
+    animation_image_paths = {
+        ANIMATION_WALK: [
+            'actors/tank1.png',
+        ],
+        ANIMATION_CRAWL: [
+            'actors/tank1.png',
+        ]
+    }
+
+    def __init__(
+        self,
+        config: Config,
+        subject: Subject,
+    ) -> None:
+        super().__init__('actors/tank1.png', subject=subject, config=config)

@@ -16,7 +16,8 @@ from opencombat.const import FLAG_DE
 from opencombat.const import DE_COLOR
 from opencombat.const import URSS_COLOR
 from opencombat.const import FLAG_URSS
-from opencombat.simulation.subject import TileSubject
+from opencombat.simulation.subject import ManSubject
+from opencombat.simulation.subject import TankSubject
 from opencombat.simulation.base import TileStrategySimulation
 from opencombat.simulation.base import TileStrategySubjects
 from opencombat.terminal.base import CocosTerminal
@@ -37,7 +38,7 @@ def main(map_dir_path: str, seed_value: int=None):
     subjects = TileStrategySubjects(simulation=simulation)
 
     for position in ((10, 2), (11, 3), (11, 4), (12, 5),):
-        man = TileSubject(
+        man = ManSubject(
             config=config,
             simulation=simulation,
             position=position,
@@ -50,7 +51,20 @@ def main(map_dir_path: str, seed_value: int=None):
         subjects.append(man)
 
     for position in ((30, 15), (31, 16), (32, 17), (33, 18),):
-        man = TileSubject(
+        man = ManSubject(
+            config=config,
+            simulation=simulation,
+            position=position,
+            properties={
+                SELECTION_COLOR_RGB: URSS_COLOR,
+                FLAG: FLAG_URSS,
+                SIDE: 'ALLIES',
+            }
+        )
+        subjects.append(man)
+
+    for position in ((38, 24),):
+        man = TankSubject(
             config=config,
             simulation=simulation,
             position=position,

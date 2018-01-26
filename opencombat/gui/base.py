@@ -40,8 +40,10 @@ from opencombat.simulation.event import NewVisibleOpponent
 from opencombat.simulation.event import NoLongerVisibleOpponent
 from opencombat.simulation.event import FireEvent
 from opencombat.simulation.event import DieEvent
-from opencombat.simulation.subject import TileSubject as ManSubject
+from opencombat.simulation.subject import ManSubject
+from opencombat.simulation.subject import TankSubject
 from opencombat.gui.actor import Man as ManActor
+from opencombat.gui.actor import HeavyVehicle as HeavyVehicleActor
 
 
 class EditLayer(BaseEditLayer):
@@ -228,16 +230,6 @@ class Game(TMXGui):
             self.subject_die,
         )
 
-        # configs / resources
-        self.move_duration_ref = float(self.config.resolve(
-            'game.move.walk_ref_time',
-        ))
-        self.move_fast_duration_ref = float(self.config.resolve(
-            'game.move.run_ref_time',
-        ))
-        self.move_crawl_duration_ref = float(self.config.resolve(
-            'game.move.crawl_ref_time',
-        ))
         self.dead_soldier_image = pyglet.resource.image(self.graphic_path_manager.path(
             'actors/man_d1.png',
         ))
@@ -246,6 +238,10 @@ class Game(TMXGui):
         self.subject_mapper_factory.register_mapper(
             ManSubject,
             SubjectMapper(self.config, ManActor),
+        )
+        self.subject_mapper_factory.register_mapper(
+            TankSubject,
+            SubjectMapper(self.config, HeavyVehicleActor),
         )
 
     def before_run(self) -> None:
@@ -273,18 +269,18 @@ class Game(TMXGui):
         if event.gui_action == UserAction.ORDER_MOVE:
             animation = ANIMATION_WALK
             cycle_duration = 2
-            move_duration = self.move_duration_ref
         elif event.gui_action == UserAction.ORDER_MOVE_FAST:
             animation = ANIMATION_WALK
             cycle_duration = 0.5
-            move_duration = self.move_fast_duration_ref
         elif event.gui_action == UserAction.ORDER_MOVE_CRAWL:
             animation = ANIMATION_CRAWL
             cycle_duration = 2
-            move_duration = self.move_crawl_duration_ref
         else:
-            raise NotImplementedError()
+            raise NotImplementedError(
+                'Gui action {} unknown'.format(event.gui_action)
+            )
 
+        move_duration = event.move_duration
         move_action = MoveTo(new_world_position, move_duration)
         actor.do(move_action)
         actor.do(Animate(animation, duration=move_duration, cycle_duration=cycle_duration))

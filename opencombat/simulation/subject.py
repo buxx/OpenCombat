@@ -32,3 +32,34 @@ class TileSubject(BaseSubject):
     visible_opponent_ids = shared.create_self('visible_opponent_ids', lambda: [])
     combat_mode = shared.create_self('combat_mode', COMBAT_MODE_DEFENSE)
     behaviour_selector_class = TileBehaviourSelector
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._walk_ref_time = float(self.config.resolve('game.move.walk_ref_time'))
+        self._run_ref_time = float(self.config.resolve('game.move.run_ref_time'))
+        self._crawl_ref_time = float(self.config.resolve('game.move.crawl_ref_time'))
+
+    @property
+    def global_move_coeff(self) -> float:
+        return 1
+
+    @property
+    def run_duration(self) -> float:
+        return self._run_ref_time * self.global_move_coeff
+
+    @property
+    def walk_duration(self) -> float:
+        return self._walk_ref_time * self.global_move_coeff
+
+    @property
+    def crawl_duration(self) -> float:
+        return self._crawl_ref_time * self.global_move_coeff
+
+
+class ManSubject(TileSubject):
+    pass
+
+class TankSubject(TileSubject):
+    @property
+    def global_move_coeff(self) -> float:
+        return 3
