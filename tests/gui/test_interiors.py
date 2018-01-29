@@ -7,7 +7,8 @@ from opencombat.simulation.interior import InteriorManager
 
 def test_interior_zones__one_zone():
     map_ = TMXMap('tests/fixtures/one_interior.tmx')
-    manager = InteriorManager(map_)
+    image = Image.open('tests/fixtures/complex_40x40.png')
+    manager = InteriorManager(map_, original_image=image)
     interiors = manager.get_interiors()
 
     assert interiors
@@ -28,7 +29,8 @@ def test_interior_zones__one_zone():
 
 def test_interior_zones__two_separated_zones():
     map_ = TMXMap('tests/fixtures/two_interiors.tmx')
-    manager = InteriorManager(map_)
+    image = Image.open('tests/fixtures/complex_40x40.png')
+    manager = InteriorManager(map_, original_image=image)
     interiors = sorted(manager.get_interiors())
 
     assert interiors
@@ -54,7 +56,8 @@ def test_interior_zones__two_separated_zones():
 
 def test_interiors_zones__side_by_side_zones_with_separator():
     map_ = TMXMap('tests/fixtures/side_by_side_interiors.tmx')
-    manager = InteriorManager(map_)
+    image = Image.open('tests/fixtures/complex_40x40.png')
+    manager = InteriorManager(map_, original_image=image)
     interiors = sorted(manager.get_interiors())
 
     assert interiors
@@ -87,7 +90,8 @@ def test_interiors_zones__side_by_side_zones_with_separator():
 def test_interiors_zones__active_zones():
     # active zones are zone where someone is in
     map_ = TMXMap('tests/fixtures/two_interiors.tmx')
-    manager = InteriorManager(map_)
+    image = Image.open('tests/fixtures/complex_40x40.png')
+    manager = InteriorManager(map_, original_image=image)
 
     interiors = manager.get_interiors(where_positions=[(0, 1)])
 
@@ -134,32 +138,32 @@ def test_interiors_zones__active_zones():
 
 def test_interiors_zones__make_image_transparent__just_replace():
     map_ = TMXMap('tests/fixtures/one_interior.tmx')
-    manager = InteriorManager(map_)
-    interiors = manager.get_interiors()
     image = Image.open('tests/fixtures/white_40x40.png')
+    manager = InteriorManager(map_, original_image=image)
+    interiors = manager.get_interiors()
     after_image_bytes = Image.open('tests/fixtures/white_one_interior_40x40.png').tobytes()
 
-    manager.update_image_for_interiors(image, interiors, 8, 8)
+    image = manager.update_image_for_interiors(interiors, 8, 8)
     assert after_image_bytes == image.tobytes()
 
 
 def test_interiors_zones__make_image_complex_transparent__just_replace():
     map_ = TMXMap('tests/fixtures/one_interior.tmx')
-    manager = InteriorManager(map_)
-    interiors = manager.get_interiors()
     image = Image.open('tests/fixtures/complex_40x40.png')
+    manager = InteriorManager(map_, original_image=image)
+    interiors = manager.get_interiors()
     after_image_bytes = Image.open('tests/fixtures/complex_one_interior_40x40.png').tobytes()
 
-    manager.update_image_for_interiors(image, interiors, 8, 8)
+    image = manager.update_image_for_interiors(interiors, 8, 8)
     assert after_image_bytes == image.tobytes()
 
 
 def test_interiors_zones__make_image_corner_transparent__just_replace():
     map_ = TMXMap('tests/fixtures/corner_interior.tmx')
-    manager = InteriorManager(map_)
-    interiors = manager.get_interiors()
     image = Image.open('tests/fixtures/white_40x40.png')
+    manager = InteriorManager(map_, original_image=image)
+    interiors = manager.get_interiors()
     after_image_bytes = Image.open('tests/fixtures/white_corner_interior_40x40.png').tobytes()
 
-    manager.update_image_for_interiors(image, interiors, 8, 8)
+    image = manager.update_image_for_interiors(interiors, 8, 8)
     assert after_image_bytes == image.tobytes()
