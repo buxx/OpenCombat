@@ -1,5 +1,7 @@
 # OpenCombat
 
+[![Build Status](https://travis-ci.org/buxx/OpenCombat.svg?branch=master)](https://travis-ci.org/buxx/OpenCombat) [![Coverage Status](https://coveralls.io/repos/github/buxx/OpenCombat/badge.svg?branch=master)](https://coveralls.io/github/buxx/OpenCombat?branch=master)
+
 Open source close combat inspired game. Presentation here: http://www.closecombatseries.net/CCS/modules.php?name=Forums&file=viewtopic&t=11696
 
 **Important note**: OpenCombat is in development and is developed under linux. Windows support is planned but not actually tested.
