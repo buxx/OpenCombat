@@ -8,6 +8,8 @@ Open source close combat inspired game. Presentation here: http://www.closecomba
 
 OS require: build-essential libsdl1.2debian libsdl-image1.2 libsdl-image1.2-dev libsdl-ttf2.0-0 libsdl-ttf2.0-dev libsdl-mixer1.2 libsdl-mixer1.2-dev
 
+Python version: 3.5+
+
 Considering in your virtual environment, install synergine2:
 
     git clone https://github.com/buxx/synergine2.git
