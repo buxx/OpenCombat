@@ -1,0 +1,14 @@
+language: python
+services:
+  - redis-server
+python:
+  - "3.5"
+  - "3.6"
+install:
+  - "pip install -r requirements.txt"
+  - "pip install pytest-cov"
+  - "pip install coveralls"
+script:
+  - py.test --cov-config .coveragerc --cov=opencombat ./tests/
+after_success:
+  - coveralls
