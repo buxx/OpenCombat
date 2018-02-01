@@ -1,0 +1,9 @@
+# coding: utf-8
+
+MAN_STAND_UP = 'MAN_STAND_UP'
+MAN_CRAWLING = 'MAN_CRAWLING'
+FLAG_DE = 'DE'
+FLAG_COLORS = {
+    FLAG_DE
+}
+FLAG_URSS = 'URSS'

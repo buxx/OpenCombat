@@ -6,6 +6,8 @@ from synergine2.config import Config
 from synergine2_cocos2d.util import PathManager
 
 from opencombat.exception import UnknownWeapon
+from opencombat.gui.const import MAN_STAND_UP
+from opencombat.gui.const import MAN_CRAWLING
 
 if typing.TYPE_CHECKING:
     from opencombat.gui.actor import BaseActor
@@ -29,8 +31,6 @@ class WeaponImageApplier(ImageApplier):
         self._cache = {}  # type: typing.Dict[str, Image.Image]
 
     def get_images_scheme(self) -> typing.Dict[str, typing.Dict[str, str]]:
-        from opencombat.gui.actor import MAN_STAND_UP
-        from opencombat.gui.actor import MAN_CRAWLING
         return {
             MAN_STAND_UP: {
                 RIFFLE: [

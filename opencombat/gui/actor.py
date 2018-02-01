@@ -3,25 +3,15 @@ import typing
 
 from PIL import Image
 from synergine2.config import Config
-
 from synergine2.simulation import Subject
 from synergine2_cocos2d.actor import Actor
 
 from opencombat.exception import UnknownWeapon
-from opencombat.gui.animation import ANIMATION_WALK
 from opencombat.gui.animation import ANIMATION_CRAWL
-from opencombat.gui.weapon import WeaponImageApplier
+from opencombat.gui.animation import ANIMATION_WALK
+from opencombat.gui.const import MAN_STAND_UP
 from opencombat.gui.weapon import RIFFLE
-
-FLAG_DE = 'DE'
-FLAG_URSS = 'URSS'
-
-FLAG_COLORS = {
-    FLAG_DE
-}
-
-MAN_STAND_UP = 'MAN_STAND_UP'
-MAN_CRAWLING = 'MAN_CRAWLING'
+from opencombat.gui.weapon import WeaponImageApplier
 
 
 class BaseActor(Actor):
