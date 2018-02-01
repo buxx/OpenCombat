@@ -26,6 +26,7 @@ class WeaponImageApplier(ImageApplier):
         self.actor = actor
         self._images_scheme = self.get_images_scheme()
         self.path_manager = PathManager(config.resolve('global.include_path.graphics'))
+        self._cache = {}  # type: typing.Dict[str, Image.Image]
 
     def get_images_scheme(self) -> typing.Dict[str, typing.Dict[str, str]]:
         from opencombat.gui.actor import MAN_STAND_UP
@@ -51,11 +52,14 @@ class WeaponImageApplier(ImageApplier):
 
     def get_default_image_for_weapon(self, mode: str, weapon_type: str) -> Image.Image:
         try:
-            # FIXME Cache
             image_file_path = self.path_manager.path(
                 self._images_scheme[mode][weapon_type][0],
             )
-            return Image.open(image_file_path)
+            try:
+                return self._cache[image_file_path]
+            except KeyError:
+                self._cache[image_file_path] = Image.open(image_file_path)
+                return self._cache[image_file_path]
         except KeyError:
             raise UnknownWeapon(
                 'Unknown weapon "{}" for mode "{}"'.format(weapon_type, mode),
