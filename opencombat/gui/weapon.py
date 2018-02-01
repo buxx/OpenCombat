@@ -6,8 +6,8 @@ from synergine2.config import Config
 from synergine2_cocos2d.util import PathManager
 
 from opencombat.exception import UnknownWeapon
-from opencombat.gui.const import MAN_STAND_UP
-from opencombat.gui.const import MAN_CRAWLING
+from opencombat.gui.const import POSITION_MAN_STAND_UP
+from opencombat.gui.const import POSITION_MAN_CRAWLING
 
 if typing.TYPE_CHECKING:
     from opencombat.gui.actor import BaseActor
@@ -30,16 +30,14 @@ class WeaponImageApplier(ImageApplier):
         self.path_manager = PathManager(config.resolve('global.include_path.graphics'))
         self._cache = {}  # type: typing.Dict[str, Image.Image]
 
-    def get_images_scheme(self) -> typing.Dict[str, typing.Dict[str, str]]:
+    def get_images_scheme(self) -> typing.Dict[str, typing.Dict[str, typing.List[str]]]:
         return {
-            MAN_STAND_UP: {
+            POSITION_MAN_STAND_UP: {
                 RIFFLE: [
                     'actors/man_weap1.png'
                 ],
             },
-            # FIXME NOW
-            # MAN_CRAWLING: {
-            'CRAWL': {
+            POSITION_MAN_CRAWLING: {
                 RIFFLE: [
                     'actors/man_c1_weap1.png',
                     'actors/man_c2_weap1.png',
@@ -81,6 +79,10 @@ class WeaponImageApplier(ImageApplier):
                 self._cache[image_file_path] = Image.open(image_file_path)
                 return self._cache[image_file_path]
         except KeyError:
+            raise UnknownWeapon(
+                'Unknown weapon "{}" for mode "{}"'.format(weapon_type, mode),
+            )
+        except IndexError:
             raise UnknownWeapon(
                 'Unknown weapon "{}" for mode "{}"'.format(weapon_type, mode),
             )

@@ -9,19 +9,25 @@ from synergine2_cocos2d.actor import Actor
 from opencombat.exception import UnknownWeapon
 from opencombat.gui.animation import ANIMATION_CRAWL
 from opencombat.gui.animation import ANIMATION_WALK
-from opencombat.gui.const import MAN_STAND_UP
+from opencombat.gui.const import POSITION_MAN_STAND_UP
+from opencombat.gui.const import POSITION_MAN_CRAWLING
 from opencombat.gui.weapon import RIFFLE
 from opencombat.gui.weapon import WeaponImageApplier
 
 
 class BaseActor(Actor):
+    position_matching = {
+        ANIMATION_WALK: POSITION_MAN_STAND_UP,
+        ANIMATION_CRAWL: POSITION_MAN_CRAWLING,
+    }
+
     def __init__(
         self,
         image_path: str,
         config: Config,
         subject: Subject,
     ) -> None:
-        self._mode = MAN_STAND_UP
+        self._mode = POSITION_MAN_STAND_UP
         self.weapon_image_applier = WeaponImageApplier(config, self)
         super().__init__(image_path, subject=subject, config=config)
 
@@ -52,10 +58,12 @@ class BaseActor(Actor):
         if not self.weapons:
             return []
 
+        position = self.position_matching[animation_name]
+
         try:
             return [
                 self.weapon_image_applier.get_animation_image_for_weapon(
-                    animation_name,
+                    position,
                     self.weapons[0],
                     animation_position,
                 )
