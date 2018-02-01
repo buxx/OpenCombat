@@ -72,11 +72,14 @@ class WeaponImageApplier(ImageApplier):
         animation_position: int,
     ) -> Image.Image:
         try:
-            # FIXME Cache
             image_file_path = self.path_manager.path(
                 self._images_scheme[mode][weapon_type][animation_position],
             )
-            return Image.open(image_file_path)
+            try:
+                return self._cache[image_file_path]
+            except KeyError:
+                self._cache[image_file_path] = Image.open(image_file_path)
+                return self._cache[image_file_path]
         except KeyError:
             raise UnknownWeapon(
                 'Unknown weapon "{}" for mode "{}"'.format(weapon_type, mode),
