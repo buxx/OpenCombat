@@ -1,6 +1,8 @@
 # coding: utf-8
 import typing
 
+from opencombat.gui.actor import BaseActor
+from opencombat.simulation.event import DEFAULT_WEAPON_TYPE
 from opencombat.simulation.fire import RequestFireBehaviour
 from synergine2_cocos2d.interaction import BaseActorInteraction
 from opencombat.user_action import UserAction
@@ -87,3 +89,27 @@ class BaseFireActorInteraction(BaseActorInteraction):
 class FireActorInteraction(BaseFireActorInteraction):
     gui_action = UserAction.ORDER_FIRE
     color = (255, 0, 0)
+
+
+class GuiFiringEvent(object):
+    def __init__(
+        self,
+        actor: BaseActor,
+        weapon: str,
+    ) -> None:
+        self.actor = actor
+        self.weapon = weapon
+        self._animation_index = -1
+
+        if weapon == DEFAULT_WEAPON_TYPE:
+            self.weapon = self.actor.weapons[0]
+
+    @property
+    def animation_index(self) -> int:
+        return self._animation_index
+
+    def increment_animation_index(self) -> None:
+        self._animation_index += 1
+
+    def reset_animation_index(self) -> None:
+        self._animation_index = -1

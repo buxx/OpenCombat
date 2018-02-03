@@ -17,6 +17,7 @@ from synergine2_cocos2d.interaction import InteractionManager
 from synergine2_cocos2d.middleware import MapMiddleware
 from synergine2_cocos2d.util import PathManager
 
+from opencombat.gui.fire import GuiFiringEvent
 from opencombat.simulation.interior import InteriorManager
 from opencombat.simulation.tmx import TileMap
 from opencombat.user_action import UserAction
@@ -346,8 +347,14 @@ class Game(TMXGui):
         def gunshot_sound():
             self.sound_lib.get_sound('gunshot_default').play()
 
+        firing_event = GuiFiringEvent(shooter_actor, event.weapon_type)
+        original_actor_image = shooter_actor.image
+
         def actor_firing():
-            shooter_actor.firing(event.weapon_type)
+            shooter_actor.firing(firing_event)
+
+        def actor_end_firing():
+            shooter_actor.update_image(original_actor_image)
 
         # To avoid all in same time
         # TODO BS 2018-01-24: This should be unecessary when core events sending will be
@@ -368,6 +375,7 @@ class Game(TMXGui):
             actor_firing,
             duration=0.2,  # TODO BS 2018-01-25: Wil depend of weapon type
             delay=delay,
+            end_callback=actor_end_firing,
         )
 
     def subject_die(self, event: DieEvent) -> None:

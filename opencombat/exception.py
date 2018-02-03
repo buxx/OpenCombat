@@ -7,3 +7,7 @@ class OpenCombatException(Exception):
 
 class UnknownWeapon(OpenCombatException):
     pass
+
+
+class UnknownAnimationIndex(OpenCombatException):
+    pass
