@@ -350,6 +350,12 @@ class Game(TMXGui):
         firing_event = GuiFiringEvent(shooter_actor, event.weapon_type)
         original_actor_image = shooter_actor.image
 
+        def actor_rotate():
+            shooter_actor.rotation = get_angle(
+                shooter_actor.position,
+                event.target_position,
+            )
+
         def actor_firing():
             shooter_actor.firing(firing_event)
 
@@ -376,6 +382,7 @@ class Game(TMXGui):
             duration=0.2,  # TODO BS 2018-01-25: Wil depend of weapon type
             delay=delay,
             end_callback=actor_end_firing,
+            start_callback=actor_rotate,
         )
 
     def subject_die(self, event: DieEvent) -> None:
