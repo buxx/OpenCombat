@@ -8,12 +8,14 @@ from PIL import Image
 from synergine2.config import Config
 from synergine2.simulation import Subject
 from synergine2_cocos2d.actor import Actor
+from synergine2_xyz.exception import UnknownAnimationIndex
 
-from opencombat.exception import UnknownWeapon, UnknownAnimationIndex
+from opencombat.exception import UnknownWeapon
+from opencombat.exception import UnknownFiringAnimation
 from opencombat.gui.animation import ANIMATION_CRAWL
 from opencombat.gui.animation import ANIMATION_WALK
-from opencombat.gui.const import POSITION_MAN_STAND_UP
-from opencombat.gui.const import POSITION_MAN_CRAWLING
+from opencombat.gui.const import MODE_MAN_STAND_UP
+from opencombat.gui.const import MODE_MAN_CRAWLING
 from opencombat.gui.image import TileImageCacheManager
 from opencombat.gui.weapon import RIFFLE
 from opencombat.gui.weapon import WeaponImageApplier
@@ -22,11 +24,22 @@ if typing.TYPE_CHECKING:
     from opencombat.gui.fire import GuiFiringEvent
 
 
+MODE_DEFAULT = 'MODE_DEFAULT'
+
+
 class BaseActor(Actor):
     position_matching = {
-        ANIMATION_WALK: POSITION_MAN_STAND_UP,
-        ANIMATION_CRAWL: POSITION_MAN_CRAWLING,
+        ANIMATION_WALK: MODE_MAN_STAND_UP,
+        ANIMATION_CRAWL: MODE_MAN_CRAWLING,
     }
+    mode_image_paths = {
+        MODE_DEFAULT: 'unknown.png',
+    }
+    modes = [
+        MODE_DEFAULT,
+    ]
+    weapons_firing_image_scheme = {}
+    weapon_image_scheme = {}
 
     def __init__(
         self,
@@ -34,20 +47,30 @@ class BaseActor(Actor):
         config: Config,
         subject: Subject,
     ) -> None:
-        self._mode = POSITION_MAN_STAND_UP
+        self._mode = MODE_MAN_STAND_UP
         self.weapon_image_applier = WeaponImageApplier(config, self)
         super().__init__(image_path, subject=subject, config=config)
 
         # Firing
         self.last_firing_time = 0
         self.firing_change_image_gap = 0.05  # seconds
-        self.firing_images_cache = {}  # type: TODO
 
     def get_image_cache_manager(self) -> TileImageCacheManager:
         return TileImageCacheManager(self, self.config)
 
+    def get_default_mode(self) -> str:
+        return MODE_DEFAULT
+
+    def get_mode_image_path(self, mode: str) -> str:
+        return self.mode_image_paths[mode]
+
+    def get_modes(self) -> typing.List[str]:
+        return self.modes
+
     @property
     def mode(self) -> str:
+        # FIXME: When man is moving (crawling for example), must change mode
+        # and man must stay "crawled"
         return self._mode
 
     @property
@@ -86,53 +109,6 @@ class BaseActor(Actor):
         except UnknownWeapon:
             return []
 
-    def get_modes(self) -> typing.List[str]:
-        return [POSITION_MAN_STAND_UP]
-
-    # def build_firing_images(self) -> None:
-    #     cache_dir = self.config.resolve('global.cache_dir_path')
-    #     for mode in self.get_modes():
-    #         for weapon in self.weapons:
-    #             images = self.weapon_image_applier.get_firing_image(
-    #                 mode=mode,
-    #                 weapon_type=weapon,
-    #             )
-    #
-    #             for position in range(len(images)):
-    #                 pass
-    #
-    #
-    #     for animation_name, animation_image_paths in self.animation_image_paths.items():
-    #         self.animation_images[animation_name] = []
-    #         for i, animation_image_path in enumerate(animation_image_paths):
-    #             final_image_path = self.path_manager.path(animation_image_path)
-    #             final_image = Image.open(final_image_path)
-    #
-    #             for appliable_image in self.get_animation_appliable_images(
-    #                 animation_name,
-    #                 i,
-    #             ):
-    #                 final_image.paste(
-    #                     appliable_image,
-    #                     (0, 0),
-    #                     appliable_image,
-    #                 )
-    #
-    #             # FIXME NOW: nom des image utilise au dessus
-    #             final_name = '_'.join([
-    #                 str(subject_id),
-    #                 ntpath.basename(final_image_path),
-    #             ])
-    #             final_path = os.path.join(cache_dir, final_name)
-    #
-    #             final_image.save(final_path)
-    #
-    #             self.animation_images[animation_name].append(
-    #                 pyglet.image.load(
-    #                     final_path,
-    #                 )
-    #             )
-
     def firing(self, firing: 'GuiFiringEvent') -> None:
         # FIXME: move some code ?
         now = time.time()
@@ -141,18 +117,27 @@ class BaseActor(Actor):
             firing.increment_animation_index()
 
             try:
-                image = self.image_cache.firing_cache.get(
+                image = self.image_cache_manager.firing_cache.get(
                     mode=self.mode,
                     weapon=firing.weapon,
                     position=firing.animation_index,
                 )
             except UnknownAnimationIndex:
-                image = self.image_cache.firing_cache.get(
+                image = self.image_cache_manager.firing_cache.get(
                     mode=self.mode,
                     weapon=firing.weapon,
                     position=0,
                 )
                 firing.reset_animation_index()
+            except UnknownFiringAnimation as exc:
+                self.logger.error(
+                    'No firing animation for actor {}({}): {}'.format(
+                        self.__class__.__name__,
+                        str(self.subject.id),
+                        str(exc),
+                    )
+                )
+                return  # There is no firing animation defined
 
             # FIXME cache: prepare before firing
             import uuid
@@ -182,6 +167,39 @@ class Man(BaseActor):
             'actors/man_c4.png',
         ]
     }
+    modes = [
+        MODE_MAN_STAND_UP,
+        MODE_MAN_CRAWLING,
+    ]
+    mode_image_paths = {
+        MODE_MAN_STAND_UP: 'actors/man.png',
+        MODE_MAN_CRAWLING: 'actors/man_c1.png',
+    }
+    weapon_image_scheme = {
+        MODE_MAN_STAND_UP: {
+            RIFFLE: [
+                'actors/man_weap1.png'
+            ],
+        },
+        MODE_MAN_CRAWLING: {
+            RIFFLE: [
+                'actors/man_c1_weap1.png',
+                'actors/man_c2_weap1.png',
+                'actors/man_c3_weap1.png',
+                'actors/man_c4_weap1.png',
+            ],
+
+        }
+    }
+    weapons_firing_image_scheme = {
+        MODE_MAN_STAND_UP: {
+            RIFFLE: [
+                'actors/man_weap1_firing1.png',
+                'actors/man_weap1_firing2.png',
+                'actors/man_weap1_firing3.png',
+            ],
+        },
+    }
 
     def __init__(
         self,
@@ -195,6 +213,9 @@ class Man(BaseActor):
         # TODO BS 2018-01-26: Will be managed by complex part of code
         return [RIFFLE]
 
+    def get_default_mode(self) -> str:
+        return MODE_MAN_STAND_UP
+
 
 class HeavyVehicle(BaseActor):
     animation_image_paths = {
@@ -204,6 +225,9 @@ class HeavyVehicle(BaseActor):
         ANIMATION_CRAWL: [
             'actors/tank1.png',
         ]
+    }
+    mode_image_paths = {
+        MODE_DEFAULT: 'actors/tank1.png',
     }
 
     def __init__(

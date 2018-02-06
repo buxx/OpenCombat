@@ -9,5 +9,5 @@ class UnknownWeapon(OpenCombatException):
     pass
 
 
-class UnknownAnimationIndex(OpenCombatException):
+class UnknownFiringAnimation(OpenCombatException):
     pass

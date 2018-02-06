@@ -6,8 +6,10 @@ from synergine2.config import Config
 from synergine2_cocos2d.util import PathManager
 from synergine2_xyz.image import ImageCache
 from synergine2_xyz.image import ImageCacheManager
+from synergine2_xyz.exception import UnknownAnimationIndex
 
-from opencombat.exception import UnknownAnimationIndex
+from opencombat.exception import UnknownWeapon
+from opencombat.exception import UnknownFiringAnimation
 
 if typing.TYPE_CHECKING:
     from opencombat.gui.actor import BaseActor
@@ -31,7 +33,12 @@ class FiringImageCache(ImageCache):
         try:
             return self.cache[mode][weapon][position]
         except KeyError:
-            raise Exception('TODO')
+            raise UnknownFiringAnimation(
+                'Unknown firing animation for mode "{}" and weapon "{}"'.format(
+                    mode,
+                    weapon,
+                )
+            )
         except IndexError:
             raise UnknownAnimationIndex(
                 'Unknown animation index "{}" for mode "{}" and weapon "{}"'.format(
@@ -66,10 +73,13 @@ class TileImageCacheManager(ImageCacheManager):
             mode_image = Image.open(self.path_manager.path(mode_image_path))
 
             for weapon in self.actor.weapons:
-                images = self.actor.weapon_image_applier.get_firing_image(
-                    mode=mode,
-                    weapon_type=weapon,
-                )
+                try:
+                    images = self.actor.weapon_image_applier.get_firing_image(
+                        mode=mode,
+                        weapon_type=weapon,
+                    )
+                except UnknownWeapon:
+                    images = [Image.open(self.path_manager.path('empty.png'))]
 
                 for position in range(len(images)):
                     position_image = images[position]
