@@ -28,4 +28,5 @@ global:
       sounds:
         - "medias/sounds"
     logging_level: ERROR
-    debug: true
+    debug: false
+    debug_gui: false

@@ -200,6 +200,7 @@ class Game(TMXGui):
         self.graphic_path_manager = PathManager(self.config.resolve(
             'global.include_path.graphics',
         ))
+        self.debug_gui = self.config.resolve('global.debug_gui', False)
 
         self.terminal.register_event_handler(
             FinishMoveEvent,
@@ -367,11 +368,12 @@ class Game(TMXGui):
         # base on time base instead cycle base. Remove it to ensure.
         delay = random.uniform(0.0, 0.6)
 
-        self.layer_manager.edit_layer.append_callback(
-            gunshot_trace,
-            duration=0.1,
-            delay=delay,
-        )
+        if self.debug_gui:
+            self.layer_manager.edit_layer.append_callback(
+                gunshot_trace,
+                duration=0.1,
+                delay=delay,
+            )
         self.layer_manager.edit_layer.append_callback(
             gunshot_sound,
             duration=0.0,
