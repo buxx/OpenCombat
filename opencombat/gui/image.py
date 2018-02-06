@@ -1,21 +1,19 @@
 # coding: utf-8
-import io
 import typing
 
 from PIL import Image
 from synergine2.config import Config
-from synergine2_cocos2d.actor import Actor
 from synergine2_cocos2d.util import PathManager
+from synergine2_xyz.image import ImageCache
+from synergine2_xyz.image import ImageCacheManager
 
 from opencombat.exception import UnknownAnimationIndex
 
-
-class ImageCache(object):
-    def __init__(self) -> None:
-        self.cache = {}
+if typing.TYPE_CHECKING:
+    from opencombat.gui.actor import BaseActor
 
 
-class FiringCache(ImageCache):
+class FiringImageCache(ImageCache):
     def add(
         self,
         mode: str,
@@ -44,28 +42,14 @@ class FiringCache(ImageCache):
             )
 
 
-class ImageCache(object):
-    # FIXME: Move into synergine
+class TileImageCacheManager(ImageCacheManager):
     def __init__(
         self,
-        actor: Actor,
-        config: Config,
-    ) -> None:
-        self.config = config
-        self.actor = actor
-
-    def build(self) -> None:
-        pass
-
-
-class TileImageCache(ImageCache):
-    def __init__(
-        self,
-        actor: Actor,
+        actor: 'BaseActor',
         config: Config,
     ) -> None:
         super().__init__(actor, config)
-        self.firing_cache = FiringCache()
+        self.firing_cache = FiringImageCache()
         from opencombat.gui.actor import BaseActor
         self.actor = typing.cast(BaseActor, self.actor)
         self.path_manager = PathManager(

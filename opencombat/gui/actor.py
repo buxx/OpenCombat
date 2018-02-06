@@ -14,7 +14,7 @@ from opencombat.gui.animation import ANIMATION_CRAWL
 from opencombat.gui.animation import ANIMATION_WALK
 from opencombat.gui.const import POSITION_MAN_STAND_UP
 from opencombat.gui.const import POSITION_MAN_CRAWLING
-from opencombat.gui.image import TileImageCache
+from opencombat.gui.image import TileImageCacheManager
 from opencombat.gui.weapon import RIFFLE
 from opencombat.gui.weapon import WeaponImageApplier
 
@@ -43,11 +43,8 @@ class BaseActor(Actor):
         self.firing_change_image_gap = 0.05  # seconds
         self.firing_images_cache = {}  # type: TODO
 
-        self.default_image_path = image_path
-
-        self.image_cache = TileImageCache(self, self.config)
-        self.image_cache.build()
-        pass
+    def get_image_cache_manager(self) -> TileImageCacheManager:
+        return TileImageCacheManager(self, self.config)
 
     @property
     def mode(self) -> str:
