@@ -267,6 +267,7 @@ class Game(TMXGui):
     def start_move_subject(self, event: StartMoveEvent):
         actor = self.layer_manager.subject_layer.subjects_index[event.subject_id]
         new_world_position = self.layer_manager.grid_manager.get_world_position_of_grid_position(event.to_position)
+        actor_mode = actor.get_mode_for_gui_action(event.gui_action)
 
         if event.gui_action == UserAction.ORDER_MOVE:
             animation = ANIMATION_WALK
@@ -287,6 +288,7 @@ class Game(TMXGui):
         actor.do(move_action)
         actor.do(Animate(animation, duration=move_duration, cycle_duration=cycle_duration))
         actor.rotation = get_angle(event.from_position, event.to_position)
+        actor.mode = actor_mode
 
     def new_visible_opponent(self, event: NewVisibleOpponent):
         self.visible_or_no_longer_visible_opponent(event, (153, 0, 153))
@@ -349,7 +351,6 @@ class Game(TMXGui):
             self.sound_lib.get_sound('gunshot_default').play()
 
         firing_event = GuiFiringEvent(shooter_actor, event.weapon_type)
-        original_actor_image = shooter_actor.image
 
         def actor_rotate():
             shooter_actor.rotation = get_angle(
@@ -361,7 +362,7 @@ class Game(TMXGui):
             shooter_actor.firing(firing_event)
 
         def actor_end_firing():
-            shooter_actor.update_image(original_actor_image)
+            shooter_actor.reset_default_texture()
 
         # To avoid all in same time
         # TODO BS 2018-01-24: This should be unecessary when core events sending will be

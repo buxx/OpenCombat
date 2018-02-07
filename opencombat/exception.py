@@ -11,3 +11,7 @@ class UnknownWeapon(OpenCombatException):
 
 class UnknownFiringAnimation(OpenCombatException):
     pass
+
+
+class WrongMode(OpenCombatException):
+    pass

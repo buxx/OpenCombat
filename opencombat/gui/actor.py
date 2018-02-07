@@ -11,6 +11,7 @@ from synergine2_cocos2d.actor import Actor
 from synergine2_xyz.exception import UnknownAnimationIndex
 
 from opencombat.exception import UnknownWeapon
+from opencombat.exception import WrongMode
 from opencombat.exception import UnknownFiringAnimation
 from opencombat.gui.animation import ANIMATION_CRAWL
 from opencombat.gui.animation import ANIMATION_WALK
@@ -19,6 +20,7 @@ from opencombat.gui.const import MODE_MAN_CRAWLING
 from opencombat.gui.image import TileImageCacheManager
 from opencombat.gui.weapon import RIFFLE
 from opencombat.gui.weapon import WeaponImageApplier
+from opencombat.user_action import UserAction
 
 if typing.TYPE_CHECKING:
     from opencombat.gui.fire import GuiFiringEvent
@@ -40,6 +42,7 @@ class BaseActor(Actor):
     ]
     weapons_firing_image_scheme = {}
     weapon_image_scheme = {}
+    move_for_gui_actions = {}
 
     def __init__(
         self,
@@ -69,9 +72,24 @@ class BaseActor(Actor):
 
     @property
     def mode(self) -> str:
-        # FIXME: When man is moving (crawling for example), must change mode
-        # and man must stay "crawled"
         return self._mode
+
+    @mode.setter
+    def mode(self, value) -> None:
+        if value not in self.get_modes():
+            raise WrongMode('Actor "{}" has no mode "{}" ({})'.format(
+                self.__class__.__name__,
+                value,
+                ', '.join(self.get_modes()),
+            ))
+
+        self._mode = value
+
+    def get_mode_for_gui_action(self, gui_action: str) -> str:
+        try:
+            return self.move_for_gui_actions[gui_action]
+        except KeyError:
+            return self.get_default_mode()
 
     @property
     def weapons(self) -> typing.List[str]:
@@ -199,6 +217,18 @@ class Man(BaseActor):
                 'actors/man_weap1_firing3.png',
             ],
         },
+        MODE_MAN_CRAWLING: {
+            RIFFLE: [
+                'actors/man_weap1_firing1.png',
+                'actors/man_weap1_firing2.png',
+                'actors/man_weap1_firing3.png',
+            ]
+        }
+    }
+    move_for_gui_actions = {
+        UserAction.ORDER_MOVE: MODE_MAN_STAND_UP,
+        UserAction.ORDER_MOVE_FAST: MODE_MAN_STAND_UP,
+        UserAction.ORDER_MOVE_CRAWL: MODE_MAN_CRAWLING,
     }
 
     def __init__(

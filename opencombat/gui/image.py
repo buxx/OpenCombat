@@ -69,7 +69,7 @@ class TileImageCacheManager(ImageCacheManager):
 
     def build_firing(self) -> None:
         for mode in self.actor.get_modes():
-            mode_image_path = self.actor.default_image_path  # FIXME !
+            mode_image_path = self.actor.get_mode_image_path(mode)
             mode_image = Image.open(self.path_manager.path(mode_image_path))
 
             for weapon in self.actor.weapons:
