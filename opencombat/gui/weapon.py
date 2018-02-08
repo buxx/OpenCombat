@@ -17,11 +17,7 @@ if typing.TYPE_CHECKING:
 RIFFLE = 'RIFFLE'
 
 
-class ImageApplier(object):
-    pass  # FIXME: refact here
-
-
-class WeaponImageApplier(ImageApplier):
+class WeaponImageApplier(object):
     def __init__(
         self,
         config: Config,
