@@ -382,7 +382,7 @@ class Game(TMXGui):
         )
         self.layer_manager.edit_layer.append_callback(
             actor_firing,
-            duration=0.2,  # TODO BS 2018-01-25: Wil depend of weapon type
+            duration=0.5,  # TODO BS 2018-01-25: Wil depend of weapon type
             delay=delay,
             end_callback=actor_end_firing,
             start_callback=actor_rotate,
