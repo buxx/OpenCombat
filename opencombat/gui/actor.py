@@ -53,7 +53,7 @@ class BaseActor(Actor):
     ) -> None:
         self._mode = MODE_MAN_STAND_UP
         self.weapon_image_applier = WeaponImageApplier(config, self)
-        self.firing_texture_cache = {}  # type: typing.Dict[str, typing.Dict[typing.List[pyglet.image.TextureRegion]]  # nopep8
+        self.firing_texture_cache = {}  # type: typing.Dict[str, typing.Dict[str, typing.List[pyglet.image.AbstractImage]]  # nopep8
         super().__init__(image_path, subject=subject, config=config)
 
         # Firing
