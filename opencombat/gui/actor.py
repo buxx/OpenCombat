@@ -108,7 +108,8 @@ class BaseActor(Actor):
         return [
             self.weapon_image_applier.get_image_for_weapon(
                 self.mode,
-                self.weapons[0],  # FIXME
+                # TODO BS 2018-02-08: Change this when weapon management enhanced
+                self.weapons[0],
             )
         ]
 
