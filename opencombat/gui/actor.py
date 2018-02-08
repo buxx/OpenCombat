@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 import typing
 
 import time
@@ -52,6 +53,7 @@ class BaseActor(Actor):
     ) -> None:
         self._mode = MODE_MAN_STAND_UP
         self.weapon_image_applier = WeaponImageApplier(config, self)
+        self.firing_texture_cache = {}  # type: typing.Dict[str, typing.Dict[typing.List[pyglet.image.TextureRegion]]  # nopep8
         super().__init__(image_path, subject=subject, config=config)
 
         # Firing
@@ -95,6 +97,10 @@ class BaseActor(Actor):
     def weapons(self) -> typing.List[str]:
         return []
 
+    def build_textures_cache(self) -> None:
+        super().build_textures_cache()
+        self.build_firing_texture_cache()
+
     def get_default_appliable_images(self) -> typing.List[Image.Image]:
         if not self.weapons:
             return []
@@ -127,6 +133,29 @@ class BaseActor(Actor):
         except UnknownWeapon:
             return []
 
+    def build_firing_texture_cache(self) -> None:
+        cache_dir = self.config.resolve('global.cache_dir_path')
+        for mode in self.get_modes():
+            for weapon in self.weapons:
+                firing_images = self.image_cache_manager.firing_cache.get_list(
+                    mode,
+                    weapon,
+                )
+                for i, firing_image in enumerate(firing_images):
+                    image_name = '{}_firing_{}_{}_{}.png'.format(
+                        str(self.subject.id),
+                        mode,
+                        weapon,
+                        i,
+                    )
+                    cache_image_path = os.path.join(cache_dir, image_name)
+                    firing_image.save(cache_image_path)
+
+                    self.firing_texture_cache\
+                        .setdefault(mode, {})\
+                        .setdefault(weapon, [])\
+                        .append(pyglet.image.load(cache_image_path))
+
     def firing(self, firing: 'GuiFiringEvent') -> None:
         # FIXME: move some code ?
         now = time.time()
@@ -135,35 +164,29 @@ class BaseActor(Actor):
             firing.increment_animation_index()
 
             try:
-                image = self.image_cache_manager.firing_cache.get(
-                    mode=self.mode,
-                    weapon=firing.weapon,
-                    position=firing.animation_index,
-                )
-            except UnknownAnimationIndex:
-                image = self.image_cache_manager.firing_cache.get(
-                    mode=self.mode,
-                    weapon=firing.weapon,
-                    position=0,
-                )
-                firing.reset_animation_index()
-            except UnknownFiringAnimation as exc:
+                texture = self.firing_texture_cache\
+                    [self.mode]\
+                    [firing.weapon]\
+                    [firing.animation_index]
+            except KeyError:
                 self.logger.error(
-                    'No firing animation for actor {}({}): {}'.format(
+                    'No firing animation for actor {}({}) for mode "{}"'
+                    ' and weapon "{}"'.format(
                         self.__class__.__name__,
                         str(self.subject.id),
-                        str(exc),
+                        self.mode,
+                        firing.weapon,
                     )
                 )
                 return  # There is no firing animation defined
+            except IndexError:
+                texture = self.firing_texture_cache\
+                    [self.mode]\
+                    [firing.weapon]\
+                    [0]
+                firing.reset_animation_index()
 
-            # FIXME cache: prepare before firing
-            import uuid
-            tmp_path = '/tmp/{}.png'.format(str(uuid.uuid4()))
-            image.save(tmp_path)
-            pyglet_image = pyglet.image.load(tmp_path)
-
-            self.update_image(pyglet_image.get_texture())
+            self.update_image(texture)
 
 
 class Man(BaseActor):

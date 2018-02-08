@@ -48,6 +48,21 @@ class FiringImageCache(ImageCache):
                 ),
             )
 
+    def get_list(
+        self,
+        mode: str,
+        weapon: str,
+    ) -> typing.List[Image.Image]:
+        try:
+            return self.cache[mode][weapon]
+        except KeyError:
+            raise UnknownFiringAnimation(
+                'Unknown firing animation for mode "{}" and weapon "{}"'.format(
+                    mode,
+                    weapon,
+                )
+            )
+
 
 class TileImageCacheManager(ImageCacheManager):
     def __init__(
