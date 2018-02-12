@@ -354,7 +354,7 @@ class Game(TMXGui):
 
         def actor_rotate():
             shooter_actor.rotation = get_angle(
-                shooter_actor.position,
+                shooter_actor.subject.position,
                 event.target_position,
             )
 
