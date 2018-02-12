@@ -124,7 +124,10 @@ class EngageOpponent(AliveSubjectBehaviour):
         target_position = data['target_position']
 
         events = list()
-        events.append(FireEvent(shooter_subject_id=self.subject.id, target_position=target_position))
+        events.append(FireEvent(
+            shooter_subject_id=self.subject.id,
+            target_position=target_position,
+        ))
 
         # Must be check if target is not already dead (killed same cycle)
         if kill and COLLECTION_ALIVE in target_subject.collections:
