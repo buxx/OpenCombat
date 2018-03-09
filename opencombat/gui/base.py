@@ -12,11 +12,14 @@ from PIL import Image
 from pyglet.window import key
 
 from cocos.actions import MoveTo as BaseMoveTo
+from cocos.actions import MoveTo as RotateTo
 from synergine2_cocos2d.audio import AudioLibrary as BaseAudioLibrary
 from synergine2_cocos2d.interaction import InteractionManager
 from synergine2_cocos2d.middleware import MapMiddleware
 from synergine2_cocos2d.util import PathManager
 
+from opencombat.gui.animation import ANIMATION_WALK
+from opencombat.gui.animation import ANIMATION_CRAWL
 from opencombat.gui.fire import GuiFiringEvent
 from opencombat.simulation.interior import InteriorManager
 from opencombat.simulation.tmx import TileMap
@@ -24,8 +27,6 @@ from opencombat.user_action import UserAction
 from synergine2.config import Config
 from synergine2.terminals import Terminal
 from synergine2_cocos2d.actions import MoveTo
-from opencombat.gui.animation import ANIMATION_CRAWL
-from opencombat.gui.animation import ANIMATION_WALK
 from synergine2_cocos2d.animation import Animate
 from synergine2_cocos2d.gl import draw_line
 from synergine2_cocos2d.gui import EditLayer as BaseEditLayer
@@ -33,8 +34,7 @@ from synergine2_cocos2d.gui import SubjectMapper
 from synergine2_cocos2d.gui import Gui
 from synergine2_cocos2d.gui import TMXGui
 from synergine2_cocos2d.layer import LayerManager
-from synergine2_xyz.move.simulation import FinishMoveEvent
-from synergine2_xyz.move.simulation import StartMoveEvent
+from opencombat.simulation import move
 from synergine2_xyz.physics import Physics
 from synergine2_xyz.utils import get_angle
 from opencombat.simulation.event import NewVisibleOpponent
@@ -203,13 +203,27 @@ class Game(TMXGui):
         self.debug_gui = self.config.resolve('global.debug_gui', False)
 
         self.terminal.register_event_handler(
-            FinishMoveEvent,
+            move.SubjectFinishTileMoveEvent,
+            self.set_subject_position,
+        )
+        self.terminal.register_event_handler(
+            move.SubjectFinishMoveEvent,
             self.set_subject_position,
         )
 
         self.terminal.register_event_handler(
-            StartMoveEvent,
+            move.SubjectStartTileMoveEvent,
             self.start_move_subject,
+        )
+
+        self.terminal.register_event_handler(
+            move.SubjectStartRotationEvent,
+            self.start_rotate_subject,
+        )
+
+        self.terminal.register_event_handler(
+            move.SubjectFinishRotationEvent,
+            self.rotate_subject,
         )
 
         self.terminal.register_event_handler(
@@ -257,18 +271,28 @@ class Game(TMXGui):
         self.layer_manager.interaction_manager.register(MoveCrawlActorInteraction, self.layer_manager)
         self.layer_manager.interaction_manager.register(FireActorInteraction, self.layer_manager)
 
-    def set_subject_position(self, event: FinishMoveEvent):
+    def set_subject_position(
+        self,
+        event: typing.Union[move.SubjectFinishMoveEvent, move.SubjectFinishTileMoveEvent]
+    ):
         actor = self.layer_manager.subject_layer.subjects_index[event.subject_id]
-        new_world_position = self.layer_manager.grid_manager.get_world_position_of_grid_position(event.to_position)
+        new_world_position = self.layer_manager\
+            .grid_manager\
+            .get_world_position_of_grid_position(event.move_to)
 
         actor.stop_actions((BaseMoveTo,))
         actor.set_position(*new_world_position)
 
-    def start_move_subject(self, event: StartMoveEvent):
+    def start_move_subject(
+        self,
+        event: typing.Union[move.SubjectFinishTileMoveEvent, move.SubjectContinueTileMoveEvent, move.SubjectFinishMoveEvent],  # nopep8
+    ):
         actor = self.layer_manager.subject_layer.subjects_index[event.subject_id]
-        new_world_position = self.layer_manager.grid_manager.get_world_position_of_grid_position(event.to_position)
-        actor_mode = actor.get_mode_for_gui_action(event.gui_action)
+        new_world_position = self.layer_manager\
+            .grid_manager\
+            .get_world_position_of_grid_position(event.move_to)
 
+        # FIXME BS 20180319: compute/config for cycle duration? ?
         if event.gui_action == UserAction.ORDER_MOVE:
             animation = ANIMATION_WALK
             cycle_duration = 2
@@ -283,12 +307,26 @@ class Game(TMXGui):
                 'Gui action {} unknown'.format(event.gui_action)
             )
 
-        move_duration = event.move_duration
+        move_duration = event.duration
         move_action = MoveTo(new_world_position, move_duration)
         actor.do(move_action)
-        actor.do(Animate(animation, duration=move_duration, cycle_duration=cycle_duration))
-        actor.rotation = get_angle(event.from_position, event.to_position)
-        actor.mode = actor_mode
+        actor.do(Animate(
+            animation,
+            duration=move_duration,
+            cycle_duration=cycle_duration,
+        ))
+        if actor.can_rotate_instant():
+            actor.rotation = get_angle(actor.subject.position, event.move_to)
+        actor.mode = actor.get_mode_for_gui_action(animation)
+
+    def start_rotate_subject(self, event: move.SubjectStartRotationEvent):
+        actor = self.layer_manager.subject_layer.subjects_index[event.subject_id]
+        rotate_action = RotateTo(event.rotate_absolute, event.duration)
+        actor.do(rotate_action)
+
+    def rotate_subject(self, event: move.SubjectFinishRotationEvent):
+        actor = self.layer_manager.subject_layer.subjects_index[event.subject_id]
+        actor.rotation = event.rotation_absolute
 
     def new_visible_opponent(self, event: NewVisibleOpponent):
         self.visible_or_no_longer_visible_opponent(event, (153, 0, 153))

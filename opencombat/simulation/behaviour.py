@@ -12,42 +12,43 @@ from opencombat.simulation.event import NewVisibleOpponent
 from opencombat.simulation.mechanism import OpponentVisibleMechanism
 from opencombat.user_action import UserAction
 from synergine2.simulation import Event
-from synergine2_xyz.move.simulation import MoveToBehaviour as BaseMoveToBehaviour
-
-
-class MoveToBehaviour(BaseMoveToBehaviour):
-    def is_terminated(self) -> bool:
-        return COLLECTION_ALIVE not in self.subject.collections
-
-    def _can_move_to_next_step(self, move_to_data: dict) -> bool:
-        if move_to_data['gui_action'] == UserAction.ORDER_MOVE:
-            return time.time() - move_to_data['last_intention_time'] >= \
-                   self.subject.walk_duration
-        if move_to_data['gui_action'] == UserAction.ORDER_MOVE_FAST:
-            return time.time() - move_to_data['last_intention_time'] >= \
-                   self.subject.run_duration
-        if move_to_data['gui_action'] == UserAction.ORDER_MOVE_CRAWL:
-            return time.time() - move_to_data['last_intention_time'] >= \
-                   self.subject.crawl_duration
-
-        raise NotImplementedError(
-            'Gui action {} unknown'.format(move_to_data['gui_action'])
-        )
-
-    def get_move_duration(self, move_to_data: dict) -> float:
-        if move_to_data['gui_action'] == UserAction.ORDER_MOVE:
-            return self.subject.walk_duration
-        if move_to_data['gui_action'] == UserAction.ORDER_MOVE_FAST:
-            return self.subject.run_duration
-        if move_to_data['gui_action'] == UserAction.ORDER_MOVE_CRAWL:
-            return self.subject.crawl_duration
-
-        raise NotImplementedError(
-            'Gui action {} unknown'.format(move_to_data['gui_action'])
-        )
-
-    def finalize_event(self, move_to_data: dict, event: Event) -> None:
-        event.move_duration = self.get_move_duration(move_to_data)
+# from synergine2_xyz.move.simulation import MoveToBehaviour as BaseMoveToBehaviour
+#
+#
+# class MoveToBehaviour(BaseMoveToBehaviour):
+#     def is_terminated(self) -> bool:
+#         return COLLECTION_ALIVE not in self.subject.collections
+#
+#     def _can_move_to_next_step(self, move_to_data: dict) -> bool:
+#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE:
+#             return time.time() - move_to_data['last_intention_time'] >= \
+#                    self.subject.walk_duration
+#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE_FAST:
+#             return time.time() - move_to_data['last_intention_time'] >= \
+#                    self.subject.run_duration
+#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE_CRAWL:
+#             return time.time() - move_to_data['last_intention_time'] >= \
+#                    self.subject.crawl_duration
+#
+#         raise NotImplementedError(
+#             'Gui action {} unknown'.format(move_to_data['gui_action'])
+#         )
+#
+#     # FIXME remove this func when code with new move
+#     def get_move_duration(self, move_to_data: dict) -> float:
+#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE:
+#             return self.subject.walk_duration
+#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE_FAST:
+#             return self.subject.run_duration
+#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE_CRAWL:
+#             return self.subject.crawl_duration
+#
+#         raise NotImplementedError(
+#             'Gui action {} unknown'.format(move_to_data['gui_action'])
+#         )
+#
+#     def finalize_event(self, move_to_data: dict, event: Event) -> None:
+#         event.move_duration = self.get_move_duration(move_to_data)
 
 
 class LookAroundBehaviour(AliveSubjectBehaviour):

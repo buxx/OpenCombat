@@ -113,6 +113,9 @@ class BaseActor(Actor):
             )
         ]
 
+    def can_rotate_instant(self) -> bool:
+        return True
+
     def get_animation_appliable_images(
         self,
         animation_name: str,
@@ -295,3 +298,6 @@ class HeavyVehicle(BaseActor):
     def weapons(self) -> typing.List[str]:
         # TODO BS 2018-01-26: Will be managed by complex part of code
         return [RIFFLE]
+
+    def can_rotate_instant(self) -> bool:
+        return False

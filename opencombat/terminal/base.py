@@ -10,16 +10,18 @@ from opencombat.simulation.event import NoLongerVisibleOpponent
 from opencombat.simulation.physics import TilePhysics
 from synergine2_cocos2d.terminal import GameTerminal
 from synergine2_cocos2d.util import get_map_file_path_from_dir
-from synergine2_xyz.move.simulation import FinishMoveEvent
-from synergine2_xyz.move.simulation import StartMoveEvent
+from opencombat.simulation import move
 
 
 class CocosTerminal(GameTerminal):
     main_process = True
 
     subscribed_events = [
-        FinishMoveEvent,
-        StartMoveEvent,
+        move.SubjectFinishTileMoveEvent,
+        move.SubjectFinishMoveEvent,
+        move.SubjectStartTileMoveEvent,
+        move.SubjectStartRotationEvent,
+        move.SubjectFinishRotationEvent,
         NewVisibleOpponent,
         NoLongerVisibleOpponent,
         FireEvent,
