@@ -12,7 +12,7 @@ from PIL import Image
 from pyglet.window import key
 
 from cocos.actions import MoveTo as BaseMoveTo
-from cocos.actions import MoveTo as RotateTo
+from cocos.actions import RotateTo
 from synergine2_cocos2d.audio import AudioLibrary as BaseAudioLibrary
 from synergine2_cocos2d.interaction import InteractionManager
 from synergine2_cocos2d.middleware import MapMiddleware
