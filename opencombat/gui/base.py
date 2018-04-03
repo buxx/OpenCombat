@@ -322,6 +322,7 @@ class Game(TMXGui):
     def start_rotate_subject(self, event: move.SubjectStartRotationEvent):
         actor = self.layer_manager.subject_layer.subjects_index[event.subject_id]
         rotate_action = RotateTo(event.rotate_absolute, event.duration)
+        actor.stop_actions((RotateTo,))
         actor.do(rotate_action)
 
     def rotate_subject(self, event: move.SubjectFinishRotationEvent):
