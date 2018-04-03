@@ -267,11 +267,13 @@ class MoveWithRotationBehaviour(SubjectBehaviour):
                 # look at progression
                 rotate_since = now - self.subject.start_rotation
                 rotate_progress = rotate_since / self.subject.rotate_duration
-                rotation_to_do = self.subject.rotate_to - self.subject.direction
+                rotation_to_do = self.subject.rotate_to - self.subject.direction  # nopep8
                 rotation_done = rotation_to_do * rotate_progress
                 self.subject.direction = self.subject.direction + rotation_done
                 rotation_left = self.subject.rotate_to - self.subject.direction
-                duration = self.subject.get_rotate_duration(angle=rotation_left)
+                duration = abs(self.subject.get_rotate_duration(
+                    angle=rotation_left,
+                ))
                 self.subject.rotate_duration = duration
                 self.subject.start_rotation = now
 
@@ -282,7 +284,9 @@ class MoveWithRotationBehaviour(SubjectBehaviour):
                     gui_action=data['gui_action'],
                 )]
             else:
-                duration = self.subject.get_rotate_duration(angle=data['rotate_relative'])
+                duration = abs(self.subject.get_rotate_duration(
+                    angle=data['rotate_relative'],
+                ))
                 self.subject.rotate_to = data['rotate_absolute']
                 self.subject.rotate_duration = duration
                 self.subject.start_rotation = time.time()

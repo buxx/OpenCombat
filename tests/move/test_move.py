@@ -507,3 +507,83 @@ def test_move_behaviour(config):
         assert -1 == subject.move_duration
         with pytest.raises(KeyError):
             assert subject.intentions.get(MoveToIntention)
+
+def test_move_and_rotate_behaviour__rotate_negatively(config):
+    simulation = XYZSimulation(config)
+    simulation.physics.graph.add_edge('0.0', '1.-1', {})
+    simulation.physics.graph.add_edge('1.-1', '2.-1', {})
+
+    subject = TankSubject(
+        config,
+        simulation,
+        position=(0, 0),
+    )
+    move = MoveToIntention(
+        to=(2, -1),
+        gui_action=UserAction.ORDER_MOVE,
+    )
+    subject.intentions.set(move)
+
+    move_behaviour = MoveWithRotationBehaviour(
+        config=config,
+        simulation=simulation,
+        subject=subject,
+    )
+
+    # First is a move
+    with freeze_time("2000-01-01 00:00:00", tz_offset=0):
+        data = move_behaviour.run({MoveToMechanism: move.get_data()})
+        assert {
+                   'gui_action': UserAction.ORDER_MOVE,
+                   'path': [
+                       (0, 0),
+                       (1, -1),
+                       (2, -1),
+                   ],
+                   'rotate_absolute': 135.0,
+                   'rotate_relative': 135.0,
+               } == data
+
+        events = move_behaviour.action(data)
+        assert 1 == len(events)
+        assert isinstance(events[0], SubjectStartRotationEvent)
+        assert 135 == events[0].rotate_relative
+        assert 135 == events[0].rotate_absolute
+        assert 15 == round(events[0].duration)
+        assert subject.intentions.get(MoveToIntention)
+
+    with freeze_time("2000-01-01 00:00:15", tz_offset=0):
+        data = move_behaviour.run({MoveToMechanism: move.get_data()})
+        assert {
+                   'gui_action': UserAction.ORDER_MOVE,
+                   'rotate_to_finished': 135,
+                   'tile_move_to': (1, -1),
+               } == data
+
+        events = move_behaviour.action(data)
+        assert 2 == len(events)
+        assert isinstance(events[1], SubjectStartTileMoveEvent)
+        assert isinstance(events[0], SubjectFinishRotationEvent)
+        assert (1, -1) == events[1].move_to
+        assert 9.0 == events[1].duration
+        assert 135 == events[0].rotation_absolute
+        assert subject.intentions.get(MoveToIntention)
+
+    with freeze_time("2000-01-01 00:00:24", tz_offset=0):
+        data = move_behaviour.run({MoveToMechanism: move.get_data()})
+        assert {
+                   'gui_action': UserAction.ORDER_MOVE,
+                   'rotate_absolute': 90,
+                   'rotate_relative': -45,
+                   'tile_move_to_finished': (1, -1),
+               } == data
+
+        events = move_behaviour.action(data)
+        assert 2 == len(events)
+        assert isinstance(events[0], SubjectFinishTileMoveEvent)
+        assert isinstance(events[1], SubjectStartRotationEvent)
+        assert (1, -1) == events[0].move_to
+        assert 90 == events[1].rotate_absolute
+        assert -45 == events[1].rotate_relative
+        assert 5 == round(events[1].duration)
+        assert subject.intentions.get(MoveToIntention)
