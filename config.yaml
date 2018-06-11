@@ -21,6 +21,8 @@ game:
       draw_interior_gap: 2
 
 global:
+    state_loader: "opencombat.state.StateLoader"
+    state_schema: "opencombat/state.xsd"
     cache_dir_path: 'cache'
     include_path:
       maps:

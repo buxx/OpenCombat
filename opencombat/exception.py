@@ -15,3 +15,7 @@ class UnknownFiringAnimation(OpenCombatException):
 
 class WrongMode(OpenCombatException):
     pass
+
+
+class StateLoadError(OpenCombatException):
+    pass

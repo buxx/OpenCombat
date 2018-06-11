@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="state" type="statetype"/>
+
+    <xs:simpleType name="statetypetype" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="before_battle"/>
+            <xs:enumeration value="during_battle"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="sidetype" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="DE"/>
+            <xs:enumeration value="URSS"/>
+            <xs:enumeration value="US"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="modetype" final="restriction">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="standup"/>
+            <xs:enumeration value="defending"/>
+            <xs:enumeration value="hiding"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="positiontype">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]+,[0-9]+"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="directiontype">
+        <xs:restriction base="xs:positiveInteger"/>
+    </xs:simpleType>
+
+    <xs:complexType name="statetype">
+        <xs:sequence>
+            <xs:element name="map" type="maptype" maxOccurs="1"/>
+            <xs:element name="subjects" type="subjectstype"/>
+        </xs:sequence>
+        <xs:attribute name="type" type="statetypetype" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="subjectstype">
+        <xs:sequence>
+            <xs:element name="subject" type="subjecttype" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="subjecttype">
+        <xs:sequence>
+            <xs:element name="type" type="xs:string"/>
+            <xs:element name="position" type="positiontype"/>
+            <xs:element name="direction" type="directiontype"/>
+            <xs:element name="mode" type="modetype"/>
+            <xs:element name="side" type="sidetype"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="maptype">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

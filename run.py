@@ -20,10 +20,15 @@ from opencombat.simulation.subject import ManSubject
 from opencombat.simulation.subject import TankSubject
 from opencombat.simulation.base import TileStrategySimulation
 from opencombat.simulation.base import TileStrategySubjects
+from opencombat.state import StateLoaderBuilder
 from opencombat.terminal.base import CocosTerminal
 
 
-def main(map_dir_path: str, seed_value: int=None):
+def main(
+    map_dir_path: str,
+    seed_value: int=None,
+    state_file_path: str=None,
+):
     if seed_value is not None:
         seed(seed_value)
 
@@ -37,44 +42,49 @@ def main(map_dir_path: str, seed_value: int=None):
     simulation = TileStrategySimulation(config, map_file_path=map_file_path)
     subjects = TileStrategySubjects(simulation=simulation)
 
-    for position in ((10, 2), (11, 3), (11, 4), (12, 5),):
-        man = ManSubject(
-            config=config,
-            simulation=simulation,
-            position=position,
-            properties={
-                SELECTION_COLOR_RGB: DE_COLOR,
-                FLAG: FLAG_DE,
-                SIDE: 'AXIS',
-            }
-        )
-        subjects.append(man)
+    if state_file_path:
+        state_loader_builder = StateLoaderBuilder(config)
+        state_loader = state_loader_builder.get_state_loader(state_file_path)
+        subjects.extend(state_loader.get_subjects())
 
-    for position in ((30, 15), (31, 16), (32, 17), (33, 18),):
-        man = ManSubject(
-            config=config,
-            simulation=simulation,
-            position=position,
-            properties={
-                SELECTION_COLOR_RGB: URSS_COLOR,
-                FLAG: FLAG_URSS,
-                SIDE: 'ALLIES',
-            }
-        )
-        subjects.append(man)
-
-    for position in ((38, 24),):
-        man = TankSubject(
-            config=config,
-            simulation=simulation,
-            position=position,
-            properties={
-                SELECTION_COLOR_RGB: URSS_COLOR,
-                FLAG: FLAG_URSS,
-                SIDE: 'ALLIES',
-            }
-        )
-        subjects.append(man)
+    # for position in ((10, 2), (11, 3), (11, 4), (12, 5),):
+    #     man = ManSubject(
+    #         config=config,
+    #         simulation=simulation,
+    #         position=position,
+    #         properties={
+    #             SELECTION_COLOR_RGB: DE_COLOR,
+    #             FLAG: FLAG_DE,
+    #             SIDE: 'AXIS',
+    #         }
+    #     )
+    #     subjects.append(man)
+    #
+    # for position in ((30, 15), (31, 16), (32, 17), (33, 18),):
+    #     man = ManSubject(
+    #         config=config,
+    #         simulation=simulation,
+    #         position=position,
+    #         properties={
+    #             SELECTION_COLOR_RGB: URSS_COLOR,
+    #             FLAG: FLAG_URSS,
+    #             SIDE: 'ALLIES',
+    #         }
+    #     )
+    #     subjects.append(man)
+    #
+    # for position in ((38, 24),):
+    #     man = TankSubject(
+    #         config=config,
+    #         simulation=simulation,
+    #         position=position,
+    #         properties={
+    #             SELECTION_COLOR_RGB: URSS_COLOR,
+    #             FLAG: FLAG_URSS,
+    #             SIDE: 'ALLIES',
+    #         }
+    #     )
+    #     subjects.append(man)
 
     simulation.subjects = subjects
 
