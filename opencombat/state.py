@@ -1,17 +1,17 @@
 # coding: utf-8
-import importlib
 import typing
-from _elementtree import Element
 
+from _elementtree import Element
 from lxml import etree
 
 from synergine2.config import Config
 from synergine2.log import get_logger
-from synergine2.simulation import Subject
 
 from opencombat.exception import StateLoadError
 from opencombat.simulation.base import TileStrategySimulation
+from opencombat.simulation.subject import TileSubject
 from opencombat.util import get_class_from_string_path
+from opencombat.util import get_text_xml_element
 
 
 class State(object):
@@ -23,17 +23,17 @@ class State(object):
     ) -> None:
         self._config = config
         self._state_root = state_root
-        self._subjects = None  # type: typing.List[Subject]
+        self._subjects = None  # type: typing.List[TileSubject]
         self._simulation = simulation
 
     @property
-    def subjects(self) -> typing.List[Subject]:
+    def subjects(self) -> typing.List[TileSubject]:
         if self._subjects is None:
             self._subjects = self._get_subjects()
 
         return self._subjects
 
-    def _get_subjects(self) -> typing.List[Subject]:
+    def _get_subjects(self) -> typing.List[TileSubject]:
         subjects = []
         subject_elements = self._state_root.find('subjects').findall('subject')
 
@@ -44,11 +44,37 @@ class State(object):
                 subject_class_path,
             )
             subject = subject_class(self._config, self._simulation)
+            self._fill_subject(subject, subject_element)
 
             # TODO BS 2018-06-13: Fill subject with property
             subjects.append(subject)
 
         return subjects
+
+    def _fill_subject(
+        self,
+        subject: TileSubject,
+        subject_element: Element,
+    ) -> None:
+        subject.position = tuple(
+            map(
+                int,
+                get_text_xml_element(subject_element, 'position').split(','),
+            ),
+        )
+        subject.direction = float(
+            get_text_xml_element(subject_element, 'direction'),
+        )
+
+        """
+        TODO:
+
+        properties={
+                 SELECTION_COLOR_RGB: DE_COLOR,
+                 FLAG: FLAG_DE,
+                 SIDE: 'AXIS',
+             }
+        """
 
 
 class StateLoader(object):

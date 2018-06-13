@@ -19,3 +19,7 @@ class WrongMode(OpenCombatException):
 
 class StateLoadError(OpenCombatException):
     pass
+
+
+class NotFoundError(OpenCombatException):
+    pass

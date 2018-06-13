@@ -3,6 +3,7 @@ import pytest
 from synergine2.config import Config
 
 from opencombat.exception import StateLoadError
+from opencombat.simulation.subject import ManSubject
 from opencombat.state import StateLoaderBuilder, StateLoader
 
 
@@ -54,4 +55,12 @@ def test_state__ok__subjects(
     state_loader,
 ):
     state = state_loader.get_state('tests/fixtures/state_ok.xml')
+
     assert 2 == len(state.subjects)
+    assert isinstance(state.subjects[0], ManSubject)
+    assert isinstance(state.subjects[1], ManSubject)
+
+    assert (1, 1) == state.subjects[0].position
+    assert (10, 10) == state.subjects[1].position
+    assert 90.0 == state.subjects[0].direction
+    assert 270.0 == state.subjects[1].direction

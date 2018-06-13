@@ -52,11 +52,11 @@
 
     <xs:complexType name="subjecttype">
         <xs:sequence>
-            <xs:element name="type" type="xs:string"/>
-            <xs:element name="position" type="positiontype"/>
-            <xs:element name="direction" type="directiontype"/>
-            <xs:element name="mode" type="modetype"/>
-            <xs:element name="side" type="sidetype"/>
+            <xs:element name="type" type="xs:string" minOccurs="1" />
+            <xs:element name="position" type="positiontype" minOccurs="1"/>
+            <xs:element name="direction" type="directiontype" minOccurs="1"/>
+            <xs:element name="mode" type="modetype" minOccurs="1"/>
+            <xs:element name="side" type="sidetype" minOccurs="1"/>
         </xs:sequence>
     </xs:complexType>
 

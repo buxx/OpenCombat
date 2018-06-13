@@ -43,9 +43,10 @@ def main(
     subjects = TileStrategySubjects(simulation=simulation)
 
     if state_file_path:
-        state_loader_builder = StateLoaderBuilder(config)
-        state_loader = state_loader_builder.get_state_loader(state_file_path)
-        subjects.extend(state_loader.get_subjects())
+        state_loader_builder = StateLoaderBuilder(config, simulation)
+        state_loader = state_loader_builder.get_state_loader()
+        state = state_loader.get_state(state_file_path)
+        subjects.extend(state.subjects)
 
     # for position in ((10, 2), (11, 3), (11, 4), (12, 5),):
     #     man = ManSubject(
