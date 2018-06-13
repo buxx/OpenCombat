@@ -6,12 +6,18 @@ from lxml import etree
 
 from synergine2.config import Config
 from synergine2.log import get_logger
+from synergine2_cocos2d.const import SELECTION_COLOR_RGB
 
 from opencombat.exception import StateLoadError
 from opencombat.simulation.base import TileStrategySimulation
 from opencombat.simulation.subject import TileSubject
 from opencombat.util import get_class_from_string_path
 from opencombat.util import get_text_xml_element
+from opencombat.const import FLAG, SIDE
+from opencombat.const import FLAG_DE
+from opencombat.const import DE_COLOR
+from opencombat.const import URSS_COLOR
+from opencombat.const import FLAG_URSS
 
 
 class State(object):
@@ -56,6 +62,8 @@ class State(object):
         subject: TileSubject,
         subject_element: Element,
     ) -> None:
+        subject_properties = {}
+
         subject.position = tuple(
             map(
                 int,
@@ -66,15 +74,25 @@ class State(object):
             get_text_xml_element(subject_element, 'direction'),
         )
 
-        """
-        TODO:
+        side = get_text_xml_element(subject_element, 'side')
+        if side == 'DE':
+            subject_properties.update({
+                SELECTION_COLOR_RGB: DE_COLOR,
+                FLAG: FLAG_DE,
+                SIDE: 'AXIS',
+            })
+        elif side == 'URSS':
+            subject_properties.update({
+                SELECTION_COLOR_RGB: URSS_COLOR,
+                FLAG: FLAG_URSS,
+                SIDE: 'ALLIES',
+            })
+        else:
+            raise NotImplementedError('Don\'t know "{}" side'.format(
+                side,
+            ))
 
-        properties={
-                 SELECTION_COLOR_RGB: DE_COLOR,
-                 FLAG: FLAG_DE,
-                 SIDE: 'AXIS',
-             }
-        """
+        subject.properties = subject_properties
 
 
 class StateLoader(object):

@@ -4,10 +4,10 @@
  <tileset firstgid="82" source="../shared/tilesets/terrain.tsx"/>
  <tileset firstgid="131" source="../shared/tilesets/interiors.tsx"/>
  <imagelayer name="interior">
-  <image source="001i.png" width="1024" height="512"/>
+  <image source="background_interior.png" width="1024" height="512"/>
  </imagelayer>
  <imagelayer name="background" visible="0">
-  <image source="001.png" width="1024" height="512"/>
+  <image source="background.png" width="1024" height="512"/>
  </imagelayer>
  <layer name="top" width="128" height="64">
   <data encoding="csv">
