@@ -1,8 +1,7 @@
 # coding: utf-8
 import importlib
 import typing
-from io import StringIO
-import sys
+from _elementtree import Element
 
 from lxml import etree
 
@@ -11,22 +10,73 @@ from synergine2.log import get_logger
 from synergine2.simulation import Subject
 
 from opencombat.exception import StateLoadError
+from opencombat.simulation.base import TileStrategySimulation
+from opencombat.util import get_class_from_string_path
+
+
+class State(object):
+    def __init__(
+        self,
+        config: Config,
+        state_root: Element,
+        simulation: TileStrategySimulation,
+    ) -> None:
+        self._config = config
+        self._state_root = state_root
+        self._subjects = None  # type: typing.List[Subject]
+        self._simulation = simulation
+
+    @property
+    def subjects(self) -> typing.List[Subject]:
+        if self._subjects is None:
+            self._subjects = self._get_subjects()
+
+        return self._subjects
+
+    def _get_subjects(self) -> typing.List[Subject]:
+        subjects = []
+        subject_elements = self._state_root.find('subjects').findall('subject')
+
+        for subject_element in subject_elements:
+            subject_class_path = subject_element.find('type').text
+            subject_class = get_class_from_string_path(
+                self._config,
+                subject_class_path,
+            )
+            subject = subject_class(self._config, self._simulation)
+
+            # TODO BS 2018-06-13: Fill subject with property
+            subjects.append(subject)
+
+        return subjects
 
 
 class StateLoader(object):
     def __init__(
         self,
         config: Config,
-        state_file_path: str,
+        simulation: TileStrategySimulation,
     ) -> None:
-        self.logger = get_logger('StateLoader', config)
-        self.config = config
-        self.state_file_path = state_file_path
-        self._validate()
+        self._logger = get_logger('StateLoader', config)
+        self._config = config
+        self._simulation = simulation
 
-    def _validate(self) -> None:
+    def get_state(
+        self,
+        state_file_path: str,
+    ) -> State:
+        return State(
+            self._config,
+            self._validate_and_return_state_element(state_file_path),
+            self._simulation,
+        )
+
+    def _validate_and_return_state_element(
+        self,
+        state_file_path: str,
+    ) -> Element:
         # open and read schema file
-        schema_file_path = self.config.get(
+        schema_file_path = self._config.get(
             'global.state_schema',
             'opencombat/state.xsd',
         )
@@ -34,32 +84,32 @@ class StateLoader(object):
             schema_to_check = schema_file.read()
 
         # open and read xml file
-        with open(self.state_file_path, 'r') as xml_file:
+        with open(state_file_path, 'r') as xml_file:
             xml_to_check = xml_file.read()
 
-        xmlschema_doc = etree.parse(StringIO(schema_to_check))
+        xmlschema_doc = etree.fromstring(schema_to_check.encode('utf-8'))
         xmlschema = etree.XMLSchema(xmlschema_doc)
 
         try:
-            doc = etree.parse(StringIO(xml_to_check))
+            doc = etree.fromstring(xml_to_check.encode('utf-8'))
         # check for file IO error
         except IOError as exc:
-            self.logger.error(exc)
+            self._logger.error(exc)
             raise StateLoadError('Invalid File "{}": {}'.format(
-                self.state_file_path,
+                state_file_path,
                 str(exc),
             ))
         # check for XML syntax errors
         except etree.XMLSyntaxError as exc:
-            self.logger.error(exc)
+            self._logger.error(exc)
             raise StateLoadError('XML Syntax Error in "{}": {}'.format(
-                self.state_file_path,
+                state_file_path,
                 str(exc.error_log),
             ))
         except Exception as exc:
-            self.logger.error(exc)
+            self._logger.error(exc)
             raise StateLoadError('Unknown error with "{}": {}'.format(
-                self.state_file_path,
+                state_file_path,
                 str(exc),
             ))
 
@@ -67,44 +117,47 @@ class StateLoader(object):
         try:
             xmlschema.assertValid(doc)
         except etree.DocumentInvalid as exc:
-            self.logger.error(exc)
+            self._logger.error(exc)
             raise StateLoadError(
                 'Schema validation error with "{}": {}'.format(
-                    self.state_file_path,
+                    state_file_path,
                     str(exc),
                 )
             )
         except Exception as exc:
-            self.logger.error(exc)
+            self._logger.error(exc)
             raise StateLoadError(
                 'Unknown validation error with "{}": {}'.format(
-                    self.state_file_path,
+                    state_file_path,
                     str(exc),
                 )
             )
 
-    def get_subjects(self) -> typing.List[Subject]:
-        raise NotImplementedError('TODO')
+        return doc
 
 
 class StateLoaderBuilder(object):
     def __init__(
         self,
         config: Config,
+        simulation: TileStrategySimulation,
     ) -> None:
-        self.logger = get_logger('StateLoader', config)
-        self.config = config
+        self._logger = get_logger('StateLoader', config)
+        self._config = config
+        self._simulation = simulation
 
     def get_state_loader(
         self,
-        state_file_path: str,
     ) -> StateLoader:
-        class_address = self.config.get(
+        class_address = self._config.resolve(
             'global.state_loader',
             'opencombat.state.StateLoader',
         )
-        module_address = '.'.join(class_address.split('.')[:-1])
-        class_name = class_address.split('.')[-1]
-        module_ = importlib.import_module(module_address)
-        state_loader_class = getattr(module_, class_name)
-        return state_loader_class(self.config, state_file_path)
+        state_loader_class = get_class_from_string_path(
+            self._config,
+            class_address,
+        )
+        return state_loader_class(
+            self._config,
+            self._simulation,
+        )

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<state type="before_battle">
+    <map>
+        <name>001</name>
+    </map>
+    <subjects>
+        <subject>
+            <type>opencombat.simulation.subject.ManSubject</type>
+            <position>1,1</position>
+            <direction>90</direction>
+            <mode>standup</mode>
+            <side>URSS</side>
+        </subject>
+        <subjectFOO>
+            <type>opencombat.simulation.subject.ManSubject</type>
+            <position>10,10</position>
+            <direction>270</direction>
+            <mode>hiding</mode>
+            <side>DE</side>
+        </subjectFOO>
+    </subjects>
+</state>
