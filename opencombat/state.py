@@ -51,8 +51,6 @@ class State(object):
             )
             subject = subject_class(self._config, self._simulation)
             self._fill_subject(subject, subject_element)
-
-            # TODO BS 2018-06-13: Fill subject with property
             subjects.append(subject)
 
         return subjects
