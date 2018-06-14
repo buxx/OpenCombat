@@ -167,8 +167,10 @@ class TileLayerManager(LayerManager):
         self.ground_layer.set_view(
             0, 0, self.ground_layer.px_width, self.ground_layer.px_height,
         )
+        # TODO BS 2018-06-14: We have to move this layer to be correct.
+        # but some trees disapears ... wtf ?
         self.top_layer.set_view(
-            0, 0, self.top_layer.px_width, self.top_layer.px_height,
+            28, 28, self.top_layer.px_width, self.top_layer.px_height,
         )
 
 
