@@ -13,7 +13,8 @@ from opencombat.simulation.base import TileStrategySimulation
 from opencombat.simulation.subject import TileSubject
 from opencombat.util import get_class_from_string_path
 from opencombat.util import get_text_xml_element
-from opencombat.const import FLAG, SIDE
+from opencombat.const import FLAG
+from opencombat.const import SIDE
 from opencombat.const import FLAG_DE
 from opencombat.const import DE_COLOR
 from opencombat.const import URSS_COLOR
@@ -74,6 +75,8 @@ class State(object):
             get_text_xml_element(subject_element, 'direction'),
         )
 
+        # FIXME BS 218-06-14: There is a confusion: don't use side but
+        # "team". It probably need change in other code.
         side = get_text_xml_element(subject_element, 'side')
         if side == 'DE':
             subject_properties.update({
@@ -93,6 +96,29 @@ class State(object):
             ))
 
         subject.properties = subject_properties
+
+
+class StateDumper(object):
+    def __init__(
+        self,
+        config: Config,
+        simulation: TileStrategySimulation,
+    ) -> None:
+        self._logger = get_logger('StateDumper', config)
+        self._config = config
+        self._simulation = simulation
+
+        state_template = self._config.resolve(
+           'global.state_template',
+           'opencombat/state_template.xml',
+        )
+        with open(state_template, 'r') as xml_file:
+            template_str = xml_file.read()
+        self._state_root = etree.fromstring(template_str.encode('utf-8'))
+
+    def get_state_dump(self) -> Element:
+        # TODO BS 2018-06-14: Code here xml construction
+        return self._state_root
 
 
 class StateLoader(object):

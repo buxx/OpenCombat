@@ -20,6 +20,7 @@ def main(
     map_dir_path: str,
     seed_value: int=None,
     state_file_path: str=None,
+    state_save_dir: str='.',
 ):
     if seed_value is not None:
         seed(seed_value)
@@ -66,7 +67,17 @@ if __name__ == '__main__':
     parser.add_argument('map_dir_path', help='map directory path')
     parser.add_argument('--seed', dest='seed', default=None)
     parser.add_argument('--state', dest='state', default=None)
+    parser.add_argument(
+        '--state-save-dir',
+        dest='state_save_dir',
+        default='.',
+    )
 
     args = parser.parse_args()
 
-    main(args.map_dir_path, seed_value=args.seed, state_file_path=args.state)
+    main(
+        args.map_dir_path,
+        seed_value=args.seed,
+        state_file_path=args.state,
+        state_save_dir=args.state_save_dir,
+    )
