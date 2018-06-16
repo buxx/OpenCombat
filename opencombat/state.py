@@ -6,19 +6,14 @@ from lxml import etree
 
 from synergine2.config import Config
 from synergine2.log import get_logger
-from synergine2_cocos2d.const import SELECTION_COLOR_RGB
 
 from opencombat.exception import StateLoadError
+from opencombat.exception import NotFoundError
 from opencombat.simulation.base import TileStrategySimulation
 from opencombat.simulation.subject import TileSubject
 from opencombat.util import get_class_from_string_path
+from opencombat.util import pretty_xml
 from opencombat.util import get_text_xml_element
-from opencombat.const import FLAG
-from opencombat.const import SIDE
-from opencombat.const import FLAG_DE
-from opencombat.const import DE_COLOR
-from opencombat.const import URSS_COLOR
-from opencombat.const import FLAG_URSS
 
 
 class State(object):
@@ -75,27 +70,32 @@ class State(object):
             get_text_xml_element(subject_element, 'direction'),
         )
 
-        # FIXME BS 218-06-14: There is a confusion: don't use side but
-        # "team". It probably need change in other code.
-        side = get_text_xml_element(subject_element, 'side')
-        if side == 'DE':
-            subject_properties.update({
-                SELECTION_COLOR_RGB: DE_COLOR,
-                FLAG: FLAG_DE,
-                SIDE: 'AXIS',
-            })
-        elif side == 'URSS':
-            subject_properties.update({
-                SELECTION_COLOR_RGB: URSS_COLOR,
-                FLAG: FLAG_URSS,
-                SIDE: 'ALLIES',
-            })
-        else:
-            raise NotImplementedError('Don\'t know "{}" side'.format(
-                side,
-            ))
+        properties_element = subject_element.find('properties')
+        decode_properties_map = self._get_decode_properties_map()
+
+        for item_element in properties_element.findall('item'):
+            key_text = item_element.find('key').text
+            value_text = item_element.find('value').text
+
+            try:
+                decoded_value = decode_properties_map[key_text](value_text)
+            except KeyError:
+                raise NotFoundError(
+                    'You try to load property "{}" but it is unknown'.format(
+                        key_text,
+                    )
+                )
+
+            subject_properties[key_text] = decoded_value
 
         subject.properties = subject_properties
+
+    def _get_decode_properties_map(self) -> typing.Dict[str, typing.Callable[[str], typing.Any]]:  # nopep8
+        return {
+            'SELECTION_COLOR_RGB': lambda v: tuple(map(int, v.split(','))),
+            'FLAG': str,
+            'SIDE': str,
+        }
 
 
 class StateDumper(object):
@@ -114,11 +114,64 @@ class StateDumper(object):
         )
         with open(state_template, 'r') as xml_file:
             template_str = xml_file.read()
-        self._state_root = etree.fromstring(template_str.encode('utf-8'))
 
-    def get_state_dump(self) -> Element:
-        # TODO BS 2018-06-14: Code here xml construction
-        return self._state_root
+        parser = etree.XMLParser(remove_blank_text=True)
+        self._state_root = etree.fromstring(
+            template_str.encode('utf-8'),
+            parser,
+        )
+        self._state_root_filled = False
+
+    def get_state_dump(self) -> str:
+        if not self._state_root_filled:
+            self._fill_state_root()
+
+        return pretty_xml(
+            etree.tostring(
+                self._state_root,
+            ).decode('utf-8'),
+        )
+
+    def _fill_state_root(self) -> None:
+        subjects_element = self._state_root.find('subjects')
+
+        for subject in self._simulation.subjects:
+            subject_element = etree.SubElement(subjects_element, 'subject')
+
+            position_element = etree.SubElement(subject_element, 'type')
+            position_element.text = '.'.join([
+                subject.__module__,
+                subject.__class__.__name__,
+            ])
+
+            position_element = etree.SubElement(subject_element, 'position')
+            position_element.text = ','.join(map(str, subject.position))
+
+            direction_element = etree.SubElement(subject_element, 'direction')
+            direction_element.text = str(subject.direction)
+
+            properties_element = etree.SubElement(
+                subject_element,
+                'properties',
+            )
+            encode_properties_map = self._get_encode_properties_map()
+
+            for key, value in subject.properties.items():
+                item_element = etree.SubElement(properties_element, 'item')
+                key_element = etree.SubElement(item_element, 'key')
+                value_element = etree.SubElement(item_element, 'value')
+
+                key_element.text = str(key)
+                value_element.text = encode_properties_map[key](value)
+
+        self._state_root_filled = True
+
+    def _get_encode_properties_map(self) -> typing.Dict[str, typing.Callable[[typing.Any], str]]:  # nopep8:
+        return {
+            'SELECTION_COLOR_RGB': lambda v: ','.join(map(str, v)),
+            'FLAG': str,
+            'SIDE': str,
+        }
 
 
 class StateLoader(object):

@@ -10,13 +10,18 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:simpleType name="sidetype" final="restriction">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="DE"/>
-            <xs:enumeration value="URSS"/>
-            <xs:enumeration value="US"/>
-        </xs:restriction>
-    </xs:simpleType>
+    <xs:complexType name="propertiestype">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" name="item">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="key" type="xs:string"  />
+                        <xs:element name="value" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
 
     <xs:simpleType name="modetype" final="restriction">
         <xs:restriction base="xs:string">
@@ -56,7 +61,7 @@
             <xs:element name="position" type="positiontype" minOccurs="1"/>
             <xs:element name="direction" type="directiontype" minOccurs="1"/>
             <xs:element name="mode" type="modetype" minOccurs="1"/>
-            <xs:element name="side" type="sidetype" minOccurs="1"/>
+            <xs:element name="properties" type="propertiestype" minOccurs="1"/>
         </xs:sequence>
     </xs:complexType>
 
