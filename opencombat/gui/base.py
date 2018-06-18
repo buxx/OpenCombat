@@ -21,6 +21,7 @@ from synergine2_cocos2d.util import PathManager
 from opencombat.gui.animation import ANIMATION_WALK
 from opencombat.gui.animation import ANIMATION_CRAWL
 from opencombat.gui.fire import GuiFiringEvent
+from opencombat.gui.placement import SetSubjectPositionsInteraction
 from opencombat.gui.state import SaveStateInteraction
 from opencombat.simulation.interior import InteriorManager
 from opencombat.simulation.tmx import TileMap
@@ -71,6 +72,20 @@ class EditLayer(BaseEditLayer):
             .interaction_manager\
             .get_for_user_action(
                 UserAction.SAVE_STATE,
+            )
+        interaction.execute()
+
+    def can_move(self, selected) -> bool:
+        return self.config.resolve('_runtime.placement_mode', False)
+
+    def end_drag_move(self, wx, wy):
+        # set position
+        super().end_drag_move(wx, wy)
+
+        interaction = self.layer_manager \
+            .interaction_manager \
+            .get_for_user_action(
+                UserAction.SET_SUBJECTS_POSITION,
             )
         interaction.execute()
 
@@ -280,12 +295,28 @@ class Game(TMXGui):
         from opencombat.gui.move import MoveCrawlActorInteraction
         from opencombat.gui.fire import FireActorInteraction
 
-        self.layer_manager.interaction_manager.register(MoveActorInteraction, self.layer_manager)
-        self.layer_manager.interaction_manager.register(MoveFastActorInteraction, self.layer_manager)
-        self.layer_manager.interaction_manager.register(MoveCrawlActorInteraction, self.layer_manager)
-        self.layer_manager.interaction_manager.register(FireActorInteraction, self.layer_manager)
+        self.layer_manager.interaction_manager.register(
+            MoveActorInteraction,
+            self.layer_manager,
+        )
+        self.layer_manager.interaction_manager.register(
+            MoveFastActorInteraction,
+            self.layer_manager,
+        )
+        self.layer_manager.interaction_manager.register(
+            MoveCrawlActorInteraction,
+            self.layer_manager,
+        )
+        self.layer_manager.interaction_manager.register(
+            FireActorInteraction,
+            self.layer_manager,
+        )
         self.layer_manager.interaction_manager.register(
             SaveStateInteraction,
+            self.layer_manager,
+        )
+        self.layer_manager.interaction_manager.register(
+            SetSubjectPositionsInteraction,
             self.layer_manager,
         )
 

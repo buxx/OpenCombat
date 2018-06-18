@@ -38,7 +38,7 @@
     </xs:simpleType>
 
     <xs:simpleType name="directiontype">
-        <xs:restriction base="xs:positiveInteger"/>
+        <xs:restriction base="xs:float"/>
     </xs:simpleType>
 
     <xs:complexType name="statetype">
