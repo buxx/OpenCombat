@@ -39,3 +39,4 @@ When unit selected:
 * C: crouch
 * M: move
 * F: fire (not implemented)
+* S: Save current state into OpenCombat dir (or dir specified with `--state-save-dir`)

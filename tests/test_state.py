@@ -9,7 +9,7 @@ from opencombat.exception import StateLoadError
 from opencombat.simulation.base import TileStrategySimulation
 from opencombat.simulation.base import TileStrategySubjects
 from opencombat.simulation.subject import ManSubject
-from opencombat.state import StateLoaderBuilder, StateDumper
+from opencombat.state import StateConstructorBuilder, StateDumper
 from opencombat.state import StateLoader
 from opencombat.const import FLAG
 from opencombat.const import SIDE
@@ -69,7 +69,7 @@ def test_state_loader_builder__ok__nominal_case(
             'state_loader': 'tests.test_state.MyStateLoader',
         }
     })
-    builder = StateLoaderBuilder(config, simulation)
+    builder = StateConstructorBuilder(config, simulation)
     state_loader = builder.get_state_loader()
     assert type(state_loader) == MyStateLoader
 

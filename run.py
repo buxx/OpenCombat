@@ -12,7 +12,7 @@ from synergine2.terminals import TerminalManager
 
 from opencombat.simulation.base import TileStrategySimulation
 from opencombat.simulation.base import TileStrategySubjects
-from opencombat.state import StateLoaderBuilder
+from opencombat.state import StateConstructorBuilder
 from opencombat.terminal.base import CocosTerminal
 
 
@@ -27,6 +27,10 @@ def main(
 
     config = Config()
     config.load_yaml('config.yaml')
+
+    # Runtime config
+    config.setdefault('_runtime', {})['state_save_dir'] = state_save_dir
+
     level = logging.getLevelName(config.resolve('global.logging_level', 'ERROR'))
     logger = get_default_logger(level=level)
 
@@ -36,7 +40,7 @@ def main(
     subjects = TileStrategySubjects(simulation=simulation)
 
     if state_file_path:
-        state_loader_builder = StateLoaderBuilder(config, simulation)
+        state_loader_builder = StateConstructorBuilder(config, simulation)
         state_loader = state_loader_builder.get_state_loader()
         state = state_loader.get_state(state_file_path)
         subjects.extend(state.subjects)

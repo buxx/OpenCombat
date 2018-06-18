@@ -259,13 +259,13 @@ class StateLoader(object):
         return doc
 
 
-class StateLoaderBuilder(object):
+class StateConstructorBuilder(object):
     def __init__(
         self,
         config: Config,
         simulation: TileStrategySimulation,
     ) -> None:
-        self._logger = get_logger('StateLoader', config)
+        self._logger = get_logger('StateConstructorBuilder', config)
         self._config = config
         self._simulation = simulation
 
@@ -275,6 +275,22 @@ class StateLoaderBuilder(object):
         class_address = self._config.resolve(
             'global.state_loader',
             'opencombat.state.StateLoader',
+        )
+        state_loader_class = get_class_from_string_path(
+            self._config,
+            class_address,
+        )
+        return state_loader_class(
+            self._config,
+            self._simulation,
+        )
+
+    def get_state_dumper(
+        self,
+    ) -> StateDumper:
+        class_address = self._config.resolve(
+            'global.state_dumper',
+            'opencombat.state.StateDumper',
         )
         state_loader_class = get_class_from_string_path(
             self._config,
