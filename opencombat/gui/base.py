@@ -21,6 +21,7 @@ from synergine2_cocos2d.util import PathManager
 from opencombat.gui.animation import ANIMATION_WALK
 from opencombat.gui.animation import ANIMATION_CRAWL
 from opencombat.gui.fire import GuiFiringEvent
+from opencombat.gui.state import SaveStateInteraction
 from opencombat.simulation.interior import InteriorManager
 from opencombat.simulation.tmx import TileMap
 from opencombat.user_action import UserAction
@@ -59,8 +60,19 @@ class EditLayer(BaseEditLayer):
             if k == key.F:
                 self.user_action_pending = UserAction.ORDER_FIRE
 
+        if k == key.S:
+            self.run_save_state()
+
     def draw(self) -> None:
         super().draw()
+
+    def run_save_state(self) -> None:
+        interaction = self.layer_manager\
+            .interaction_manager\
+            .get_for_user_action(
+                UserAction.SAVE_STATE,
+            )
+        interaction.execute()
 
 
 class BackgroundLayer(cocos.layer.Layer):
@@ -272,6 +284,10 @@ class Game(TMXGui):
         self.layer_manager.interaction_manager.register(MoveFastActorInteraction, self.layer_manager)
         self.layer_manager.interaction_manager.register(MoveCrawlActorInteraction, self.layer_manager)
         self.layer_manager.interaction_manager.register(FireActorInteraction, self.layer_manager)
+        self.layer_manager.interaction_manager.register(
+            SaveStateInteraction,
+            self.layer_manager,
+        )
 
     def set_subject_position(
         self,

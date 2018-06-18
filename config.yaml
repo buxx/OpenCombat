@@ -22,7 +22,9 @@ game:
 
 global:
     state_loader: "opencombat.state.StateLoader"
+    state_dumper: "opencombat.state.StateDumper"
     state_schema: "opencombat/state.xsd"
+    state_template: "opencombat/state_template.xml"
     cache_dir_path: 'cache'
     include_path:
       maps:

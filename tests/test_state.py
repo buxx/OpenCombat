@@ -1,10 +1,22 @@
 # coding: utf-8
+from collections import OrderedDict
+
 import pytest
 from synergine2.config import Config
+from synergine2_cocos2d.const import SELECTION_COLOR_RGB
 
 from opencombat.exception import StateLoadError
+from opencombat.simulation.base import TileStrategySimulation
+from opencombat.simulation.base import TileStrategySubjects
 from opencombat.simulation.subject import ManSubject
-from opencombat.state import StateLoaderBuilder, StateLoader
+from opencombat.state import StateConstructorBuilder, StateDumper
+from opencombat.state import StateLoader
+from opencombat.const import FLAG
+from opencombat.const import SIDE
+from opencombat.const import FLAG_DE
+from opencombat.const import DE_COLOR
+from opencombat.const import URSS_COLOR
+from opencombat.const import FLAG_URSS
 
 
 class MyStateLoader(StateLoader):
@@ -16,6 +28,39 @@ def state_loader(config, simulation):
     return StateLoader(config, simulation)
 
 
+@pytest.fixture
+def simulation_for_dump(config) -> TileStrategySimulation:
+    simulation = TileStrategySimulation(
+        config,
+        'tests/fixtures/map_a/map_a.tmx',
+    )
+    subjects = TileStrategySubjects(simulation=simulation)
+    simulation.subjects = subjects
+
+    man1 = ManSubject(config, simulation)
+    man1.position = (10, 11)
+    man1.direction = 42
+    man1.properties = OrderedDict([
+        (SELECTION_COLOR_RGB, DE_COLOR),
+        (FLAG, FLAG_DE),
+        (SIDE, 'AXIS'),
+    ])
+
+    man2 = ManSubject(config, simulation)
+    man2.position = (16, 8)
+    man2.direction = 197
+    man2.properties = OrderedDict([
+        (SELECTION_COLOR_RGB, URSS_COLOR),
+        (FLAG, FLAG_URSS),
+        (SIDE, 'ALLIES'),
+    ])
+
+    subjects.append(man1)
+    subjects.append(man2)
+
+    return simulation
+
+
 def test_state_loader_builder__ok__nominal_case(
     simulation,
 ):
@@ -24,7 +69,7 @@ def test_state_loader_builder__ok__nominal_case(
             'state_loader': 'tests.test_state.MyStateLoader',
         }
     })
-    builder = StateLoaderBuilder(config, simulation)
+    builder = StateConstructorBuilder(config, simulation)
     state_loader = builder.get_state_loader()
     assert type(state_loader) == MyStateLoader
 
@@ -64,3 +109,67 @@ def test_state__ok__subjects(
     assert (10, 10) == state.subjects[1].position
     assert 90.0 == state.subjects[0].direction
     assert 270.0 == state.subjects[1].direction
+
+    assert {
+               'SELECTION_COLOR_RGB': (204, 0, 0),
+               'FLAG': 'FLAG_URSS',
+               'SIDE': 'ALLIES',
+           } == state.subjects[0].properties
+    assert {
+               'SELECTION_COLOR_RGB': (0, 81, 211),
+               'FLAG': 'FLAG_DE',
+               'SIDE': 'AXIS',
+           } == state.subjects[1].properties
+
+
+def test_state__ok__dump(
+    config: Config,
+    simulation_for_dump: TileStrategySimulation,
+):
+    state_dumper = StateDumper(config, simulation_for_dump)
+    state_xml_str = state_dumper.get_state_dump()
+    assert """<?xml version="1.0" ?>
+<state type="before_battle">
+    <map>
+    </map>
+    <subjects>
+        <subject>
+            <type>opencombat.simulation.subject.ManSubject</type>
+            <position>10,11</position>
+            <direction>42</direction>
+            <properties>
+                <item>
+                    <key>SELECTION_COLOR_RGB</key>
+                    <value>0,81,211</value>
+                </item>
+                <item>
+                    <key>FLAG</key>
+                    <value>FLAG_DE</value>
+                </item>
+                <item>
+                    <key>SIDE</key>
+                    <value>AXIS</value>
+                </item>
+            </properties>
+        </subject>
+        <subject>
+            <type>opencombat.simulation.subject.ManSubject</type>
+            <position>16,8</position>
+            <direction>197</direction>
+            <properties>
+                <item>
+                    <key>SELECTION_COLOR_RGB</key>
+                    <value>204,0,0</value>
+                </item>
+                <item>
+                    <key>FLAG</key>
+                    <value>FLAG_URSS</value>
+                </item>
+                <item>
+                    <key>SIDE</key>
+                    <value>ALLIES</value>
+                </item>
+            </properties>
+        </subject>
+    </subjects>
+</state>""" == state_xml_str
