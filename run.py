@@ -80,8 +80,8 @@ if __name__ == '__main__':
         default='.',
     )
     parser.add_argument(
-        '--placement-mode',
-        dest='placement_mode',
+        '--placement',
+        dest='placement',
         action='store_true',
     )
 
@@ -92,5 +92,5 @@ if __name__ == '__main__':
         seed_value=args.seed,
         state_file_path=args.state,
         state_save_dir=args.state_save_dir,
-        placement_mode=args.placement_mode,
+        placement_mode=args.placement,
     )

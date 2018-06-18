@@ -3,6 +3,10 @@ import random
 import time
 import typing
 
+from synergine2.simulation import Event
+from synergine2.simulation import disable_when
+from synergine2.simulation import config_value
+
 from opencombat.const import COLLECTION_ALIVE
 from opencombat.simulation.base import AliveSubjectBehaviour
 from opencombat.simulation.event import NoLongerVisibleOpponent
@@ -10,45 +14,6 @@ from opencombat.simulation.event import FireEvent
 from opencombat.simulation.event import DieEvent
 from opencombat.simulation.event import NewVisibleOpponent
 from opencombat.simulation.mechanism import OpponentVisibleMechanism
-from opencombat.user_action import UserAction
-from synergine2.simulation import Event
-# from synergine2_xyz.move.simulation import MoveToBehaviour as BaseMoveToBehaviour
-#
-#
-# class MoveToBehaviour(BaseMoveToBehaviour):
-#     def is_terminated(self) -> bool:
-#         return COLLECTION_ALIVE not in self.subject.collections
-#
-#     def _can_move_to_next_step(self, move_to_data: dict) -> bool:
-#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE:
-#             return time.time() - move_to_data['last_intention_time'] >= \
-#                    self.subject.walk_duration
-#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE_FAST:
-#             return time.time() - move_to_data['last_intention_time'] >= \
-#                    self.subject.run_duration
-#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE_CRAWL:
-#             return time.time() - move_to_data['last_intention_time'] >= \
-#                    self.subject.crawl_duration
-#
-#         raise NotImplementedError(
-#             'Gui action {} unknown'.format(move_to_data['gui_action'])
-#         )
-#
-#     # FIXME remove this func when code with new move
-#     def get_move_duration(self, move_to_data: dict) -> float:
-#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE:
-#             return self.subject.walk_duration
-#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE_FAST:
-#             return self.subject.run_duration
-#         if move_to_data['gui_action'] == UserAction.ORDER_MOVE_CRAWL:
-#             return self.subject.crawl_duration
-#
-#         raise NotImplementedError(
-#             'Gui action {} unknown'.format(move_to_data['gui_action'])
-#         )
-#
-#     def finalize_event(self, move_to_data: dict, event: Event) -> None:
-#         event.move_duration = self.get_move_duration(move_to_data)
 
 
 class LookAroundBehaviour(AliveSubjectBehaviour):
@@ -86,6 +51,7 @@ class LookAroundBehaviour(AliveSubjectBehaviour):
 
         return new_visible_subject_events + no_longer_visible_subject_events
 
+    @disable_when(config_value('_runtime.placement_mode'))
     def run(self, data):
         visible_subjects = data[self.visible_mechanism]['visible_subjects']
         visible_subject_ids = [s.id for s in visible_subjects]
@@ -106,7 +72,6 @@ class LookAroundBehaviour(AliveSubjectBehaviour):
         }
 
 
-@disable_when(config_value('_runtime.placement_mode'))
 class EngageOpponent(AliveSubjectBehaviour):
     visible_mechanism = OpponentVisibleMechanism
     use = [visible_mechanism]
@@ -141,6 +106,7 @@ class EngageOpponent(AliveSubjectBehaviour):
 
         return events
 
+    @disable_when(config_value('_runtime.placement_mode'))
     def run(self, data):
         visible_subjects = data[self.visible_mechanism]['visible_subjects']
         if not visible_subjects:

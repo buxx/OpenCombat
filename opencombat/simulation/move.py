@@ -2,11 +2,14 @@
 import time
 import typing
 
-from synergine2.simulation import SubjectBehaviour, SubjectMechanism
+from synergine2.simulation import SubjectBehaviour
+from synergine2.simulation import SubjectMechanism
 from synergine2.simulation import Event
 from synergine2_xyz.move.intention import MoveToIntention
 from synergine2_xyz.simulation import XYZSimulation
 from synergine2_xyz.utils import get_angle
+from synergine2.simulation import disable_when
+from synergine2.simulation import config_value
 
 from opencombat.const import COLLECTION_ALIVE
 from opencombat.user_action import UserAction
@@ -107,6 +110,7 @@ class SubjectFinishMoveEvent(Event):
 
 
 class MoveToMechanism(SubjectMechanism):
+    @disable_when(config_value('_runtime.placement_mode'))
     def run(self) -> dict:
         try:
             # TODO: MoveToIntention doit être configurable
@@ -127,6 +131,7 @@ class MoveWithRotationBehaviour(SubjectBehaviour):
         super().__init__(*args, **kwargs)
         self.simulation = typing.cast(XYZSimulation, self.simulation)
 
+    @disable_when(config_value('_runtime.placement_mode'))
     def run(self, data) -> object:
         """
         Compute data relative to move
@@ -341,6 +346,7 @@ class MoveBehaviour(SubjectBehaviour):
         super().__init__(*args, **kwargs)
         self.simulation = typing.cast(XYZSimulation, self.simulation)
 
+    @disable_when(config_value('_runtime.placement_mode'))
     def run(self, data) -> object:
         """
         Compute data relative to move
