@@ -1,6 +1,6 @@
 # OpenCombat
 
-[![Build Status](https://travis-ci.org/buxx/OpenCombat.svg?branch=master)](https://travis-ci.org/buxx/OpenCombat) [![Coverage Status](https://coveralls.io/repos/github/buxx/OpenCombat/badge.svg?branch=master)](https://coveralls.io/github/buxx/OpenCombat?branch=master) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/917ff3fc2e184dd5a001c4571d5c583f)](https://www.codacy.com/app/sevajol.bastien/OpenCombat?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=buxx/OpenCombat&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://travis-ci.org/buxx/OpenCombat.svg?branch=master)](https://travis-ci.org/buxx/OpenCombat) [![Coverage Status](https://coveralls.io/repos/github/buxx/OpenCombat/badge.svg?branch=master)](https://coveralls.io/github/buxx/OpenCombat?branch=master) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/917ff3fc2e184dd5a001c4571d5c583f)](https://www.codacy.com/app/sevajol.bastien/OpenCombat?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=buxx/OpenCombat&amp;utm_campaign=Badge_Grade) [![Known Vulnerabilities](https://snyk.io/test/github/buxx/opencombat/badge.svg?targetFile=requirements.txt)](https://snyk.io/test/github/buxx/opencombat?targetFile=requirements.txt)
 
 Open source close combat inspired game. Presentation here: http://www.closecombatseries.net/CCS/modules.php?name=Forums&file=viewtopic&t=11696
 
@@ -8,7 +8,9 @@ Open source close combat inspired game. Presentation here: http://www.closecomba
 
 # Install
 
-OS require: build-essential libsdl1.2debian libsdl-image1.2 libsdl-image1.2-dev libsdl-ttf2.0-0 libsdl-ttf2.0-dev libsdl-mixer1.2 libsdl-mixer1.2-dev redis-server
+Tested only under linux, debian/Ubuntu. Before install project, install OS packages:
+
+    build-essential libsdl1.2debian libsdl-image1.2 libsdl-image1.2-dev libsdl-ttf2.0-0 libsdl-ttf2.0-dev libsdl-mixer1.2 libsdl-mixer1.2-dev redis-server
 
 Python version: 3.5+
 
