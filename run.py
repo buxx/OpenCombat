@@ -21,6 +21,7 @@ def main(
     seed_value: int=None,
     state_file_path: str=None,
     state_save_dir: str='.',
+    placement_mode: bool = False,
 ):
     if seed_value is not None:
         seed(seed_value)
@@ -29,7 +30,9 @@ def main(
     config.load_yaml('config.yaml')
 
     # Runtime config
-    config.setdefault('_runtime', {})['state_save_dir'] = state_save_dir
+    config['_runtime'] = {}
+    config['_runtime']['state_save_dir'] = state_save_dir
+    config['_runtime']['placement_mode'] = placement_mode
 
     level = logging.getLevelName(config.resolve('global.logging_level', 'ERROR'))
     logger = get_default_logger(level=level)
@@ -76,6 +79,11 @@ if __name__ == '__main__':
         dest='state_save_dir',
         default='.',
     )
+    parser.add_argument(
+        '--placement-mode',
+        dest='placement_mode',
+        action='store_true',
+    )
 
     args = parser.parse_args()
 
@@ -84,4 +92,5 @@ if __name__ == '__main__':
         seed_value=args.seed,
         state_file_path=args.state,
         state_save_dir=args.state_save_dir,
+        placement_mode=args.placement_mode,
     )

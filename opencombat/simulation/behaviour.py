@@ -106,6 +106,7 @@ class LookAroundBehaviour(AliveSubjectBehaviour):
         }
 
 
+@disable_when(config_value('_runtime.placement_mode'))
 class EngageOpponent(AliveSubjectBehaviour):
     visible_mechanism = OpponentVisibleMechanism
     use = [visible_mechanism]
