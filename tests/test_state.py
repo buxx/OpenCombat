@@ -1,5 +1,6 @@
 # coding: utf-8
 from collections import OrderedDict
+import time
 
 import pytest
 from synergine2.config import Config
@@ -173,3 +174,17 @@ def test_state__ok__dump(
         </subject>
     </subjects>
 </state>""" == state_xml_str
+
+def test_state__ok__dump_and_load(
+    config: Config,
+    simulation_for_dump: TileStrategySimulation,
+    state_loader,
+):
+    state_dumper = StateDumper(config, simulation_for_dump)
+    state_xml_str = state_dumper.get_state_dump()
+
+    tmp_file_name = '/tmp/{}.xml'.format(time.time())
+    with open(tmp_file_name, 'w+') as file:
+        file.write(state_xml_str)
+
+    state_loader.get_state(tmp_file_name)
