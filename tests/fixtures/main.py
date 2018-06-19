@@ -8,6 +8,10 @@ from opencombat.simulation.base import TileStrategySimulation
 def config() -> Config:
     config_ = Config()
     config_.load_yaml('test_config.yaml')
+
+    config_['_runtime'] = {}
+    config_['_runtime']['map_dir_path'] = 'tests/fixtures/map_a/map_a.tmx'
+
     return config_
 
 

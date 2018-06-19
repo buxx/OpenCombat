@@ -33,6 +33,7 @@ def main(
     config['_runtime'] = {}
     config['_runtime']['state_save_dir'] = state_save_dir
     config['_runtime']['placement_mode'] = placement_mode
+    config['_runtime']['map_dir_path'] = map_dir_path
 
     level = logging.getLevelName(config.resolve('global.logging_level', 'ERROR'))
     logger = get_default_logger(level=level)
