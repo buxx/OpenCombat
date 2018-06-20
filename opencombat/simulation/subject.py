@@ -7,7 +7,7 @@ from opencombat.user_action import UserAction
 from synergine2_xyz.move.intention import MoveToIntention
 
 from opencombat.const import COLLECTION_ALIVE
-from opencombat.const import COMBAT_MODE_DEFENSE
+from opencombat.const import COMBAT_MODE_DEFEND
 from opencombat.simulation.base import BaseSubject
 from opencombat.simulation.move import MoveBehaviour
 from opencombat.simulation.move import MoveWithRotationBehaviour
@@ -29,7 +29,7 @@ class TileSubject(BaseSubject):
         COLLECTION_ALIVE,
     ]
     visible_opponent_ids = shared.create_self('visible_opponent_ids', lambda: [])
-    combat_mode = shared.create_self('combat_mode', COMBAT_MODE_DEFENSE)
+    combat_mode = shared.create_self('combat_mode', COMBAT_MODE_DEFEND)
     behaviour_selector_class = TileBehaviourSelector
 
     direction = shared.create_self('direction', 0)

@@ -8,7 +8,7 @@
             <type>opencombat.simulation.subject.ManSubject</type>
             <position>72,7</position>
             <direction>90</direction>
-            <mode>standup</mode>
+            <combat_mode>COMBAT_MODE_DEFEND</combat_mode>
             <properties>
                 <item>
                     <key>SELECTION_COLOR_RGB</key>
@@ -28,7 +28,7 @@
             <type>opencombat.simulation.subject.ManSubject</type>
             <position>72,9</position>
             <direction>90</direction>
-            <mode>standup</mode>
+            <combat_mode>COMBAT_MODE_DEFEND</combat_mode>
             <properties>
                 <item>
                     <key>SELECTION_COLOR_RGB</key>
@@ -48,7 +48,7 @@
             <type>opencombat.simulation.subject.ManSubject</type>
             <position>72,11</position>
             <direction>90</direction>
-            <mode>standup</mode>
+            <combat_mode>COMBAT_MODE_DEFEND</combat_mode>
             <properties>
                 <item>
                     <key>SELECTION_COLOR_RGB</key>
@@ -68,7 +68,7 @@
             <type>opencombat.simulation.subject.ManSubject</type>
             <position>58,54</position>
             <direction>270</direction>
-            <mode>hiding</mode>
+            <combat_mode>hiding</combat_mode>
             <properties>
                 <item>
                     <key>SELECTION_COLOR_RGB</key>
@@ -88,7 +88,7 @@
             <type>opencombat.simulation.subject.ManSubject</type>
             <position>58,56</position>
             <direction>270</direction>
-            <mode>hiding</mode>
+            <combat_mode>hiding</combat_mode>
             <properties>
                 <item>
                     <key>SELECTION_COLOR_RGB</key>
@@ -108,7 +108,7 @@
             <type>opencombat.simulation.subject.ManSubject</type>
             <position>58,58</position>
             <direction>270</direction>
-            <mode>hiding</mode>
+            <combat_mode>hiding</combat_mode>
             <properties>
                 <item>
                     <key>SELECTION_COLOR_RGB</key>

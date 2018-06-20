@@ -111,6 +111,9 @@ def test_state__ok__subjects(
     assert 90.0 == state.subjects[0].direction
     assert 270.0 == state.subjects[1].direction
 
+    assert 'COMBAT_MODE_DEFEND' == state.subjects[0].combat_mode
+    assert 'COMBAT_MODE_HIDE' == state.subjects[1].combat_mode
+
     assert {
                'SELECTION_COLOR_RGB': (204, 0, 0),
                'FLAG': 'FLAG_URSS',
@@ -139,6 +142,7 @@ def test_state__ok__dump(
             <type>opencombat.simulation.subject.ManSubject</type>
             <position>10,11</position>
             <direction>42</direction>
+            <combat_mode>COMBAT_MODE_DEFEND</combat_mode>
             <properties>
                 <item>
                     <key>SELECTION_COLOR_RGB</key>
@@ -158,6 +162,7 @@ def test_state__ok__dump(
             <type>opencombat.simulation.subject.ManSubject</type>
             <position>16,8</position>
             <direction>197</direction>
+            <combat_mode>COMBAT_MODE_DEFEND</combat_mode>
             <properties>
                 <item>
                     <key>SELECTION_COLOR_RGB</key>

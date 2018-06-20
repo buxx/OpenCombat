@@ -23,11 +23,10 @@
         </xs:sequence>
     </xs:complexType>
 
-    <xs:simpleType name="modetype" final="restriction">
+    <xs:simpleType name="combatmodetype" final="restriction">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="standup"/>
-            <xs:enumeration value="defending"/>
-            <xs:enumeration value="hiding"/>
+            <xs:enumeration value="COMBAT_MODE_DEFEND"/>
+            <xs:enumeration value="COMBAT_MODE_HIDE"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -60,7 +59,7 @@
             <xs:element name="type" type="xs:string" minOccurs="1" />
             <xs:element name="position" type="positiontype" minOccurs="1"/>
             <xs:element name="direction" type="directiontype" minOccurs="1"/>
-            <xs:element name="mode" type="modetype" minOccurs="1"/>
+            <xs:element name="combat_mode" type="combatmodetype" minOccurs="1"/>
             <xs:element name="properties" type="propertiestype" minOccurs="1"/>
         </xs:sequence>
     </xs:complexType>
