@@ -132,6 +132,7 @@ def test_state__ok__dump(
     assert """<?xml version="1.0" ?>
 <state type="before_battle">
     <map>
+        <name>tests/fixtures/map_a/map_a.tmx</name>
     </map>
     <subjects>
         <subject>
