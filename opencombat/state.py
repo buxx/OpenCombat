@@ -134,7 +134,7 @@ class StateDumper(object):
         subjects_element = self._state_root.find('subjects')
         map_element = self._state_root.find('map')
 
-        map_name_element =  etree.SubElement(map_element, 'name')
+        map_name_element = etree.SubElement(map_element, 'name')
         map_name_element.text = self._config.resolve('_runtime.map_dir_path')
 
         for subject in self._simulation.subjects:
