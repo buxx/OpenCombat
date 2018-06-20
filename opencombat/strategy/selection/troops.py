@@ -30,3 +30,20 @@ class TroopClassBuilder(object):
             self._config,
             units_file_path,
         )
+
+    def get_team_stash(
+        self,
+        teams_file_path: str,
+    ) -> UnitStash:
+        class_address = self._config.resolve(
+            'global.team_stash',
+            'opencombat.strategy.team.stash.TeamStash',
+        )
+        class_ = get_class_from_string_path(
+            self._config,
+            class_address,
+        )
+        return class_(
+            self._config,
+            teams_file_path,
+        )

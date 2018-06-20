@@ -25,6 +25,8 @@ global:
     state_dumper: "opencombat.state.StateDumper"
     state_schema: "opencombat/state.xsd"
     state_template: "opencombat/state_template.xml"
+    unit_stash: "opencombat.strategy.unit.stash.UnitStash"
+    team_stash: "opencombat.strategy.team.stash.TeamStash"
     cache_dir_path: 'cache'
     include_path:
       maps:
