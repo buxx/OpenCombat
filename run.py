@@ -71,7 +71,9 @@ def main(
     core.run()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Run TileStrategy')
+    parser = argparse.ArgumentParser(
+        description='Run a map'
+    )
     parser.add_argument('map_dir_path', help='map directory path')
     parser.add_argument('--seed', dest='seed', default=None)
     parser.add_argument('--state', dest='state', default=None)
