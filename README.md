@@ -29,16 +29,38 @@ You also need a running redis server (used db number is `0`, soon configurable).
 
 # Run
 
-Example run:
+## Troops selection
+
+Not developed yet
+
+## Troops Placement phase
+
+You must: specify a map and a state and `--placement` option:
+
+    python run.py maps/001 --state maps/001/state1.xml --placement
+
+Map will be loaded with state file troops and you will be able
+to move (drag and drop with your mouse) troops.
+
+Press `s` key will generate a state file in current dir.
+
+## Combat phase
+
+You must: specify a map and a state:
 
     python run.py maps/001 --state maps/001/state1.xml
 
-# Actual keys
+Map will be loaded with state file troops and you will be able to order them.
 
-When unit selected: 
+# Actual keys / Give orders
 
-* R: run
-* C: crouch
-* M: move
-* F: fire (not implemented)
-* S: Save current state into OpenCombat dir (or dir specified with `--state-save-dir`)
+When unit selected (click with mouse on soldier):
+
+* `r`: run
+* `c`: crouch
+* `m`: move
+* `f`: fire (not implemented)
+
+And you can:
+
+* `s`: Save current state into OpenCombat dir (or dir specified with `--state-save-dir`)
