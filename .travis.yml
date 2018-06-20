@@ -1,7 +1,4 @@
 language: python
-os:
-  - linux
-  - osx
 services:
   - redis-server
 python:
