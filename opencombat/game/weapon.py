@@ -8,11 +8,11 @@ from synergine2.config import Config
 from synergine2_cocos2d.util import PathManager
 
 from opencombat.exception import UnknownWeapon
-from opencombat.gui.const import MODE_MAN_STAND_UP
-from opencombat.gui.const import MODE_MAN_CRAWLING
+from opencombat.game.const import MODE_MAN_STAND_UP
+from opencombat.game.const import MODE_MAN_CRAWLING
 
 if typing.TYPE_CHECKING:
-    from opencombat.gui.actor import BaseActor
+    from opencombat.game.actor import BaseActor
 
 RIFFLE = 'RIFFLE'
 

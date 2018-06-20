@@ -39,7 +39,7 @@ class CocosTerminal(GameTerminal):
         self.map_dir_path = map_dir_path
 
     def run(self):
-        from opencombat.gui.base import Game
+        from opencombat.game.base import Game
 
         self.gui = Game(
             self.config,
