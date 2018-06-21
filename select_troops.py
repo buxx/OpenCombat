@@ -28,6 +28,7 @@ def main(
         config,
         master=master,
         troop_manager=troop_manager,
+        countries=countries,
     )
     master.mainloop()
 
@@ -50,7 +51,6 @@ if __name__ == '__main__':
         '--country',
         action='append',
         dest='countries',
-        default=['URSS', 'DE'],
     )
     args = parser.parse_args()
 

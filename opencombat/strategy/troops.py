@@ -33,6 +33,7 @@ class TroopClassBuilder(object):
 
     def get_team_stash(
         self,
+        units_file_path: str,
         teams_file_path: str,
     ) -> UnitStash:
         class_address = self._config.resolve(
@@ -43,7 +44,10 @@ class TroopClassBuilder(object):
             self._config,
             class_address,
         )
+
+        unit_stash = self.get_unit_stash(units_file_path)
         return class_(
             self._config,
             teams_file_path,
+            unit_stash=unit_stash,
         )

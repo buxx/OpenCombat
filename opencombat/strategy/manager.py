@@ -2,7 +2,7 @@
 from synergine2.config import Config
 from synergine2.log import get_logger
 
-from opencombat.strategy.selection.troops import TroopClassBuilder
+from opencombat.strategy.troops import TroopClassBuilder
 
 
 class TroopManager(object):
@@ -17,4 +17,7 @@ class TroopManager(object):
 
         builder = TroopClassBuilder(config)
         self._unit_stash = builder.get_unit_stash(units_file_path)
-        self._team_stash = builder.get_team_stash(teams_file_path)
+        self._team_stash = builder.get_team_stash(
+            units_file_path,
+            teams_file_path,
+        )

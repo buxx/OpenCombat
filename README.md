@@ -31,7 +31,9 @@ You also need a running redis server (used db number is `0`, soon configurable).
 
 ## Troops selection
 
-Not developed yet
+Start troops selection GUI with:
+
+    python select_troops.py --country URSS --country DE
 
 ## Troops Placement phase
 
