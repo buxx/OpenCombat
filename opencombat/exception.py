@@ -23,3 +23,7 @@ class StateLoadError(OpenCombatException):
 
 class NotFoundError(OpenCombatException):
     pass
+
+
+class NotFoundException(OpenCombatException):
+    pass
