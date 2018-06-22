@@ -21,6 +21,7 @@ class TeamStash(object):
         self._config = config
         self._teams = None  # type: typing.List[TeamModel]
         self._unit_stash = unit_stash
+        self._teams_file_path = teams_file_path
 
         self.schema_file_path = self._config.get(
             'global.teams_schema',
@@ -31,7 +32,7 @@ class TeamStash(object):
             self.schema_file_path,
         )
         self._root_element = self._xml_validator.validate_and_return(
-            teams_file_path,
+            self._teams_file_path,
         )
 
     def _get_computed_teams(self) -> typing.List[TeamModel]:
@@ -85,3 +86,29 @@ class TeamStash(object):
                 self.schema_file_path,
             )
         )
+
+    def get_team_by_name(
+        self,
+        team_name: str,
+        team_country: str,
+    ) -> TeamModel:
+        for team in self.teams:
+            if team.name == team_name and team.country == team_country:
+                return team
+
+        raise NotFoundException(
+            'No team matching with name "{}" and country "{}" in "{}"'.format(
+                team_name,
+                team_country,
+                self.schema_file_path,
+            )
+        )
+
+    def get_team_by_country(self, country: str) -> typing.List[TeamModel]:
+        teams = []  # type: typing.List[TeamModel]
+
+        for team in self.teams:
+            if team.country == country:
+                teams.append(team)
+
+        return teams

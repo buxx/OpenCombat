@@ -1,7 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <teams>
     <team id="std_team" country="URSS">
-        <name>Standard team</name>
+        <name>Standard URSS team</name>
+        <units>
+            <unit>
+                <id>std_soldier</id>
+            </unit>
+            <unit>
+                <id>std_soldier</id>
+            </unit>
+            <unit>
+                <id>std_soldier</id>
+            </unit>
+            <unit>
+                <id>std_soldier</id>
+            </unit>
+        </units>
+    </team>
+    <team id="std_team" country="DE">
+        <name>Standard DE team</name>
         <units>
             <unit>
                 <id>std_soldier</id>

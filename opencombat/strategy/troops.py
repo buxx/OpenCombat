@@ -2,6 +2,7 @@
 from synergine2.config import Config
 from synergine2.log import get_logger
 
+from opencombat.strategy.team.stash import TeamStash
 from opencombat.strategy.unit.stash import UnitStash
 from opencombat.util import get_class_from_string_path
 
@@ -35,7 +36,7 @@ class TroopClassBuilder(object):
         self,
         units_file_path: str,
         teams_file_path: str,
-    ) -> UnitStash:
+    ) -> TeamStash:
         class_address = self._config.resolve(
             'global.team_stash',
             'opencombat.strategy.team.stash.TeamStash',

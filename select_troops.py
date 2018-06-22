@@ -27,7 +27,7 @@ def main(
     gui = SelectTroopsGui(
         config,
         master=master,
-        troop_manager=troop_manager,
+        team_stash=troop_manager.team_stash,
         countries=countries,
     )
     master.mainloop()
