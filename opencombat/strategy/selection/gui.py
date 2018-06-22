@@ -54,6 +54,14 @@ class SelectTroopsGui(Gui):
         )
         self._add_troop_var.set('Add troop')
 
+        self._remove_troop_var = StringVar(self._master)
+        self._remove_troop_button = Button(
+            self._master,
+            textvariable=self._remove_troop_var,
+            command=self._remove_troop,
+        )
+        self._remove_troop_var.set('Remove troop')
+
         self._troops_view = Treeview(
             self._master,
             columns=('Soldiers',),
@@ -69,6 +77,7 @@ class SelectTroopsGui(Gui):
         self._teams_list.grid(row=1, column=0, sticky=W)
         self._add_troop_button.grid(row=2, column=0, sticky=W)
         self._troops_view.grid(row=3, column=0, sticky=W)
+        self._remove_troop_button.grid(row=4, column=0, sticky=W)
 
         # Default behaviours
         self._selected_country_var.set(countries[0])
@@ -109,6 +118,28 @@ class SelectTroopsGui(Gui):
             self._countries_troops.setdefault(country, []).append(
                 team_model,
             )
+            self._update_troops_view(country)
+
+    def _remove_troop(self, *args, **kwargs) -> None:
+        selecteds = self._troops_view.selection()
+
+        for selected in selecteds:
+            team_name = self._troops_view.item(selected)['text']
+            country = self._selected_country_var.get()
+
+            self._logger.info('Remove team "{}" from country "{}"'.format(
+                team_name,
+                country,
+            ))
+
+            team_model = self._team_stash.get_team_by_name(
+                team_name=team_name,
+                team_country=country,
+            )
+
+            self._countries_troops[country].remove(team_model)
+
+        if selecteds:
             self._update_troops_view(country)
 
     def _update_troops_view(self, country: str) -> None:
