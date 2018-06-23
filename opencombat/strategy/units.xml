@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<units>
+    <unit id="std_soldier" country="URSS">
+        <name>Standard soldier</name>
+        <type>opencombat.simulation.subject.ManSubject</type>
+    </unit>
+    <unit id="std_soldier" country="DE">
+        <name>Standard soldier</name>
+        <type>opencombat.simulation.subject.ManSubject</type>
+    </unit>
+</units>

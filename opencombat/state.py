@@ -7,13 +7,13 @@ from lxml import etree
 from synergine2.config import Config
 from synergine2.log import get_logger
 
-from opencombat.exception import StateLoadError
 from opencombat.exception import NotFoundError
 from opencombat.simulation.base import TileStrategySimulation
 from opencombat.simulation.subject import TileSubject
 from opencombat.util import get_class_from_string_path
 from opencombat.util import pretty_xml
 from opencombat.util import get_text_xml_element
+from opencombat.xml import XmlValidator
 
 
 class State(object):
@@ -195,6 +195,15 @@ class StateLoader(object):
         self._config = config
         self._simulation = simulation
 
+        schema_file_path = self._config.get(
+            'global.state_schema',
+            'opencombat/state.xsd',
+        )
+        self._xml_validator = XmlValidator(
+            config,
+            schema_file_path,
+        )
+
     def get_state(
         self,
         state_file_path: str,
@@ -209,65 +218,7 @@ class StateLoader(object):
         self,
         state_file_path: str,
     ) -> Element:
-        # open and read schema file
-        schema_file_path = self._config.get(
-            'global.state_schema',
-            'opencombat/state.xsd',
-        )
-        with open(schema_file_path, 'r') as schema_file:
-            schema_to_check = schema_file.read()
-
-        # open and read xml file
-        with open(state_file_path, 'r') as xml_file:
-            xml_to_check = xml_file.read()
-
-        xmlschema_doc = etree.fromstring(schema_to_check.encode('utf-8'))
-        xmlschema = etree.XMLSchema(xmlschema_doc)
-
-        try:
-            doc = etree.fromstring(xml_to_check.encode('utf-8'))
-        # check for file IO error
-        except IOError as exc:
-            self._logger.error(exc)
-            raise StateLoadError('Invalid File "{}": {}'.format(
-                state_file_path,
-                str(exc),
-            ))
-        # check for XML syntax errors
-        except etree.XMLSyntaxError as exc:
-            self._logger.error(exc)
-            raise StateLoadError('XML Syntax Error in "{}": {}'.format(
-                state_file_path,
-                str(exc.error_log),
-            ))
-        except Exception as exc:
-            self._logger.error(exc)
-            raise StateLoadError('Unknown error with "{}": {}'.format(
-                state_file_path,
-                str(exc),
-            ))
-
-        # validate against schema
-        try:
-            xmlschema.assertValid(doc)
-        except etree.DocumentInvalid as exc:
-            self._logger.error(exc)
-            raise StateLoadError(
-                'Schema validation error with "{}": {}'.format(
-                    state_file_path,
-                    str(exc),
-                )
-            )
-        except Exception as exc:
-            self._logger.error(exc)
-            raise StateLoadError(
-                'Unknown validation error with "{}": {}'.format(
-                    state_file_path,
-                    str(exc),
-                )
-            )
-
-        return doc
+        return self._xml_validator.validate_and_return(state_file_path)
 
 
 class StateConstructorBuilder(object):

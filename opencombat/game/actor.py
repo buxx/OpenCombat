@@ -14,17 +14,17 @@ from synergine2_xyz.exception import UnknownAnimationIndex
 from opencombat.exception import UnknownWeapon
 from opencombat.exception import WrongMode
 from opencombat.exception import UnknownFiringAnimation
-from opencombat.gui.animation import ANIMATION_CRAWL
-from opencombat.gui.animation import ANIMATION_WALK
-from opencombat.gui.const import MODE_MAN_STAND_UP
-from opencombat.gui.const import MODE_MAN_CRAWLING
-from opencombat.gui.image import TileImageCacheManager
-from opencombat.gui.weapon import RIFFLE
-from opencombat.gui.weapon import WeaponImageApplier
+from opencombat.game.animation import ANIMATION_CRAWL
+from opencombat.game.animation import ANIMATION_WALK
+from opencombat.game.const import MODE_MAN_STAND_UP
+from opencombat.game.const import MODE_MAN_CRAWLING
+from opencombat.game.image import TileImageCacheManager
+from opencombat.game.weapon import RIFFLE
+from opencombat.game.weapon import WeaponImageApplier
 from opencombat.user_action import UserAction
 
 if typing.TYPE_CHECKING:
-    from opencombat.gui.fire import GuiFiringEvent
+    from opencombat.game.fire import GuiFiringEvent
 
 
 MODE_DEFAULT = 'MODE_DEFAULT'

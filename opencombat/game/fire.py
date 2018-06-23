@@ -1,7 +1,7 @@
 # coding: utf-8
 import typing
 
-from opencombat.gui.actor import BaseActor
+from opencombat.game.actor import BaseActor
 from opencombat.simulation.event import DEFAULT_WEAPON_TYPE
 from opencombat.simulation.fire import RequestFireBehaviour
 from synergine2_cocos2d.interaction import BaseActorInteraction

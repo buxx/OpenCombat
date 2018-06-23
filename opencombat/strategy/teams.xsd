@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="teams" type="teamstype"/>
+
+    <xs:complexType name="teamstype">
+        <xs:sequence>
+            <xs:element name="team" type="teamtype" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="teamtype">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string" maxOccurs="1"/>
+            <xs:element name="units" type="unitstype" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string" use="required"/>
+        <xs:attribute name="country" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="unitstype">
+        <xs:sequence>
+            <xs:element name="unit" type="unittype" maxOccurs="unbounded" minOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="unittype">
+        <xs:sequence>
+            <xs:element name="id" type="xs:string" maxOccurs="1" minOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

@@ -12,7 +12,7 @@ from opencombat.exception import UnknownWeapon
 from opencombat.exception import UnknownFiringAnimation
 
 if typing.TYPE_CHECKING:
-    from opencombat.gui.actor import BaseActor
+    from opencombat.game.actor import BaseActor
 
 
 class FiringImageCache(ImageCache):
@@ -72,7 +72,7 @@ class TileImageCacheManager(ImageCacheManager):
     ) -> None:
         super().__init__(actor, config)
         self.firing_cache = FiringImageCache()
-        from opencombat.gui.actor import BaseActor
+        from opencombat.game.actor import BaseActor
         self.actor = typing.cast(BaseActor, self.actor)
         self.path_manager = PathManager(
             self.config.resolve('global.include_path.graphics'),

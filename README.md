@@ -10,7 +10,7 @@ Open source close combat inspired game. Presentation here: http://www.closecomba
 
 Tested only under linux, debian/Ubuntu. Before install project, install OS packages:
 
-    build-essential libsdl1.2debian libsdl-image1.2 libsdl-image1.2-dev libsdl-ttf2.0-0 libsdl-ttf2.0-dev libsdl-mixer1.2 libsdl-mixer1.2-dev redis-server
+    build-essential python3-tk libsdl1.2debian libsdl-image1.2 libsdl-image1.2-dev libsdl-ttf2.0-0 libsdl-ttf2.0-dev libsdl-mixer1.2 libsdl-mixer1.2-dev redis-server
 
 Python version: 3.5+
 
@@ -31,7 +31,9 @@ You also need a running redis server (used db number is `0`, soon configurable).
 
 ## Troops selection
 
-Not developed yet
+Start troops selection GUI with:
+
+    python select_troops.py --country URSS --country DE
 
 ## Troops Placement phase
 

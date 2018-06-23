@@ -18,11 +18,11 @@ from synergine2_cocos2d.interaction import InteractionManager
 from synergine2_cocos2d.middleware import MapMiddleware
 from synergine2_cocos2d.util import PathManager
 
-from opencombat.gui.animation import ANIMATION_WALK
-from opencombat.gui.animation import ANIMATION_CRAWL
-from opencombat.gui.fire import GuiFiringEvent
-from opencombat.gui.placement import SetSubjectPositionsInteraction
-from opencombat.gui.state import SaveStateInteraction
+from opencombat.game.animation import ANIMATION_WALK
+from opencombat.game.animation import ANIMATION_CRAWL
+from opencombat.game.fire import GuiFiringEvent
+from opencombat.game.placement import SetSubjectPositionsInteraction
+from opencombat.game.state import SaveStateInteraction
 from opencombat.simulation.interior import InteriorManager
 from opencombat.simulation.tmx import TileMap
 from opencombat.user_action import UserAction
@@ -45,8 +45,8 @@ from opencombat.simulation.event import FireEvent
 from opencombat.simulation.event import DieEvent
 from opencombat.simulation.subject import ManSubject
 from opencombat.simulation.subject import TankSubject
-from opencombat.gui.actor import Man as ManActor
-from opencombat.gui.actor import HeavyVehicle as HeavyVehicleActor
+from opencombat.game.actor import Man as ManActor
+from opencombat.game.actor import HeavyVehicle as HeavyVehicleActor
 
 
 class EditLayer(BaseEditLayer):
@@ -290,10 +290,10 @@ class Game(TMXGui):
         )
 
     def before_run(self) -> None:
-        from opencombat.gui.move import MoveActorInteraction
-        from opencombat.gui.move import MoveFastActorInteraction
-        from opencombat.gui.move import MoveCrawlActorInteraction
-        from opencombat.gui.fire import FireActorInteraction
+        from opencombat.game.move import MoveActorInteraction
+        from opencombat.game.move import MoveFastActorInteraction
+        from opencombat.game.move import MoveCrawlActorInteraction
+        from opencombat.game.fire import FireActorInteraction
 
         self.layer_manager.interaction_manager.register(
             MoveActorInteraction,
