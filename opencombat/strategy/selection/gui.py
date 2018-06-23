@@ -193,6 +193,13 @@ class SelectTroopsGui(Gui):
             )
             with open(troops_file_path, 'w+') as file:
                 file.write(troops_xml)
+
+            messagebox.showinfo(
+                'Troops file generated',
+                'Troops file successfully generate at "{}"'.format(
+                    troops_file_path,
+                )
+            )
         else:
             messagebox.showinfo(
                 'Missing information',
