@@ -13,6 +13,7 @@ def main(
     units_file_path: str,
     teams_file_path: str,
     countries: typing.List[str],
+    troops_dir_path: str = '.',
 ) -> None:
     config = Config()
     config.load_yaml('config.yaml')
@@ -28,7 +29,9 @@ def main(
         config,
         master=master,
         team_stash=troop_manager.team_stash,
+        troop_manager=troop_manager,
         countries=countries,
+        troops_dir_path=troops_dir_path,
     )
     master.mainloop()
 
@@ -52,10 +55,16 @@ if __name__ == '__main__':
         action='append',
         dest='countries',
     )
+    parser.add_argument(
+        '--troops-dir-path',
+        dest='troops_dir_path',
+        default='.',
+    )
     args = parser.parse_args()
 
     main(
         units_file_path=args.units_file_path,
         teams_file_path=args.teams_file_path,
         countries=args.countries,
+        troops_dir_path=args.troops_dir_path,
     )

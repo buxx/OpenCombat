@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 import typing
 from tkinter import Tk
 from tkinter import Button
@@ -6,12 +7,17 @@ from tkinter import YES
 from tkinter import StringVar
 from tkinter import OptionMenu
 from tkinter import W
+from tkinter import E
+from tkinter import messagebox
 from tkinter.ttk import Combobox
 from tkinter.ttk import Treeview
 
+
+import time
 from synergine2.config import Config
 
 from opencombat.gui import Gui
+from opencombat.strategy.manager import TroopManager
 from opencombat.strategy.team.stash import TeamStash
 
 
@@ -21,11 +27,16 @@ class SelectTroopsGui(Gui):
         config: Config,
         master: Tk,
         team_stash: TeamStash,
+        troop_manager: TroopManager,
         countries: typing.List[str],
+        troops_dir_path: str = '.',
     ) -> None:
         super().__init__(config, master)
         self._master.title('Troops selection')
+        self._countries = countries
         self._team_stash = team_stash
+        self._troop_manager = troop_manager
+        self._troops_dir_path = troops_dir_path
         self._countries_troops = {}  # type: typing.Dict[str, typing.List[TeamModel]]  # nopep8
 
         # Widgets
@@ -72,12 +83,21 @@ class SelectTroopsGui(Gui):
         self._troops_view.column('#0', stretch=YES)
         self._troops_view.column('#1', stretch=YES)
 
+        self._generate_troops_var = StringVar(self._master)
+        self._generate_troops_button = Button(
+            self._master,
+            textvariable=self._generate_troops_var,
+            command=self._generate_troops,
+        )
+        self._generate_troops_var.set('Generate troops')
+
         # Layout
         self._select_country_menu.grid(row=0, column=0, sticky=W)
         self._teams_list.grid(row=1, column=0, sticky=W)
         self._add_troop_button.grid(row=2, column=0, sticky=W)
         self._troops_view.grid(row=3, column=0, sticky=W)
         self._remove_troop_button.grid(row=4, column=0, sticky=W)
+        self._generate_troops_button.grid(row=4, column=0, sticky=E)
 
         # Default behaviours
         self._selected_country_var.set(countries[0])
@@ -152,4 +172,29 @@ class SelectTroopsGui(Gui):
                 'end',
                 text=team.name,
                 values=('o' * len(team.units,))
+            )
+
+    def _generate_troops(self, *args, **kwargs) -> None:
+        # Must have team(s) in all countries
+        if len(self._countries_troops.keys()) == len(self._countries) \
+                and all(self._countries_troops.values()):
+
+            troops_file_path = os.path.join(
+                self._troops_dir_path,
+                'troops_{}.xml'.format(str(time.time())),
+            )
+
+            self._logger.info('Generate troops into file "{}"'.format(
+                troops_file_path,
+            ))
+
+            troops_xml = self._troop_manager.get_troop_dump(
+                self._countries_troops,
+            )
+            with open(troops_file_path, 'w+') as file:
+                file.write(troops_xml)
+        else:
+            messagebox.showinfo(
+                'Missing information',
+                'All countries must have teams',
             )
