@@ -1,15 +1,18 @@
 # coding: utf-8
 import typing
+from _elementtree import Element
 
 from lxml import etree
 
 from synergine2.config import Config
 from synergine2.log import get_logger
 
+from opencombat.simulation.base import TileStrategySimulation
 from opencombat.strategy.team.model import TeamModel
 from opencombat.strategy.team.stash import TeamStash
 from opencombat.strategy.unit.stash import UnitStash
 from opencombat.util import get_class_from_string_path, pretty_xml
+from opencombat.xml import XmlValidator
 
 
 class TroopDumper(object):
@@ -108,4 +111,67 @@ class TroopClassBuilder(object):
 
         return class_(
             self._config,
+        )
+
+
+class TroopLoader(object):
+    def __init__(
+        self,
+        config: Config,
+        simulation: TileStrategySimulation,
+    ) -> None:
+        self._logger = get_logger('TroopLoader', config)
+        self._config = config
+        self._simulation = simulation
+
+        schema_file_path = self._config.get(
+            'global.troop_schema',
+            'opencombat/strategy/troop.xsd',
+        )
+        self._xml_validator = XmlValidator(
+            config,
+            schema_file_path,
+        )
+
+    def get_troop(
+        self,
+        troop_file_path: str,
+    ) -> Troop:
+        return Troop(
+            self._config,
+            self._validate_and_return_state_element(troop_file_path),
+            self._simulation,
+        )
+
+    def _validate_and_return_state_element(
+        self,
+        troop_file_path: str,
+    ) -> Element:
+        return self._xml_validator.validate_and_return(troop_file_path)
+
+
+class TroopConstructorBuilder(object):
+    def __init__(
+        self,
+        config: Config,
+        simulation: TileStrategySimulation,
+    ) -> None:
+        self._logger = get_logger('TroopConstructorBuilder', config)
+        self._config = config
+        self._simulation = simulation
+
+    def get_troop_loader(
+        self,
+    ) -> TroopLoader:
+        class_address = self._config.resolve(
+            'global.troop_loader',
+            'opencombat.strategy.troops.TroopLoader',
+        )
+        troop_loader_class = get_class_from_string_path(
+            self._config,
+            class_address,
+        )
+        return troop_loader_class(
+            self._config,
+            self._simulation,
         )
