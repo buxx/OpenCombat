@@ -35,11 +35,15 @@ Start troops selection GUI with:
 
     python select_troops.py --country URSS --country DE
 
+Select troops for every countries then generate s troops file.
+
 ## Troops Placement phase
 
 You must: specify a map and a state and `--placement` option:
 
-    python run.py maps/001 --state maps/001/state1.xml --placement
+    python run.py maps/001 --troops troops.xml --placement
+
+`troops.xml` must be previously (at `Troops selection` phase) generated troops file.
 
 Map will be loaded with state file troops and you will be able
 to move (drag and drop with your mouse) troops.
