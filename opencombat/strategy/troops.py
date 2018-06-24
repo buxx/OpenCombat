@@ -8,11 +8,62 @@ from synergine2.config import Config
 from synergine2.log import get_logger
 
 from opencombat.simulation.base import TileStrategySimulation
+from opencombat.simulation.subject import TileSubject
 from opencombat.strategy.team.model import TeamModel
 from opencombat.strategy.team.stash import TeamStash
 from opencombat.strategy.unit.stash import UnitStash
 from opencombat.util import get_class_from_string_path, pretty_xml
 from opencombat.xml import XmlValidator
+
+
+class Troop(object):
+    def __init__(
+        self,
+        config: Config,
+        state_root: Element,
+        simulation: TileStrategySimulation,
+    ) -> None:
+        self._config = config
+        self._state_root = state_root
+        self._subjects = None  # type: typing.List[TileSubject]
+        self._simulation = simulation
+        self._builder = TroopClassBuilder(config)
+
+    @property
+    def subjects(self) -> typing.List[TileSubject]:
+        if self._subjects is None:
+            self._subjects = self.get_computed_subjects()
+
+        return self._subjects
+
+    def get_computed_subjects(self) -> typing.List[TileSubject]:
+        units_file_path = self._config.get(
+            'global.units',
+            'opencombat/strategy/units.xml',
+        )
+        teams_file_path = self._config.get(
+            'global.teams',
+            'opencombat/strategy/teams.xml',
+        )
+
+        team_stash = self._builder.get_team_stash(
+            units_file_path,
+            teams_file_path,
+        )
+
+        # Parse team, build Subjects
+        subjects = []  # type: typing.List[TileSubject]
+        for troop in self._state_root.findall('troop'):
+            country = troop.attrib['country']
+            team_id = troop.attrib['team_id']
+            team = team_stash.get_team(team_id, country)
+
+            for unit in team.units:
+                subject = unit.class_(self._config, self._simulation)
+                subjects.append(subject)
+
+        # TODO BS 2018-06-25: place subjects on map, set side, color, etc
+        return subjects
 
 
 class TroopDumper(object):
@@ -126,7 +177,7 @@ class TroopLoader(object):
 
         schema_file_path = self._config.get(
             'global.troop_schema',
-            'opencombat/strategy/troop.xsd',
+            'opencombat/strategy/troops.xsd',
         )
         self._xml_validator = XmlValidator(
             config,

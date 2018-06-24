@@ -14,6 +14,7 @@ from synergine2.terminals import TerminalManager
 from opencombat.simulation.base import TileStrategySimulation
 from opencombat.simulation.base import TileStrategySubjects
 from opencombat.state import StateConstructorBuilder
+from opencombat.strategy.troops import TroopConstructorBuilder
 from opencombat.terminal.base import CocosTerminal
 
 
@@ -57,7 +58,7 @@ def main(
     elif troops_file_path:
         troop_loader_builder = TroopConstructorBuilder(config, simulation)
         troop_loader = troop_loader_builder.get_troop_loader()
-        troops = troop_loader.get_troops(troops_file_path)
+        troops = troop_loader.get_troop(troops_file_path)
         subjects.extend(troops.subjects)
 
     simulation.subjects = subjects
