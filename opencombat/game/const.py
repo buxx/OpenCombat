@@ -6,4 +6,4 @@ FLAG_DE = 'DE'
 FLAG_COLORS = {
     FLAG_DE
 }
-FLAG_URSS = 'URSS'
+FLAG_USSR = 'USSR'

@@ -1,15 +1,73 @@
 # coding: utf-8
 import typing
+from _elementtree import Element
 
 from lxml import etree
 
 from synergine2.config import Config
 from synergine2.log import get_logger
 
+from opencombat.simulation.base import TileStrategySimulation
+from opencombat.simulation.subject import TileSubject
 from opencombat.strategy.team.model import TeamModel
 from opencombat.strategy.team.stash import TeamStash
 from opencombat.strategy.unit.stash import UnitStash
 from opencombat.util import get_class_from_string_path, pretty_xml
+from opencombat.xml import XmlValidator
+
+
+class Troop(object):
+    def __init__(
+        self,
+        config: Config,
+        state_root: Element,
+        simulation: TileStrategySimulation,
+    ) -> None:
+        self._config = config
+        self._state_root = state_root
+        self._subjects = None  # type: typing.List[TileSubject]
+        self._simulation = simulation
+        self._builder = TroopClassBuilder(config)
+
+    @property
+    def subjects(self) -> typing.List[TileSubject]:
+        if self._subjects is None:
+            self._subjects = self._get_computed_subjects()
+
+        return self._subjects
+
+    def _get_computed_subjects(self) -> typing.List[TileSubject]:
+        units_file_path = self._config.get(
+            'global.units',
+            'opencombat/strategy/units.xml',
+        )
+        teams_file_path = self._config.get(
+            'global.teams',
+            'opencombat/strategy/teams.xml',
+        )
+
+        team_stash = self._builder.get_team_stash(
+            units_file_path,
+            teams_file_path,
+        )
+
+        # Parse team, build Subjects
+        subjects = []  # type: typing.List[TileSubject]
+        for troop in self._state_root.findall('troop'):
+            country = troop.attrib['country']
+            team_id = troop.attrib['team_id']
+            team = team_stash.get_team(team_id, country)
+
+            for unit in team.units:
+                subject = unit.class_(self._config, self._simulation)
+                properties = \
+                    self._simulation.get_default_properties_for_country(
+                        country,
+                    )
+                subject.properties.update(properties)
+                subjects.append(subject)
+
+        return subjects
 
 
 class TroopDumper(object):
@@ -108,4 +166,67 @@ class TroopClassBuilder(object):
 
         return class_(
             self._config,
+        )
+
+
+class TroopLoader(object):
+    def __init__(
+        self,
+        config: Config,
+        simulation: TileStrategySimulation,
+    ) -> None:
+        self._logger = get_logger('TroopLoader', config)
+        self._config = config
+        self._simulation = simulation
+
+        schema_file_path = self._config.get(
+            'global.troop_schema',
+            'opencombat/strategy/troops.xsd',
+        )
+        self._xml_validator = XmlValidator(
+            config,
+            schema_file_path,
+        )
+
+    def get_troop(
+        self,
+        troop_file_path: str,
+    ) -> Troop:
+        return Troop(
+            self._config,
+            self._validate_and_return_state_element(troop_file_path),
+            self._simulation,
+        )
+
+    def _validate_and_return_state_element(
+        self,
+        troop_file_path: str,
+    ) -> Element:
+        return self._xml_validator.validate_and_return(troop_file_path)
+
+
+class TroopConstructorBuilder(object):
+    def __init__(
+        self,
+        config: Config,
+        simulation: TileStrategySimulation,
+    ) -> None:
+        self._logger = get_logger('TroopConstructorBuilder', config)
+        self._config = config
+        self._simulation = simulation
+
+    def get_troop_loader(
+        self,
+    ) -> TroopLoader:
+        class_address = self._config.resolve(
+            'global.troop_loader',
+            'opencombat.strategy.troops.TroopLoader',
+        )
+        troop_loader_class = get_class_from_string_path(
+            self._config,
+            class_address,
+        )
+        return troop_loader_class(
+            self._config,
+            self._simulation,
         )

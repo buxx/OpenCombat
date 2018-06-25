@@ -1,5 +1,6 @@
 # coding: utf-8
 import argparse
+import sys
 import typing
 from tkinter import Tk
 
@@ -61,6 +62,14 @@ if __name__ == '__main__':
         default='.',
     )
     args = parser.parse_args()
+
+    if not args.countries:
+        print(
+            'You must choose one or more countries with parameters '
+            '--country, eg. `--country USSR --country DE`',
+            file=sys.stderr,
+        )
+        exit(1)
 
     main(
         units_file_path=args.units_file_path,

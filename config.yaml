@@ -31,6 +31,8 @@ global:
     units_schema: "opencombat/strategy/units.xsd"
     troop_dumper: "opencombat.strategy.troops.TroopDumper"
     troop_schema: "opencombat/strategy/troops.xsd"
+    units: "opencombat/strategy/units.xml"
+    teams: "opencombat/strategy/teams.xml"
     cache_dir_path: 'cache'
     include_path:
       maps:
