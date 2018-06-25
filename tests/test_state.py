@@ -16,8 +16,10 @@ from opencombat.const import FLAG
 from opencombat.const import SIDE
 from opencombat.const import FLAG_DE
 from opencombat.const import DE_COLOR
-from opencombat.const import URSS_COLOR
-from opencombat.const import FLAG_URSS
+from opencombat.const import USSR_COLOR
+from opencombat.const import FLAG_USSR
+from opencombat.const import SIDE_ALLIES
+from opencombat.const import SIDE_AXIS
 
 
 class MyStateLoader(StateLoader):
@@ -44,16 +46,16 @@ def simulation_for_dump(config) -> TileStrategySimulation:
     man1.properties = OrderedDict([
         (SELECTION_COLOR_RGB, DE_COLOR),
         (FLAG, FLAG_DE),
-        (SIDE, 'AXIS'),
+        (SIDE, SIDE_AXIS),
     ])
 
     man2 = ManSubject(config, simulation)
     man2.position = (16, 8)
     man2.direction = 197
     man2.properties = OrderedDict([
-        (SELECTION_COLOR_RGB, URSS_COLOR),
-        (FLAG, FLAG_URSS),
-        (SIDE, 'ALLIES'),
+        (SELECTION_COLOR_RGB, USSR_COLOR),
+        (FLAG, FLAG_USSR),
+        (SIDE, SIDE_ALLIES),
     ])
 
     subjects.append(man1)
@@ -116,7 +118,7 @@ def test_state__ok__subjects(
 
     assert {
                'SELECTION_COLOR_RGB': (204, 0, 0),
-               'FLAG': 'FLAG_URSS',
+               'FLAG': 'FLAG_USSR',
                'SIDE': 'ALLIES',
            } == state.subjects[0].properties
     assert {
@@ -170,7 +172,7 @@ def test_state__ok__dump(
                 </item>
                 <item>
                     <key>FLAG</key>
-                    <value>FLAG_URSS</value>
+                    <value>FLAG_USSR</value>
                 </item>
                 <item>
                     <key>SIDE</key>

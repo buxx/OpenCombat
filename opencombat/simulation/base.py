@@ -1,5 +1,14 @@
 # coding: utf-8
 from opencombat.const import COLLECTION_ALIVE
+from opencombat.const import COUNTRY_USSR
+from opencombat.const import FLAG_USSR
+from opencombat.const import SIDE_ALLIES
+from opencombat.const import COUNTRY_DE
+from opencombat.const import USSR_COLOR
+from opencombat.const import DE_COLOR
+from opencombat.const import SIDE
+from opencombat.const import FLAG
+from opencombat.const import SELECTION_COLOR_RGB
 from opencombat.simulation.physics import TilePhysics
 from synergine2.config import Config
 from synergine2.simulation import SubjectBehaviour
@@ -13,6 +22,23 @@ class TileStrategySimulation(XYZSimulation):
     behaviours_classes = [
 
     ]
+
+    @classmethod
+    def get_default_properties_for_country(cls, country: str) -> dict:
+        if country == COUNTRY_USSR:
+            return {
+                SELECTION_COLOR_RGB: USSR_COLOR,
+                FLAG: FLAG_USSR,
+                SIDE: SIDE_ALLIES,
+            }
+        elif country == COUNTRY_DE:
+            return {
+                SELECTION_COLOR_RGB: DE_COLOR,
+                FLAG: FLAG_USSR,
+                SIDE: SIDE_ALLIES,
+            }
+
+        raise NotImplementedError('Unknown country "{}"'.format(country))
 
     def __init__(
         self,

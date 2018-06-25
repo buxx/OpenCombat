@@ -46,7 +46,7 @@ def test_team_stash__ok__get_teams(
 
     assert 'std_team' == stash.teams[0].id
     assert 'Standard team' == stash.teams[0].name
-    assert 'URSS' == stash.teams[0].country
+    assert 'USSR' == stash.teams[0].country
     assert stash.teams[0].units
     assert 4 == len(stash.teams[0].units)
     assert isinstance(stash.teams[0].units[0], UnitModel)
@@ -76,7 +76,7 @@ def test_teams_stash__ok__get_unit(
         'tests/fixtures/teams.xml',
         unit_stash=unit_stash,
     )
-    assert stash.get_team('std_team', 'URSS')
+    assert stash.get_team('std_team', 'USSR')
 
 
 def test_teams_stash__error__get_team_wrong_country(
@@ -104,4 +104,4 @@ def test_teams_stash__error__get_team_wrong_id(
     )
 
     with pytest.raises(NotFoundException):
-        stash.get_team('unknown', 'URSS')
+        stash.get_team('unknown', 'USSR')

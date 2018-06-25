@@ -33,7 +33,7 @@ You also need a running redis server (used db number is `0`, soon configurable).
 
 Start troops selection GUI with:
 
-    python select_troops.py --country URSS --country DE
+    python select_troops.py --country USSR --country DE
 
 Select troops for every countries then generate s troops file.
 

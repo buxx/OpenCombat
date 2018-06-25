@@ -31,7 +31,7 @@ def test_units_stash__ok__get_units(
 
     assert 'std_soldier' == stash.units[0].id
     assert 'Standard soldier' == stash.units[0].name
-    assert 'URSS' == stash.units[0].country
+    assert 'USSR' == stash.units[0].country
     assert ManSubject == stash.units[0].class_
 
     assert 'std_soldier' == stash.units[1].id
@@ -47,7 +47,7 @@ def test_units_stash__ok__get_unit(
         config,
         'tests/fixtures/units.xml',
     )
-    assert stash.get_unit('std_soldier', 'URSS')
+    assert stash.get_unit('std_soldier', 'USSR')
 
 
 def test_units_stash__error__get_unit_wrong_country(
@@ -71,4 +71,4 @@ def test_units_stash__error__get_unit_wrong_id(
     )
 
     with pytest.raises(NotFoundException):
-        stash.get_unit('unknown', 'URSS')
+        stash.get_unit('unknown', 'USSR')

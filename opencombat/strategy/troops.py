@@ -60,9 +60,13 @@ class Troop(object):
 
             for unit in team.units:
                 subject = unit.class_(self._config, self._simulation)
+                properties = \
+                    self._simulation.get_default_properties_for_country(
+                        country,
+                    )
+                subject.properties.update(properties)
                 subjects.append(subject)
 
-        # TODO BS 2018-06-25: place subjects on map, set side, color, etc
         return subjects
 
 

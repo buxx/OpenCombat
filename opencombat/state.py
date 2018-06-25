@@ -14,6 +14,9 @@ from opencombat.util import get_class_from_string_path
 from opencombat.util import pretty_xml
 from opencombat.util import get_text_xml_element
 from opencombat.xml import XmlValidator
+from opencombat.const import SIDE
+from opencombat.const import FLAG
+from opencombat.const import SELECTION_COLOR_RGB
 
 
 class State(object):
@@ -93,9 +96,9 @@ class State(object):
 
     def _get_decode_properties_map(self) -> typing.Dict[str, typing.Callable[[str], typing.Any]]:  # nopep8
         return {
-            'SELECTION_COLOR_RGB': lambda v: tuple(map(int, v.split(','))),
-            'FLAG': str,
-            'SIDE': str,
+            SELECTION_COLOR_RGB: lambda v: tuple(map(int, v.split(','))),
+            FLAG: str,
+            SIDE: str,
         }
 
 
@@ -179,9 +182,9 @@ class StateDumper(object):
 
     def _get_encode_properties_map(self) -> typing.Dict[str, typing.Callable[[typing.Any], str]]:  # nopep8:
         return {
-            'SELECTION_COLOR_RGB': lambda v: ','.join(map(str, v)),
-            'FLAG': str,
-            'SIDE': str,
+            SELECTION_COLOR_RGB: lambda v: ','.join(map(str, v)),
+            FLAG: str,
+            SIDE: str,
         }
 
 
