@@ -45,7 +45,7 @@ def test_team_stash__ok__get_teams(
     assert isinstance(stash.teams[1], TeamModel)
 
     assert 'std_team' == stash.teams[0].id
-    assert 'Standard team' == stash.teams[0].name
+    assert 'Standard USSR team' == stash.teams[0].name
     assert 'USSR' == stash.teams[0].country
     assert stash.teams[0].units
     assert 4 == len(stash.teams[0].units)
@@ -56,7 +56,7 @@ def test_team_stash__ok__get_teams(
     assert 'std_soldier' == stash.teams[0].units[3].id
 
     assert 'std_team' == stash.teams[1].id
-    assert 'Standard team' == stash.teams[1].name
+    assert 'Standard DE team' == stash.teams[1].name
     assert 'DE' == stash.teams[1].country
     assert stash.teams[0].units
     assert 4 == len(stash.teams[1].units)

@@ -156,7 +156,7 @@ def test_state__ok__dump(
                 </item>
                 <item>
                     <key>SIDE</key>
-                    <value>AXIS</value>
+                    <value>SIDE_AXIS</value>
                 </item>
             </properties>
         </subject>
@@ -176,7 +176,7 @@ def test_state__ok__dump(
                 </item>
                 <item>
                     <key>SIDE</key>
-                    <value>ALLIES</value>
+                    <value>SIDE_ALLIES</value>
                 </item>
             </properties>
         </subject>
