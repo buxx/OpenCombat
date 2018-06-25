@@ -32,11 +32,11 @@ class Troop(object):
     @property
     def subjects(self) -> typing.List[TileSubject]:
         if self._subjects is None:
-            self._subjects = self.get_computed_subjects()
+            self._subjects = self._get_computed_subjects()
 
         return self._subjects
 
-    def get_computed_subjects(self) -> typing.List[TileSubject]:
+    def _get_computed_subjects(self) -> typing.List[TileSubject]:
         units_file_path = self._config.get(
             'global.units',
             'opencombat/strategy/units.xml',
