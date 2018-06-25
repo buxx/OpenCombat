@@ -2,7 +2,9 @@
 from opencombat.const import COLLECTION_ALIVE
 from opencombat.const import COUNTRY_USSR
 from opencombat.const import FLAG_USSR
+from opencombat.const import FLAG_DE
 from opencombat.const import SIDE_ALLIES
+from opencombat.const import SIDE_AXIS
 from opencombat.const import COUNTRY_DE
 from opencombat.const import USSR_COLOR
 from opencombat.const import DE_COLOR
@@ -34,8 +36,8 @@ class TileStrategySimulation(XYZSimulation):
         elif country == COUNTRY_DE:
             return {
                 SELECTION_COLOR_RGB: DE_COLOR,
-                FLAG: FLAG_USSR,
-                SIDE: SIDE_ALLIES,
+                FLAG: FLAG_DE,
+                SIDE: SIDE_AXIS,
             }
 
         raise NotImplementedError('Unknown country "{}"'.format(country))
