@@ -35,7 +35,7 @@ Start troops selection GUI with:
 
     python select_troops.py --country USSR --country DE
 
-Select troops for every countries then generate s troops file.
+Select troops for every countries then generate a troops file.
 
 ## Troops Placement phase
 
