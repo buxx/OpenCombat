@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  open_combat:
+    build: .
+    environment:
+      - REDIS_HOST=redis
+    #depends_on:
+    #  - redis
+    volumes:
+      - .:/app/open_combat
+    command: >
+      /bin/sh -c "redis-server & cd /app/open_combat && pytest"
+    #/usr/bin/redis-server
+  #redis:
+  #  image: "redis:alpine"
+  #  expose:
+  #    - 6379
+  #  ports:
+  #    - "6379:6379"
+
