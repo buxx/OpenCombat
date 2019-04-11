@@ -6,7 +6,25 @@ Open source close combat inspired game. Presentation here: http://www.closecomba
 
 **Important note**: OpenCombat is in development and is developed under linux. Windows support is planned but not actually tested.
 
-# Install
+# Prepare Environment
+
+## Running in docker
+
+If you are lazy or you don't like stuff installed into your system, use make commands to prepare the docker environment for the game.
+
+    # checkout repo
+    make build
+    # try it via unit test
+    make pytest
+    # run it
+    make up
+    # inside container start redis server first
+    redis-server &
+
+
+**note** expect unexpected..
+
+## Install into your OS
 
 Tested only under linux, debian/Ubuntu. Before install project, install OS packages:
 
