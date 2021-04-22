@@ -124,7 +124,7 @@ impl event::EventHandler for MainState {
         Ok(())
     }
 }
-
+// TODO: spite i par objet, fabrication des sprite_info qu'une fois; channel pour modifs des objets ds update
 pub fn main() -> GameResult {
     let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
         let mut path = path::PathBuf::from(manifest_dir);
