@@ -8,17 +8,17 @@ use std::env;
 use std::path;
 
 struct SpriteInfo {
-    source: graphics::Rect,
+    start: na::Point2<f32>,
     tile_count: u16,
     relative_tile_width: f32,
     relative_tile_height: f32,
 }
 
 impl SpriteInfo {
-    pub fn new(source: graphics::Rect, tile_count: u16) -> Self {
+    pub fn new(start: na::Point2<f32>, tile_count: u16) -> Self {
         let relative_tile_width: f32 = 1.0 / tile_count as f32;
         Self {
-            source,
+            start,
             tile_count,
             relative_tile_width,
             relative_tile_height: 1.0,
@@ -27,7 +27,7 @@ impl SpriteInfo {
 
     pub fn from_type(type_: &SpriteType) -> Self {
         match type_ {
-            SpriteType::WalkingSoldier => Self::new(graphics::Rect::new(0.0, 0.0, 128.0, 24.0), 7),
+            SpriteType::WalkingSoldier => Self::new(na::Point2::new(0.0, 0.0), 7),
         }
     }
 }
@@ -50,14 +50,14 @@ fn sprite_batch_part_from_sprite_info(
 }
 
 struct SceneItem {
-    current_sprite_type: SpriteType,
+    sprite_info: SpriteInfo,
     position: na::Point2<f32>,
 }
 
 impl SceneItem {
-    pub fn new(current_sprite_type: SpriteType, position: na::Point2<f32>) -> Self {
+    pub fn new(sprite_type: SpriteType, position: na::Point2<f32>) -> Self {
         Self {
-            current_sprite_type,
+            sprite_info: SpriteInfo::from_type(&sprite_type),
             position,
         }
     }
@@ -107,8 +107,7 @@ impl event::EventHandler for MainState {
         graphics::clear(ctx, graphics::BLACK);
 
         for scene_item in self.scene_items.iter() {
-            let sprite_info = SpriteInfo::from_type(&scene_item.current_sprite_type);
-            let sprite_batch_part = sprite_batch_part_from_sprite_info(&sprite_info, self.i)
+            let sprite_batch_part = sprite_batch_part_from_sprite_info(&scene_item.sprite_info, self.i)
                 .dest(scene_item.position.clone());
             self.scene_items_sprite_batch.add(sprite_batch_part);
         }
