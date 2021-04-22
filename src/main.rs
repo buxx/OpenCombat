@@ -108,7 +108,8 @@ impl event::EventHandler for MainState {
 
         for scene_item in self.scene_items.iter() {
             let sprite_info = SpriteInfo::from_type(&scene_item.current_sprite_type);
-            let sprite_batch_part = sprite_batch_part_from_sprite_info(&sprite_info, self.i).dest(scene_item.position.clone());
+            let sprite_batch_part = sprite_batch_part_from_sprite_info(&sprite_info, self.i)
+                .dest(scene_item.position.clone());
             self.scene_items_sprite_batch.add(sprite_batch_part);
         }
         graphics::draw(
@@ -134,7 +135,9 @@ pub fn main() -> GameResult {
         path::PathBuf::from("./resources")
     };
 
-    let cb = ggez::ContextBuilder::new("oc", "bux").add_resource_path(resource_dir);
+    let cb = ggez::ContextBuilder::new("oc", "bux")
+        .add_resource_path(resource_dir)
+        .window_mode(ggez::conf::WindowMode::default().dimensions(800.0, 600.0));
     let (ctx, event_loop) = &mut cb.build()?;
 
     let state = &mut MainState::new(ctx)?;
