@@ -10,30 +10,45 @@ use std::path;
 const TARGET_ANIMATION_FPS: u32 = 10;
 
 struct SpriteInfo {
-    start_y: f32,
-    tile_count: u16,
+    relative_start_y: f32,
     relative_tile_width: f32,
     relative_tile_height: f32,
+    tile_count: u16,
     current_frame: u16,
 }
 
 impl SpriteInfo {
-    pub fn new(start_y: f32, tile_count: u16) -> Self {
-        // FIXME BS NOW: en fait ca ce base sur la hauteur complète de l'image
-        let relative_tile_width: f32 = 1.0 / tile_count as f32;
+    pub fn new(
+        relative_start_y: f32,
+        relative_tile_width: f32,
+        relative_tile_height: f32,
+        tile_count: u16,
+    ) -> Self {
         Self {
-            start_y,
-            tile_count,
+            relative_start_y,
             relative_tile_width,
-            relative_tile_height: 1.0,
+            relative_tile_height,
+            tile_count,
             current_frame: 0,
         }
     }
 
-    pub fn from_type(type_: &SpriteType) -> Self {
-        match type_ {
-            SpriteType::WalkingSoldier => Self::new(0.0, 7),
-            SpriteType::JumpingSoldier => Self::new(24.0, 2),
+    pub fn from_type(
+        type_: &SpriteType,
+        sprite_sheet_width: f32,
+        sprite_sheet_height: f32,
+    ) -> Self {
+        let (start_y, tile_width, tile_height, tile_count) = match type_ {
+            SpriteType::WalkingSoldier => (0.0, 24.0, 24.0, 7),
+            SpriteType::JumpingSoldier => (24.0, 24.0, 24.0, 2),
+        };
+
+        Self {
+            relative_start_y: start_y / sprite_sheet_height,
+            relative_tile_width: tile_width / sprite_sheet_width,
+            relative_tile_height: tile_height / sprite_sheet_height,
+            tile_count,
+            current_frame: 0,
         }
     }
 }
@@ -43,12 +58,10 @@ enum SpriteType {
     JumpingSoldier,
 }
 
-fn sprite_batch_part_from_sprite_info(
-    sprite_info: &SpriteInfo,
-) -> graphics::DrawParam {
+fn sprite_batch_part_from_sprite_info(sprite_info: &SpriteInfo) -> graphics::DrawParam {
     let src = graphics::Rect::new(
         sprite_info.current_frame as f32 * sprite_info.relative_tile_width,
-        sprite_info.start_y,
+        sprite_info.relative_start_y,
         sprite_info.relative_tile_width,
         sprite_info.relative_tile_height,
     );
@@ -61,9 +74,18 @@ struct SceneItem {
 }
 
 impl SceneItem {
-    pub fn new(sprite_type: SpriteType, position: na::Point2<f32>) -> Self {
+    pub fn new(
+        sprite_type: SpriteType,
+        position: na::Point2<f32>,
+        sprite_sheet_width: f32,
+        sprite_sheet_height: f32,
+    ) -> Self {
         Self {
-            sprite_info: SpriteInfo::from_type(&sprite_type),
+            sprite_info: SpriteInfo::from_type(
+                &sprite_type,
+                sprite_sheet_width,
+                sprite_sheet_height,
+            ),
             position,
         }
     }
@@ -76,9 +98,7 @@ impl SceneItem {
     }
 }
 
-enum Message {
-
-}
+enum Message {}
 
 struct MainState {
     scene_items_sprite_batch: graphics::spritebatch::SpriteBatch,
@@ -93,15 +113,17 @@ impl MainState {
         let mut scene_items = vec![];
         for x in 0..1 {
             for y in 0..4 {
-                let type_ = if y % 2 == 0 {
+                let sprite_type = if y % 2 == 0 {
                     SpriteType::WalkingSoldier
                 } else {
                     SpriteType::JumpingSoldier
                 };
 
                 scene_items.push(SceneItem::new(
-                    SpriteType::WalkingSoldier,
+                    sprite_type,
                     na::Point2::new(x as f32 * 24.0, y as f32 * 24.0),
+                    168.0,
+                    48.0,
                 ));
             }
         }
