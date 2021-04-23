@@ -1,6 +1,7 @@
 use ggez;
 use ggez::event;
 use ggez::graphics;
+use ggez::graphics::{DrawMode, MeshBuilder};
 use ggez::nalgebra as na;
 use ggez::timer::check_update_time;
 use ggez::{Context, GameResult};
@@ -33,8 +34,6 @@ struct SpriteInfo {
     tile_count: u16,
     tile_width: f32,
     tile_height: f32,
-    half_tile_width: f32,
-    half_tile_height: f32,
 }
 
 impl SpriteInfo {
@@ -53,18 +52,7 @@ impl SpriteInfo {
             tile_count,
             tile_width,
             tile_height,
-            half_tile_width: tile_width / 2.0,
-            half_tile_height: tile_height / 2.0,
         }
-    }
-
-    pub fn as_draw_param(&self, current_frame: f32) -> graphics::DrawParam {
-        graphics::DrawParam::new().src(graphics::Rect::new(
-            current_frame as f32 * self.relative_tile_width,
-            self.relative_start_y,
-            self.relative_tile_width,
-            self.relative_tile_height,
-        ))
     }
 }
 
@@ -129,12 +117,17 @@ impl SceneItem {
         }
     }
 
-    pub fn position_with_tile_decal(&self) -> na::Point2<f32> {
+    pub fn as_draw_param(&self, current_frame: f32) -> graphics::DrawParam {
         let sprite_info = self.sprite_info();
-        na::Point2::new(
-            self.position.x - sprite_info.half_tile_width,
-            self.position.y - sprite_info.half_tile_height,
-        )
+        graphics::DrawParam::new()
+            .src(graphics::Rect::new(
+                current_frame as f32 * sprite_info.relative_tile_width,
+                sprite_info.relative_start_y,
+                sprite_info.relative_tile_width,
+                sprite_info.relative_tile_height,
+            ))
+            .rotation(90.0f32.to_radians())
+            .offset(na::Point2::new(0.5, 0.5))
     }
 }
 
@@ -168,7 +161,7 @@ impl MainState {
                 };
 
                 scene_items.push(SceneItem::new(
-                    na::Point2::new(x as f32 * 24.0, y as f32 * 24.0),
+                    na::Point2::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
                     ItemState::new(current_behavior),
                 ));
             }
@@ -255,8 +248,7 @@ impl MainState {
 impl event::EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while check_update_time(ctx, TARGET_FPS) {
-            // FIXME: gérer ici la maj des physics, animate, meta etc
-            // meta: calculer par ex qui voit qui (soldat voit un ennemi: ajouter l'event a vu
+            // TODO: meta: calculer par ex qui voit qui (soldat voit un ennemi: ajouter l'event a vu
             // ennemi, dans animate il se mettra a tirer)
             let tick_sprite = self.frame_i % SPRITE_EACH == 0;
             let tick_animate = self.frame_i % ANIMATE_EACH == 0;
@@ -299,17 +291,32 @@ impl event::EventHandler for MainState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::BLACK);
 
+        let mut mesh_builder = MeshBuilder::new();
+
         for scene_item in self.scene_items.iter() {
             self.scene_items_sprite_batch.add(
                 scene_item
-                    .sprite_info()
                     .as_draw_param(scene_item.current_frame as f32)
-                    .dest(scene_item.position_with_tile_decal()),
+                    .dest(scene_item.position.clone()),
+            );
+            mesh_builder.circle(
+                DrawMode::fill(),
+                scene_item.position.clone(),
+                2.0,
+                2.0,
+                graphics::WHITE,
             );
         }
+
+        let mesh = mesh_builder.build(ctx)?;
         graphics::draw(
             ctx,
             &self.scene_items_sprite_batch,
+            graphics::DrawParam::new().dest(na::Point2::new(0.0, 0.0)),
+        )?;
+        graphics::draw(
+            ctx,
+            &mesh,
             graphics::DrawParam::new().dest(na::Point2::new(0.0, 0.0)),
         )?;
 
