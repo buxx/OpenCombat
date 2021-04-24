@@ -1,9 +1,10 @@
 use ggez;
-use ggez::event;
+use ggez::event::KeyCode;
 use ggez::graphics;
 use ggez::graphics::{DrawMode, MeshBuilder};
 use ggez::nalgebra as na;
 use ggez::timer::check_update_time;
+use ggez::{event, input};
 use ggez::{Context, GameResult};
 use glam::Vec2;
 use std::env;
@@ -17,7 +18,8 @@ const PHYSICS_EACH: u32 = 10; // execute physics code each 10 frames
 const ANIMATE_EACH: u32 = 60; // execute animate code each 30 frames
 const SPRITE_EACH: u32 = 10; // change sprite animation tile 30 frames
 const MAX_FRAME_I: u32 = 4294967295; // max of frame_i used to calculate ticks
-
+const DISPLAY_OFFSET_BY: f32 = 3.0;
+const DISPLAY_OFFSET_BY_SPEED: f32 = 10.0;
 const SPRITE_SHEET_WIDTH: f32 = 800.0;
 const SPRITE_SHEET_HEIGHT: f32 = 600.0;
 
@@ -145,6 +147,7 @@ struct MainState {
     map_batch: graphics::spritebatch::SpriteBatch,
     scene_items: Vec<SceneItem>,
     physics_events: Vec<PhysicEvent>,
+    display_offset: na::Point2<f32>,
 }
 
 impl MainState {
@@ -176,8 +179,31 @@ impl MainState {
             map_batch,
             scene_items,
             physics_events: vec![],
+            display_offset: na::Point2::new(0.0, 0.0),
         };
         Ok(s)
+    }
+
+    fn inputs(&mut self, ctx: &Context) {
+        let display_offset_by =
+            if input::keyboard::is_mod_active(ctx, input::keyboard::KeyMods::SHIFT) {
+                DISPLAY_OFFSET_BY_SPEED
+            } else {
+                DISPLAY_OFFSET_BY
+            };
+
+        if input::keyboard::is_key_pressed(ctx, KeyCode::Left) {
+            self.display_offset.x += display_offset_by;
+        }
+        if input::keyboard::is_key_pressed(ctx, KeyCode::Right) {
+            self.display_offset.x -= display_offset_by;
+        }
+        if input::keyboard::is_key_pressed(ctx, KeyCode::Up) {
+            self.display_offset.y += display_offset_by;
+        }
+        if input::keyboard::is_key_pressed(ctx, KeyCode::Down) {
+            self.display_offset.y -= display_offset_by;
+        }
     }
 
     // TODO: manage errors
@@ -247,11 +273,20 @@ impl MainState {
             scene_item.tick_sprite();
         }
     }
+
+    fn position_with_display_offset(&self, position: &na::Point2<f32>) -> na::Point2<f32> {
+        na::Point2::new(
+            position.x + self.display_offset.x,
+            position.y + self.display_offset.y,
+        )
+    }
 }
 
 impl event::EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while check_update_time(ctx, TARGET_FPS) {
+            self.inputs(ctx);
+
             // TODO: meta: calculer par ex qui voit qui (soldat voit un ennemi: ajouter l'event a vu
             // ennemi, dans animate il se mettra a tirer)
             let tick_sprite = self.frame_i % SPRITE_EACH == 0;
@@ -313,25 +348,28 @@ impl event::EventHandler for MainState {
         }
         self.map_batch.add(
             graphics::DrawParam::new()
-            .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
-            .dest(na::Point2::new(0.0, 0.0))
+                .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
+                .dest(na::Point2::new(0.0, 0.0)),
         );
 
         let mesh = mesh_builder.build(ctx)?;
         graphics::draw(
             ctx,
             &self.map_batch,
-            graphics::DrawParam::new().dest(na::Point2::new(0.0, 0.0)),
+            graphics::DrawParam::new()
+                .dest(self.position_with_display_offset(&na::Point2::new(0.0, 0.0))),
         )?;
         graphics::draw(
             ctx,
             &self.sprite_sheet_batch,
-            graphics::DrawParam::new().dest(na::Point2::new(0.0, 0.0)),
+            graphics::DrawParam::new()
+                .dest(self.position_with_display_offset(&na::Point2::new(0.0, 0.0))),
         )?;
         graphics::draw(
             ctx,
             &mesh,
-            graphics::DrawParam::new().dest(na::Point2::new(0.0, 0.0)),
+            graphics::DrawParam::new()
+                .dest(self.position_with_display_offset(&na::Point2::new(0.0, 0.0))),
         )?;
 
         self.sprite_sheet_batch.clear();
