@@ -373,6 +373,7 @@ impl event::EventHandler for MainState {
         )?;
 
         self.sprite_sheet_batch.clear();
+        self.map_batch.clear();
         graphics::present(ctx)?;
 
         println!("FPS: {}", ggez::timer::fps(ctx));
