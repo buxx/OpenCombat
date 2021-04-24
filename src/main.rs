@@ -141,15 +141,18 @@ enum MetaEvent {
 
 struct MainState {
     frame_i: u32,
-    scene_items_sprite_batch: graphics::spritebatch::SpriteBatch,
+    sprite_sheet_batch: graphics::spritebatch::SpriteBatch,
+    map_batch: graphics::spritebatch::SpriteBatch,
     scene_items: Vec<SceneItem>,
     physics_events: Vec<PhysicEvent>,
 }
 
 impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
-        let image = graphics::Image::new(ctx, "/sprite_sheet.png").unwrap();
-        let batch = graphics::spritebatch::SpriteBatch::new(image);
+        let sprite_sheet = graphics::Image::new(ctx, "/sprite_sheet.png").unwrap();
+        let sprite_sheet_batch = graphics::spritebatch::SpriteBatch::new(sprite_sheet);
+        let map = graphics::Image::new(ctx, "/map1bg.png").unwrap();
+        let map_batch = graphics::spritebatch::SpriteBatch::new(map);
 
         let mut scene_items = vec![];
         for x in 0..1 {
@@ -169,7 +172,8 @@ impl MainState {
 
         let s = MainState {
             frame_i: 0,
-            scene_items_sprite_batch: batch,
+            sprite_sheet_batch,
+            map_batch,
             scene_items,
             physics_events: vec![],
         };
@@ -294,7 +298,7 @@ impl event::EventHandler for MainState {
         let mut mesh_builder = MeshBuilder::new();
 
         for scene_item in self.scene_items.iter() {
-            self.scene_items_sprite_batch.add(
+            self.sprite_sheet_batch.add(
                 scene_item
                     .as_draw_param(scene_item.current_frame as f32)
                     .dest(scene_item.position.clone()),
@@ -307,11 +311,21 @@ impl event::EventHandler for MainState {
                 graphics::WHITE,
             );
         }
+        self.map_batch.add(
+            graphics::DrawParam::new()
+            .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
+            .dest(na::Point2::new(0.0, 0.0))
+        );
 
         let mesh = mesh_builder.build(ctx)?;
         graphics::draw(
             ctx,
-            &self.scene_items_sprite_batch,
+            &self.map_batch,
+            graphics::DrawParam::new().dest(na::Point2::new(0.0, 0.0)),
+        )?;
+        graphics::draw(
+            ctx,
+            &self.sprite_sheet_batch,
             graphics::DrawParam::new().dest(na::Point2::new(0.0, 0.0)),
         )?;
         graphics::draw(
@@ -320,7 +334,7 @@ impl event::EventHandler for MainState {
             graphics::DrawParam::new().dest(na::Point2::new(0.0, 0.0)),
         )?;
 
-        self.scene_items_sprite_batch.clear();
+        self.sprite_sheet_batch.clear();
         graphics::present(ctx)?;
 
         println!("FPS: {}", ggez::timer::fps(ctx));
