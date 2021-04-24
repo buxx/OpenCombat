@@ -2,7 +2,6 @@ use ggez;
 use ggez::event::KeyCode;
 use ggez::graphics;
 use ggez::graphics::{DrawMode, MeshBuilder};
-use ggez::nalgebra as na;
 use ggez::timer::check_update_time;
 use ggez::{event, input};
 use ggez::{Context, GameResult};
@@ -10,6 +9,7 @@ use glam::Vec2;
 use std::env;
 use std::path;
 
+type Point2 = Vec2;
 type Vector2 = Vec2;
 
 const TARGET_FPS: u32 = 60; // execute update code 60x per seconds
@@ -90,14 +90,14 @@ impl ItemState {
 }
 
 struct SceneItem {
-    position: na::Point2<f32>,
+    position: Point2,
     state: ItemState,
     meta_events: Vec<MetaEvent>,
     current_frame: u16,
 }
 
 impl SceneItem {
-    pub fn new(position: na::Point2<f32>, state: ItemState) -> Self {
+    pub fn new(position: Point2, state: ItemState) -> Self {
         let sprite_type = state.sprite_type();
         Self {
             position,
@@ -129,7 +129,7 @@ impl SceneItem {
                 sprite_info.relative_tile_height,
             ))
             .rotation(90.0f32.to_radians())
-            .offset(na::Point2::new(0.5, 0.5))
+            .offset(Point2::new(0.5, 0.5))
     }
 }
 
@@ -147,7 +147,7 @@ struct MainState {
     map_batch: graphics::spritebatch::SpriteBatch,
     scene_items: Vec<SceneItem>,
     physics_events: Vec<PhysicEvent>,
-    display_offset: na::Point2<f32>,
+    display_offset: Point2,
 }
 
 impl MainState {
@@ -167,7 +167,7 @@ impl MainState {
                 };
 
                 scene_items.push(SceneItem::new(
-                    na::Point2::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
+                    Point2::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
                     ItemState::new(current_behavior),
                 ));
             }
@@ -179,7 +179,7 @@ impl MainState {
             map_batch,
             scene_items,
             physics_events: vec![],
-            display_offset: na::Point2::new(0.0, 0.0),
+            display_offset: Point2::new(0.0, 0.0),
         };
         Ok(s)
     }
@@ -274,8 +274,8 @@ impl MainState {
         }
     }
 
-    fn position_with_display_offset(&self, position: &na::Point2<f32>) -> na::Point2<f32> {
-        na::Point2::new(
+    fn position_with_display_offset(&self, position: &Point2) -> Point2 {
+        Point2::new(
             position.x + self.display_offset.x,
             position.y + self.display_offset.y,
         )
@@ -344,12 +344,12 @@ impl event::EventHandler for MainState {
                 2.0,
                 2.0,
                 graphics::WHITE,
-            );
+            )?;
         }
         self.map_batch.add(
             graphics::DrawParam::new()
                 .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
-                .dest(na::Point2::new(0.0, 0.0)),
+                .dest(Point2::new(0.0, 0.0)),
         );
 
         let mesh = mesh_builder.build(ctx)?;
@@ -357,19 +357,19 @@ impl event::EventHandler for MainState {
             ctx,
             &self.map_batch,
             graphics::DrawParam::new()
-                .dest(self.position_with_display_offset(&na::Point2::new(0.0, 0.0))),
+                .dest(self.position_with_display_offset(&Point2::new(0.0, 0.0))),
         )?;
         graphics::draw(
             ctx,
             &self.sprite_sheet_batch,
             graphics::DrawParam::new()
-                .dest(self.position_with_display_offset(&na::Point2::new(0.0, 0.0))),
+                .dest(self.position_with_display_offset(&Point2::new(0.0, 0.0))),
         )?;
         graphics::draw(
             ctx,
             &mesh,
             graphics::DrawParam::new()
-                .dest(self.position_with_display_offset(&na::Point2::new(0.0, 0.0))),
+                .dest(self.position_with_display_offset(&Point2::new(0.0, 0.0))),
         )?;
 
         self.sprite_sheet_batch.clear();
@@ -393,8 +393,8 @@ pub fn main() -> GameResult {
     let cb = ggez::ContextBuilder::new("oc", "bux")
         .add_resource_path(resource_dir)
         .window_mode(ggez::conf::WindowMode::default().dimensions(800.0, 600.0));
-    let (ctx, event_loop) = &mut cb.build()?;
+    let (mut ctx, event_loop) = cb.build()?;
 
-    let state = &mut MainState::new(ctx)?;
+    let state = MainState::new(&mut ctx)?;
     event::run(ctx, event_loop, state)
 }
