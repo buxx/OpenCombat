@@ -1,11 +1,13 @@
 use ggez;
-use ggez::event::KeyCode;
+use ggez::event::{KeyCode, MouseButton};
 use ggez::graphics;
-use ggez::graphics::{DrawMode, MeshBuilder};
+use ggez::graphics::{Color, DrawMode, FillOptions, MeshBuilder, StrokeOptions};
 use ggez::timer::check_update_time;
 use ggez::{event, input};
 use ggez::{Context, GameResult};
 use glam::Vec2;
+use std::cmp;
+use std::collections::HashMap;
 use std::env;
 use std::path;
 
@@ -18,15 +20,38 @@ const PHYSICS_EACH: u32 = 10; // execute physics code each 10 frames
 const ANIMATE_EACH: u32 = 60; // execute animate code each 30 frames
 const SPRITE_EACH: u32 = 10; // change sprite animation tile 30 frames
 const MAX_FRAME_I: u32 = 4294967295; // max of frame_i used to calculate ticks
-const DISPLAY_OFFSET_BY: f32 = 3.0;
-const DISPLAY_OFFSET_BY_SPEED: f32 = 10.0;
-const SPRITE_SHEET_WIDTH: f32 = 800.0;
-const SPRITE_SHEET_HEIGHT: f32 = 600.0;
+const DISPLAY_OFFSET_BY: f32 = 3.0; // pixel offset by tick when player move screen display
+const DISPLAY_OFFSET_BY_SPEED: f32 = 10.0; // pixel offset by tick when player move screen display with speed
+const SPRITE_SHEET_WIDTH: f32 = 800.0; // Width of sprite sheet
+const SPRITE_SHEET_HEIGHT: f32 = 600.0; // Height of sprite sheet
+const GRID_TILE_WIDTH: f32 = 5.0; // Width of one grid tile
+const GRID_TILE_HEIGHT: f32 = 5.0; // Height of one grid tile
+const DEFAULT_SELECTED_SQUARE_SIDE: f32 = 14.0;
+const DEFAULT_SELECTED_SQUARE_SIDE_HALF: f32 = DEFAULT_SELECTED_SQUARE_SIDE / 2.0;
+
+#[derive(Eq, PartialEq, Hash)]
+pub struct GridPosition {
+    x: i32,
+    y: i32,
+}
+
+impl GridPosition {
+    pub fn new(x: i32, y: i32) -> Self {
+        Self { x, y }
+    }
+}
 
 fn vec_from_angle(angle: f32) -> Vector2 {
     let vx = angle.sin();
     let vy = angle.cos();
     Vector2::new(vx, vy)
+}
+
+fn grid_position_from_position(position: &Point2) -> GridPosition {
+    GridPosition::new(
+        (position.x / GRID_TILE_WIDTH) as i32,
+        (position.y / GRID_TILE_HEIGHT) as i32,
+    )
 }
 
 struct SpriteInfo {
@@ -36,6 +61,8 @@ struct SpriteInfo {
     tile_count: u16,
     tile_width: f32,
     tile_height: f32,
+    _half_tile_width: f32,
+    _half_tile_height: f32,
 }
 
 impl SpriteInfo {
@@ -54,6 +81,8 @@ impl SpriteInfo {
             tile_count,
             tile_width,
             tile_height,
+            _half_tile_width: tile_width / 2.0,
+            _half_tile_height: tile_height / 2.0,
         }
     }
 }
@@ -74,22 +103,18 @@ struct ItemState {
     current_behavior: ItemBehavior,
 }
 
+enum SceneItemType {
+    Soldier,
+}
+
 impl ItemState {
     pub fn new(current_behavior: ItemBehavior) -> Self {
         Self { current_behavior }
     }
-
-    pub fn sprite_type(&self) -> SpriteType {
-        // Here some logical about state and current behavior to determine sprite type
-        match self.current_behavior {
-            ItemBehavior::Crawling => SpriteType::CrawlingSoldier,
-            ItemBehavior::Walking(_) => SpriteType::WalkingSoldier,
-            ItemBehavior::Standing(_) => SpriteType::StandingSoldier,
-        }
-    }
 }
 
 struct SceneItem {
+    type_: SceneItemType,
     position: Point2,
     state: ItemState,
     meta_events: Vec<MetaEvent>,
@@ -97,9 +122,9 @@ struct SceneItem {
 }
 
 impl SceneItem {
-    pub fn new(position: Point2, state: ItemState) -> Self {
-        let sprite_type = state.sprite_type();
+    pub fn new(type_: SceneItemType, position: Point2, state: ItemState) -> Self {
         Self {
+            type_,
             position,
             state,
             meta_events: vec![],
@@ -108,7 +133,7 @@ impl SceneItem {
     }
 
     pub fn sprite_info(&self) -> SpriteInfo {
-        SpriteInfo::from_type(&self.state.sprite_type())
+        SpriteInfo::from_type(&self.sprite_type())
     }
 
     pub fn tick_sprite(&mut self) {
@@ -131,23 +156,55 @@ impl SceneItem {
             .rotation(90.0f32.to_radians())
             .offset(Point2::new(0.5, 0.5))
     }
+
+    pub fn sprite_type(&self) -> SpriteType {
+        // Here some logical about state, nature (soldier, tank, ...) and current behavior to
+        // determine sprite type
+        match self.state.current_behavior {
+            ItemBehavior::Crawling => SpriteType::CrawlingSoldier,
+            ItemBehavior::Walking(_) => SpriteType::WalkingSoldier,
+            ItemBehavior::Standing(_) => SpriteType::StandingSoldier,
+        }
+    }
 }
 
+#[derive(Debug)]
 enum PhysicEvent {
     Explosion,
 }
 
+#[derive(Debug)]
 enum MetaEvent {
     FearAboutExplosion,
 }
 
+#[derive(Debug)]
+enum UserEvent {
+    Click(Point2),                 // Window coordinates
+    AreaSelection(Point2, Point2), // Window coordinates
+}
+
 struct MainState {
+    // time
     frame_i: u32,
+
+    // display
+    display_offset: Point2,
     sprite_sheet_batch: graphics::spritebatch::SpriteBatch,
     map_batch: graphics::spritebatch::SpriteBatch,
+
+    // scene items
     scene_items: Vec<SceneItem>,
+    scene_items_by_grid_position: HashMap<GridPosition, Vec<usize>>,
+
+    // events
     physics_events: Vec<PhysicEvent>,
-    display_offset: Point2,
+
+    // user interactions
+    left_click_down: Option<Point2>,
+    current_cursor_position: Point2,
+    user_events: Vec<UserEvent>,
+    selected_scene_items: Vec<usize>,
 }
 
 impl MainState {
@@ -167,21 +224,37 @@ impl MainState {
                 };
 
                 scene_items.push(SceneItem::new(
+                    SceneItemType::Soldier,
                     Point2::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
                     ItemState::new(current_behavior),
                 ));
             }
         }
 
-        let s = MainState {
+        let mut main_state = MainState {
             frame_i: 0,
+            display_offset: Point2::new(0.0, 0.0),
             sprite_sheet_batch,
             map_batch,
             scene_items,
+            scene_items_by_grid_position: HashMap::new(),
             physics_events: vec![],
-            display_offset: Point2::new(0.0, 0.0),
+            left_click_down: None,
+            current_cursor_position: Point2::new(0.0, 0.0),
+            user_events: vec![],
+            selected_scene_items: vec![],
         };
-        Ok(s)
+
+        for (i, scene_item) in main_state.scene_items.iter().enumerate() {
+            let grid_position = grid_position_from_position(&scene_item.position);
+            main_state
+                .scene_items_by_grid_position
+                .entry(grid_position)
+                .or_default()
+                .push(i);
+        }
+
+        Ok(main_state)
     }
 
     fn inputs(&mut self, ctx: &Context) {
@@ -203,6 +276,34 @@ impl MainState {
         }
         if input::keyboard::is_key_pressed(ctx, KeyCode::Down) {
             self.display_offset.y -= display_offset_by;
+        }
+
+        while let Some(user_event) = self.user_events.pop() {
+            match user_event {
+                UserEvent::Click(position) => {
+                    let scene_position = Point2::new(
+                        position.x - self.display_offset.x,
+                        position.y - self.display_offset.y,
+                    );
+                    self.selected_scene_items.drain(..);
+                    if let Some(scene_item_usize) =
+                        self.get_first_scene_item_for_position(&scene_position)
+                    {
+                        self.selected_scene_items.push(scene_item_usize);
+                    }
+                }
+                UserEvent::AreaSelection(from, to) => {
+                    let scene_from = Point2::new(
+                        from.x - self.display_offset.x,
+                        from.y - self.display_offset.y,
+                    );
+                    let scene_to =
+                        Point2::new(to.x - self.display_offset.x, to.y - self.display_offset.y);
+                    self.selected_scene_items.drain(..);
+                    self.selected_scene_items
+                        .extend(self.get_scene_items_for_area(&scene_from, &scene_to));
+                }
+            }
         }
     }
 
@@ -280,6 +381,38 @@ impl MainState {
             position.y + self.display_offset.y,
         )
     }
+
+    fn get_first_scene_item_for_position(&self, position: &Point2) -> Option<usize> {
+        // TODO: if found multiple: select nearest
+        for (i, scene_item) in self.scene_items.iter().enumerate() {
+            let sprite_info = scene_item.sprite_info();
+            if scene_item.position.x >= position.x - sprite_info.tile_width
+                && scene_item.position.x <= position.x + sprite_info.tile_width
+                && scene_item.position.y >= position.y - sprite_info.tile_height
+                && scene_item.position.y <= position.y + sprite_info.tile_height
+            {
+                return Some(i);
+            }
+        }
+
+        None
+    }
+
+    fn get_scene_items_for_area(&self, from: &Point2, to: &Point2) -> Vec<usize> {
+        let mut selection = vec![];
+
+        for (i, scene_item) in self.scene_items.iter().enumerate() {
+            if scene_item.position.x >= from.x
+                && scene_item.position.x <= to.x
+                && scene_item.position.y >= from.y
+                && scene_item.position.y <= to.y
+            {
+                selection.push(i);
+            }
+        }
+
+        selection
+    }
 }
 
 impl event::EventHandler for MainState {
@@ -330,7 +463,7 @@ impl event::EventHandler for MainState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::BLACK);
 
-        let mut mesh_builder = MeshBuilder::new();
+        let mut scene_mesh_builder = MeshBuilder::new();
 
         for scene_item in self.scene_items.iter() {
             self.sprite_sheet_batch.add(
@@ -338,7 +471,7 @@ impl event::EventHandler for MainState {
                     .as_draw_param(scene_item.current_frame as f32)
                     .dest(scene_item.position.clone()),
             );
-            mesh_builder.circle(
+            scene_mesh_builder.circle(
                 DrawMode::fill(),
                 scene_item.position.clone(),
                 2.0,
@@ -346,13 +479,54 @@ impl event::EventHandler for MainState {
                 graphics::WHITE,
             )?;
         }
+
+        for i in &self.selected_scene_items {
+            let selected_scene_item = self
+                .scene_items
+                .get(*i)
+                .expect("scene_items content change !");
+            scene_mesh_builder.rectangle(
+                DrawMode::Stroke(StrokeOptions::default()),
+                graphics::Rect::new(
+                    selected_scene_item.position.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+                    selected_scene_item.position.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+                    DEFAULT_SELECTED_SQUARE_SIDE,
+                    DEFAULT_SELECTED_SQUARE_SIDE,
+                ),
+                graphics::GREEN,
+            )?;
+        }
+
+        if let Some(left_click_down) = self.left_click_down {
+            if left_click_down != self.current_cursor_position {
+                scene_mesh_builder.rectangle(
+                    DrawMode::fill(),
+                    graphics::Rect::new(
+                        left_click_down.x - self.display_offset.x,
+                        left_click_down.y - self.display_offset.y,
+                        self.current_cursor_position.x - left_click_down.x,
+                        self.current_cursor_position.y - left_click_down.y,
+                    ),
+                    graphics::GREEN,
+                )?;
+            }
+
+            scene_mesh_builder.circle(
+                DrawMode::fill(),
+                left_click_down,
+                2.0,
+                2.0,
+                graphics::YELLOW,
+            )?;
+        }
+
         self.map_batch.add(
             graphics::DrawParam::new()
                 .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
                 .dest(Point2::new(0.0, 0.0)),
         );
 
-        let mesh = mesh_builder.build(ctx)?;
+        let scene_mesh = scene_mesh_builder.build(ctx)?;
         graphics::draw(
             ctx,
             &self.map_batch,
@@ -367,7 +541,7 @@ impl event::EventHandler for MainState {
         )?;
         graphics::draw(
             ctx,
-            &mesh,
+            &scene_mesh,
             graphics::DrawParam::new()
                 .dest(self.position_with_display_offset(&Point2::new(0.0, 0.0))),
         )?;
@@ -378,6 +552,47 @@ impl event::EventHandler for MainState {
 
         println!("FPS: {}", ggez::timer::fps(ctx));
         Ok(())
+    }
+
+    fn mouse_button_down_event(&mut self, _ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
+        match button {
+            MouseButton::Left => {
+                self.left_click_down = Some(Point2::new(x, y));
+            }
+            MouseButton::Right => {}
+            MouseButton::Middle => {}
+            MouseButton::Other(_) => {}
+        }
+    }
+
+    fn mouse_button_up_event(&mut self, _ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
+        match button {
+            MouseButton::Left => {
+                if let Some(left_click_down) = self.left_click_down {
+                    if left_click_down == Point2::new(x, y) {
+                        self.user_events.push(UserEvent::Click(left_click_down));
+                    } else {
+                        let from = Point2::new(
+                            cmp::min(left_click_down.x as i32, x as i32) as f32,
+                            cmp::min(left_click_down.y as i32, y as i32) as f32,
+                        );
+                        let to = Point2::new(
+                            cmp::max(left_click_down.x as i32, x as i32) as f32,
+                            cmp::max(left_click_down.y as i32, y as i32) as f32,
+                        );
+                        self.user_events.push(UserEvent::AreaSelection(from, to));
+                    }
+                }
+                self.left_click_down = None;
+            }
+            MouseButton::Right => {}
+            MouseButton::Middle => {}
+            MouseButton::Other(_) => {}
+        }
+    }
+
+    fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
+        self.current_cursor_position = Point2::new(x, y);
     }
 }
 
