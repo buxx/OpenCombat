@@ -184,6 +184,7 @@ impl MainState {
                         .extend(self.get_scene_items_for_area(&scene_from, &scene_to));
                 }
                 UserEvent::RightClick(position) => {
+                    // FIXME BS NOW: il y a des probleme de position avec le offset !
                     if let Some(scene_item_usize) =
                         self.get_first_scene_item_for_position(&position)
                     {
