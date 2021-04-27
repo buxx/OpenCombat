@@ -1,31 +1,15 @@
-use std::cmp;
-use std::collections::HashMap;
 use std::env;
 use std::path;
 
-use ggez;
-use ggez::{event, input};
-use ggez::{Context, GameResult};
-use ggez::event::{KeyCode, MouseButton};
-use ggez::graphics;
-use ggez::graphics::{Color, DrawMode, FillOptions, MeshBuilder, StrokeOptions};
-use ggez::timer::check_update_time;
+use scene::main::MainState;
+
+use ggez::{event, GameResult};
 use glam::Vec2;
 
-use behavior::ItemBehavior;
-use physics::{MetaEvent, PhysicEvent, util};
-use scene::item::{ItemState, SceneItem, SceneItemSpriteInfo, SceneItemType};
-use scene::main::MainState;
-use scene::SpriteType;
-use ui::{SceneItemPrepareOrder, UiItem, UiSpriteInfo, UserEvent};
-use ui::scene_item_menu::SceneItemMenuItem;
-
-use crate::physics::position::GridPosition;
-
-mod physics;
-mod ui;
-mod scene;
 mod behavior;
+mod physics;
+mod scene;
+mod ui;
 
 // TODO: create a ScenePosition and a WindowPosition to be more explicit
 type Point2 = Vec2;

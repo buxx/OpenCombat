@@ -1,10 +1,10 @@
 use ggez::graphics;
 
-use crate::{Point2, SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH};
 use crate::behavior::ItemBehavior;
-use crate::physics::{MetaEvent, util};
 use crate::physics::position::GridPosition;
+use crate::physics::{util, MetaEvent};
 use crate::scene::SpriteType;
+use crate::{Point2, SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH};
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,

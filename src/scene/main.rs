@@ -1,18 +1,22 @@
 use std::cmp;
 use std::collections::HashMap;
 
-use ggez::{Context, event, GameResult, graphics, input};
 use ggez::event::MouseButton;
 use ggez::graphics::{DrawMode, MeshBuilder, StrokeOptions};
 use ggez::timer::check_update_time;
+use ggez::{event, graphics, input, Context, GameResult};
 
-use crate::{ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF, DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, PHYSICS_EACH, Point2, SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS};
 use crate::behavior::ItemBehavior;
-use crate::physics::{MetaEvent, PhysicEvent, util};
 use crate::physics::position::GridPosition;
+use crate::physics::{util, MetaEvent, PhysicEvent};
 use crate::scene::item::{ItemState, SceneItem, SceneItemType};
-use crate::ui::{SceneItemPrepareOrder, UiItem, UiSpriteInfo, UserEvent};
 use crate::ui::scene_item_menu::SceneItemMenuItem;
+use crate::ui::{SceneItemPrepareOrder, UiItem, UiSpriteInfo, UserEvent};
+use crate::{
+    Point2, ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, PHYSICS_EACH,
+    SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
+};
 use ggez::input::keyboard::KeyCode;
 
 pub struct MainState {
