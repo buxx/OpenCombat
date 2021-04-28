@@ -1,5 +1,5 @@
 [package]
-name = "ggez_tests"
+name = "open_combat"
 version = "0.1.0"
 authors = ["Sevajol Bastien <contact@bux.fr>"]
 edition = "2018"

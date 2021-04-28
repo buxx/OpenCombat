@@ -1,10 +1,12 @@
 use ggez::graphics;
 
 use crate::behavior::ItemBehavior;
-use crate::physics::position::GridPosition;
+use crate::physics::GridPosition;
 use crate::physics::{util, MetaEvent};
 use crate::scene::SpriteType;
-use crate::{Point2, SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH};
+use crate::{
+    Offset, Point2, ScenePoint, SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH,
+};
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,
@@ -55,7 +57,7 @@ pub enum SceneItemType {
 
 pub struct SceneItem {
     pub type_: SceneItemType,
-    pub position: Point2,
+    pub position: ScenePoint,
     pub grid_position: GridPosition,
     pub state: ItemState,
     pub meta_events: Vec<MetaEvent>,
@@ -63,11 +65,11 @@ pub struct SceneItem {
 }
 
 impl SceneItem {
-    pub fn new(type_: SceneItemType, position: Point2, state: ItemState) -> Self {
+    pub fn new(type_: SceneItemType, position: ScenePoint, state: ItemState) -> Self {
         Self {
             type_,
             position: position.clone(),
-            grid_position: util::grid_position_from_position(&position.clone()),
+            grid_position: util::grid_position_from_scene_point(&position.clone()),
             state,
             meta_events: vec![],
             current_frame: 0,
@@ -96,7 +98,7 @@ impl SceneItem {
                 sprite_info.relative_tile_height,
             ))
             .rotation(90.0f32.to_radians())
-            .offset(Point2::new(0.5, 0.5))
+            .offset(Offset::new(0.5, 0.5))
     }
 
     pub fn sprite_type(&self) -> SpriteType {

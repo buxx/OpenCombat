@@ -808,14 +808,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ggez_tests"
-version = "0.1.0"
-dependencies = [
- "ggez",
- "glam",
-]
-
-[[package]]
 name = "gif"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1695,6 +1687,14 @@ name = "once_cell"
 version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af8b08b04175473088b46763e51ee54da5f9a164bc162f615b91bc179dbf15a3"
+
+[[package]]
+name = "open_combat"
+version = "0.1.0"
+dependencies = [
+ "ggez",
+ "glam",
+]
 
 [[package]]
 name = "ordered-float"

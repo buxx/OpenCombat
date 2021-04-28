@@ -2,7 +2,7 @@ use ggez::graphics;
 
 use crate::scene::item::SceneItem;
 use crate::ui::scene_item_menu::SceneItemMenuItem;
-use crate::{Point2, UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
+use crate::{Point2, WindowPoint, UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
 
 pub mod scene_item_menu;
 
@@ -44,8 +44,8 @@ impl UiSpriteInfo {
 
     pub fn which_item_clicked(
         &self,
-        menu_position: Point2,
-        click_position: Point2,
+        window_menu_point: WindowPoint,
+        window_click_point: WindowPoint,
         scene_item: &SceneItem,
     ) -> Option<SceneItemMenuItem> {
         Some(SceneItemMenuItem::Move)
@@ -54,9 +54,9 @@ impl UiSpriteInfo {
 
 #[derive(Debug)]
 pub enum UserEvent {
-    Click(Point2),                 // Window coordinates
-    RightClick(Point2),            // Window coordinates
-    AreaSelection(Point2, Point2), // Window coordinates
+    Click(WindowPoint),                      // Window coordinates
+    RightClick(WindowPoint),                 // Window coordinates
+    AreaSelection(WindowPoint, WindowPoint), // Window coordinates
 }
 
 pub enum SceneItemPrepareOrder {

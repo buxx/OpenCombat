@@ -11,8 +11,10 @@ mod physics;
 mod scene;
 mod ui;
 
-// TODO: create a ScenePosition and a WindowPosition to be more explicit
 type Point2 = Vec2;
+type WindowPoint = Vec2;
+type Offset = Vec2;
+type ScenePoint = Vec2;
 type Vector2 = Vec2;
 
 const TARGET_FPS: u32 = 60; // execute update code 60x per seconds

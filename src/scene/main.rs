@@ -7,15 +7,17 @@ use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
 
 use crate::behavior::ItemBehavior;
-use crate::physics::position::GridPosition;
+use crate::physics::util::scene_point_from_window_point;
+use crate::physics::util::window_point_from_scene_point;
+use crate::physics::GridPosition;
 use crate::physics::{util, MetaEvent, PhysicEvent};
 use crate::scene::item::{ItemState, SceneItem, SceneItemType};
 use crate::ui::scene_item_menu::SceneItemMenuItem;
 use crate::ui::{SceneItemPrepareOrder, UiItem, UiSpriteInfo, UserEvent};
 use crate::{
-    Point2, ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, PHYSICS_EACH,
-    SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
+    Offset, ScenePoint, WindowPoint, ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE,
+    DEFAULT_SELECTED_SQUARE_SIDE_HALF, DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I,
+    META_EACH, PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
 };
 use ggez::input::keyboard::KeyCode;
 
@@ -24,7 +26,7 @@ pub struct MainState {
     frame_i: u32,
 
     // display
-    display_offset: Point2,
+    display_offset: Offset,
     sprite_sheet_batch: graphics::spritebatch::SpriteBatch,
     map_batch: graphics::spritebatch::SpriteBatch,
     ui_batch: graphics::spritebatch::SpriteBatch,
@@ -37,12 +39,12 @@ pub struct MainState {
     physics_events: Vec<PhysicEvent>,
 
     // user interactions
-    left_click_down: Option<Point2>,
-    right_click_down: Option<Point2>,
-    current_cursor_position: Point2,
+    left_click_down: Option<WindowPoint>,
+    right_click_down: Option<WindowPoint>,
+    current_cursor_position: WindowPoint,
     user_events: Vec<UserEvent>,
-    selected_scene_items: Vec<usize>,         // scene_item usize
-    scene_item_menu: Option<(usize, Point2)>, // scene_item usize, display_at
+    selected_scene_items: Vec<usize>,             // scene_item usize
+    scene_item_menu: Option<(usize, ScenePoint)>, // scene_item usize, display_at
     scene_item_prepare_order: Option<SceneItemPrepareOrder>,
 }
 
@@ -66,7 +68,7 @@ impl MainState {
 
                 scene_items.push(SceneItem::new(
                     SceneItemType::Soldier,
-                    Point2::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
+                    ScenePoint::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
                     ItemState::new(current_behavior),
                 ));
             }
@@ -74,7 +76,7 @@ impl MainState {
 
         let mut main_state = MainState {
             frame_i: 0,
-            display_offset: Point2::new(0.0, 0.0),
+            display_offset: Offset::new(0.0, 0.0),
             sprite_sheet_batch,
             map_batch,
             ui_batch,
@@ -83,7 +85,7 @@ impl MainState {
             physics_events: vec![],
             left_click_down: None,
             right_click_down: None,
-            current_cursor_position: Point2::new(0.0, 0.0),
+            current_cursor_position: WindowPoint::new(0.0, 0.0),
             user_events: vec![],
             selected_scene_items: vec![],
             scene_item_menu: None,
@@ -91,7 +93,7 @@ impl MainState {
         };
 
         for (i, scene_item) in main_state.scene_items.iter().enumerate() {
-            let grid_position = util::grid_position_from_position(&scene_item.position);
+            let grid_position = util::grid_position_from_scene_point(&scene_item.position);
             main_state
                 .scene_items_by_grid_position
                 .entry(grid_position)
@@ -125,14 +127,12 @@ impl MainState {
 
         while let Some(user_event) = self.user_events.pop() {
             match user_event {
-                UserEvent::Click(click_position) => {
-                    let scene_position = Point2::new(
-                        click_position.x - self.display_offset.x,
-                        click_position.y - self.display_offset.y,
-                    );
+                UserEvent::Click(window_click_point) => {
+                    let scene_position =
+                        scene_point_from_window_point(&window_click_point, &self.display_offset);
                     self.selected_scene_items.drain(..);
                     if let Some(scene_item_usize) =
-                        self.get_first_scene_item_for_position(&scene_position)
+                        self.get_first_scene_item_for_scene_point(&scene_position)
                     {
                         self.selected_scene_items.push(scene_item_usize);
                     }
@@ -143,20 +143,22 @@ impl MainState {
                     }
 
                     // FIXME BS NOW: interpreter sur quel element du menu on a click ...
-                    if let Some((scene_item_usize, menu_position)) = self.scene_item_menu {
+                    if let Some((scene_item_usize, scene_menu_point)) = self.scene_item_menu {
+                        let window_menu_point =
+                            window_point_from_scene_point(&scene_menu_point, &self.display_offset);
                         let menu_sprite_info = UiSpriteInfo::from_type(UiItem::SceneItemMenu);
                         let scene_item = self
                             .scene_items
                             .get(scene_item_usize)
                             .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
-                        if click_position.x >= menu_position.x
-                            && click_position.x <= menu_position.x + menu_sprite_info.width
-                            && click_position.y >= menu_position.y
-                            && click_position.y <= menu_position.y + menu_sprite_info.height
+                        if window_click_point.x >= window_menu_point.x
+                            && window_click_point.x <= window_menu_point.x + menu_sprite_info.width
+                            && window_click_point.y >= window_menu_point.y
+                            && window_click_point.y <= window_menu_point.y + menu_sprite_info.height
                         {
                             if let Some(menu_item) = menu_sprite_info.which_item_clicked(
-                                menu_position,
-                                click_position,
+                                window_menu_point,
+                                window_click_point,
                                 scene_item,
                             ) {
                                 match menu_item {
@@ -172,29 +174,26 @@ impl MainState {
                         }
                     };
                 }
-                UserEvent::AreaSelection(from, to) => {
-                    let scene_from = Point2::new(
-                        from.x - self.display_offset.x,
-                        from.y - self.display_offset.y,
-                    );
-                    let scene_to =
-                        Point2::new(to.x - self.display_offset.x, to.y - self.display_offset.y);
+                UserEvent::AreaSelection(window_from, window_to) => {
+                    let scene_from =
+                        scene_point_from_window_point(&window_from, &self.display_offset);
+                    let scene_to = scene_point_from_window_point(&window_to, &self.display_offset);
                     self.selected_scene_items.drain(..);
                     self.selected_scene_items
-                        .extend(self.get_scene_items_for_area(&scene_from, &scene_to));
+                        .extend(self.get_scene_items_for_scene_area(&scene_from, &scene_to));
                 }
-                UserEvent::RightClick(position) => {
-                    // FIXME BS NOW: il y a des probleme de position avec le offset !
+                UserEvent::RightClick(window_position) => {
+                    let scene_point =
+                        scene_point_from_window_point(&window_position, &self.display_offset);
                     if let Some(scene_item_usize) =
-                        self.get_first_scene_item_for_position(&position)
+                        self.get_first_scene_item_for_scene_point(&scene_point)
                     {
                         if self.selected_scene_items.contains(&scene_item_usize) {
                             let scene_item = self
                                 .scene_items
                                 .get(scene_item_usize)
                                 .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
-                            self.scene_item_menu =
-                                Some((scene_item_usize, scene_item.position.clone()))
+                            self.scene_item_menu = Some((scene_item_usize, scene_item.position))
                         }
                     }
                 }
@@ -211,7 +210,7 @@ impl MainState {
                     // TODO ici il faut calculer le déplacement réél (en fonction des ticks, etc ...)
                     scene_item.position.x += 1.0;
                     scene_item.grid_position =
-                        util::grid_position_from_position(&scene_item.position);
+                        util::grid_position_from_scene_point(&scene_item.position);
                 }
                 _ => {}
             }
@@ -273,21 +272,14 @@ impl MainState {
         }
     }
 
-    fn position_with_display_offset(&self, position: &Point2) -> Point2 {
-        Point2::new(
-            position.x + self.display_offset.x,
-            position.y + self.display_offset.y,
-        )
-    }
-
-    fn get_first_scene_item_for_position(&self, position: &Point2) -> Option<usize> {
+    fn get_first_scene_item_for_scene_point(&self, scene_position: &ScenePoint) -> Option<usize> {
         // TODO: if found multiple: select nearest
         for (i, scene_item) in self.scene_items.iter().enumerate() {
             let sprite_info = scene_item.sprite_info();
-            if scene_item.position.x >= position.x - sprite_info.tile_width
-                && scene_item.position.x <= position.x + sprite_info.tile_width
-                && scene_item.position.y >= position.y - sprite_info.tile_height
-                && scene_item.position.y <= position.y + sprite_info.tile_height
+            if scene_item.position.x >= scene_position.x - sprite_info.tile_width
+                && scene_item.position.x <= scene_position.x + sprite_info.tile_width
+                && scene_item.position.y >= scene_position.y - sprite_info.tile_height
+                && scene_item.position.y <= scene_position.y + sprite_info.tile_height
             {
                 return Some(i);
             }
@@ -296,7 +288,7 @@ impl MainState {
         None
     }
 
-    fn get_scene_items_for_area(&self, from: &Point2, to: &Point2) -> Vec<usize> {
+    fn get_scene_items_for_scene_area(&self, from: &ScenePoint, to: &ScenePoint) -> Vec<usize> {
         let mut selection = vec![];
 
         for (i, scene_item) in self.scene_items.iter().enumerate() {
@@ -408,18 +400,26 @@ impl event::EventHandler for MainState {
 
             scene_mesh_builder.circle(
                 DrawMode::fill(),
-                left_click_down,
+                window_point_from_scene_point(&left_click_down, &self.display_offset),
                 2.0,
                 2.0,
                 graphics::YELLOW,
             )?;
         }
 
-        if let Some((_, position)) = self.scene_item_menu {
+        scene_mesh_builder.circle(
+            DrawMode::fill(),
+            scene_point_from_window_point(&self.current_cursor_position, &self.display_offset),
+            2.0,
+            2.0,
+            graphics::BLUE,
+        )?;
+
+        if let Some((_, scene_point)) = self.scene_item_menu {
             self.ui_batch.add(
                 UiSpriteInfo::from_type(UiItem::SceneItemMenu)
                     .as_draw_param()
-                    .dest(position),
+                    .dest(scene_point),
             );
         }
 
@@ -431,7 +431,13 @@ impl event::EventHandler for MainState {
                         .get(*scene_item_usize)
                         .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
                     scene_mesh_builder.line(
-                        &vec![scene_item.position.clone(), self.current_cursor_position],
+                        &vec![
+                            scene_item.position.clone(),
+                            scene_point_from_window_point(
+                                &self.current_cursor_position,
+                                &self.display_offset,
+                            ),
+                        ],
                         2.0,
                         graphics::WHITE,
                     )?;
@@ -442,33 +448,41 @@ impl event::EventHandler for MainState {
         self.map_batch.add(
             graphics::DrawParam::new()
                 .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
-                .dest(Point2::new(0.0, 0.0)),
+                .dest(ScenePoint::new(0.0, 0.0)),
         );
 
         let scene_mesh = scene_mesh_builder.build(ctx)?;
         graphics::draw(
             ctx,
             &self.map_batch,
-            graphics::DrawParam::new()
-                .dest(self.position_with_display_offset(&Point2::new(0.0, 0.0))),
+            graphics::DrawParam::new().dest(window_point_from_scene_point(
+                &ScenePoint::new(0.0, 0.0),
+                &self.display_offset,
+            )),
         )?;
         graphics::draw(
             ctx,
             &self.sprite_sheet_batch,
-            graphics::DrawParam::new()
-                .dest(self.position_with_display_offset(&Point2::new(0.0, 0.0))),
+            graphics::DrawParam::new().dest(window_point_from_scene_point(
+                &ScenePoint::new(0.0, 0.0),
+                &self.display_offset,
+            )),
         )?;
         graphics::draw(
             ctx,
             &scene_mesh,
-            graphics::DrawParam::new()
-                .dest(self.position_with_display_offset(&Point2::new(0.0, 0.0))),
+            graphics::DrawParam::new().dest(window_point_from_scene_point(
+                &ScenePoint::new(0.0, 0.0),
+                &self.display_offset,
+            )),
         )?;
         graphics::draw(
             ctx,
             &self.ui_batch,
-            graphics::DrawParam::new()
-                .dest(self.position_with_display_offset(&Point2::new(0.0, 0.0))),
+            graphics::DrawParam::new().dest(window_point_from_scene_point(
+                &ScenePoint::new(0.0, 0.0),
+                &self.display_offset,
+            )),
         )?;
 
         self.sprite_sheet_batch.clear();
@@ -483,10 +497,10 @@ impl event::EventHandler for MainState {
     fn mouse_button_down_event(&mut self, _ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
         match button {
             MouseButton::Left => {
-                self.left_click_down = Some(Point2::new(x, y));
+                self.left_click_down = Some(WindowPoint::new(x, y));
             }
             MouseButton::Right => {
-                self.right_click_down = Some(Point2::new(x, y));
+                self.right_click_down = Some(WindowPoint::new(x, y));
             }
             MouseButton::Middle => {}
             MouseButton::Other(_) => {}
@@ -497,14 +511,14 @@ impl event::EventHandler for MainState {
         match button {
             MouseButton::Left => {
                 if let Some(left_click_down) = self.left_click_down {
-                    if left_click_down == Point2::new(x, y) {
+                    if left_click_down == WindowPoint::new(x, y) {
                         self.user_events.push(UserEvent::Click(left_click_down));
                     } else {
-                        let from = Point2::new(
+                        let from = WindowPoint::new(
                             cmp::min(left_click_down.x as i32, x as i32) as f32,
                             cmp::min(left_click_down.y as i32, y as i32) as f32,
                         );
-                        let to = Point2::new(
+                        let to = WindowPoint::new(
                             cmp::max(left_click_down.x as i32, x as i32) as f32,
                             cmp::max(left_click_down.y as i32, y as i32) as f32,
                         );
@@ -525,6 +539,6 @@ impl event::EventHandler for MainState {
     }
 
     fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
-        self.current_cursor_position = Point2::new(x, y);
+        self.current_cursor_position = WindowPoint::new(x, y);
     }
 }
