@@ -127,85 +127,90 @@ impl MainState {
 
         while let Some(user_event) = self.user_events.pop() {
             match user_event {
-                UserEvent::Click(window_click_point) => {
-                    let scene_position =
-                        scene_point_from_window_point(&window_click_point, &self.display_offset);
-                    self.selected_scene_items.drain(..);
-                    if let Some(scene_item_usize) =
-                        self.get_first_scene_item_for_scene_point(&scene_position)
-                    {
-                        self.selected_scene_items.push(scene_item_usize);
-                    }
-
-                    if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
-                        // TODO: Add order to scene_item
-                        self.scene_item_prepare_order = None;
-                    }
-
-                    // FIXME BS NOW: interpreter sur quel element du menu on a click ...
-                    if let Some((scene_item_usize, scene_menu_point)) = self.scene_item_menu {
-                        let window_menu_point =
-                            window_point_from_scene_point(&scene_menu_point, &self.display_offset);
-                        let menu_sprite_info = UiSpriteInfo::from_type(UiItem::SceneItemMenu);
-                        let scene_item = self
-                            .scene_items
-                            .get(scene_item_usize)
-                            .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
-                        if window_click_point.x >= window_menu_point.x
-                            && window_click_point.x <= window_menu_point.x + menu_sprite_info.width
-                            && window_click_point.y >= window_menu_point.y
-                            && window_click_point.y <= window_menu_point.y + menu_sprite_info.height
-                        {
-                            if let Some(menu_item) = menu_sprite_info.which_item_clicked(
-                                window_menu_point,
-                                window_click_point,
-                                scene_item,
-                            ) {
-                                match menu_item {
-                                    SceneItemMenuItem::Move => {
-                                        self.scene_item_prepare_order =
-                                            Some(SceneItemPrepareOrder::Move(scene_item_usize));
-                                        self.scene_item_menu = None;
-                                    }
-                                }
-                            }
-                        } else {
-                            self.scene_item_menu = None;
-                        }
-                    };
-                }
+                UserEvent::Click(window_click_point) => self.digest_click(window_click_point),
                 UserEvent::AreaSelection(window_from, window_to) => {
-                    let scene_from =
-                        scene_point_from_window_point(&window_from, &self.display_offset);
-                    let scene_to = scene_point_from_window_point(&window_to, &self.display_offset);
-                    self.selected_scene_items.drain(..);
-                    self.selected_scene_items
-                        .extend(self.get_scene_items_for_scene_area(&scene_from, &scene_to));
+                    self.digest_area_selection(window_from, window_to)
                 }
                 UserEvent::RightClick(window_right_click_point) => {
-                    let scene_right_click_point = scene_point_from_window_point(
-                        &window_right_click_point,
-                        &self.display_offset,
-                    );
-
-                    // TODO: aucune selection et right click sur un item: scene_item_menu sur un item
-                    // TODO: selection et right click sur un item de la selection: scene_item_menu sur un TOUS les item de la selection
-                    // TODO: selection et right click sur un item PAS dans la selection: scene_item_menu sur un item
-
-                    if let Some(scene_item_usize) =
-                        self.get_first_scene_item_for_scene_point(&scene_right_click_point)
-                    {
-                        if self.selected_scene_items.contains(&scene_item_usize) {
-                            let scene_item = self
-                                .scene_items
-                                .get(scene_item_usize)
-                                .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
-                            self.scene_item_menu = Some((scene_item_usize, scene_item.position))
-                        }
-                    }
+                    self.digest_right_click(window_right_click_point)
                 }
             }
         }
+    }
+
+    fn digest_click(&mut self, window_click_point: WindowPoint) {
+        let scene_position =
+            scene_point_from_window_point(&window_click_point, &self.display_offset);
+        self.selected_scene_items.drain(..);
+        if let Some(scene_item_usize) = self.get_first_scene_item_for_scene_point(&scene_position) {
+            self.selected_scene_items.push(scene_item_usize);
+        }
+
+        if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
+            // TODO: Add order to scene_item
+            self.scene_item_prepare_order = None;
+        }
+
+        // FIXME BS NOW: interpreter sur quel element du menu on a click ...
+        if let Some((scene_item_usize, scene_menu_point)) = self.scene_item_menu {
+            let window_menu_point =
+                window_point_from_scene_point(&scene_menu_point, &self.display_offset);
+            let menu_sprite_info = UiSpriteInfo::from_type(UiItem::SceneItemMenu);
+            let scene_item = self
+                .scene_items
+                .get(scene_item_usize)
+                .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
+            if window_click_point.x >= window_menu_point.x
+                && window_click_point.x <= window_menu_point.x + menu_sprite_info.width
+                && window_click_point.y >= window_menu_point.y
+                && window_click_point.y <= window_menu_point.y + menu_sprite_info.height
+            {
+                if let Some(menu_item) = menu_sprite_info.which_item_clicked(
+                    window_menu_point,
+                    window_click_point,
+                    scene_item,
+                ) {
+                    match menu_item {
+                        SceneItemMenuItem::Move => {
+                            self.scene_item_prepare_order =
+                                Some(SceneItemPrepareOrder::Move(scene_item_usize));
+                            self.scene_item_menu = None;
+                        }
+                    }
+                }
+            } else {
+                self.scene_item_menu = None;
+            }
+        };
+    }
+
+    fn digest_right_click(&mut self, window_right_click_point: WindowPoint) {
+        let scene_right_click_point =
+            scene_point_from_window_point(&window_right_click_point, &self.display_offset);
+
+        // TODO: aucune selection et right click sur un item: scene_item_menu sur un item
+        // TODO: selection et right click sur un item de la selection: scene_item_menu sur un TOUS les item de la selection
+        // TODO: selection et right click sur un item PAS dans la selection: scene_item_menu sur un item
+
+        if let Some(scene_item_usize) =
+            self.get_first_scene_item_for_scene_point(&scene_right_click_point)
+        {
+            if self.selected_scene_items.contains(&scene_item_usize) {
+                let scene_item = self
+                    .scene_items
+                    .get(scene_item_usize)
+                    .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
+                self.scene_item_menu = Some((scene_item_usize, scene_item.position))
+            }
+        }
+    }
+
+    fn digest_area_selection(&mut self, window_from: WindowPoint, window_to: WindowPoint) {
+        let scene_from = scene_point_from_window_point(&window_from, &self.display_offset);
+        let scene_to = scene_point_from_window_point(&window_to, &self.display_offset);
+        self.selected_scene_items.drain(..);
+        self.selected_scene_items
+            .extend(self.get_scene_items_for_scene_area(&scene_from, &scene_to));
     }
 
     // TODO: manage errors
