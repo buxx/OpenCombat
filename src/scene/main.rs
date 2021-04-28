@@ -317,31 +317,78 @@ impl MainState {
         selection
     }
 
-    fn build_scene_items_draw_params(&self) -> Vec<graphics::DrawParam> {
-        let mut draw_params = vec![];
-
+    fn generate_scene_item_sprites(&mut self) -> GameResult {
         for scene_item in self.scene_items.iter() {
-            draw_params.push(
+            self.sprite_sheet_batch.add(
                 scene_item
                     .as_draw_param(scene_item.current_frame as f32)
                     .dest(scene_item.position.clone()),
-            )
+            );
         }
 
-        draw_params
+        Ok(())
     }
 
-    fn update_mesh_builder_with_scene_items_positions(
+    fn generate_scene_item_menu_sprites(&mut self) -> GameResult {
+        if let Some((_, scene_point)) = self.scene_item_menu {
+            self.ui_batch.add(
+                UiSpriteInfo::from_type(UiItem::SceneItemMenu)
+                    .as_draw_param()
+                    .dest(scene_point),
+            );
+        }
+
+        Ok(())
+    }
+
+    fn generate_map_sprites(&mut self) -> GameResult {
+        self.map_batch.add(
+            graphics::DrawParam::new()
+                .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
+                .dest(ScenePoint::new(0.0, 0.0)),
+        );
+
+        Ok(())
+    }
+
+    fn update_mesh_builder_with_debug(
         &self,
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
-        for scene_item in self.scene_items.iter() {
+        if DEBUG {
+            // Draw circle on each scene item position
+            for scene_item in self.scene_items.iter() {
+                mesh_builder.circle(
+                    DrawMode::fill(),
+                    scene_item.position.clone(),
+                    2.0,
+                    2.0,
+                    graphics::WHITE,
+                )?;
+            }
+
+            // Draw circle where left click down
+            if let Some(window_left_click_down_point) = self.left_click_down {
+                let scene_left_click_down_point = scene_point_from_window_point(
+                    &window_left_click_down_point,
+                    &self.display_offset,
+                );
+                mesh_builder.circle(
+                    DrawMode::fill(),
+                    scene_left_click_down_point,
+                    2.0,
+                    2.0,
+                    graphics::YELLOW,
+                )?;
+            }
+
+            // Draw circle at cursor position
             mesh_builder.circle(
                 DrawMode::fill(),
-                scene_item.position.clone(),
+                scene_point_from_window_point(&self.current_cursor_position, &self.display_offset),
                 2.0,
                 2.0,
-                graphics::WHITE,
+                graphics::BLUE,
             )?;
         }
 
@@ -372,23 +419,53 @@ impl MainState {
     fn update_mesh_builder_with_selection_area(
         &self,
         mut mesh_builder: MeshBuilder,
-        window_left_click_down_point: WindowPoint,
     ) -> GameResult<MeshBuilder> {
-        let scene_left_click_down_point =
-            scene_point_from_window_point(&window_left_click_down_point, &self.display_offset);
-        let scene_current_cursor_position =
-            scene_point_from_window_point(&self.current_cursor_position, &self.display_offset);
-        if scene_left_click_down_point != scene_current_cursor_position {
-            mesh_builder.rectangle(
-                DrawMode::stroke(1.0),
-                graphics::Rect::new(
-                    scene_left_click_down_point.x,
-                    scene_left_click_down_point.y,
-                    scene_current_cursor_position.x - scene_left_click_down_point.x,
-                    scene_current_cursor_position.y - scene_left_click_down_point.y,
-                ),
-                graphics::GREEN,
-            )?;
+        if let Some(window_left_click_down_point) = self.left_click_down {
+            let scene_left_click_down_point =
+                scene_point_from_window_point(&window_left_click_down_point, &self.display_offset);
+            let scene_current_cursor_position =
+                scene_point_from_window_point(&self.current_cursor_position, &self.display_offset);
+            if scene_left_click_down_point != scene_current_cursor_position {
+                mesh_builder.rectangle(
+                    DrawMode::stroke(1.0),
+                    graphics::Rect::new(
+                        scene_left_click_down_point.x,
+                        scene_left_click_down_point.y,
+                        scene_current_cursor_position.x - scene_left_click_down_point.x,
+                        scene_current_cursor_position.y - scene_left_click_down_point.y,
+                    ),
+                    graphics::GREEN,
+                )?;
+            }
+        }
+
+        GameResult::Ok(mesh_builder)
+    }
+
+    fn update_mesh_builder_with_prepare_order(
+        &self,
+        mut mesh_builder: MeshBuilder,
+    ) -> GameResult<MeshBuilder> {
+        if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
+            match scene_item_prepare_order {
+                SceneItemPrepareOrder::Move(scene_item_usize) => {
+                    let scene_item = self
+                        .scene_items
+                        .get(*scene_item_usize)
+                        .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
+                    mesh_builder.line(
+                        &vec![
+                            scene_item.position.clone(),
+                            scene_point_from_window_point(
+                                &self.current_cursor_position,
+                                &self.display_offset,
+                            ),
+                        ],
+                        2.0,
+                        graphics::WHITE,
+                    )?;
+                }
+            }
         }
 
         GameResult::Ok(mesh_builder)
@@ -444,119 +521,30 @@ impl event::EventHandler for MainState {
         graphics::clear(ctx, graphics::BLACK);
         let mut scene_mesh_builder = MeshBuilder::new();
 
-        for sprite in self.build_scene_items_draw_params() {
-            self.sprite_sheet_batch.add(sprite);
-        }
+        self.generate_scene_item_sprites();
+        self.generate_scene_item_menu_sprites();
+        self.generate_map_sprites();
 
-        if DEBUG {
-            scene_mesh_builder =
-                self.update_mesh_builder_with_scene_items_positions(scene_mesh_builder)?;
-        }
-
+        scene_mesh_builder = self.update_mesh_builder_with_debug(scene_mesh_builder)?;
         scene_mesh_builder = self.update_mesh_builder_with_selected_items(scene_mesh_builder)?;
-
-        if let Some(window_left_click_down_point) = self.left_click_down {
-            scene_mesh_builder = self.update_mesh_builder_with_selection_area(
-                scene_mesh_builder,
-                window_left_click_down_point,
-            )?;
-
-            if DEBUG {
-                let scene_left_click_down_point = scene_point_from_window_point(
-                    &window_left_click_down_point,
-                    &self.display_offset,
-                );
-                scene_mesh_builder.circle(
-                    DrawMode::fill(),
-                    scene_left_click_down_point,
-                    2.0,
-                    2.0,
-                    graphics::YELLOW,
-                )?;
-            }
-        }
-
-        scene_mesh_builder.circle(
-            DrawMode::fill(),
-            scene_point_from_window_point(&self.current_cursor_position, &self.display_offset),
-            2.0,
-            2.0,
-            graphics::BLUE,
-        )?;
-
-        if let Some((_, scene_point)) = self.scene_item_menu {
-            self.ui_batch.add(
-                UiSpriteInfo::from_type(UiItem::SceneItemMenu)
-                    .as_draw_param()
-                    .dest(scene_point),
-            );
-        }
-
-        if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
-            match scene_item_prepare_order {
-                SceneItemPrepareOrder::Move(scene_item_usize) => {
-                    let scene_item = self
-                        .scene_items
-                        .get(*scene_item_usize)
-                        .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
-                    scene_mesh_builder.line(
-                        &vec![
-                            scene_item.position.clone(),
-                            scene_point_from_window_point(
-                                &self.current_cursor_position,
-                                &self.display_offset,
-                            ),
-                        ],
-                        2.0,
-                        graphics::WHITE,
-                    )?;
-                }
-            }
-        }
-
-        self.map_batch.add(
-            graphics::DrawParam::new()
-                .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
-                .dest(ScenePoint::new(0.0, 0.0)),
-        );
+        scene_mesh_builder = self.update_mesh_builder_with_selection_area(scene_mesh_builder)?;
+        scene_mesh_builder = self.update_mesh_builder_with_prepare_order(scene_mesh_builder)?;
 
         let scene_mesh = scene_mesh_builder.build(ctx)?;
-        graphics::draw(
-            ctx,
-            &self.map_batch,
-            graphics::DrawParam::new().dest(window_point_from_scene_point(
-                &ScenePoint::new(0.0, 0.0),
-                &self.display_offset,
-            )),
-        )?;
-        graphics::draw(
-            ctx,
-            &self.sprite_sheet_batch,
-            graphics::DrawParam::new().dest(window_point_from_scene_point(
-                &ScenePoint::new(0.0, 0.0),
-                &self.display_offset,
-            )),
-        )?;
-        graphics::draw(
-            ctx,
-            &scene_mesh,
-            graphics::DrawParam::new().dest(window_point_from_scene_point(
-                &ScenePoint::new(0.0, 0.0),
-                &self.display_offset,
-            )),
-        )?;
-        graphics::draw(
-            ctx,
-            &self.ui_batch,
-            graphics::DrawParam::new().dest(window_point_from_scene_point(
-                &ScenePoint::new(0.0, 0.0),
-                &self.display_offset,
-            )),
-        )?;
+        let window_draw_param = graphics::DrawParam::new().dest(window_point_from_scene_point(
+            &ScenePoint::new(0.0, 0.0),
+            &self.display_offset,
+        ));
+
+        graphics::draw(ctx, &self.map_batch, window_draw_param)?;
+        graphics::draw(ctx, &self.sprite_sheet_batch, window_draw_param)?;
+        graphics::draw(ctx, &scene_mesh, window_draw_param)?;
+        graphics::draw(ctx, &self.ui_batch, window_draw_param)?;
 
         self.sprite_sheet_batch.clear();
         self.map_batch.clear();
         self.ui_batch.clear();
+
         graphics::present(ctx)?;
 
         println!("FPS: {}", ggez::timer::fps(ctx));
