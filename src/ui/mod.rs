@@ -1,8 +1,9 @@
 use ggez::graphics;
 
+use crate::config::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
 use crate::scene::item::SceneItem;
 use crate::ui::scene_item_menu::SceneItemMenuItem;
-use crate::{Point2, WindowPoint, UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
+use crate::{Point2, WindowPoint};
 
 pub mod scene_item_menu;
 

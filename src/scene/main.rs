@@ -3,10 +3,16 @@ use std::collections::HashMap;
 
 use ggez::event::MouseButton;
 use ggez::graphics::{DrawMode, MeshBuilder, StrokeOptions};
+use ggez::input::keyboard::KeyCode;
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
 
 use crate::behavior::ItemBehavior;
+use crate::config::{
+    ANIMATE_EACH, DEBUG, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, PHYSICS_EACH,
+    SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
+};
 use crate::physics::util::scene_point_from_window_point;
 use crate::physics::util::window_point_from_scene_point;
 use crate::physics::GridPosition;
@@ -14,12 +20,7 @@ use crate::physics::{util, MetaEvent, PhysicEvent};
 use crate::scene::item::{ItemState, SceneItem, SceneItemType};
 use crate::ui::scene_item_menu::SceneItemMenuItem;
 use crate::ui::{SceneItemPrepareOrder, UiItem, UiSpriteInfo, UserEvent};
-use crate::{
-    Offset, ScenePoint, WindowPoint, ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE,
-    DEFAULT_SELECTED_SQUARE_SIDE_HALF, DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I,
-    META_EACH, PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
-};
-use ggez::input::keyboard::KeyCode;
+use crate::{Offset, ScenePoint, WindowPoint};
 
 pub struct MainState {
     // time
@@ -315,6 +316,83 @@ impl MainState {
 
         selection
     }
+
+    fn build_scene_items_draw_params(&self) -> Vec<graphics::DrawParam> {
+        let mut draw_params = vec![];
+
+        for scene_item in self.scene_items.iter() {
+            draw_params.push(
+                scene_item
+                    .as_draw_param(scene_item.current_frame as f32)
+                    .dest(scene_item.position.clone()),
+            )
+        }
+
+        draw_params
+    }
+
+    fn update_mesh_builder_with_scene_items_positions(
+        &self,
+        mut mesh_builder: MeshBuilder,
+    ) -> GameResult<MeshBuilder> {
+        for scene_item in self.scene_items.iter() {
+            mesh_builder.circle(
+                DrawMode::fill(),
+                scene_item.position.clone(),
+                2.0,
+                2.0,
+                graphics::WHITE,
+            )?;
+        }
+
+        GameResult::Ok(mesh_builder)
+    }
+
+    fn update_mesh_builder_with_selected_items(
+        &self,
+        mut mesh_builder: MeshBuilder,
+    ) -> GameResult<MeshBuilder> {
+        for i in &self.selected_scene_items {
+            let selected_scene_item = self.scene_items.get(*i).expect(SCENE_ITEMS_CHANGE_ERR_MSG);
+            mesh_builder.rectangle(
+                DrawMode::Stroke(StrokeOptions::default()),
+                graphics::Rect::new(
+                    selected_scene_item.position.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+                    selected_scene_item.position.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+                    DEFAULT_SELECTED_SQUARE_SIDE,
+                    DEFAULT_SELECTED_SQUARE_SIDE,
+                ),
+                graphics::GREEN,
+            )?;
+        }
+
+        GameResult::Ok(mesh_builder)
+    }
+
+    fn update_mesh_builder_with_selection_area(
+        &self,
+        mut mesh_builder: MeshBuilder,
+        window_left_click_down_point: WindowPoint,
+    ) -> GameResult<MeshBuilder> {
+        let scene_left_click_down_point =
+            scene_point_from_window_point(&window_left_click_down_point, &self.display_offset);
+        let scene_current_cursor_position =
+            scene_point_from_window_point(&self.current_cursor_position, &self.display_offset);
+        if scene_left_click_down_point != scene_current_cursor_position {
+            mesh_builder.rectangle(
+                DrawMode::stroke(1.0),
+                graphics::Rect::new(
+                    scene_left_click_down_point.x,
+                    scene_left_click_down_point.y,
+                    scene_current_cursor_position.x - scene_left_click_down_point.x,
+                    scene_current_cursor_position.y - scene_left_click_down_point.y,
+                ),
+                graphics::GREEN,
+            )?;
+        }
+
+        GameResult::Ok(mesh_builder)
+    }
 }
 
 impl event::EventHandler for MainState {
@@ -364,63 +442,38 @@ impl event::EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::BLACK);
-
         let mut scene_mesh_builder = MeshBuilder::new();
 
-        for scene_item in self.scene_items.iter() {
-            self.sprite_sheet_batch.add(
-                scene_item
-                    .as_draw_param(scene_item.current_frame as f32)
-                    .dest(scene_item.position.clone()),
-            );
-            scene_mesh_builder.circle(
-                DrawMode::fill(),
-                scene_item.position.clone(),
-                2.0,
-                2.0,
-                graphics::WHITE,
-            )?;
+        for sprite in self.build_scene_items_draw_params() {
+            self.sprite_sheet_batch.add(sprite);
         }
 
-        for i in &self.selected_scene_items {
-            let selected_scene_item = self.scene_items.get(*i).expect(SCENE_ITEMS_CHANGE_ERR_MSG);
-            scene_mesh_builder.rectangle(
-                DrawMode::Stroke(StrokeOptions::default()),
-                graphics::Rect::new(
-                    selected_scene_item.position.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-                    selected_scene_item.position.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-                    DEFAULT_SELECTED_SQUARE_SIDE,
-                    DEFAULT_SELECTED_SQUARE_SIDE,
-                ),
-                graphics::GREEN,
-            )?;
+        if DEBUG {
+            scene_mesh_builder =
+                self.update_mesh_builder_with_scene_items_positions(scene_mesh_builder)?;
         }
+
+        scene_mesh_builder = self.update_mesh_builder_with_selected_items(scene_mesh_builder)?;
 
         if let Some(window_left_click_down_point) = self.left_click_down {
-            let scene_left_click_down_point =
-                scene_point_from_window_point(&window_left_click_down_point, &self.display_offset);
-            let scene_current_cursor_position =
-                scene_point_from_window_point(&self.current_cursor_position, &self.display_offset);
-            if scene_left_click_down_point != scene_current_cursor_position {
-                scene_mesh_builder.rectangle(
+            scene_mesh_builder = self.update_mesh_builder_with_selection_area(
+                scene_mesh_builder,
+                window_left_click_down_point,
+            )?;
+
+            if DEBUG {
+                let scene_left_click_down_point = scene_point_from_window_point(
+                    &window_left_click_down_point,
+                    &self.display_offset,
+                );
+                scene_mesh_builder.circle(
                     DrawMode::fill(),
-                    graphics::Rect::new(
-                        scene_left_click_down_point.x,
-                        scene_left_click_down_point.y,
-                        scene_current_cursor_position.x - scene_left_click_down_point.x,
-                        scene_current_cursor_position.y - scene_left_click_down_point.y,
-                    ),
-                    graphics::GREEN,
+                    scene_left_click_down_point,
+                    2.0,
+                    2.0,
+                    graphics::YELLOW,
                 )?;
             }
-
-            scene_mesh_builder.circle(
-                DrawMode::fill(),
-                scene_left_click_down_point,
-                2.0,
-                2.0,
-                graphics::YELLOW,
-            )?;
         }
 
         scene_mesh_builder.circle(

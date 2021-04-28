@@ -1,5 +1,6 @@
+use crate::config::{GRID_TILE_HEIGHT, GRID_TILE_WIDTH};
 use crate::physics::GridPosition;
-use crate::{ScenePoint, Vector2, WindowPoint, GRID_TILE_HEIGHT, GRID_TILE_WIDTH};
+use crate::{ScenePoint, Vector2, WindowPoint};
 
 pub fn vec_from_angle(angle: f32) -> Vector2 {
     let vx = angle.sin();
