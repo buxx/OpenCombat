@@ -182,11 +182,18 @@ impl MainState {
                     self.selected_scene_items
                         .extend(self.get_scene_items_for_scene_area(&scene_from, &scene_to));
                 }
-                UserEvent::RightClick(window_position) => {
-                    let scene_point =
-                        scene_point_from_window_point(&window_position, &self.display_offset);
+                UserEvent::RightClick(window_right_click_point) => {
+                    let scene_right_click_point = scene_point_from_window_point(
+                        &window_right_click_point,
+                        &self.display_offset,
+                    );
+
+                    // TODO: aucune selection et right click sur un item: scene_item_menu sur un item
+                    // TODO: selection et right click sur un item de la selection: scene_item_menu sur un TOUS les item de la selection
+                    // TODO: selection et right click sur un item PAS dans la selection: scene_item_menu sur un item
+
                     if let Some(scene_item_usize) =
-                        self.get_first_scene_item_for_scene_point(&scene_point)
+                        self.get_first_scene_item_for_scene_point(&scene_right_click_point)
                     {
                         if self.selected_scene_items.contains(&scene_item_usize) {
                             let scene_item = self
@@ -384,15 +391,19 @@ impl event::EventHandler for MainState {
             )?;
         }
 
-        if let Some(left_click_down) = self.left_click_down {
-            if left_click_down != self.current_cursor_position {
+        if let Some(window_left_click_down_point) = self.left_click_down {
+            let scene_left_click_down_point =
+                scene_point_from_window_point(&window_left_click_down_point, &self.display_offset);
+            let scene_current_cursor_position =
+                scene_point_from_window_point(&self.current_cursor_position, &self.display_offset);
+            if scene_left_click_down_point != scene_current_cursor_position {
                 scene_mesh_builder.rectangle(
                     DrawMode::fill(),
                     graphics::Rect::new(
-                        left_click_down.x - self.display_offset.x,
-                        left_click_down.y - self.display_offset.y,
-                        self.current_cursor_position.x - left_click_down.x,
-                        self.current_cursor_position.y - left_click_down.y,
+                        scene_left_click_down_point.x,
+                        scene_left_click_down_point.y,
+                        scene_current_cursor_position.x - scene_left_click_down_point.x,
+                        scene_current_cursor_position.y - scene_left_click_down_point.y,
                     ),
                     graphics::GREEN,
                 )?;
@@ -400,7 +411,7 @@ impl event::EventHandler for MainState {
 
             scene_mesh_builder.circle(
                 DrawMode::fill(),
-                window_point_from_scene_point(&left_click_down, &self.display_offset),
+                scene_left_click_down_point,
                 2.0,
                 2.0,
                 graphics::YELLOW,
