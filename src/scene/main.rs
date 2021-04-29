@@ -7,8 +7,8 @@ use ggez::input::keyboard::KeyCode;
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
 
-use crate::behavior::ItemBehavior;
 use crate::behavior::order::Order;
+use crate::behavior::ItemBehavior;
 use crate::config::{
     ANIMATE_EACH, DEBUG, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
     DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, PHYSICS_EACH,
@@ -63,16 +63,16 @@ impl MainState {
         let mut scene_items = vec![];
         for x in 0..1 {
             for y in 0..4 {
-                let current_behavior = if y % 2 == 0 {
-                    ItemBehavior::Walking(util::vec_from_angle(90.0))
-                } else {
-                    ItemBehavior::Crawling
-                };
+                // let current_behavior = if y % 2 == 0 {
+                //     ItemBehavior::WalkingTo(util::vec_from_angle(90.0))
+                // } else {
+                //     ItemBehavior::CrawlingTo()
+                // };
 
                 scene_items.push(SceneItem::new(
                     SceneItemType::Soldier,
                     ScenePoint::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
-                    ItemState::new(current_behavior),
+                    ItemState::new(ItemBehavior::Standing(0)),
                 ));
             }
         }
@@ -167,13 +167,6 @@ impl MainState {
                 SceneItemPrepareOrder::Move(scene_item_usize) => {
                     let mut scene_item = self.get_scene_item_mut(*scene_item_usize);
                     scene_item.next_order = Some(Order::MoveTo(scene_position));
-
-                    // TODO: remove this code when used in right place
-                    let angle = f32::atan2(
-                        scene_position.y - scene_item.position.y,
-                        scene_position.x - scene_item.position.x,
-                    ) + FRAC_PI_2;
-                    println!("{:?}", angle);
                 }
             }
 
@@ -241,11 +234,14 @@ impl MainState {
         // Scene items movements
         for scene_item in self.scene_items.iter_mut() {
             match scene_item.state.current_behavior {
-                ItemBehavior::Walking(move_vector) => {
+                ItemBehavior::WalkingTo(scene_point) => {
+                    // FIXME BS NOW: velocity
+                    let move_vector = (scene_point - scene_item.position).normalize() * 1.0;
                     // TODO ici il faut calculer le déplacement réél (en fonction des ticks, etc ...)
                     scene_item.position.x += move_vector.x;
                     scene_item.position.y += move_vector.y;
-                    scene_item.grid_position = util::grid_position_from_scene_point(&scene_item.position);
+                    scene_item.grid_position =
+                        util::grid_position_from_scene_point(&scene_item.position);
                 }
                 _ => {}
             }
@@ -273,13 +269,13 @@ impl MainState {
         // TODO: ici il faut reflechir a comment organiser les comportements
 
         for scene_item in self.scene_items.iter_mut() {
-            for meta_event in &scene_item.meta_events {
-                match meta_event {
-                    MetaEvent::FeelExplosion => {
-                        scene_item.state = ItemState::new(ItemBehavior::Standing(self.frame_i));
-                    }
-                }
-            }
+            // for meta_event in &scene_item.meta_events {
+            //     match meta_event {
+            //         MetaEvent::FeelExplosion => {
+            //             scene_item.state = ItemState::new(ItemBehavior::Standing(self.frame_i));
+            //         }
+            //     }
+            // }
 
             // match scene_item.state.current_behavior {
             //     ItemBehavior::Crawling => {
@@ -300,13 +296,10 @@ impl MainState {
             scene_item.meta_events.drain(..);
 
             if let Some(next_order) = &scene_item.next_order {
-                // Compute here if it possible (fear, compatible with current order, etc)
+                // TODO: Compute here if it possible (fear, compatible with current order, etc)
                 match next_order {
                     Order::MoveTo(move_to_scene_point) => {
                         scene_item.current_order = Some(Order::MoveTo(*move_to_scene_point));
-                        // FIXME BS NOW: velocity
-                        let move_vector = (*move_to_scene_point - scene_item.position).normalize() * 1.0;
-                        scene_item.state = ItemState::new(ItemBehavior::Walking(move_vector));
                     }
                 }
                 scene_item.next_order = None;
@@ -316,9 +309,41 @@ impl MainState {
             if let Some(current_order) = &scene_item.current_order {
                 match current_order {
                     Order::MoveTo(move_to_scene_point) => {
-                        let move_vector = (*move_to_scene_point - scene_item.position).normalize() * 1.0;
-                        println!("{:?}", move_vector);
+                        let change_to_walk = match scene_item.state.current_behavior {
+                            ItemBehavior::Standing(_) => true,
+                            ItemBehavior::CrawlingTo(_) => true,
+                            ItemBehavior::WalkingTo(_) => false,
+                        };
+
+                        if change_to_walk {
+                            scene_item.state =
+                                ItemState::new(ItemBehavior::WalkingTo(*move_to_scene_point));
+                        }
                     }
+                }
+            }
+
+            match scene_item.state.current_behavior {
+                ItemBehavior::Standing(_) => {}
+                ItemBehavior::CrawlingTo(scene_point) => {
+                    let angle = f32::atan2(
+                        scene_point.y - scene_item.position.y,
+                        scene_point.x - scene_item.position.x,
+                    ) + FRAC_PI_2;
+                    scene_item.display_angle = angle;
+
+                    let move_vector = (scene_point - scene_item.position).normalize() * 1.0;
+                    println!("{:?}", move_vector);
+                }
+                ItemBehavior::WalkingTo(scene_point) => {
+                    let angle = f32::atan2(
+                        scene_point.y - scene_item.position.y,
+                        scene_point.x - scene_item.position.x,
+                    ) + FRAC_PI_2;
+                    scene_item.display_angle = angle;
+
+                    let move_vector = (scene_point - scene_item.position).normalize() * 1.0;
+                    println!("{:?}", move_vector);
                 }
             }
         }

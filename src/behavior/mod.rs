@@ -1,9 +1,9 @@
 pub mod order;
 
-use crate::Vector2;
+use crate::ScenePoint;
 
 pub enum ItemBehavior {
     Standing(u32), // since
-    Crawling,
-    Walking(Vector2),
+    CrawlingTo(ScenePoint),
+    WalkingTo(ScenePoint),
 }

@@ -1,12 +1,12 @@
 use ggez::graphics;
 
+use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH};
 use crate::physics::GridPosition;
 use crate::physics::{util, MetaEvent};
 use crate::scene::SpriteType;
 use crate::{Offset, ScenePoint};
-use crate::behavior::order::Order;
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,
@@ -64,6 +64,7 @@ pub struct SceneItem {
     pub current_frame: u16,
     pub current_order: Option<Order>,
     pub next_order: Option<Order>,
+    pub display_angle: f32,
 }
 
 impl SceneItem {
@@ -77,6 +78,7 @@ impl SceneItem {
             current_frame: 0,
             current_order: None,
             next_order: None,
+            display_angle: 0.0,
         }
     }
 
@@ -101,7 +103,7 @@ impl SceneItem {
                 sprite_info.relative_tile_width,
                 sprite_info.relative_tile_height,
             ))
-            .rotation(90.0f32.to_radians())
+            .rotation(self.display_angle)
             .offset(Offset::new(0.5, 0.5))
     }
 
@@ -109,8 +111,8 @@ impl SceneItem {
         // Here some logical about state, nature (soldier, tank, ...) and current behavior to
         // determine sprite type
         match self.state.current_behavior {
-            ItemBehavior::Crawling => SpriteType::CrawlingSoldier,
-            ItemBehavior::Walking(_) => SpriteType::WalkingSoldier,
+            ItemBehavior::CrawlingTo(_) => SpriteType::CrawlingSoldier,
+            ItemBehavior::WalkingTo(_) => SpriteType::WalkingSoldier,
             ItemBehavior::Standing(_) => SpriteType::StandingSoldier,
         }
     }
