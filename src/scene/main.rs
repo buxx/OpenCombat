@@ -149,6 +149,14 @@ impl MainState {
 
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             // TODO: Add order to scene_item
+            match scene_item_prepare_order {
+                SceneItemPrepareOrder::Move(scene_item_usize) => {
+                    let scene_item = self.scene_items.get_mut(*scene_item_usize).expect(SCENE_ITEMS_CHANGE_ERR_MSG);
+                    let angle = f32::atan2(scene_position.y - scene_item.position.y, scene_position.x - scene_item.position.x) + f32::consts::FRAC_PI_2;
+                    println!("{:?}", angle);
+                }
+            }
+
             self.scene_item_prepare_order = None;
         }
 
@@ -521,9 +529,9 @@ impl event::EventHandler for MainState {
         graphics::clear(ctx, graphics::BLACK);
         let mut scene_mesh_builder = MeshBuilder::new();
 
-        self.generate_scene_item_sprites();
-        self.generate_scene_item_menu_sprites();
-        self.generate_map_sprites();
+        self.generate_scene_item_sprites()?;
+        self.generate_scene_item_menu_sprites()?;
+        self.generate_map_sprites()?;
 
         scene_mesh_builder = self.update_mesh_builder_with_debug(scene_mesh_builder)?;
         scene_mesh_builder = self.update_mesh_builder_with_selected_items(scene_mesh_builder)?;
@@ -547,7 +555,7 @@ impl event::EventHandler for MainState {
 
         graphics::present(ctx)?;
 
-        println!("FPS: {}", ggez::timer::fps(ctx));
+        // println!("FPS: {}", ggez::timer::fps(ctx));
         Ok(())
     }
 
