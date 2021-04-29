@@ -6,6 +6,7 @@ use crate::physics::GridPosition;
 use crate::physics::{util, MetaEvent};
 use crate::scene::SpriteType;
 use crate::{Offset, ScenePoint};
+use crate::behavior::order::Order;
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,
@@ -61,6 +62,8 @@ pub struct SceneItem {
     pub state: ItemState,
     pub meta_events: Vec<MetaEvent>,
     pub current_frame: u16,
+    pub current_order: Option<Order>,
+    pub next_order: Option<Order>,
 }
 
 impl SceneItem {
@@ -72,6 +75,8 @@ impl SceneItem {
             state,
             meta_events: vec![],
             current_frame: 0,
+            current_order: None,
+            next_order: None,
         }
     }
 
