@@ -21,6 +21,7 @@ use crate::scene::item::{ItemState, SceneItem, SceneItemType};
 use crate::ui::scene_item_menu::SceneItemMenuItem;
 use crate::ui::{SceneItemPrepareOrder, UiItem, UiSpriteInfo, UserEvent};
 use crate::{Offset, ScenePoint, WindowPoint};
+use std::f32::consts::FRAC_PI_2;
 
 pub struct MainState {
     // time
@@ -105,6 +106,18 @@ impl MainState {
         Ok(main_state)
     }
 
+    fn get_scene_item(&self, index: usize) -> &SceneItem {
+        self.scene_items
+            .get(index)
+            .expect(SCENE_ITEMS_CHANGE_ERR_MSG)
+    }
+
+    fn get_scene_item_mut(&mut self, index: usize) -> &SceneItem {
+        self.scene_items
+            .get_mut(index)
+            .expect(SCENE_ITEMS_CHANGE_ERR_MSG)
+    }
+
     fn inputs(&mut self, ctx: &Context) {
         let display_offset_by =
             if input::keyboard::is_mod_active(ctx, input::keyboard::KeyMods::SHIFT) {
@@ -151,8 +164,12 @@ impl MainState {
             // TODO: Add order to scene_item
             match scene_item_prepare_order {
                 SceneItemPrepareOrder::Move(scene_item_usize) => {
-                    let scene_item = self.scene_items.get_mut(*scene_item_usize).expect(SCENE_ITEMS_CHANGE_ERR_MSG);
-                    let angle = f32::atan2(scene_position.y - scene_item.position.y, scene_position.x - scene_item.position.x) + f32::consts::FRAC_PI_2;
+                    let scene_item = self.get_scene_item(*scene_item_usize);
+                    // TODO: remove this code when used in right place
+                    let angle = f32::atan2(
+                        scene_position.y - scene_item.position.y,
+                        scene_position.x - scene_item.position.x,
+                    ) + FRAC_PI_2;
                     println!("{:?}", angle);
                 }
             }
@@ -165,10 +182,7 @@ impl MainState {
             let window_menu_point =
                 window_point_from_scene_point(&scene_menu_point, &self.display_offset);
             let menu_sprite_info = UiSpriteInfo::from_type(UiItem::SceneItemMenu);
-            let scene_item = self
-                .scene_items
-                .get(scene_item_usize)
-                .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
+            let scene_item = self.get_scene_item(scene_item_usize);
             if window_click_point.x >= window_menu_point.x
                 && window_click_point.x <= window_menu_point.x + menu_sprite_info.width
                 && window_click_point.y >= window_menu_point.y
@@ -205,10 +219,7 @@ impl MainState {
             self.get_first_scene_item_for_scene_point(&scene_right_click_point)
         {
             if self.selected_scene_items.contains(&scene_item_usize) {
-                let scene_item = self
-                    .scene_items
-                    .get(scene_item_usize)
-                    .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
+                let scene_item = self.get_scene_item(scene_item_usize);
                 self.scene_item_menu = Some((scene_item_usize, scene_item.position))
             }
         }
@@ -227,7 +238,7 @@ impl MainState {
         // Scene items movements
         for scene_item in self.scene_items.iter_mut() {
             match scene_item.state.current_behavior {
-                ItemBehavior::Walking(vector) => {
+                ItemBehavior::Walking(_vector) => {
                     // TODO ici il faut calculer le déplacement réél (en fonction des ticks, etc ...)
                     scene_item.position.x += 1.0;
                     scene_item.grid_position =
@@ -408,7 +419,7 @@ impl MainState {
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
         for i in &self.selected_scene_items {
-            let selected_scene_item = self.scene_items.get(*i).expect(SCENE_ITEMS_CHANGE_ERR_MSG);
+            let selected_scene_item = self.get_scene_item(*i);
             mesh_builder.rectangle(
                 DrawMode::Stroke(StrokeOptions::default()),
                 graphics::Rect::new(
@@ -457,10 +468,7 @@ impl MainState {
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             match scene_item_prepare_order {
                 SceneItemPrepareOrder::Move(scene_item_usize) => {
-                    let scene_item = self
-                        .scene_items
-                        .get(*scene_item_usize)
-                        .expect(SCENE_ITEMS_CHANGE_ERR_MSG);
+                    let scene_item = self.get_scene_item(*scene_item_usize);
                     mesh_builder.line(
                         &vec![
                             scene_item.position.clone(),

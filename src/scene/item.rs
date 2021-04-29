@@ -5,7 +5,7 @@ use crate::config::{SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WI
 use crate::physics::GridPosition;
 use crate::physics::{util, MetaEvent};
 use crate::scene::SpriteType;
-use crate::{Offset, Point2, ScenePoint};
+use crate::{Offset, ScenePoint};
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,
