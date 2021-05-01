@@ -34,3 +34,5 @@ pub const DEFAULT_SELECTED_SQUARE_SIDE_HALF: f32 = DEFAULT_SELECTED_SQUARE_SIDE 
 pub const SCENE_ITEMS_CHANGE_ERR_MSG: &str = "scene_items content change !";
 //
 pub const DEBUG: bool = true;
+// Distance from move target point to consider reached
+pub const MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT: f32 = 1.0;

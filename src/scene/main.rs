@@ -11,8 +11,9 @@ use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
     ANIMATE_EACH, DEBUG, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, PHYSICS_EACH,
-    SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
+    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH,
+    MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT, PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG,
+    SPRITE_EACH, TARGET_FPS,
 };
 use crate::physics::util::scene_point_from_window_point;
 use crate::physics::util::window_point_from_scene_point;
@@ -292,8 +293,8 @@ impl MainState {
             //         }
             //     }
             // }
-
-            scene_item.meta_events.drain(..);
+            //
+            // scene_item.meta_events.drain(..);
 
             if let Some(next_order) = &scene_item.next_order {
                 // TODO: Compute here if it possible (fear, compatible with current order, etc)
@@ -305,45 +306,42 @@ impl MainState {
                 scene_item.next_order = None;
             }
 
-            // FIXME BS NOW: stop move when move is accomplished; warn: recompute move_vector here
+            // TODO: here, compute state according to order. Ex: if too much fear, move order do not produce walking state
             if let Some(current_order) = &scene_item.current_order {
                 match current_order {
                     Order::MoveTo(move_to_scene_point) => {
-                        let change_to_walk = match scene_item.state.current_behavior {
-                            ItemBehavior::Standing(_) => true,
-                            ItemBehavior::CrawlingTo(_) => true,
-                            ItemBehavior::WalkingTo(_) => false,
-                        };
-
-                        if change_to_walk {
-                            scene_item.state =
-                                ItemState::new(ItemBehavior::WalkingTo(*move_to_scene_point));
-                        }
+                        scene_item.state =
+                            ItemState::new(ItemBehavior::WalkingTo(*move_to_scene_point));
                     }
                 }
             }
 
             match scene_item.state.current_behavior {
                 ItemBehavior::Standing(_) => {}
-                ItemBehavior::CrawlingTo(scene_point) => {
-                    let angle = f32::atan2(
-                        scene_point.y - scene_item.position.y,
-                        scene_point.x - scene_item.position.x,
+                ItemBehavior::WalkingTo(going_to_scene_point)
+                | ItemBehavior::CrawlingTo(going_to_scene_point) => {
+                    // Note: angle computed by adding FRAC_PI_2 because sprites are north oriented
+                    scene_item.display_angle = f32::atan2(
+                        going_to_scene_point.y - scene_item.position.y,
+                        going_to_scene_point.x - scene_item.position.x,
                     ) + FRAC_PI_2;
-                    scene_item.display_angle = angle;
 
-                    let move_vector = (scene_point - scene_item.position).normalize() * 1.0;
-                    println!("{:?}", move_vector);
-                }
-                ItemBehavior::WalkingTo(scene_point) => {
-                    let angle = f32::atan2(
-                        scene_point.y - scene_item.position.y,
-                        scene_point.x - scene_item.position.x,
-                    ) + FRAC_PI_2;
-                    scene_item.display_angle = angle;
-
-                    let move_vector = (scene_point - scene_item.position).normalize() * 1.0;
-                    println!("{:?}", move_vector);
+                    // Check if scene_point reached
+                    let distance = going_to_scene_point.distance(scene_item.position);
+                    println!("{:?}", distance);
+                    if distance < MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT {
+                        scene_item.state = ItemState::new(ItemBehavior::Standing(self.frame_i));
+                        if let Some(current_order) = &scene_item.current_order {
+                            match current_order {
+                                Order::MoveTo(move_to_scene_point) => {
+                                    if *move_to_scene_point == going_to_scene_point {
+                                        // TODO: If multiple moves, setup next move order
+                                        scene_item.current_order = None;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
