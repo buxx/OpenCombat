@@ -7,6 +7,7 @@ use ggez::input::keyboard::KeyCode;
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
 
+use crate::behavior::animate::{digest_current_behavior, digest_current_order, digest_next_order};
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
@@ -19,7 +20,9 @@ use crate::physics::util::scene_point_from_window_point;
 use crate::physics::util::window_point_from_scene_point;
 use crate::physics::GridPosition;
 use crate::physics::{util, MetaEvent, PhysicEvent};
-use crate::scene::item::{ItemState, SceneItem, SceneItemType};
+use crate::scene::item::{
+    apply_scene_item_modifier, ItemState, SceneItem, SceneItemModifier, SceneItemType,
+};
 use crate::ui::scene_item_menu::SceneItemMenuItem;
 use crate::ui::{SceneItemPrepareOrder, UiItem, UiSpriteInfo, UserEvent};
 use crate::{Offset, ScenePoint, WindowPoint};
@@ -73,7 +76,7 @@ impl MainState {
                 scene_items.push(SceneItem::new(
                     SceneItemType::Soldier,
                     ScenePoint::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
-                    ItemState::new(ItemBehavior::Standing(0)),
+                    ItemState::new(ItemBehavior::Standing),
                 ));
             }
         }
@@ -267,83 +270,10 @@ impl MainState {
     }
 
     fn animate(&mut self) {
-        // TODO: ici il faut reflechir a comment organiser les comportements
-
-        for scene_item in self.scene_items.iter_mut() {
-            // for meta_event in &scene_item.meta_events {
-            //     match meta_event {
-            //         MetaEvent::FeelExplosion => {
-            //             scene_item.state = ItemState::new(ItemBehavior::Standing(self.frame_i));
-            //         }
-            //     }
-            // }
-
-            // match scene_item.state.current_behavior {
-            //     ItemBehavior::Crawling => {
-            //         scene_item.state =
-            //             ItemState::new(ItemBehavior::Walking(util::vec_from_angle(90.0)));
-            //     }
-            //     ItemBehavior::Walking(_) => {
-            //         scene_item.state = ItemState::new(ItemBehavior::Crawling);
-            //     }
-            //     ItemBehavior::Standing(since) => {
-            //         if self.frame_i - since >= 120 {
-            //             scene_item.state =
-            //                 ItemState::new(ItemBehavior::Walking(util::vec_from_angle(90.0)));
-            //         }
-            //     }
-            // }
-            //
-            // scene_item.meta_events.drain(..);
-
-            if let Some(next_order) = &scene_item.next_order {
-                // TODO: Compute here if it possible (fear, compatible with current order, etc)
-                match next_order {
-                    Order::MoveTo(move_to_scene_point) => {
-                        scene_item.current_order = Some(Order::MoveTo(*move_to_scene_point));
-                    }
-                }
-                scene_item.next_order = None;
-            }
-
-            // TODO: here, compute state according to order. Ex: if too much fear, move order do not produce walking state
-            if let Some(current_order) = &scene_item.current_order {
-                match current_order {
-                    Order::MoveTo(move_to_scene_point) => {
-                        scene_item.state =
-                            ItemState::new(ItemBehavior::WalkingTo(*move_to_scene_point));
-                    }
-                }
-            }
-
-            match scene_item.state.current_behavior {
-                ItemBehavior::Standing(_) => {}
-                ItemBehavior::WalkingTo(going_to_scene_point)
-                | ItemBehavior::CrawlingTo(going_to_scene_point) => {
-                    // Note: angle computed by adding FRAC_PI_2 because sprites are north oriented
-                    scene_item.display_angle = f32::atan2(
-                        going_to_scene_point.y - scene_item.position.y,
-                        going_to_scene_point.x - scene_item.position.x,
-                    ) + FRAC_PI_2;
-
-                    // Check if scene_point reached
-                    let distance = going_to_scene_point.distance(scene_item.position);
-                    println!("{:?}", distance);
-                    if distance < MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT {
-                        scene_item.state = ItemState::new(ItemBehavior::Standing(self.frame_i));
-                        if let Some(current_order) = &scene_item.current_order {
-                            match current_order {
-                                Order::MoveTo(move_to_scene_point) => {
-                                    if *move_to_scene_point == going_to_scene_point {
-                                        // TODO: If multiple moves, setup next move order
-                                        scene_item.current_order = None;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        for (i, scene_item) in self.scene_items.iter_mut().enumerate() {
+            apply_scene_item_modifier(scene_item, digest_next_order(&scene_item));
+            apply_scene_item_modifier(scene_item, digest_current_order(&scene_item));
+            apply_scene_item_modifier(scene_item, digest_current_behavior(&scene_item));
         }
     }
 

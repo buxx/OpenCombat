@@ -113,7 +113,31 @@ impl SceneItem {
         match self.state.current_behavior {
             ItemBehavior::CrawlingTo(_) => SpriteType::CrawlingSoldier,
             ItemBehavior::WalkingTo(_) => SpriteType::WalkingSoldier,
-            ItemBehavior::Standing(_) => SpriteType::StandingSoldier,
+            ItemBehavior::Standing => SpriteType::StandingSoldier,
+        }
+    }
+}
+
+pub enum SceneItemModifier {
+    SwitchToCurrentOrder,
+    ChangeDisplayAngle(f32),
+    ChangeState(ItemState),
+}
+
+pub fn apply_scene_item_modifier(scene_item: &mut SceneItem, modifiers: Vec<SceneItemModifier>) {
+    for modifier in modifiers {
+        match modifier {
+            SceneItemModifier::SwitchToCurrentOrder => {
+                let next_order = scene_item.next_order.clone();
+                scene_item.current_order = next_order;
+                scene_item.next_order = None;
+            }
+            SceneItemModifier::ChangeDisplayAngle(new_angle) => {
+                scene_item.display_angle = new_angle;
+            }
+            SceneItemModifier::ChangeState(new_state) => {
+                scene_item.state = new_state;
+            }
         }
     }
 }

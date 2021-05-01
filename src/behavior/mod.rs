@@ -1,9 +1,10 @@
+pub mod animate;
 pub mod order;
 
 use crate::ScenePoint;
 
 pub enum ItemBehavior {
-    Standing(u32), // since
+    Standing, // since
     CrawlingTo(ScenePoint),
     WalkingTo(ScenePoint),
 }
