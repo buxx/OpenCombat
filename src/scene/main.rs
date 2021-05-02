@@ -1,5 +1,6 @@
 use std::cmp;
 use std::collections::HashMap;
+use std::f32::consts::FRAC_PI_2;
 
 use ggez::event::MouseButton;
 use ggez::graphics::{DrawMode, MeshBuilder, StrokeOptions};
@@ -23,10 +24,10 @@ use crate::physics::{util, MetaEvent, PhysicEvent};
 use crate::scene::item::{
     apply_scene_item_modifier, ItemState, SceneItem, SceneItemModifier, SceneItemType,
 };
-use crate::ui::scene_item_menu::SceneItemMenuItem;
-use crate::ui::{SceneItemPrepareOrder, UiItem, UiSpriteInfo, UserEvent};
+use crate::ui::vertical_menu::{vertical_menu_sprite_info, VerticalMenuSpriteInfo};
+use crate::ui::MenuItem;
+use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
 use crate::{Offset, ScenePoint, WindowPoint};
-use std::f32::consts::FRAC_PI_2;
 
 pub struct MainState {
     // time
@@ -158,10 +159,12 @@ impl MainState {
     }
 
     fn digest_click(&mut self, window_click_point: WindowPoint) {
-        let scene_position =
+        let scene_click_point =
             scene_point_from_window_point(&window_click_point, &self.display_offset);
         self.selected_scene_items.drain(..);
-        if let Some(scene_item_usize) = self.get_first_scene_item_for_scene_point(&scene_position) {
+        if let Some(scene_item_usize) =
+            self.get_first_scene_item_for_scene_point(&scene_click_point)
+        {
             self.selected_scene_items.push(scene_item_usize);
         }
 
@@ -170,40 +173,29 @@ impl MainState {
             match scene_item_prepare_order {
                 SceneItemPrepareOrder::Move(scene_item_usize) => {
                     let mut scene_item = self.get_scene_item_mut(*scene_item_usize);
-                    scene_item.next_order = Some(Order::MoveTo(scene_position));
+                    scene_item.next_order = Some(Order::MoveTo(scene_click_point));
                 }
             }
 
             self.scene_item_prepare_order = None;
         }
 
-        // FIXME BS NOW: interpreter sur quel element du menu on a click ...
         if let Some((scene_item_usize, scene_menu_point)) = self.scene_item_menu {
-            let window_menu_point =
-                window_point_from_scene_point(&scene_menu_point, &self.display_offset);
-            let menu_sprite_info = UiSpriteInfo::from_type(UiItem::SceneItemMenu);
-            let scene_item = self.get_scene_item(scene_item_usize);
-            if window_click_point.x >= window_menu_point.x
-                && window_click_point.x <= window_menu_point.x + menu_sprite_info.width
-                && window_click_point.y >= window_menu_point.y
-                && window_click_point.y <= window_menu_point.y + menu_sprite_info.height
+            let menu_sprite_info = vertical_menu_sprite_info(UiComponent::SceneItemMenu);
+            if let Some(menu_item) =
+                menu_sprite_info.item_clicked(&scene_menu_point, &scene_click_point)
             {
-                if let Some(menu_item) = menu_sprite_info.which_item_clicked(
-                    window_menu_point,
-                    window_click_point,
-                    scene_item,
-                ) {
-                    match menu_item {
-                        SceneItemMenuItem::Move => {
-                            self.scene_item_prepare_order =
-                                Some(SceneItemPrepareOrder::Move(scene_item_usize));
-                            self.scene_item_menu = None;
-                        }
+                match menu_item {
+                    MenuItem::Move => {
+                        self.scene_item_prepare_order =
+                            Some(SceneItemPrepareOrder::Move(scene_item_usize));
+                        self.scene_item_menu = None;
                     }
+                    MenuItem::MoveFast => {}
+                    MenuItem::Hide => {}
                 }
-            } else {
-                self.scene_item_menu = None;
-            }
+            };
+            self.scene_item_menu = None;
         };
     }
 
@@ -329,7 +321,7 @@ impl MainState {
 
     fn generate_scene_item_menu_sprites(&mut self) -> GameResult {
         if let Some((_, scene_point)) = self.scene_item_menu {
-            for draw_param in UiSpriteInfo::from_type(UiItem::SceneItemMenu)
+            for draw_param in vertical_menu_sprite_info(UiComponent::SceneItemMenu)
                 .as_draw_params(&scene_point, &self.current_cursor_position)
             {
                 self.ui_batch.add(draw_param);
