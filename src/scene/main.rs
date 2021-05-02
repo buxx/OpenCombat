@@ -329,11 +329,11 @@ impl MainState {
 
     fn generate_scene_item_menu_sprites(&mut self) -> GameResult {
         if let Some((_, scene_point)) = self.scene_item_menu {
-            self.ui_batch.add(
-                UiSpriteInfo::from_type(UiItem::SceneItemMenu)
-                    .as_draw_param()
-                    .dest(scene_point),
-            );
+            for draw_param in UiSpriteInfo::from_type(UiItem::SceneItemMenu)
+                .as_draw_params(&scene_point, &self.current_cursor_position)
+            {
+                self.ui_batch.add(draw_param);
+            }
         }
 
         Ok(())
