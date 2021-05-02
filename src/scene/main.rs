@@ -161,11 +161,16 @@ impl MainState {
     fn digest_click(&mut self, window_click_point: WindowPoint) {
         let scene_click_point =
             scene_point_from_window_point(&window_click_point, &self.display_offset);
-        self.selected_scene_items.drain(..);
+        let mut scene_item_selected = false;
+        let mut scene_item_menu_clicked = false;
+        let mut prepare_order_clicked = false;
+
         if let Some(scene_item_usize) =
             self.get_first_scene_item_for_scene_point(&scene_click_point)
         {
+            self.selected_scene_items.drain(..);
             self.selected_scene_items.push(scene_item_usize);
+            scene_item_selected = true;
         }
 
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
@@ -178,6 +183,7 @@ impl MainState {
             }
 
             self.scene_item_prepare_order = None;
+            prepare_order_clicked = true;
         }
 
         if let Some((scene_item_usize, scene_menu_point)) = self.scene_item_menu {
@@ -196,7 +202,12 @@ impl MainState {
                 }
             };
             self.scene_item_menu = None;
+            scene_item_menu_clicked = true;
         };
+
+        if !prepare_order_clicked && !scene_item_menu_clicked && !scene_item_selected {
+            self.selected_scene_items.drain(..);
+        }
     }
 
     fn digest_right_click(&mut self, window_right_click_point: WindowPoint) {
