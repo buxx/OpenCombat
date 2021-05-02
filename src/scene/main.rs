@@ -13,9 +13,9 @@ use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
     ANIMATE_EACH, DEBUG, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH,
-    MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT, PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG,
-    SPRITE_EACH, TARGET_FPS,
+    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, MOVE_FAST_VELOCITY,
+    MOVE_HIDE_VELOCITY, MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT, MOVE_VELOCITY, PHYSICS_EACH,
+    SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
 };
 use crate::physics::util::scene_point_from_window_point;
 use crate::physics::util::window_point_from_scene_point;
@@ -27,6 +27,7 @@ use crate::scene::item::{
 use crate::ui::vertical_menu::{vertical_menu_sprite_info, VerticalMenuSpriteInfo};
 use crate::ui::MenuItem;
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
+use crate::util::velocity_for_behavior;
 use crate::{Offset, ScenePoint, WindowPoint};
 
 pub struct MainState {
@@ -174,11 +175,18 @@ impl MainState {
         }
 
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
-            // TODO: Add order to scene_item
             match scene_item_prepare_order {
                 SceneItemPrepareOrder::Move(scene_item_usize) => {
                     let mut scene_item = self.get_scene_item_mut(*scene_item_usize);
                     scene_item.next_order = Some(Order::MoveTo(scene_click_point));
+                }
+                SceneItemPrepareOrder::MoveFast(scene_item_usize) => {
+                    let mut scene_item = self.get_scene_item_mut(*scene_item_usize);
+                    scene_item.next_order = Some(Order::MoveFastTo(scene_click_point));
+                }
+                SceneItemPrepareOrder::Hide(scene_item_usize) => {
+                    let mut scene_item = self.get_scene_item_mut(*scene_item_usize);
+                    scene_item.next_order = Some(Order::HideTo(scene_click_point));
                 }
             }
 
@@ -197,8 +205,16 @@ impl MainState {
                             Some(SceneItemPrepareOrder::Move(scene_item_usize));
                         self.scene_item_menu = None;
                     }
-                    MenuItem::MoveFast => {}
-                    MenuItem::Hide => {}
+                    MenuItem::MoveFast => {
+                        self.scene_item_prepare_order =
+                            Some(SceneItemPrepareOrder::MoveFast(scene_item_usize));
+                        self.scene_item_menu = None;
+                    }
+                    MenuItem::Hide => {
+                        self.scene_item_prepare_order =
+                            Some(SceneItemPrepareOrder::Hide(scene_item_usize));
+                        self.scene_item_menu = None;
+                    }
                 }
             };
             self.scene_item_menu = None;
@@ -241,16 +257,20 @@ impl MainState {
         // Scene items movements
         for scene_item in self.scene_items.iter_mut() {
             match scene_item.state.current_behavior {
-                ItemBehavior::WalkingTo(scene_point) => {
-                    // FIXME BS NOW: velocity
-                    let move_vector = (scene_point - scene_item.position).normalize() * 1.0;
+                ItemBehavior::Standing => {}
+                ItemBehavior::MoveTo(move_to_scene_point)
+                | ItemBehavior::MoveFastTo(move_to_scene_point)
+                | ItemBehavior::HideTo(move_to_scene_point) => {
+                    let velocity = velocity_for_behavior(&scene_item.state.current_behavior)
+                        .expect("must have velocity here");
+                    let move_vector =
+                        (move_to_scene_point - scene_item.position).normalize() * velocity;
                     // TODO ici il faut calculer le déplacement réél (en fonction des ticks, etc ...)
                     scene_item.position.x += move_vector.x;
                     scene_item.position.y += move_vector.y;
                     scene_item.grid_position =
                         util::grid_position_from_scene_point(&scene_item.position);
                 }
-                _ => {}
             }
         }
 
@@ -322,7 +342,7 @@ impl MainState {
         for scene_item in self.scene_items.iter() {
             self.sprite_sheet_batch.add(
                 scene_item
-                    .as_draw_param(scene_item.current_frame as f32)
+                    .as_draw_param(scene_item.current_frame)
                     .dest(scene_item.position.clone()),
             );
         }
@@ -449,7 +469,15 @@ impl MainState {
     ) -> GameResult<MeshBuilder> {
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             match scene_item_prepare_order {
-                SceneItemPrepareOrder::Move(scene_item_usize) => {
+                SceneItemPrepareOrder::Move(scene_item_usize)
+                | SceneItemPrepareOrder::MoveFast(scene_item_usize)
+                | SceneItemPrepareOrder::Hide(scene_item_usize) => {
+                    let color = match &scene_item_prepare_order {
+                        SceneItemPrepareOrder::Move(_) => graphics::BLUE,
+                        SceneItemPrepareOrder::MoveFast(_) => graphics::MAGENTA,
+                        SceneItemPrepareOrder::Hide(_) => graphics::YELLOW,
+                    };
+
                     let scene_item = self.get_scene_item(*scene_item_usize);
                     mesh_builder.line(
                         &vec![
@@ -460,7 +488,7 @@ impl MainState {
                             ),
                         ],
                         2.0,
-                        graphics::WHITE,
+                        color,
                     )?;
                 }
             }

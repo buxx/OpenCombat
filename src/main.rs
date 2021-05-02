@@ -11,6 +11,7 @@ mod config;
 mod physics;
 mod scene;
 mod ui;
+mod util;
 
 type WindowPoint = Vec2;
 type Offset = Vec2;

@@ -35,4 +35,10 @@ pub const SCENE_ITEMS_CHANGE_ERR_MSG: &str = "scene_items content change !";
 //
 pub const DEBUG: bool = true;
 // Distance from move target point to consider reached
-pub const MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT: f32 = 1.0;
+pub const MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT: f32 = 3.0;
+// Velocity of move vector
+pub const MOVE_VELOCITY: f32 = 1.0;
+// Velocity of move fast vector
+pub const MOVE_FAST_VELOCITY: f32 = 2.0;
+// Velocity of move hide vector
+pub const MOVE_HIDE_VELOCITY: f32 = 0.5;

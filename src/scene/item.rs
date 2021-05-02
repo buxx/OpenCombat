@@ -17,15 +17,16 @@ pub struct SceneItemSpriteInfo {
     pub tile_height: f32,
     pub _half_tile_width: f32,
     pub _half_tile_height: f32,
+    pub tick_speed: f32,
 }
 
 impl SceneItemSpriteInfo {
     // TODO: ask on rust community if this is performant, or how to make it static
     pub fn from_type(type_: &SpriteType) -> Self {
-        let (start_y, tile_width, tile_height, tile_count) = match type_ {
-            SpriteType::WalkingSoldier => (12.0, 12.0, 12.0, 8),
-            SpriteType::CrawlingSoldier => (26.0, 26.0, 26.0, 8),
-            SpriteType::StandingSoldier => (0.0, 12.0, 12.0, 1),
+        let (start_y, tile_width, tile_height, tile_count, tick_speed) = match type_ {
+            SpriteType::WalkingSoldier => (12.0, 12.0, 12.0, 8, 0.5),
+            SpriteType::CrawlingSoldier => (26.0, 26.0, 26.0, 8, 1.0),
+            SpriteType::StandingSoldier => (0.0, 12.0, 12.0, 1, 0.0),
         };
 
         Self {
@@ -37,6 +38,7 @@ impl SceneItemSpriteInfo {
             tile_height,
             _half_tile_width: tile_width / 2.0,
             _half_tile_height: tile_height / 2.0,
+            tick_speed,
         }
     }
 }
@@ -61,7 +63,7 @@ pub struct SceneItem {
     pub grid_position: GridPosition,
     pub state: ItemState,
     pub meta_events: Vec<MetaEvent>,
-    pub current_frame: u16,
+    pub current_frame: f32,
     pub current_order: Option<Order>,
     pub next_order: Option<Order>,
     pub display_angle: f32,
@@ -75,7 +77,7 @@ impl SceneItem {
             grid_position: util::grid_position_from_scene_point(&position.clone()),
             state,
             meta_events: vec![],
-            current_frame: 0,
+            current_frame: 0.0,
             current_order: None,
             next_order: None,
             display_angle: 0.0,
@@ -87,10 +89,11 @@ impl SceneItem {
     }
 
     pub fn tick_sprite(&mut self) {
-        self.current_frame += 1;
+        let sprite_info =self.sprite_info();
+        self.current_frame += sprite_info.tick_speed;
         // TODO: good way to have sprite info ? performant ?
-        if self.current_frame >= self.sprite_info().tile_count {
-            self.current_frame = 0;
+        if self.current_frame as u16 >= sprite_info.tile_count {
+            self.current_frame = 0.0;
         }
     }
 
@@ -98,7 +101,7 @@ impl SceneItem {
         let sprite_info = self.sprite_info();
         graphics::DrawParam::new()
             .src(graphics::Rect::new(
-                current_frame as f32 * sprite_info.relative_tile_width,
+                (current_frame as u16) as f32 * sprite_info.relative_tile_width,
                 sprite_info.relative_start_y,
                 sprite_info.relative_tile_width,
                 sprite_info.relative_tile_height,
@@ -111,15 +114,16 @@ impl SceneItem {
         // Here some logical about state, nature (soldier, tank, ...) and current behavior to
         // determine sprite type
         match self.state.current_behavior {
-            ItemBehavior::CrawlingTo(_) => SpriteType::CrawlingSoldier,
-            ItemBehavior::WalkingTo(_) => SpriteType::WalkingSoldier,
+            ItemBehavior::HideTo(_) => SpriteType::CrawlingSoldier,
+            ItemBehavior::MoveTo(_) => SpriteType::WalkingSoldier,
+            ItemBehavior::MoveFastTo(_) => SpriteType::WalkingSoldier,
             ItemBehavior::Standing => SpriteType::StandingSoldier,
         }
     }
 }
 
 pub enum SceneItemModifier {
-    SwitchToCurrentOrder,
+    SwitchToNextOrder,
     ChangeDisplayAngle(f32),
     ChangeState(ItemState),
 }
@@ -127,7 +131,7 @@ pub enum SceneItemModifier {
 pub fn apply_scene_item_modifier(scene_item: &mut SceneItem, modifiers: Vec<SceneItemModifier>) {
     for modifier in modifiers {
         match modifier {
-            SceneItemModifier::SwitchToCurrentOrder => {
+            SceneItemModifier::SwitchToNextOrder => {
                 let next_order = scene_item.next_order.clone();
                 scene_item.current_order = next_order;
                 scene_item.next_order = None;

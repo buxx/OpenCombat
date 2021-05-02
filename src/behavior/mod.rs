@@ -5,6 +5,7 @@ use crate::ScenePoint;
 
 pub enum ItemBehavior {
     Standing, // since
-    CrawlingTo(ScenePoint),
-    WalkingTo(ScenePoint),
+    HideTo(ScenePoint),
+    MoveTo(ScenePoint),
+    MoveFastTo(ScenePoint),
 }
