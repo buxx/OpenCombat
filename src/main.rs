@@ -8,6 +8,7 @@ use scene::main::MainState;
 
 mod behavior;
 mod config;
+mod map;
 mod physics;
 mod scene;
 mod ui;

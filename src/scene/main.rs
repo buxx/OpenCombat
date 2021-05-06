@@ -4,7 +4,7 @@ use std::f32::consts::FRAC_PI_2;
 
 use ggez::event::MouseButton;
 use ggez::graphics::{DrawMode, MeshBuilder, StrokeOptions};
-use ggez::input::keyboard::KeyCode;
+use ggez::input::keyboard::{KeyCode, pressed_keys};
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
 
@@ -12,11 +12,12 @@ use crate::behavior::animate::{digest_current_behavior, digest_current_order, di
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
-    ANIMATE_EACH, DEBUG, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+    ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
     DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, MOVE_FAST_VELOCITY,
     MOVE_HIDE_VELOCITY, MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT, MOVE_VELOCITY, PHYSICS_EACH,
     SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
 };
+use crate::map::Map;
 use crate::physics::util::scene_point_from_window_point;
 use crate::physics::util::window_point_from_scene_point;
 use crate::physics::GridPosition;
@@ -29,16 +30,26 @@ use crate::ui::MenuItem;
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
 use crate::util::velocity_for_behavior;
 use crate::{Offset, ScenePoint, WindowPoint};
+use std::fs::File;
+use std::path::Path;
+use std::time::Instant;
 
 pub struct MainState {
     // time
     frame_i: u32,
+    start: Instant,
+
+    // map
+    map: Map,
 
     // display
+    debug: bool,
+    debug_terrain: bool,
     display_offset: Offset,
     sprite_sheet_batch: graphics::spritebatch::SpriteBatch,
     map_batch: graphics::spritebatch::SpriteBatch,
     ui_batch: graphics::spritebatch::SpriteBatch,
+    terrain_batch: graphics::spritebatch::SpriteBatch,
 
     // scene items
     scene_items: Vec<SceneItem>,
@@ -48,6 +59,7 @@ pub struct MainState {
     physics_events: Vec<PhysicEvent>,
 
     // user interactions
+    last_key_consumed: HashMap<KeyCode, Instant>,
     left_click_down: Option<WindowPoint>,
     right_click_down: Option<WindowPoint>,
     current_cursor_position: WindowPoint,
@@ -57,14 +69,57 @@ pub struct MainState {
     scene_item_prepare_order: Option<SceneItemPrepareOrder>,
 }
 
+
+fn update_terrain_batch(mut terrain_batch: graphics::spritebatch::SpriteBatch,  map: &Map) -> graphics::spritebatch::SpriteBatch {
+    terrain_batch.clear();
+    for ((grid_x, grid_y), tile) in map.tiles.iter() {
+            // FIXME pre compute these data
+            let src_x = tile.tile_x as f32 * tile.relative_tile_width;
+            let src_y = tile.tile_y as f32 * tile.relative_tile_height;
+            let dest_x = *grid_x as f32 * tile.tile_width as f32;
+            let dest_y = *grid_y as f32 * tile.tile_height as f32;
+            terrain_batch.add(
+                graphics::DrawParam::new()
+                .src(graphics::Rect::new(
+                    src_x,
+                    src_y,
+                    tile.relative_tile_width,
+                    tile.relative_tile_height,
+                ))
+                .dest(ScenePoint::new(
+                    dest_x,
+                    dest_y,
+                ))
+            );
+        }
+
+    terrain_batch
+}
+
 impl MainState {
     pub fn new(ctx: &mut Context) -> GameResult<MainState> {
-        let sprite_sheet = graphics::Image::new(ctx, "/sprite_sheet.png").unwrap();
-        let sprite_sheet_batch = graphics::spritebatch::SpriteBatch::new(sprite_sheet);
-        let map = graphics::Image::new(ctx, "/map1bg.png").unwrap();
-        let map_batch = graphics::spritebatch::SpriteBatch::new(map);
-        let ui = graphics::Image::new(ctx, "/ui.png").unwrap();
-        let ui_batch = graphics::spritebatch::SpriteBatch::new(ui);
+        let map = Map::new(&Path::new("resources/map1.tmx"))?;
+
+        // FIXME manage error
+        let sprite_sheet_image = graphics::Image::new(ctx, "/sprite_sheet.png").unwrap();
+        let sprite_sheet_batch = graphics::spritebatch::SpriteBatch::new(sprite_sheet_image);
+
+        let map_image = graphics::Image::new(
+            ctx,
+            &Path::new(&format!("/{}", &map.background_image.source)),
+        )
+        .unwrap();
+        let map_batch = graphics::spritebatch::SpriteBatch::new(map_image);
+
+        // FIXME manage error
+        let ui_image = graphics::Image::new(ctx, "/ui.png").unwrap();
+        let ui_batch = graphics::spritebatch::SpriteBatch::new(ui_image);
+
+        // FIXME manage error
+        let terrain_image =
+            graphics::Image::new(ctx, format!("/{}", map.terrain_image.source)).unwrap();
+        let mut terrain_batch = graphics::spritebatch::SpriteBatch::new(terrain_image);
+        terrain_batch = update_terrain_batch(terrain_batch, &map);
 
         let mut scene_items = vec![];
         for x in 0..1 {
@@ -85,13 +140,19 @@ impl MainState {
 
         let mut main_state = MainState {
             frame_i: 0,
+            start: Instant::now(),
+            map,
+            debug: false,
+            debug_terrain: false,
             display_offset: Offset::new(0.0, 0.0),
             sprite_sheet_batch,
             map_batch,
             ui_batch,
+            terrain_batch,
             scene_items,
             scene_items_by_grid_position: HashMap::new(),
             physics_events: vec![],
+            last_key_consumed: HashMap::new(),
             left_click_down: None,
             right_click_down: None,
             current_cursor_position: WindowPoint::new(0.0, 0.0),
@@ -144,6 +205,19 @@ impl MainState {
         }
         if input::keyboard::is_key_pressed(ctx, KeyCode::Down) {
             self.display_offset.y -= display_offset_by;
+        }
+
+        if input::keyboard::is_key_pressed(ctx, KeyCode::F12) {
+            if  self.last_key_consumed.get(&KeyCode::F12).unwrap_or(&self.start).elapsed().as_millis() > 250 {
+                self.debug = !self.debug;
+                self.last_key_consumed.insert(KeyCode::F12, Instant::now());
+            }
+        }
+        if input::keyboard::is_key_pressed(ctx, KeyCode::F10) {
+            if  self.last_key_consumed.get(&KeyCode::F10).unwrap_or(&self.start).elapsed().as_millis() > 250 {
+                self.debug_terrain = !self.debug_terrain;
+                self.last_key_consumed.insert(KeyCode::F10, Instant::now());
+            }
         }
 
         while let Some(user_event) = self.user_events.pop() {
@@ -376,7 +450,7 @@ impl MainState {
         &self,
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
-        if DEBUG {
+        if self.debug {
             // Draw circle on each scene item position
             for scene_item in self.scene_items.iter() {
                 mesh_builder.circle(
@@ -556,15 +630,19 @@ impl event::EventHandler for MainState {
         scene_mesh_builder = self.update_mesh_builder_with_selection_area(scene_mesh_builder)?;
         scene_mesh_builder = self.update_mesh_builder_with_prepare_order(scene_mesh_builder)?;
 
-        let scene_mesh = scene_mesh_builder.build(ctx)?;
         let window_draw_param = graphics::DrawParam::new().dest(window_point_from_scene_point(
             &ScenePoint::new(0.0, 0.0),
             &self.display_offset,
         ));
 
         graphics::draw(ctx, &self.map_batch, window_draw_param)?;
+        if self.debug_terrain {
+            graphics::draw(ctx, &self.terrain_batch, window_draw_param)?;
+        }
         graphics::draw(ctx, &self.sprite_sheet_batch, window_draw_param)?;
-        graphics::draw(ctx, &scene_mesh, window_draw_param)?;
+        if let Ok(scene_mesh) = scene_mesh_builder.build(ctx) {
+            graphics::draw(ctx, &scene_mesh, window_draw_param)?;
+        }
         graphics::draw(ctx, &self.ui_batch, window_draw_param)?;
 
         self.sprite_sheet_batch.clear();

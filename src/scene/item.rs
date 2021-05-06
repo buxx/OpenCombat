@@ -89,7 +89,7 @@ impl SceneItem {
     }
 
     pub fn tick_sprite(&mut self) {
-        let sprite_info =self.sprite_info();
+        let sprite_info = self.sprite_info();
         self.current_frame += sprite_info.tick_speed;
         // TODO: good way to have sprite info ? performant ?
         if self.current_frame as u16 >= sprite_info.tile_count {
