@@ -1,8 +1,4 @@
-use ggez::graphics;
-
-use crate::config::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
-use crate::scene::item::SceneItem;
-use crate::{Offset, ScenePoint, WindowPoint};
+use crate::WindowPoint;
 
 pub mod vertical_menu;
 

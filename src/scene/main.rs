@@ -1,10 +1,9 @@
 use std::cmp;
 use std::collections::HashMap;
-use std::f32::consts::FRAC_PI_2;
 
 use ggez::event::MouseButton;
 use ggez::graphics::{DrawMode, MeshBuilder, StrokeOptions};
-use ggez::input::keyboard::{pressed_keys, KeyCode};
+use ggez::input::keyboard::KeyCode;
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
 
@@ -13,8 +12,7 @@ use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
     ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, MOVE_FAST_VELOCITY,
-    MOVE_HIDE_VELOCITY, MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT, MOVE_VELOCITY, PHYSICS_EACH,
+    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, PHYSICS_EACH,
     SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
 };
 use crate::map::Map;
@@ -22,15 +20,12 @@ use crate::physics::util::scene_point_from_window_point;
 use crate::physics::util::window_point_from_scene_point;
 use crate::physics::GridPosition;
 use crate::physics::{util, MetaEvent, PhysicEvent};
-use crate::scene::item::{
-    apply_scene_item_modifier, ItemState, SceneItem, SceneItemModifier, SceneItemType,
-};
-use crate::ui::vertical_menu::{vertical_menu_sprite_info, VerticalMenuSpriteInfo};
+use crate::scene::item::{apply_scene_item_modifier, ItemState, SceneItem, SceneItemType};
+use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::MenuItem;
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
 use crate::util::velocity_for_behavior;
 use crate::{Offset, ScenePoint, WindowPoint};
-use std::fs::File;
 use std::path::Path;
 use std::time::Instant;
 
@@ -375,7 +370,7 @@ impl MainState {
     }
 
     fn animate(&mut self) {
-        for (i, scene_item) in self.scene_items.iter_mut().enumerate() {
+        for (_, scene_item) in self.scene_items.iter_mut().enumerate() {
             apply_scene_item_modifier(scene_item, digest_next_order(&scene_item));
             apply_scene_item_modifier(scene_item, digest_current_order(&scene_item));
             apply_scene_item_modifier(scene_item, digest_current_behavior(&scene_item));

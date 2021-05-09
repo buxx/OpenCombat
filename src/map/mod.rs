@@ -8,8 +8,8 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 use tiled::{
-    parse_with_path, Image as TiledImage, Image, Layer, LayerData, Map as TiledMap, Orientation,
-    PropertyValue, Tile as TiledTile, TiledError, Tileset,
+    parse_with_path, Image as TiledImage, Layer, LayerData, Map as TiledMap, Orientation,
+    PropertyValue, Tileset,
 };
 
 fn get_tile_from_terrain_tileset_with_id(

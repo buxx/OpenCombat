@@ -1,12 +1,6 @@
 use crate::config::{GRID_TILE_HEIGHT, GRID_TILE_WIDTH};
 use crate::physics::GridPosition;
-use crate::{ScenePoint, Vector2, WindowPoint};
-
-pub fn vec_from_angle(angle: f32) -> Vector2 {
-    let vx = angle.sin();
-    let vy = angle.cos();
-    Vector2::new(vx, vy)
-}
+use crate::{ScenePoint, WindowPoint};
 
 pub fn grid_position_from_scene_point(position: &ScenePoint) -> GridPosition {
     GridPosition::new(
