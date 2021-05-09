@@ -4,7 +4,7 @@ use std::f32::consts::FRAC_PI_2;
 
 use ggez::event::MouseButton;
 use ggez::graphics::{DrawMode, MeshBuilder, StrokeOptions};
-use ggez::input::keyboard::{KeyCode, pressed_keys};
+use ggez::input::keyboard::{pressed_keys, KeyCode};
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
 
@@ -69,29 +69,28 @@ pub struct MainState {
     scene_item_prepare_order: Option<SceneItemPrepareOrder>,
 }
 
-
-fn update_terrain_batch(mut terrain_batch: graphics::spritebatch::SpriteBatch,  map: &Map) -> graphics::spritebatch::SpriteBatch {
+fn update_terrain_batch(
+    mut terrain_batch: graphics::spritebatch::SpriteBatch,
+    map: &Map,
+) -> graphics::spritebatch::SpriteBatch {
     terrain_batch.clear();
     for ((grid_x, grid_y), tile) in map.tiles.iter() {
-            // FIXME pre compute these data
-            let src_x = tile.tile_x as f32 * tile.relative_tile_width;
-            let src_y = tile.tile_y as f32 * tile.relative_tile_height;
-            let dest_x = *grid_x as f32 * tile.tile_width as f32;
-            let dest_y = *grid_y as f32 * tile.tile_height as f32;
-            terrain_batch.add(
-                graphics::DrawParam::new()
+        // FIXME pre compute these data
+        let src_x = tile.tile_x as f32 * tile.relative_tile_width;
+        let src_y = tile.tile_y as f32 * tile.relative_tile_height;
+        let dest_x = *grid_x as f32 * tile.tile_width as f32;
+        let dest_y = *grid_y as f32 * tile.tile_height as f32;
+        terrain_batch.add(
+            graphics::DrawParam::new()
                 .src(graphics::Rect::new(
                     src_x,
                     src_y,
                     tile.relative_tile_width,
                     tile.relative_tile_height,
                 ))
-                .dest(ScenePoint::new(
-                    dest_x,
-                    dest_y,
-                ))
-            );
-        }
+                .dest(ScenePoint::new(dest_x, dest_y)),
+        );
+    }
 
     terrain_batch
 }
@@ -208,13 +207,27 @@ impl MainState {
         }
 
         if input::keyboard::is_key_pressed(ctx, KeyCode::F12) {
-            if  self.last_key_consumed.get(&KeyCode::F12).unwrap_or(&self.start).elapsed().as_millis() > 250 {
+            if self
+                .last_key_consumed
+                .get(&KeyCode::F12)
+                .unwrap_or(&self.start)
+                .elapsed()
+                .as_millis()
+                > 250
+            {
                 self.debug = !self.debug;
                 self.last_key_consumed.insert(KeyCode::F12, Instant::now());
             }
         }
         if input::keyboard::is_key_pressed(ctx, KeyCode::F10) {
-            if  self.last_key_consumed.get(&KeyCode::F10).unwrap_or(&self.start).elapsed().as_millis() > 250 {
+            if self
+                .last_key_consumed
+                .get(&KeyCode::F10)
+                .unwrap_or(&self.start)
+                .elapsed()
+                .as_millis()
+                > 250
+            {
                 self.debug_terrain = !self.debug_terrain;
                 self.last_key_consumed.insert(KeyCode::F10, Instant::now());
             }

@@ -44,7 +44,7 @@ fn get_tile_from_terrain_tileset_with_id(
             let relative_tile_height = tile_height as f32 / terrain_image_height as f32;
             let len_by_width = terrain_image_width / tile_width;
             let tile_y = tile.id / len_by_width;
-            let tile_x = tile.id  - (tile_y * len_by_width);
+            let tile_x = tile.id - (tile_y * len_by_width);
 
             return GameResult::Ok(Tile::from_str_id(
                 &str_id,
