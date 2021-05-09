@@ -68,6 +68,7 @@ pub struct Map {
     pub tiled_map: TiledMap,
     pub background_image: TiledImage,
     pub terrain_image: TiledImage,
+    pub terrain_tileset: Tileset,
     pub tiles: HashMap<(u32, u32), Tile>,
 }
 
@@ -170,6 +171,7 @@ impl Map {
             tiled_map: tiled_map.clone(),
             background_image: background_image.clone(),
             terrain_image,
+            terrain_tileset,
             tiles,
         })
     }

@@ -123,8 +123,18 @@ impl MainState {
                     SceneItemType::Soldier,
                     ScenePoint::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
                     ItemState::new(ItemBehavior::Standing),
+                    &map,
                 ));
             }
+        }
+
+        let mut scene_items_by_grid_position: HashMap<GridPosition, Vec<usize>> = HashMap::new();
+        for (i, scene_item) in scene_items.iter().enumerate() {
+            let grid_position = util::grid_position_from_scene_point(&scene_item.position, &map);
+            scene_items_by_grid_position
+                .entry(grid_position)
+                .or_default()
+                .push(i);
         }
 
         let mut main_state = MainState {
@@ -139,7 +149,7 @@ impl MainState {
             ui_batch,
             terrain_batch,
             scene_items,
-            scene_items_by_grid_position: HashMap::new(),
+            scene_items_by_grid_position,
             physics_events: vec![],
             last_key_consumed: HashMap::new(),
             left_click_down: None,
@@ -150,15 +160,6 @@ impl MainState {
             scene_item_menu: None,
             scene_item_prepare_order: None,
         };
-
-        for (i, scene_item) in main_state.scene_items.iter().enumerate() {
-            let grid_position = util::grid_position_from_scene_point(&scene_item.position);
-            main_state
-                .scene_items_by_grid_position
-                .entry(grid_position)
-                .or_default()
-                .push(i);
-        }
 
         Ok(main_state)
     }
@@ -346,7 +347,7 @@ impl MainState {
                     scene_item.position.x += move_vector.x;
                     scene_item.position.y += move_vector.y;
                     scene_item.grid_position =
-                        util::grid_position_from_scene_point(&scene_item.position);
+                        util::grid_position_from_scene_point(&scene_item.position, &self.map);
                 }
             }
         }

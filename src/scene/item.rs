@@ -3,6 +3,7 @@ use ggez::graphics;
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH};
+use crate::map::Map;
 use crate::physics::GridPosition;
 use crate::physics::{util, MetaEvent};
 use crate::scene::SpriteType;
@@ -70,11 +71,11 @@ pub struct SceneItem {
 }
 
 impl SceneItem {
-    pub fn new(type_: SceneItemType, position: ScenePoint, state: ItemState) -> Self {
+    pub fn new(type_: SceneItemType, position: ScenePoint, state: ItemState, map: &Map) -> Self {
         Self {
             type_,
             position: position.clone(),
-            grid_position: util::grid_position_from_scene_point(&position.clone()),
+            grid_position: util::grid_position_from_scene_point(&position.clone(), map),
             state,
             meta_events: vec![],
             current_frame: 0.0,
