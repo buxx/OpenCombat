@@ -99,24 +99,19 @@ impl MainState {
     pub fn new(ctx: &mut Context) -> GameResult<MainState> {
         let map = Map::new(&Path::new("resources/map1.tmx"))?;
 
-        // FIXME manage error
-        let sprite_sheet_image = graphics::Image::new(ctx, "/sprite_sheet.png").unwrap();
+        let sprite_sheet_image = graphics::Image::new(ctx, "/sprite_sheet.png")?;
         let sprite_sheet_batch = graphics::spritebatch::SpriteBatch::new(sprite_sheet_image);
 
         let map_image = graphics::Image::new(
             ctx,
             &Path::new(&format!("/{}", &map.background_image.source)),
-        )
-        .unwrap();
+        )?;
         let map_batch = graphics::spritebatch::SpriteBatch::new(map_image);
 
-        // FIXME manage error
-        let ui_image = graphics::Image::new(ctx, "/ui.png").unwrap();
+        let ui_image = graphics::Image::new(ctx, "/ui.png")?;
         let ui_batch = graphics::spritebatch::SpriteBatch::new(ui_image);
 
-        // FIXME manage error
-        let terrain_image =
-            graphics::Image::new(ctx, format!("/{}", map.terrain_image.source)).unwrap();
+        let terrain_image = graphics::Image::new(ctx, format!("/{}", map.terrain_image.source))?;
         let mut terrain_batch = graphics::spritebatch::SpriteBatch::new(terrain_image);
         terrain_batch = update_terrain_batch(terrain_batch, &map);
 
