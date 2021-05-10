@@ -17,6 +17,7 @@ use crate::config::{
     DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, PHYSICS_EACH,
     SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
 };
+use crate::map::util::extract_image_from_tileset;
 use crate::map::Map;
 use crate::physics::util::scene_point_from_window_point;
 use crate::physics::util::window_point_from_scene_point;
@@ -26,6 +27,7 @@ use crate::scene::item::{
     apply_scene_item_modifier, apply_scene_item_modifiers, ItemState, SceneItem, SceneItemModifier,
     SceneItemType,
 };
+use crate::scene::util::update_decor_batches;
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::MenuItem;
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
@@ -54,12 +56,14 @@ pub struct MainState {
     // display
     debug: bool,
     debug_terrain: DebugTerrain,
+    hide_decor: bool,
     display_offset: Offset,
     sprite_sheet_batch: graphics::spritebatch::SpriteBatch,
     map_batch: graphics::spritebatch::SpriteBatch,
     ui_batch: graphics::spritebatch::SpriteBatch,
     debug_terrain_batch: graphics::spritebatch::SpriteBatch,
     debug_terrain_opacity_mesh_builder: MeshBuilder,
+    decor_batches: Vec<graphics::spritebatch::SpriteBatch>,
 
     // scene items
     scene_items: Vec<SceneItem>,
@@ -95,11 +99,20 @@ impl MainState {
         let ui_image = graphics::Image::new(ctx, "/ui.png")?;
         let ui_batch = graphics::spritebatch::SpriteBatch::new(ui_image);
 
-        let terrain_image = graphics::Image::new(ctx, format!("/{}", map.terrain_image.source))?;
+        let terrain_image = graphics::Image::new(ctx, format!("/{}", map.terrain.image.source))?;
         let mut debug_terrain_batch = graphics::spritebatch::SpriteBatch::new(terrain_image);
         debug_terrain_batch = scene::util::update_terrain_batch(debug_terrain_batch, &map);
         let debug_terrain_opacity_mesh_builder =
             scene::util::create_debug_terrain_opacity_mesh_builder(&map)?;
+
+        let mut decor_batches = vec![];
+        for decor_tileset in map.decor.tilesets.iter() {
+            let decor_tiled_image = extract_image_from_tileset(decor_tileset)?;
+            let decor_image = graphics::Image::new(ctx, format!("/{}", decor_tiled_image.source))?;
+            let batch = graphics::spritebatch::SpriteBatch::new(decor_image);
+            decor_batches.push(batch);
+        }
+        update_decor_batches(&mut decor_batches, &map);
 
         let mut scene_items = vec![];
         for x in 0..1 {
@@ -128,12 +141,14 @@ impl MainState {
             map,
             debug: false,
             debug_terrain: DebugTerrain::None,
+            hide_decor: false,
             display_offset: Offset::new(0.0, 0.0),
             sprite_sheet_batch,
             map_batch,
             ui_batch,
             debug_terrain_batch,
             debug_terrain_opacity_mesh_builder,
+            decor_batches,
             scene_items,
             scene_items_by_grid_position,
             physics_events: vec![],
@@ -211,6 +226,19 @@ impl MainState {
                     DebugTerrain::Opacity => DebugTerrain::None,
                 };
                 self.last_key_consumed.insert(KeyCode::F10, Instant::now());
+            }
+        }
+        if input::keyboard::is_key_pressed(ctx, KeyCode::T) {
+            if self
+                .last_key_consumed
+                .get(&KeyCode::T)
+                .unwrap_or(&self.start)
+                .elapsed()
+                .as_millis()
+                > 250
+            {
+                self.hide_decor = !self.hide_decor;
+                self.last_key_consumed.insert(KeyCode::T, Instant::now());
             }
         }
 
@@ -696,7 +724,10 @@ impl event::EventHandler for MainState {
             &self.display_offset,
         ));
 
+        // Draw map background
         graphics::draw(ctx, &self.map_batch, window_draw_param)?;
+
+        // Draw terrain debug
         if self.debug_terrain == DebugTerrain::Tiles {
             graphics::draw(ctx, &self.debug_terrain_batch, window_draw_param)?;
         } else if self.debug_terrain == DebugTerrain::Opacity {
@@ -704,10 +735,23 @@ impl event::EventHandler for MainState {
                 self.debug_terrain_opacity_mesh_builder.build(ctx).unwrap();
             graphics::draw(ctx, &debug_terrain_opacity_mesh, window_draw_param)?;
         }
+
+        // Draw scene items
         graphics::draw(ctx, &self.sprite_sheet_batch, window_draw_param)?;
+
+        // Draw decor
+        if !self.hide_decor {
+            for decor_batch in self.decor_batches.iter() {
+                graphics::draw(ctx, decor_batch, window_draw_param)?;
+            }
+        }
+
+        // Draw user interactions
         if let Ok(scene_mesh) = scene_mesh_builder.build(ctx) {
             graphics::draw(ctx, &scene_mesh, window_draw_param)?;
         }
+
+        // Draw ui
         graphics::draw(ctx, &self.ui_batch, window_draw_param)?;
 
         self.sprite_sheet_batch.clear();

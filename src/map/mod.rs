@@ -1,75 +1,32 @@
-pub mod tile;
-
-use crate::map::tile::Tile;
-use ggez::GameError;
-use ggez::GameResult;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
+
+use ggez::GameError;
+use ggez::GameResult;
 use tiled::{
-    parse_with_path, Image as TiledImage, Layer, LayerData, Map as TiledMap, Orientation,
-    PropertyValue, Tileset,
+    parse_with_path, Image as TiledImage, Image, ImageLayer, Layer, LayerData, Map as TiledMap,
+    Orientation, PropertyValue, Tileset,
 };
 
-fn get_tile_from_terrain_tileset_with_id(
-    terrain_tileset: &Tileset,
-    id: u32,
-    terrain_image_width: u32,
-    terrain_image_height: u32,
-) -> GameResult<Tile> {
-    for tile in terrain_tileset.tiles.iter() {
-        if tile.id == id - terrain_tileset.first_gid {
-            let str_id = match tile.properties.get("ID") {
-                None => {
-                    return GameResult::Err(GameError::ResourceLoadError(format!(
-                        "Tile {} have no ID property",
-                        id
-                    )))
-                }
-                Some(property_value) => match property_value {
-                    PropertyValue::StringValue(str_id) => str_id.clone(),
-                    _ => {
-                        return GameResult::Err(GameError::ResourceLoadError(format!(
-                            "Tile {} must have String ID property value",
-                            id
-                        )))
-                    }
-                },
-            };
+use crate::map::decor::{Decor, DecorTile};
+use crate::map::terrain::{Terrain, TerrainTile};
+use crate::map::util::{
+    extract_gids, extract_image_from_image_layer, extract_image_from_tileset, extract_layer,
+    extract_tileset, extract_tileset_images, extract_tilesets_containing_gids,
+    get_tileset_i_for_gid,
+};
 
-            let tile_width = terrain_tileset.tile_width;
-            let tile_height = terrain_tileset.tile_height;
-            let relative_tile_width = tile_width as f32 / terrain_image_width as f32;
-            let relative_tile_height = tile_height as f32 / terrain_image_height as f32;
-            let len_by_width = terrain_image_width / tile_width;
-            let tile_y = tile.id / len_by_width;
-            let tile_x = tile.id - (tile_y * len_by_width);
-
-            return GameResult::Ok(Tile::from_str_id(
-                &str_id,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                tile_x,
-                tile_y,
-            ));
-        }
-    }
-
-    return GameResult::Err(GameError::ResourceLoadError(format!(
-        "No tile with {} found",
-        id
-    )));
-}
+pub mod decor;
+pub mod terrain;
+pub mod util;
 
 pub struct Map {
     pub tiled_map: TiledMap,
     pub background_image: TiledImage,
-    pub terrain_image: TiledImage,
-    pub terrain_tileset: Tileset,
-    pub tiles: HashMap<(u32, u32), Tile>,
+    pub terrain: Terrain,
+    pub decor: Decor,
 }
 
 impl Map {
@@ -91,72 +48,30 @@ impl Map {
                 "Map must be orthogonal orientation".to_string(),
             ));
         }
-        // FIXME BS NOW: manage correctly error
-        let background_image = match &(tiled_map.image_layers.first().unwrap()).image.as_ref() {
-            None => {
-                return GameResult::Err(GameError::ResourceLoadError(
-                    "No image layer found in map ".to_string(),
-                ))
-            }
-            Some(image) => image.clone(),
-        };
 
-        let terrain_tileset: Tileset = match tiled_map
-            .tilesets
-            .clone()
-            .into_iter()
-            .filter(|t| t.name == "terrain")
-            .collect::<Vec<Tileset>>()
-            .first()
-        {
-            None => {
-                return GameResult::Err(GameError::ResourceLoadError(
-                    "No terrain tileset found in map ".to_string(),
-                ))
-            }
-            Some(tileset) => tileset.clone(),
-        };
+        // Background and roofs
+        let background_image = extract_image_from_image_layer(&tiled_map, "background")?;
+        let roofs_image = extract_image_from_image_layer(&tiled_map, "roofs")?;
+        // let roofs_layer = ...
 
-        let terrain_image = {
-            match terrain_tileset.images.first() {
-                None => {
-                    return GameResult::Err(GameError::ResourceLoadError(
-                        "No terrain image found in terrain tileset".to_string(),
-                    ))
-                }
-                Some(terrain_image) => terrain_image.clone(),
-            }
-        };
+        // Terrain
+        let terrain_tileset: Tileset = extract_tileset(&tiled_map, "terrain")?;
+        let terrain_layer: Layer = extract_layer(&tiled_map, "terrain")?;
+        let terrain_image = extract_image_from_tileset(&terrain_tileset)?;
 
-        let terrain_layer: Layer = match tiled_map
-            .layers
-            .clone()
-            .into_iter()
-            .filter(|l| l.name == "terrain")
-            .collect::<Vec<Layer>>()
-            .first()
-        {
-            None => {
-                return GameResult::Err(GameError::ResourceLoadError(
-                    "No terrain layer found in map ".to_string(),
-                ))
-            }
-            Some(layer) => layer.clone(),
-        };
-
-        let mut tiles: HashMap<(u32, u32), Tile> = HashMap::new();
-
-        match terrain_layer.tiles {
+        let mut terrain_tiles: HashMap<(u32, u32), TerrainTile> = HashMap::new();
+        match &terrain_layer.tiles {
             LayerData::Finite(layer_tiles) => {
                 for (x, tiles_row) in layer_tiles.iter().enumerate() {
                     for (y, layer_tile) in tiles_row.iter().enumerate() {
-                        let tile = get_tile_from_terrain_tileset_with_id(
+                        // FIXME BS NOW: et si gid = 0 ?
+                        let tile = terrain::get_tile_from_terrain_tileset_with_id(
                             &terrain_tileset,
                             layer_tile.gid,
                             terrain_image.width as u32,
                             terrain_image.height as u32,
                         )?;
-                        tiles.insert((y as u32, x as u32), tile);
+                        terrain_tiles.insert((y as u32, x as u32), tile);
                     }
                 }
             }
@@ -167,12 +82,67 @@ impl Map {
             }
         }
 
+        let terrain = Terrain::new(terrain_tileset, terrain_layer, terrain_image, terrain_tiles);
+
+        // Decor
+        let mut decor_tiles: HashMap<(u32, u32), DecorTile> = HashMap::new();
+        let decor_layer: Layer = extract_layer(&tiled_map, "decor")?;
+        let decor_tile_gids = extract_gids(&decor_layer)?;
+        let decor_tilesets: Vec<Tileset> =
+            extract_tilesets_containing_gids(&tiled_map, decor_tile_gids);
+        let decor_images: Vec<TiledImage> = extract_tileset_images(&decor_tilesets)?;
+
+        match &decor_layer.tiles {
+            LayerData::Finite(layer_tiles) => {
+                for (x, tiles_row) in layer_tiles.iter().enumerate() {
+                    for (y, layer_tile) in tiles_row.iter().enumerate() {
+                        if layer_tile.gid == 0 {
+                            continue;
+                        }
+
+                        let tileset_i = get_tileset_i_for_gid(layer_tile.gid, &decor_tilesets)
+                            .expect("gid must be find");
+                        let tileset = decor_tilesets
+                            .get(tileset_i)
+                            .expect("Decor tileset must be here");
+                        let image = decor_images.get(tileset_i).expect("Image must exist");
+
+                        let tiled_tile_id = layer_tile.gid - tileset.first_gid;
+                        let tile_width = tileset.tile_width;
+                        let tile_height = tileset.tile_height;
+                        let relative_tile_width = tile_width as f32 / image.width as f32;
+                        let relative_tile_height = tile_height as f32 / image.height as f32;
+                        let len_by_width = image.width as u32 / tile_width;
+                        let tile_y = tiled_tile_id / len_by_width;
+                        let tile_x = tiled_tile_id - (tile_y * len_by_width);
+
+                        let tile = DecorTile::new(
+                            tileset_i,
+                            tile_width,
+                            tile_height,
+                            relative_tile_width,
+                            relative_tile_height,
+                            tile_x,
+                            tile_y,
+                        );
+                        decor_tiles.insert((y as u32, x as u32), tile);
+                    }
+                }
+            }
+            LayerData::Infinite(_) => {
+                return GameResult::Err(GameError::ResourceLoadError(
+                    "Decor layer must be finite".to_string(),
+                ))
+            }
+        }
+
+        let decor = Decor::new(decor_layer, decor_tilesets, decor_images, decor_tiles);
+
         GameResult::Ok(Map {
             tiled_map: tiled_map.clone(),
             background_image: background_image.clone(),
-            terrain_image,
-            terrain_tileset,
-            tiles,
+            terrain,
+            decor,
         })
     }
 }

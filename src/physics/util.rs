@@ -4,8 +4,8 @@ use crate::{ScenePoint, WindowPoint};
 
 pub fn grid_position_from_scene_point(position: &ScenePoint, map: &Map) -> GridPoint {
     GridPoint::new(
-        (position.x / map.terrain_tileset.tile_width as f32) as i32,
-        (position.y / map.terrain_tileset.tile_height as f32) as i32,
+        (position.x / map.terrain.tileset.tile_width as f32) as i32,
+        (position.y / map.terrain.tileset.tile_height as f32) as i32,
     )
 }
 
