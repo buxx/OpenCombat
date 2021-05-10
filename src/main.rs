@@ -4,6 +4,8 @@ use std::path;
 use ggez::{event, GameResult};
 use glam::Vec2;
 
+use crate::scene::item::SceneItemModifier;
+use crate::scene::main::MainStateModifier;
 use scene::main::MainState;
 
 mod behavior;
@@ -17,6 +19,12 @@ mod util;
 type WindowPoint = Vec2;
 type Offset = Vec2;
 type ScenePoint = Vec2;
+type SceneItemId = usize;
+
+enum Message {
+    SceneItemMessage(SceneItemId, SceneItemModifier),
+    MainStateMessage(MainStateModifier),
+}
 
 pub fn main() -> GameResult {
     let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {

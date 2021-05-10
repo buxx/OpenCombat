@@ -1,9 +1,9 @@
 use crate::map::Map;
-use crate::physics::GridPosition;
+use crate::physics::GridPoint;
 use crate::{ScenePoint, WindowPoint};
 
-pub fn grid_position_from_scene_point(position: &ScenePoint, map: &Map) -> GridPosition {
-    GridPosition::new(
+pub fn grid_position_from_scene_point(position: &ScenePoint, map: &Map) -> GridPoint {
+    GridPoint::new(
         (position.x / map.terrain_tileset.tile_width as f32) as i32,
         (position.y / map.terrain_tileset.tile_height as f32) as i32,
     )

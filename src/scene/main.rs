@@ -1,5 +1,7 @@
 use std::cmp;
 use std::collections::HashMap;
+use std::path::Path;
+use std::time::Instant;
 
 use ggez::event::MouseButton;
 use ggez::graphics::{DrawMode, MeshBuilder, StrokeOptions};
@@ -18,16 +20,28 @@ use crate::config::{
 use crate::map::Map;
 use crate::physics::util::scene_point_from_window_point;
 use crate::physics::util::window_point_from_scene_point;
-use crate::physics::GridPosition;
+use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent, PhysicEvent};
-use crate::scene::item::{apply_scene_item_modifier, ItemState, SceneItem, SceneItemType};
+use crate::scene::item::{
+    apply_scene_item_modifier, apply_scene_item_modifiers, ItemState, SceneItem, SceneItemModifier,
+    SceneItemType,
+};
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::MenuItem;
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
 use crate::util::velocity_for_behavior;
-use crate::{Offset, ScenePoint, WindowPoint};
-use std::path::Path;
-use std::time::Instant;
+use crate::{scene, Message, Offset, SceneItemId, ScenePoint, WindowPoint};
+
+#[derive(PartialEq)]
+enum DebugTerrain {
+    None,
+    Tiles,
+    Opacity,
+}
+
+pub enum MainStateModifier {
+    ChangeSceneItemGridPosition(SceneItemId, GridPoint, GridPoint),
+}
 
 pub struct MainState {
     // time
@@ -39,16 +53,17 @@ pub struct MainState {
 
     // display
     debug: bool,
-    debug_terrain: bool,
+    debug_terrain: DebugTerrain,
     display_offset: Offset,
     sprite_sheet_batch: graphics::spritebatch::SpriteBatch,
     map_batch: graphics::spritebatch::SpriteBatch,
     ui_batch: graphics::spritebatch::SpriteBatch,
-    terrain_batch: graphics::spritebatch::SpriteBatch,
+    debug_terrain_batch: graphics::spritebatch::SpriteBatch,
+    debug_terrain_opacity_mesh_builder: MeshBuilder,
 
     // scene items
     scene_items: Vec<SceneItem>,
-    scene_items_by_grid_position: HashMap<GridPosition, Vec<usize>>,
+    scene_items_by_grid_position: HashMap<GridPoint, Vec<usize>>,
 
     // events
     physics_events: Vec<PhysicEvent>,
@@ -62,32 +77,6 @@ pub struct MainState {
     selected_scene_items: Vec<usize>,             // scene_item usize
     scene_item_menu: Option<(usize, ScenePoint)>, // scene_item usize, display_at
     scene_item_prepare_order: Option<SceneItemPrepareOrder>,
-}
-
-fn update_terrain_batch(
-    mut terrain_batch: graphics::spritebatch::SpriteBatch,
-    map: &Map,
-) -> graphics::spritebatch::SpriteBatch {
-    terrain_batch.clear();
-    for ((grid_x, grid_y), tile) in map.tiles.iter() {
-        // FIXME pre compute these data
-        let src_x = tile.tile_x as f32 * tile.relative_tile_width;
-        let src_y = tile.tile_y as f32 * tile.relative_tile_height;
-        let dest_x = *grid_x as f32 * tile.tile_width as f32;
-        let dest_y = *grid_y as f32 * tile.tile_height as f32;
-        terrain_batch.add(
-            graphics::DrawParam::new()
-                .src(graphics::Rect::new(
-                    src_x,
-                    src_y,
-                    tile.relative_tile_width,
-                    tile.relative_tile_height,
-                ))
-                .dest(ScenePoint::new(dest_x, dest_y)),
-        );
-    }
-
-    terrain_batch
 }
 
 impl MainState {
@@ -107,18 +96,14 @@ impl MainState {
         let ui_batch = graphics::spritebatch::SpriteBatch::new(ui_image);
 
         let terrain_image = graphics::Image::new(ctx, format!("/{}", map.terrain_image.source))?;
-        let mut terrain_batch = graphics::spritebatch::SpriteBatch::new(terrain_image);
-        terrain_batch = update_terrain_batch(terrain_batch, &map);
+        let mut debug_terrain_batch = graphics::spritebatch::SpriteBatch::new(terrain_image);
+        debug_terrain_batch = scene::util::update_terrain_batch(debug_terrain_batch, &map);
+        let debug_terrain_opacity_mesh_builder =
+            scene::util::create_debug_terrain_opacity_mesh_builder(&map)?;
 
         let mut scene_items = vec![];
         for x in 0..1 {
             for y in 0..4 {
-                // let current_behavior = if y % 2 == 0 {
-                //     ItemBehavior::WalkingTo(util::vec_from_angle(90.0))
-                // } else {
-                //     ItemBehavior::CrawlingTo()
-                // };
-
                 scene_items.push(SceneItem::new(
                     SceneItemType::Soldier,
                     ScenePoint::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
@@ -128,7 +113,7 @@ impl MainState {
             }
         }
 
-        let mut scene_items_by_grid_position: HashMap<GridPosition, Vec<usize>> = HashMap::new();
+        let mut scene_items_by_grid_position: HashMap<GridPoint, Vec<usize>> = HashMap::new();
         for (i, scene_item) in scene_items.iter().enumerate() {
             let grid_position = util::grid_position_from_scene_point(&scene_item.position, &map);
             scene_items_by_grid_position
@@ -137,17 +122,18 @@ impl MainState {
                 .push(i);
         }
 
-        let mut main_state = MainState {
+        let main_state = MainState {
             frame_i: 0,
             start: Instant::now(),
             map,
             debug: false,
-            debug_terrain: false,
+            debug_terrain: DebugTerrain::None,
             display_offset: Offset::new(0.0, 0.0),
             sprite_sheet_batch,
             map_batch,
             ui_batch,
-            terrain_batch,
+            debug_terrain_batch,
+            debug_terrain_opacity_mesh_builder,
             scene_items,
             scene_items_by_grid_position,
             physics_events: vec![],
@@ -219,7 +205,11 @@ impl MainState {
                 .as_millis()
                 > 250
             {
-                self.debug_terrain = !self.debug_terrain;
+                self.debug_terrain = match &self.debug_terrain {
+                    DebugTerrain::None => DebugTerrain::Tiles,
+                    DebugTerrain::Tiles => DebugTerrain::Opacity,
+                    DebugTerrain::Opacity => DebugTerrain::None,
+                };
                 self.last_key_consumed.insert(KeyCode::F10, Instant::now());
             }
         }
@@ -330,10 +320,33 @@ impl MainState {
             .extend(self.get_scene_items_for_scene_area(&scene_from, &scene_to));
     }
 
+    fn change_scene_item_grid_position(
+        &mut self,
+        scene_item_i: usize,
+        from_grid_position: GridPoint,
+        to_grid_position: GridPoint,
+    ) {
+        let grid_position_scene_items = self
+            .scene_items_by_grid_position
+            .get_mut(&from_grid_position)
+            .expect("Scene item should be here !");
+        let x = grid_position_scene_items
+            .iter()
+            .position(|x| *x == scene_item_i)
+            .expect("Scene item should be here !");
+        grid_position_scene_items.remove(x);
+        self.scene_items_by_grid_position
+            .entry(to_grid_position)
+            .or_default()
+            .push(scene_item_i)
+    }
+
     // TODO: manage errors
     fn physics(&mut self) {
+        let mut messages: Vec<Message> = vec![];
+
         // Scene items movements
-        for scene_item in self.scene_items.iter_mut() {
+        for (scene_item_i, scene_item) in self.scene_items.iter_mut().enumerate() {
             match scene_item.state.current_behavior {
                 ItemBehavior::Standing => {}
                 ItemBehavior::MoveTo(move_to_scene_point)
@@ -343,11 +356,29 @@ impl MainState {
                         .expect("must have velocity here");
                     let move_vector =
                         (move_to_scene_point - scene_item.position).normalize() * velocity;
-                    // TODO ici il faut calculer le déplacement réél (en fonction des ticks, etc ...)
-                    scene_item.position.x += move_vector.x;
-                    scene_item.position.y += move_vector.y;
-                    scene_item.grid_position =
+                    let new_position = ScenePoint::new(
+                        scene_item.position.x + move_vector.x,
+                        scene_item.position.y + move_vector.y,
+                    );
+                    messages.push(Message::SceneItemMessage(
+                        scene_item_i,
+                        SceneItemModifier::ChangePosition(new_position),
+                    ));
+                    let new_grid_position =
                         util::grid_position_from_scene_point(&scene_item.position, &self.map);
+                    if scene_item.grid_position != new_grid_position {
+                        messages.push(Message::MainStateMessage(
+                            MainStateModifier::ChangeSceneItemGridPosition(
+                                scene_item_i,
+                                scene_item.grid_position.clone(),
+                                new_grid_position.clone(),
+                            ),
+                        ));
+                        messages.push(Message::SceneItemMessage(
+                            scene_item_i,
+                            SceneItemModifier::ChangeGridPosition(new_grid_position.clone()),
+                        ));
+                    }
                 }
             }
         }
@@ -355,6 +386,32 @@ impl MainState {
         // (FAKE) Drop a bomb to motivate stop move
         if self.frame_i % 600 == 0 && self.frame_i != 0 {
             self.physics_events.push(PhysicEvent::Explosion);
+        }
+
+        self.consume_messages(messages);
+    }
+
+    fn consume_messages(&mut self, messages: Vec<Message>) {
+        for message in messages.into_iter() {
+            match message {
+                Message::SceneItemMessage(i, scene_item_modifier) => {
+                    let scene_item = self.get_scene_item_mut(i);
+                    apply_scene_item_modifier(scene_item, scene_item_modifier);
+                }
+                Message::MainStateMessage(main_state_modifier) => match main_state_modifier {
+                    MainStateModifier::ChangeSceneItemGridPosition(
+                        scene_item_i,
+                        from_grid_position,
+                        to_grid_position,
+                    ) => {
+                        self.change_scene_item_grid_position(
+                            scene_item_i,
+                            from_grid_position,
+                            to_grid_position,
+                        );
+                    }
+                },
+            }
         }
     }
 
@@ -372,9 +429,9 @@ impl MainState {
 
     fn animate(&mut self) {
         for (_, scene_item) in self.scene_items.iter_mut().enumerate() {
-            apply_scene_item_modifier(scene_item, digest_next_order(&scene_item));
-            apply_scene_item_modifier(scene_item, digest_current_order(&scene_item));
-            apply_scene_item_modifier(scene_item, digest_current_behavior(&scene_item));
+            apply_scene_item_modifiers(scene_item, digest_next_order(&scene_item));
+            apply_scene_item_modifiers(scene_item, digest_current_order(&scene_item));
+            apply_scene_item_modifiers(scene_item, digest_current_behavior(&scene_item));
         }
     }
 
@@ -640,8 +697,12 @@ impl event::EventHandler for MainState {
         ));
 
         graphics::draw(ctx, &self.map_batch, window_draw_param)?;
-        if self.debug_terrain {
-            graphics::draw(ctx, &self.terrain_batch, window_draw_param)?;
+        if self.debug_terrain == DebugTerrain::Tiles {
+            graphics::draw(ctx, &self.debug_terrain_batch, window_draw_param)?;
+        } else if self.debug_terrain == DebugTerrain::Opacity {
+            let debug_terrain_opacity_mesh =
+                self.debug_terrain_opacity_mesh_builder.build(ctx).unwrap();
+            graphics::draw(ctx, &debug_terrain_opacity_mesh, window_draw_param)?;
         }
         graphics::draw(ctx, &self.sprite_sheet_batch, window_draw_param)?;
         if let Ok(scene_mesh) = scene_mesh_builder.build(ctx) {

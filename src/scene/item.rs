@@ -4,7 +4,7 @@ use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH};
 use crate::map::Map;
-use crate::physics::GridPosition;
+use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent};
 use crate::scene::SpriteType;
 use crate::{Offset, ScenePoint};
@@ -61,7 +61,7 @@ pub enum SceneItemType {
 pub struct SceneItem {
     pub type_: SceneItemType,
     pub position: ScenePoint,
-    pub grid_position: GridPosition,
+    pub grid_position: GridPoint,
     pub state: ItemState,
     pub meta_events: Vec<MetaEvent>,
     pub current_frame: f32,
@@ -127,22 +127,34 @@ pub enum SceneItemModifier {
     SwitchToNextOrder,
     ChangeDisplayAngle(f32),
     ChangeState(ItemState),
+    ChangePosition(ScenePoint),
+    ChangeGridPosition(GridPoint),
 }
 
-pub fn apply_scene_item_modifier(scene_item: &mut SceneItem, modifiers: Vec<SceneItemModifier>) {
-    for modifier in modifiers {
-        match modifier {
-            SceneItemModifier::SwitchToNextOrder => {
-                let next_order = scene_item.next_order.clone();
-                scene_item.current_order = next_order;
-                scene_item.next_order = None;
-            }
-            SceneItemModifier::ChangeDisplayAngle(new_angle) => {
-                scene_item.display_angle = new_angle;
-            }
-            SceneItemModifier::ChangeState(new_state) => {
-                scene_item.state = new_state;
-            }
+pub fn apply_scene_item_modifiers(scene_item: &mut SceneItem, modifiers: Vec<SceneItemModifier>) {
+    for modifier in modifiers.into_iter() {
+        apply_scene_item_modifier(scene_item, modifier)
+    }
+}
+
+pub fn apply_scene_item_modifier(scene_item: &mut SceneItem, modifier: SceneItemModifier) {
+    match modifier {
+        SceneItemModifier::SwitchToNextOrder => {
+            let next_order = scene_item.next_order.clone();
+            scene_item.current_order = next_order;
+            scene_item.next_order = None;
+        }
+        SceneItemModifier::ChangeDisplayAngle(new_angle) => {
+            scene_item.display_angle = new_angle;
+        }
+        SceneItemModifier::ChangeState(new_state) => {
+            scene_item.state = new_state;
+        }
+        SceneItemModifier::ChangePosition(new_point) => {
+            scene_item.position = new_point;
+        }
+        SceneItemModifier::ChangeGridPosition(new_grid_point) => {
+            scene_item.grid_position = new_grid_point;
         }
     }
 }

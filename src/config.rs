@@ -22,10 +22,6 @@ pub const SCENE_ITEMS_SPRITE_SHEET_HEIGHT: f32 = 600.0;
 pub const UI_SPRITE_SHEET_WIDTH: f32 = 800.0;
 // Height of sprite sheet
 pub const UI_SPRITE_SHEET_HEIGHT: f32 = 600.0;
-// Width of one grid tile
-pub const GRID_TILE_WIDTH: f32 = 5.0;
-// Height of one grid tile
-pub const GRID_TILE_HEIGHT: f32 = 5.0;
 //
 pub const DEFAULT_SELECTED_SQUARE_SIDE: f32 = 14.0;
 //
