@@ -17,6 +17,7 @@ use crate::map::util::{
     extract_objects, extract_tileset, extract_tileset_images, extract_tilesets_containing_gids,
     get_tileset_i_for_gid,
 };
+use crate::physics::GridPoint;
 
 pub mod decor;
 pub mod terrain;
@@ -148,5 +149,36 @@ impl Map {
             terrain,
             decor,
         })
+    }
+
+    pub fn successors(&self, from: &GridPoint) -> Vec<(GridPoint, i32)> {
+        let mut successors = vec![];
+
+        for (mod_x, mod_y) in [
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+            (-1, 0),
+            (0, 0),
+            (1, 0),
+            (-1, 1),
+            (0, 1),
+            (1, 1),
+        ]
+        .iter()
+        {
+            let new_x = from.x + mod_x;
+            let new_y = from.y + mod_y;
+
+            if new_x < 0 || new_y < 0 {
+                continue;
+            }
+
+            if let Some(next_tile) = self.terrain.tiles.get(&(new_x as u32, new_y as u32)) {
+                successors.push((GridPoint::new(new_x, new_y), next_tile.pedestrian_cost))
+            }
+        }
+
+        successors
     }
 }

@@ -22,6 +22,7 @@ pub struct TerrainTile {
     pub tile_x: u32,
     pub tile_y: u32,
     pub opacity: f32,
+    pub pedestrian_cost: i32,
 }
 
 impl TerrainTile {
@@ -44,6 +45,7 @@ impl TerrainTile {
                 relative_tile_height,
                 tile_x,
                 tile_y,
+                pedestrian_cost: 10,
             },
             "MiddleGrass" => Self {
                 id: TerrainTileId::MiddleGrass,
@@ -54,6 +56,7 @@ impl TerrainTile {
                 relative_tile_height,
                 tile_x,
                 tile_y,
+                pedestrian_cost: 10,
             },
             "HighGrass" => Self {
                 id: TerrainTileId::HighGrass,
@@ -64,6 +67,7 @@ impl TerrainTile {
                 relative_tile_height,
                 tile_x,
                 tile_y,
+                pedestrian_cost: 11,
             },
             "Dirt" => Self {
                 id: TerrainTileId::Dirt,
@@ -74,6 +78,7 @@ impl TerrainTile {
                 relative_tile_height,
                 tile_x,
                 tile_y,
+                pedestrian_cost: 10,
             },
             "Mud" => Self {
                 id: TerrainTileId::Mud,
@@ -84,6 +89,7 @@ impl TerrainTile {
                 relative_tile_height,
                 tile_x,
                 tile_y,
+                pedestrian_cost: 11,
             },
             "Concrete" => Self {
                 id: TerrainTileId::Concrete,
@@ -94,6 +100,7 @@ impl TerrainTile {
                 relative_tile_height,
                 tile_x,
                 tile_y,
+                pedestrian_cost: 10,
             },
             "BrickWall" => Self {
                 id: TerrainTileId::BrickWall,
@@ -104,6 +111,7 @@ impl TerrainTile {
                 relative_tile_height,
                 tile_x,
                 tile_y,
+                pedestrian_cost: 50,
             },
             &_ => {
                 // FIXME BS NOW: manage errors

@@ -4,7 +4,7 @@ use std::path::Path;
 use std::time::Instant;
 
 use ggez::event::MouseButton;
-use ggez::graphics::{DrawMode, MeshBuilder, StrokeOptions};
+use ggez::graphics::{Color, DrawMode, MeshBuilder, StrokeOptions, WHITE};
 use ggez::input::keyboard::KeyCode;
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
@@ -19,8 +19,9 @@ use crate::config::{
 };
 use crate::map::util::extract_image_from_tileset;
 use crate::map::Map;
-use crate::physics::util::scene_point_from_window_point;
-use crate::physics::util::window_point_from_scene_point;
+use crate::physics::path::find_path;
+use crate::physics::util::{grid_point_from_scene_point, scene_point_from_window_point};
+use crate::physics::util::{scene_point_from_grid_point, window_point_from_scene_point};
 use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent, PhysicEvent};
 use crate::scene::item::{
@@ -77,11 +78,13 @@ pub struct MainState {
     last_key_consumed: HashMap<KeyCode, Instant>,
     left_click_down: Option<WindowPoint>,
     right_click_down: Option<WindowPoint>,
-    current_cursor_position: WindowPoint,
+    current_cursor_point: WindowPoint,
+    current_cursor_grid_point: GridPoint,
     user_events: Vec<UserEvent>,
     selected_scene_items: Vec<usize>,             // scene_item usize
     scene_item_menu: Option<(usize, ScenePoint)>, // scene_item usize, display_at
     scene_item_prepare_order: Option<SceneItemPrepareOrder>,
+    current_prepare_move_found_paths: HashMap<SceneItemId, Vec<GridPoint>>,
 }
 
 impl MainState {
@@ -136,7 +139,7 @@ impl MainState {
 
         let mut scene_items_by_grid_position: HashMap<GridPoint, Vec<usize>> = HashMap::new();
         for (i, scene_item) in scene_items.iter().enumerate() {
-            let grid_position = util::grid_position_from_scene_point(&scene_item.position, &map);
+            let grid_position = util::grid_point_from_scene_point(&scene_item.position, &map);
             scene_items_by_grid_position
                 .entry(grid_position)
                 .or_default()
@@ -164,11 +167,13 @@ impl MainState {
             last_key_consumed: HashMap::new(),
             left_click_down: None,
             right_click_down: None,
-            current_cursor_position: WindowPoint::new(0.0, 0.0),
+            current_cursor_point: WindowPoint::new(0.0, 0.0),
+            current_cursor_grid_point: GridPoint::new(0, 0),
             user_events: vec![],
             selected_scene_items: vec![],
             scene_item_menu: None,
             scene_item_prepare_order: None,
+            current_prepare_move_found_paths: HashMap::new(),
         };
 
         Ok(main_state)
@@ -259,6 +264,27 @@ impl MainState {
                 }
                 UserEvent::RightClick(window_right_click_point) => {
                     self.digest_right_click(window_right_click_point)
+                }
+                UserEvent::CursorMove(window_cursor_point) => {
+                    if let Some(SceneItemPrepareOrder::Move(_))
+                    | Some(SceneItemPrepareOrder::MoveFast(_))
+                    | Some(SceneItemPrepareOrder::Hide(_)) = &self.scene_item_prepare_order
+                    {
+                        for scene_item_i in self.selected_scene_items.iter() {
+                            if let None = self.current_prepare_move_found_paths.get(scene_item_i) {
+                                let scene_item = self.get_scene_item(*scene_item_i);
+                                self.current_prepare_move_found_paths.insert(
+                                    *scene_item_i,
+                                    find_path(
+                                        &self.map,
+                                        &scene_item.grid_position,
+                                        &self.current_cursor_grid_point,
+                                    )
+                                    .unwrap_or(vec![]),
+                                );
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -402,7 +428,7 @@ impl MainState {
                         SceneItemModifier::ChangePosition(new_position),
                     ));
                     let new_grid_position =
-                        util::grid_position_from_scene_point(&scene_item.position, &self.map);
+                        util::grid_point_from_scene_point(&scene_item.position, &self.map);
                     if scene_item.grid_position != new_grid_position {
                         messages.push(Message::MainStateMessage(
                             MainStateModifier::ChangeSceneItemGridPosition(
@@ -525,7 +551,7 @@ impl MainState {
     fn generate_scene_item_menu_sprites(&mut self) -> GameResult {
         if let Some((_, scene_point)) = self.scene_item_menu {
             for draw_param in vertical_menu_sprite_info(UiComponent::SceneItemMenu)
-                .as_draw_params(&scene_point, &self.current_cursor_position)
+                .as_draw_params(&scene_point, &self.current_cursor_point)
             {
                 self.ui_batch.add(draw_param);
             }
@@ -600,7 +626,7 @@ impl MainState {
             // Draw circle at cursor position
             mesh_builder.circle(
                 DrawMode::fill(),
-                scene_point_from_window_point(&self.current_cursor_position, &self.display_offset),
+                scene_point_from_window_point(&self.current_cursor_point, &self.display_offset),
                 2.0,
                 2.0,
                 graphics::BLUE,
@@ -639,7 +665,7 @@ impl MainState {
             let scene_left_click_down_point =
                 scene_point_from_window_point(&window_left_click_down_point, &self.display_offset);
             let scene_current_cursor_position =
-                scene_point_from_window_point(&self.current_cursor_position, &self.display_offset);
+                scene_point_from_window_point(&self.current_cursor_point, &self.display_offset);
             if scene_left_click_down_point != scene_current_cursor_position {
                 mesh_builder.rectangle(
                     DrawMode::stroke(1.0),
@@ -677,7 +703,7 @@ impl MainState {
                         &vec![
                             scene_item.position.clone(),
                             scene_point_from_window_point(
-                                &self.current_cursor_position,
+                                &self.current_cursor_point,
                                 &self.display_offset,
                             ),
                         ],
@@ -686,6 +712,29 @@ impl MainState {
                     )?;
                 }
             }
+        }
+
+        for (scene_item_i, path) in self.current_prepare_move_found_paths.iter() {
+            let scene_item = self.get_scene_item(*scene_item_i);
+            let mut points = vec![scene_item.position];
+            for scene_grid_point in path.iter() {
+                points.push(window_point_from_scene_point(
+                    &scene_point_from_grid_point(scene_grid_point, &self.map),
+                    &self.display_offset,
+                ))
+            }
+            points.push(self.current_cursor_point);
+
+            mesh_builder.line(
+                &points,
+                1.0,
+                Color {
+                    r: 1.0,
+                    g: 1.0,
+                    b: 1.0,
+                    a: 0.3,
+                },
+            )?;
         }
 
         GameResult::Ok(mesh_builder)
@@ -847,6 +896,21 @@ impl event::EventHandler for MainState {
     }
 
     fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
-        self.current_cursor_position = WindowPoint::new(x, y);
+        let new_current_cursor_position = WindowPoint::new(x, y);
+        let new_current_grid_cursor_position = grid_point_from_scene_point(
+            &scene_point_from_window_point(&new_current_cursor_position, &self.display_offset),
+            &self.map,
+        );
+
+        if self.current_cursor_point != new_current_cursor_position {
+            self.user_events
+                .push(UserEvent::CursorMove(new_current_cursor_position));
+            self.current_cursor_point = new_current_cursor_position;
+        };
+
+        if self.current_cursor_grid_point != new_current_grid_cursor_position {
+            self.current_cursor_grid_point = new_current_grid_cursor_position;
+            self.current_prepare_move_found_paths = HashMap::new();
+        };
     }
 }

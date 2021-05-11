@@ -12,6 +12,7 @@ pub enum UiComponent {
 
 #[derive(Debug)]
 pub enum UserEvent {
+    CursorMove(WindowPoint),
     Click(WindowPoint),
     RightClick(WindowPoint),
     AreaSelection(WindowPoint, WindowPoint),

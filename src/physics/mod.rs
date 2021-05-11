@@ -1,3 +1,4 @@
+pub mod path;
 pub mod util;
 
 #[derive(Debug)]
@@ -10,10 +11,10 @@ pub enum MetaEvent {
     FeelExplosion,
 }
 
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub struct GridPoint {
-    x: i32,
-    y: i32,
+    pub x: i32,
+    pub y: i32,
 }
 
 impl GridPoint {

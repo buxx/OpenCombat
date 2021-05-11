@@ -2,10 +2,17 @@ use crate::map::Map;
 use crate::physics::GridPoint;
 use crate::{ScenePoint, WindowPoint};
 
-pub fn grid_position_from_scene_point(position: &ScenePoint, map: &Map) -> GridPoint {
+pub fn grid_point_from_scene_point(position: &ScenePoint, map: &Map) -> GridPoint {
     GridPoint::new(
         (position.x / map.terrain.tileset.tile_width as f32) as i32,
         (position.y / map.terrain.tileset.tile_height as f32) as i32,
+    )
+}
+
+pub fn scene_point_from_grid_point(grid_point: &GridPoint, map: &Map) -> ScenePoint {
+    ScenePoint::new(
+        grid_point.x as f32 * map.terrain.tileset.tile_width as f32,
+        grid_point.y as f32 * map.terrain.tileset.tile_height as f32,
     )
 }
 

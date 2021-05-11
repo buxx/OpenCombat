@@ -75,7 +75,7 @@ impl SceneItem {
         Self {
             type_,
             position: position.clone(),
-            grid_position: util::grid_position_from_scene_point(&position.clone(), map),
+            grid_position: util::grid_point_from_scene_point(&position.clone(), map),
             state,
             meta_events: vec![],
             current_frame: 0.0,
