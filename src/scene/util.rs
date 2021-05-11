@@ -69,14 +69,13 @@ pub fn update_decor_batches(
             .get_mut(tile.tileset_i)
             .expect("Batch must be here");
 
-        // FIXME pre compute these data ?
+        // Tiled draw from bottom left but we draw from top left, so compute a decal
+        let dest_decal = tile.tile_height as f32 - map.terrain.tileset.tile_height as f32;
         let src_x = tile.tile_x as f32 * tile.relative_tile_width;
         let src_y = tile.tile_y as f32 * tile.relative_tile_height;
         // Destination computation refer to terrain grid (map.terrain.tileset)
         let dest_x = *grid_x as f32 * map.terrain.tileset.tile_width as f32;
-        let dest_y = (*grid_y as f32 * map.terrain.tileset.tile_height as f32)
-            - (tile.tile_height as f32)
-            + map.terrain.tileset.tile_height as f32;
+        let dest_y = (*grid_y as f32 * map.terrain.tileset.tile_height as f32) - dest_decal;
 
         decor_batch.add(
             graphics::DrawParam::new()
