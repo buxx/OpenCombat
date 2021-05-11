@@ -1,7 +1,9 @@
 use core::option::Option::{None, Some};
 use ggez::error::{GameError, GameResult};
 use ggez::GameError::GamepadError;
-use tiled::{Image as TiledImage, Layer, LayerData, Map as TiledMap, Tile as TiledTile, Tileset};
+use tiled::{
+    Image as TiledImage, Layer, LayerData, Map as TiledMap, ObjectGroup, Tile as TiledTile, Tileset,
+};
 
 pub fn extract_image_from_image_layer(
     tiled_map: &TiledMap,
@@ -20,7 +22,7 @@ pub fn extract_image_from_image_layer(
     }
 
     return GameResult::Err(GameError::ResourceLoadError(format!(
-        "Image layer {} not found in map ",
+        "Image layer {} not found in map",
         layer_name
     )));
 }
@@ -47,11 +49,30 @@ pub fn extract_tileset(tiled_map: &TiledMap, tileset_name: &str) -> GameResult<T
     {
         None => {
             return GameResult::Err(GameError::ResourceLoadError(format!(
-                "No tileset {} found in map ",
+                "No tileset {} found in map",
                 tileset_name
             )))
         }
         Some(tileset) => GameResult::Ok(tileset.clone()),
+    }
+}
+
+pub fn extract_objects(tiled_map: &TiledMap, objects_name: &str) -> GameResult<ObjectGroup> {
+    match tiled_map
+        .object_groups
+        .clone()
+        .into_iter()
+        .filter(|g| g.name == objects_name)
+        .collect::<Vec<ObjectGroup>>()
+        .first()
+    {
+        None => {
+            return GameResult::Err(GameError::ResourceLoadError(format!(
+                "No objects {} found in map",
+                objects_name
+            )))
+        }
+        Some(object_groups) => GameResult::Ok(object_groups.clone()),
     }
 }
 

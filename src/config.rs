@@ -4,10 +4,12 @@ pub const TARGET_FPS: u32 = 60;
 pub const META_EACH: u32 = 20;
 // execute physics code each 10 frames
 pub const PHYSICS_EACH: u32 = 10;
-// execute animate code each 30 frames
+// execute animate code each 60 frames
 pub const ANIMATE_EACH: u32 = 60;
-// change sprite animation tile 30 frames
+// change sprite animation tile each 10 frames
 pub const SPRITE_EACH: u32 = 10;
+// compute interior sprites each 60 frames
+pub const INTERIORS_EACH: u32 = 60;
 // max of frame_i used to calculate ticks
 pub const MAX_FRAME_I: u32 = 4294967295;
 // pixel offset by tick when player move screen display

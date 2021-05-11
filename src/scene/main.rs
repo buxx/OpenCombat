@@ -14,8 +14,8 @@ use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
     ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, MAX_FRAME_I, META_EACH, PHYSICS_EACH,
-    SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
+    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I, META_EACH,
+    PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
 };
 use crate::map::util::extract_image_from_tileset;
 use crate::map::Map;
@@ -27,7 +27,7 @@ use crate::scene::item::{
     apply_scene_item_modifier, apply_scene_item_modifiers, ItemState, SceneItem, SceneItemModifier,
     SceneItemType,
 };
-use crate::scene::util::update_decor_batches;
+use crate::scene::util::{update_background_batch, update_decor_batches};
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::MenuItem;
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
@@ -59,7 +59,8 @@ pub struct MainState {
     hide_decor: bool,
     display_offset: Offset,
     sprite_sheet_batch: graphics::spritebatch::SpriteBatch,
-    map_batch: graphics::spritebatch::SpriteBatch,
+    background_batch: graphics::spritebatch::SpriteBatch,
+    interiors_batch: graphics::spritebatch::SpriteBatch,
     ui_batch: graphics::spritebatch::SpriteBatch,
     debug_terrain_batch: graphics::spritebatch::SpriteBatch,
     debug_terrain_opacity_mesh_builder: MeshBuilder,
@@ -90,11 +91,18 @@ impl MainState {
         let sprite_sheet_image = graphics::Image::new(ctx, "/sprite_sheet.png")?;
         let sprite_sheet_batch = graphics::spritebatch::SpriteBatch::new(sprite_sheet_image);
 
-        let map_image = graphics::Image::new(
+        let background_image = graphics::Image::new(
             ctx,
             &Path::new(&format!("/{}", &map.background_image.source)),
         )?;
-        let map_batch = graphics::spritebatch::SpriteBatch::new(map_image);
+        let mut background_batch = graphics::spritebatch::SpriteBatch::new(background_image);
+        update_background_batch(&mut background_batch);
+
+        let interiors_image = graphics::Image::new(
+            ctx,
+            &Path::new(&format!("/{}", &map.interiors_image.source)),
+        )?;
+        let interiors_batch = graphics::spritebatch::SpriteBatch::new(interiors_image);
 
         let ui_image = graphics::Image::new(ctx, "/ui.png")?;
         let ui_batch = graphics::spritebatch::SpriteBatch::new(ui_image);
@@ -144,7 +152,8 @@ impl MainState {
             hide_decor: false,
             display_offset: Offset::new(0.0, 0.0),
             sprite_sheet_batch,
-            map_batch,
+            background_batch,
+            interiors_batch,
             ui_batch,
             debug_terrain_batch,
             debug_terrain_opacity_mesh_builder,
@@ -525,12 +534,34 @@ impl MainState {
         Ok(())
     }
 
-    fn generate_map_sprites(&mut self) -> GameResult {
-        self.map_batch.add(
-            graphics::DrawParam::new()
-                .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
-                .dest(ScenePoint::new(0.0, 0.0)),
-        );
+    fn update_interior_sprites(&mut self) -> GameResult {
+        self.interiors_batch.clear();
+        for interior in self.map.interiors_objects.objects.iter() {
+            let start_x = interior.x;
+            let start_y = interior.y;
+            let end_x = start_x + interior.width;
+            let end_y = start_y + interior.height;
+
+            for scene_item in self.scene_items.iter() {
+                if scene_item.position.x >= start_x
+                    && scene_item.position.x <= end_x
+                    && scene_item.position.y >= start_y
+                    && scene_item.position.y <= end_y
+                {
+                    self.interiors_batch.add(
+                        graphics::DrawParam::new()
+                            .src(graphics::Rect::new(
+                                start_x / self.map.interiors_image.width as f32,
+                                start_y / self.map.interiors_image.height as f32,
+                                interior.width / self.map.interiors_image.width as f32,
+                                interior.height / self.map.interiors_image.height as f32,
+                            ))
+                            .dest(ScenePoint::new(start_x, start_y)),
+                    );
+                    continue;
+                }
+            }
+        }
 
         Ok(())
     }
@@ -672,6 +703,7 @@ impl event::EventHandler for MainState {
             let tick_animate = self.frame_i % ANIMATE_EACH == 0;
             let tick_physics = self.frame_i % PHYSICS_EACH == 0;
             let tick_meta = self.frame_i % META_EACH == 0;
+            let tick_interiors = self.frame_i % INTERIORS_EACH == 0;
 
             // Apply moves, explosions, etc
             if tick_physics {
@@ -693,6 +725,11 @@ impl event::EventHandler for MainState {
                 self.tick_sprites();
             }
 
+            // Compute interiors sprites
+            if tick_interiors {
+                self.update_interior_sprites()?;
+            }
+
             // Increment frame counter
             self.frame_i += 1;
             if self.frame_i >= MAX_FRAME_I {
@@ -712,7 +749,6 @@ impl event::EventHandler for MainState {
 
         self.generate_scene_item_sprites()?;
         self.generate_scene_item_menu_sprites()?;
-        self.generate_map_sprites()?;
 
         scene_mesh_builder = self.update_mesh_builder_with_debug(scene_mesh_builder)?;
         scene_mesh_builder = self.update_mesh_builder_with_selected_items(scene_mesh_builder)?;
@@ -725,7 +761,10 @@ impl event::EventHandler for MainState {
         ));
 
         // Draw map background
-        graphics::draw(ctx, &self.map_batch, window_draw_param)?;
+        graphics::draw(ctx, &self.background_batch, window_draw_param)?;
+
+        // Draw interiors
+        graphics::draw(ctx, &self.interiors_batch, window_draw_param)?;
 
         // Draw terrain debug
         if self.debug_terrain == DebugTerrain::Tiles {
@@ -755,7 +794,6 @@ impl event::EventHandler for MainState {
         graphics::draw(ctx, &self.ui_batch, window_draw_param)?;
 
         self.sprite_sheet_batch.clear();
-        self.map_batch.clear();
         self.ui_batch.clear();
 
         graphics::present(ctx)?;

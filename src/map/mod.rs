@@ -7,14 +7,14 @@ use ggez::GameError;
 use ggez::GameResult;
 use tiled::{
     parse_with_path, Image as TiledImage, Image, ImageLayer, Layer, LayerData, Map as TiledMap,
-    Orientation, PropertyValue, Tileset,
+    ObjectGroup, Orientation, PropertyValue, Tileset,
 };
 
 use crate::map::decor::{Decor, DecorTile};
 use crate::map::terrain::{Terrain, TerrainTile};
 use crate::map::util::{
     extract_gids, extract_image_from_image_layer, extract_image_from_tileset, extract_layer,
-    extract_tileset, extract_tileset_images, extract_tilesets_containing_gids,
+    extract_objects, extract_tileset, extract_tileset_images, extract_tilesets_containing_gids,
     get_tileset_i_for_gid,
 };
 
@@ -25,6 +25,8 @@ pub mod util;
 pub struct Map {
     pub tiled_map: TiledMap,
     pub background_image: TiledImage,
+    pub interiors_objects: ObjectGroup,
+    pub interiors_image: TiledImage,
     pub terrain: Terrain,
     pub decor: Decor,
 }
@@ -49,10 +51,10 @@ impl Map {
             ));
         }
 
-        // Background and roofs
+        // Background and interiors
         let background_image = extract_image_from_image_layer(&tiled_map, "background")?;
-        let roofs_image = extract_image_from_image_layer(&tiled_map, "roofs")?;
-        // let roofs_layer = ...
+        let interiors_objects = extract_objects(&tiled_map, "interiors")?;
+        let interiors_image = extract_image_from_image_layer(&tiled_map, "interiors")?;
 
         // Terrain
         let terrain_tileset: Tileset = extract_tileset(&tiled_map, "terrain")?;
@@ -141,6 +143,8 @@ impl Map {
         GameResult::Ok(Map {
             tiled_map: tiled_map.clone(),
             background_image: background_image.clone(),
+            interiors_objects,
+            interiors_image,
             terrain,
             decor,
         })

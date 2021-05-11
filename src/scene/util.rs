@@ -89,3 +89,11 @@ pub fn update_decor_batches(
         );
     }
 }
+
+pub fn update_background_batch(background_batch: &mut graphics::spritebatch::SpriteBatch) {
+    background_batch.add(
+        graphics::DrawParam::new()
+            .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
+            .dest(ScenePoint::new(0.0, 0.0)),
+    );
+}
