@@ -336,17 +336,16 @@ impl MainState {
 
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             match scene_item_prepare_order {
-                SceneItemPrepareOrder::Move(scene_item_usize) => {
+                SceneItemPrepareOrder::Move(scene_item_usize)
+                | SceneItemPrepareOrder::MoveFast(scene_item_usize)
+                | SceneItemPrepareOrder::Hide(scene_item_usize) => {
+                    let order = match scene_item_prepare_order {
+                        SceneItemPrepareOrder::Move(_) => Order::MoveTo(scene_click_point),
+                        SceneItemPrepareOrder::MoveFast(_) => Order::MoveFastTo(scene_click_point),
+                        SceneItemPrepareOrder::Hide(_) => Order::HideTo(scene_click_point),
+                    };
                     let mut scene_item = self.get_scene_item_mut(*scene_item_usize);
-                    scene_item.next_order = Some(Order::MoveTo(scene_click_point));
-                }
-                SceneItemPrepareOrder::MoveFast(scene_item_usize) => {
-                    let mut scene_item = self.get_scene_item_mut(*scene_item_usize);
-                    scene_item.next_order = Some(Order::MoveFastTo(scene_click_point));
-                }
-                SceneItemPrepareOrder::Hide(scene_item_usize) => {
-                    let mut scene_item = self.get_scene_item_mut(*scene_item_usize);
-                    scene_item.next_order = Some(Order::HideTo(scene_click_point));
+                    scene_item.next_order = Some(order);
                 }
             }
 

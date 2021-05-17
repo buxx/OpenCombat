@@ -3,6 +3,7 @@ pub mod order;
 
 use crate::ScenePoint;
 
+#[derive(PartialEq)]
 pub enum ItemBehavior {
     Standing, // since
     HideTo(ScenePoint),

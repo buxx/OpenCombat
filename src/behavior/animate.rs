@@ -29,22 +29,25 @@ pub fn digest_current_order(scene_item: &SceneItem) -> Vec<SceneItemModifier> {
     if let Some(current_order) = &scene_item.current_order {
         match current_order {
             Order::MoveTo(move_to_scene_point) => {
-                // FIXME BS NOW: Change order only if it is not the current order
-                scene_item_modifiers.push(SceneItemModifier::ChangeState(ItemState::new(
-                    ItemBehavior::MoveTo(*move_to_scene_point),
-                )))
+                let behavior = ItemBehavior::MoveTo(*move_to_scene_point);
+                if scene_item.state.current_behavior != behavior {
+                    scene_item_modifiers
+                        .push(SceneItemModifier::ChangeState(ItemState::new(behavior)))
+                }
             }
             Order::MoveFastTo(move_to_scene_point) => {
-                // FIXME BS NOW: Change order only if it is not the current order
-                scene_item_modifiers.push(SceneItemModifier::ChangeState(ItemState::new(
-                    ItemBehavior::MoveFastTo(*move_to_scene_point),
-                )))
+                let behavior = ItemBehavior::MoveFastTo(*move_to_scene_point);
+                if scene_item.state.current_behavior != behavior {
+                    scene_item_modifiers
+                        .push(SceneItemModifier::ChangeState(ItemState::new(behavior)))
+                }
             }
             Order::HideTo(move_to_scene_point) => {
-                // FIXME BS NOW: Change order only if it is not the current order
-                scene_item_modifiers.push(SceneItemModifier::ChangeState(ItemState::new(
-                    ItemBehavior::HideTo(*move_to_scene_point),
-                )))
+                let behavior = ItemBehavior::HideTo(*move_to_scene_point);
+                if scene_item.state.current_behavior != behavior {
+                    scene_item_modifiers
+                        .push(SceneItemModifier::ChangeState(ItemState::new(behavior)))
+                }
             }
         }
     }
