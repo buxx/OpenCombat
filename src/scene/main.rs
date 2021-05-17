@@ -747,21 +747,21 @@ impl MainState {
             let scene_item = self.get_scene_item(*scene_item_i);
             let mut points = vec![scene_item.position];
             for scene_grid_point in path.iter() {
-                points.push(window_point_from_scene_point(
-                    &scene_point_from_grid_point(scene_grid_point, &self.map),
-                    &self.display_offset,
-                ))
+                points.push(scene_point_from_grid_point(scene_grid_point, &self.map))
             }
-            points.push(self.current_cursor_point);
+            points.push(scene_point_from_window_point(
+                &self.current_cursor_point,
+                &self.display_offset,
+            ));
 
             mesh_builder.line(
                 &points,
-                1.0,
+                2.0,
                 Color {
                     r: 1.0,
                     g: 1.0,
                     b: 1.0,
-                    a: 0.3,
+                    a: 0.2,
                 },
             )?;
         }
