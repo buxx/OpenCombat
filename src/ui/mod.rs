@@ -1,4 +1,5 @@
 use crate::WindowPoint;
+use std::time::Duration;
 
 pub mod vertical_menu;
 
@@ -10,13 +11,17 @@ pub enum UiComponent {
     SceneItemMenu,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum UserEvent {
     CursorMove(WindowPoint),
     Click(WindowPoint),
     RightClick(WindowPoint),
     AreaSelection(WindowPoint, WindowPoint),
+    DrawMovePaths,
 }
+
+#[derive(Debug, PartialEq)]
+pub struct CursorImmobile(pub Duration, pub UserEvent);
 
 pub enum SceneItemPrepareOrder {
     Move(usize),     // scene_item usize

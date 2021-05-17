@@ -1,7 +1,7 @@
 use std::cmp;
 use std::collections::HashMap;
 use std::path::Path;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use ggez::event::MouseButton;
 use ggez::graphics::{Color, DrawMode, MeshBuilder, StrokeOptions, WHITE};
@@ -30,10 +30,11 @@ use crate::scene::item::{
 };
 use crate::scene::util::{update_background_batch, update_decor_batches};
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
-use crate::ui::MenuItem;
+use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
 use crate::util::velocity_for_behavior;
 use crate::{scene, Message, Offset, SceneItemId, ScenePoint, WindowPoint};
+use std::ops::Index;
 
 #[derive(PartialEq)]
 enum DebugTerrain {
@@ -80,6 +81,8 @@ pub struct MainState {
     right_click_down: Option<WindowPoint>,
     current_cursor_point: WindowPoint,
     current_cursor_grid_point: GridPoint,
+    cursor_on_same_grid_point_since: Instant,
+    waiting_cursor: Vec<CursorImmobile>,
     user_events: Vec<UserEvent>,
     selected_scene_items: Vec<usize>,             // scene_item usize
     scene_item_menu: Option<(usize, ScenePoint)>, // scene_item usize, display_at
@@ -169,6 +172,8 @@ impl MainState {
             right_click_down: None,
             current_cursor_point: WindowPoint::new(0.0, 0.0),
             current_cursor_grid_point: GridPoint::new(0, 0),
+            cursor_on_same_grid_point_since: Instant::now(),
+            waiting_cursor: vec![],
             user_events: vec![],
             selected_scene_items: vec![],
             scene_item_menu: None,
@@ -265,7 +270,7 @@ impl MainState {
                 UserEvent::RightClick(window_right_click_point) => {
                     self.digest_right_click(window_right_click_point)
                 }
-                UserEvent::CursorMove(window_cursor_point) => {
+                UserEvent::DrawMovePaths => {
                     if let Some(SceneItemPrepareOrder::Move(_))
                     | Some(SceneItemPrepareOrder::MoveFast(_))
                     | Some(SceneItemPrepareOrder::Hide(_)) = &self.scene_item_prepare_order
@@ -286,8 +291,32 @@ impl MainState {
                         }
                     }
                 }
+                UserEvent::CursorMove(_) => {
+                    if let Some(SceneItemPrepareOrder::Move(_))
+                    | Some(SceneItemPrepareOrder::MoveFast(_))
+                    | Some(SceneItemPrepareOrder::Hide(_)) = &self.scene_item_prepare_order
+                    {
+                        let waiting_cursor_not_move =
+                            CursorImmobile(Duration::from_millis(250), UserEvent::DrawMovePaths);
+                        if !self.waiting_cursor.contains(&waiting_cursor_not_move) {
+                            self.waiting_cursor.push(waiting_cursor_not_move);
+                        }
+                    }
+                }
             }
         }
+
+        // Check waiting cursor immobile instructions
+        let cursor_immobile_since = self.cursor_on_same_grid_point_since.elapsed();
+        let mut re_push: Vec<CursorImmobile> = vec![];
+        while let Some(waiting_cursor) = self.waiting_cursor.pop() {
+            if cursor_immobile_since >= waiting_cursor.0 {
+                self.user_events.push(waiting_cursor.1.clone());
+            } else {
+                re_push.push(waiting_cursor)
+            }
+        }
+        self.waiting_cursor.extend(re_push);
     }
 
     fn digest_click(&mut self, window_click_point: WindowPoint) {
@@ -911,6 +940,9 @@ impl event::EventHandler for MainState {
         if self.current_cursor_grid_point != new_current_grid_cursor_position {
             self.current_cursor_grid_point = new_current_grid_cursor_position;
             self.current_prepare_move_found_paths = HashMap::new();
-        };
+            self.cursor_on_same_grid_point_since = Instant::now();
+        } else {
+            self.cursor_on_same_grid_point_since = Instant::now();
+        }
     }
 }
