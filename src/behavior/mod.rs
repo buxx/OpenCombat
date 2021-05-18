@@ -1,12 +1,12 @@
 pub mod animate;
 pub mod order;
 
-use crate::ScenePoint;
+use crate::{GridPath, ScenePoint};
 
 #[derive(PartialEq)]
 pub enum ItemBehavior {
     Standing, // since
-    HideTo(ScenePoint),
-    MoveTo(ScenePoint),
-    MoveFastTo(ScenePoint),
+    HideTo(ScenePoint, GridPath),
+    MoveTo(ScenePoint, GridPath),
+    MoveFastTo(ScenePoint, GridPath),
 }

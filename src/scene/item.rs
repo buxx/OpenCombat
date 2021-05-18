@@ -115,9 +115,9 @@ impl SceneItem {
         // Here some logical about state, nature (soldier, tank, ...) and current behavior to
         // determine sprite type
         match self.state.current_behavior {
-            ItemBehavior::HideTo(_) => SpriteType::CrawlingSoldier,
-            ItemBehavior::MoveTo(_) => SpriteType::WalkingSoldier,
-            ItemBehavior::MoveFastTo(_) => SpriteType::WalkingSoldier,
+            ItemBehavior::HideTo(_, _) => SpriteType::CrawlingSoldier,
+            ItemBehavior::MoveTo(_, _) => SpriteType::WalkingSoldier,
+            ItemBehavior::MoveFastTo(_, _) => SpriteType::WalkingSoldier,
             ItemBehavior::Standing => SpriteType::StandingSoldier,
         }
     }
@@ -129,6 +129,7 @@ pub enum SceneItemModifier {
     ChangeState(ItemState),
     ChangePosition(ScenePoint),
     ChangeGridPosition(GridPoint),
+    ReachMoveGridPoint,
 }
 
 pub fn apply_scene_item_modifiers(scene_item: &mut SceneItem, modifiers: Vec<SceneItemModifier>) {
@@ -140,9 +141,14 @@ pub fn apply_scene_item_modifiers(scene_item: &mut SceneItem, modifiers: Vec<Sce
 pub fn apply_scene_item_modifier(scene_item: &mut SceneItem, modifier: SceneItemModifier) {
     match modifier {
         SceneItemModifier::SwitchToNextOrder => {
-            let next_order = scene_item.next_order.clone();
-            scene_item.current_order = next_order;
-            scene_item.next_order = None;
+            if let Some(next_order) = &scene_item.next_order {
+                scene_item.current_order = Some(next_order.clone());
+                scene_item.next_order = None;
+            } else {
+                scene_item.current_order = None;
+                // TODO: Depending to context
+                scene_item.state = ItemState::new(ItemBehavior::Standing);
+            }
         }
         SceneItemModifier::ChangeDisplayAngle(new_angle) => {
             scene_item.display_angle = new_angle;
@@ -156,5 +162,17 @@ pub fn apply_scene_item_modifier(scene_item: &mut SceneItem, modifier: SceneItem
         SceneItemModifier::ChangeGridPosition(new_grid_point) => {
             scene_item.grid_position = new_grid_point;
         }
+        SceneItemModifier::ReachMoveGridPoint => match &mut scene_item.state.current_behavior {
+            ItemBehavior::Standing => {}
+            ItemBehavior::HideTo(_, grid_path)
+            | ItemBehavior::MoveTo(_, grid_path)
+            | ItemBehavior::MoveFastTo(_, grid_path) => {
+                grid_path.drain(0..1);
+                // If target reached
+                if grid_path.len() == 0 {
+                    apply_scene_item_modifier(scene_item, SceneItemModifier::SwitchToNextOrder)
+                }
+            }
+        },
     }
 }

@@ -4,6 +4,7 @@ use std::path;
 use ggez::{event, GameResult};
 use glam::Vec2;
 
+use crate::physics::GridPoint;
 use crate::scene::item::SceneItemModifier;
 use crate::scene::main::MainStateModifier;
 use scene::main::MainState;
@@ -20,6 +21,7 @@ type WindowPoint = Vec2;
 type Offset = Vec2;
 type ScenePoint = Vec2;
 type SceneItemId = usize;
+type GridPath = Vec<GridPoint>;
 
 enum Message {
     SceneItemMessage(SceneItemId, SceneItemModifier),
