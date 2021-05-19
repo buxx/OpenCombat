@@ -182,7 +182,7 @@ pub fn apply_scene_item_modifier(
                 grid_path.drain(0..1);
                 // If target reached
                 if grid_path.len() == 0 {
-                    apply_scene_item_modifier(scene_item, SceneItemModifier::SwitchToNextOrder)
+                    apply_scene_item_modifier(scene_item, SceneItemModifier::SwitchToNextOrder);
                 }
             }
         },

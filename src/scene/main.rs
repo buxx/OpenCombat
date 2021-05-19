@@ -15,7 +15,7 @@ use crate::behavior::ItemBehavior;
 use crate::config::{
     ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
     DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I, META_EACH,
-    PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG, SPRITE_EACH, TARGET_FPS,
+    PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, TARGET_FPS,
 };
 use crate::map::util::extract_image_from_tileset;
 use crate::map::Map;
@@ -494,6 +494,21 @@ impl MainState {
         }
     }
 
+    fn seek(&mut self) {
+        let mut messages: Vec<Message> = vec![];
+
+        for (scene_item_from_i, scene_item_from) in self.scene_items.iter().enumerate() {
+            for (scene_item_to_i, scene_item_to) in self.scene_items.iter().enumerate() {
+                if scene_item_from_i == scene_item_to_i {
+                    continue;
+                }
+                // Use bresenham algorithm to compute opacity etc ...
+            }
+        }
+
+        self.consume_messages(messages)
+    }
+
     fn animate(&mut self) {
         let mut messages: Vec<Message> = vec![];
 
@@ -793,6 +808,7 @@ impl event::EventHandler for MainState {
             // ennemi, dans animate il se mettra a tirer)
             let tick_sprite = self.frame_i % SPRITE_EACH == 0;
             let tick_animate = self.frame_i % ANIMATE_EACH == 0;
+            let tick_seek = self.frame_i % SEEK_EACH == 0;
             let tick_physics = self.frame_i % PHYSICS_EACH == 0;
             let tick_meta = self.frame_i % META_EACH == 0;
             let tick_interiors = self.frame_i % INTERIORS_EACH == 0;
@@ -805,6 +821,11 @@ impl event::EventHandler for MainState {
             // Generate meta events according to physics events and current physic state
             if tick_meta {
                 self.metas();
+            }
+
+            // Seek scene items between them
+            if tick_seek {
+                self.seek();
             }
 
             // Animate scene items according to meta events
