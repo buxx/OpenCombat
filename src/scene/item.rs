@@ -7,7 +7,7 @@ use crate::map::Map;
 use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent};
 use crate::scene::SpriteType;
-use crate::{Offset, ScenePoint};
+use crate::{Message, Offset, ScenePoint};
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,
@@ -132,13 +132,25 @@ pub enum SceneItemModifier {
     ReachMoveGridPoint,
 }
 
-pub fn apply_scene_item_modifiers(scene_item: &mut SceneItem, modifiers: Vec<SceneItemModifier>) {
+pub fn apply_scene_item_modifiers(
+    scene_item: &mut SceneItem,
+    modifiers: Vec<SceneItemModifier>,
+) -> Vec<Message> {
+    let mut messages: Vec<Message> = vec![];
+
     for modifier in modifiers.into_iter() {
-        apply_scene_item_modifier(scene_item, modifier)
+        messages.extend(apply_scene_item_modifier(scene_item, modifier))
     }
+
+    messages
 }
 
-pub fn apply_scene_item_modifier(scene_item: &mut SceneItem, modifier: SceneItemModifier) {
+pub fn apply_scene_item_modifier(
+    scene_item: &mut SceneItem,
+    modifier: SceneItemModifier,
+) -> Vec<Message> {
+    let mut messages: Vec<Message> = vec![];
+
     match modifier {
         SceneItemModifier::SwitchToNextOrder => {
             if let Some(next_order) = &scene_item.next_order {
@@ -175,4 +187,6 @@ pub fn apply_scene_item_modifier(scene_item: &mut SceneItem, modifier: SceneItem
             }
         },
     }
+
+    messages
 }

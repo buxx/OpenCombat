@@ -495,11 +495,24 @@ impl MainState {
     }
 
     fn animate(&mut self) {
+        let mut messages: Vec<Message> = vec![];
+
         for (_, scene_item) in self.scene_items.iter_mut().enumerate() {
-            apply_scene_item_modifiers(scene_item, digest_next_order(&scene_item, &self.map));
-            apply_scene_item_modifiers(scene_item, digest_current_order(&scene_item, &self.map));
-            apply_scene_item_modifiers(scene_item, digest_current_behavior(&scene_item, &self.map));
+            messages.extend(apply_scene_item_modifiers(
+                scene_item,
+                digest_next_order(&scene_item, &self.map),
+            ));
+            messages.extend(apply_scene_item_modifiers(
+                scene_item,
+                digest_current_order(&scene_item, &self.map),
+            ));
+            messages.extend(apply_scene_item_modifiers(
+                scene_item,
+                digest_current_behavior(&scene_item, &self.map),
+            ));
         }
+
+        self.consume_messages(messages);
     }
 
     fn tick_sprites(&mut self) {
