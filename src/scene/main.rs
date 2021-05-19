@@ -641,17 +641,43 @@ impl MainState {
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
         for i in &self.selected_scene_items {
-            let selected_scene_item = self.get_scene_item(*i);
+            let scene_item = self.get_scene_item(*i);
+
+            // Selection square
             mesh_builder.rectangle(
                 DrawMode::Stroke(StrokeOptions::default()),
                 graphics::Rect::new(
-                    selected_scene_item.position.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-                    selected_scene_item.position.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+                    scene_item.position.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+                    scene_item.position.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
                     DEFAULT_SELECTED_SQUARE_SIDE,
                     DEFAULT_SELECTED_SQUARE_SIDE,
                 ),
                 graphics::GREEN,
             )?;
+
+            // Move path if moving
+            match &scene_item.state.current_behavior {
+                ItemBehavior::Standing => {}
+                ItemBehavior::HideTo(_, grid_path)
+                | ItemBehavior::MoveTo(_, grid_path)
+                | ItemBehavior::MoveFastTo(_, grid_path) => {
+                    let mut points = vec![scene_item.position];
+                    for grid_point in grid_path.iter() {
+                        points.push(scene_point_from_grid_point(grid_point, &self.map))
+                    }
+
+                    mesh_builder.line(
+                        &points,
+                        2.0,
+                        Color {
+                            r: 1.0,
+                            g: 1.0,
+                            b: 1.0,
+                            a: 0.2,
+                        },
+                    )?;
+                }
+            }
         }
 
         GameResult::Ok(mesh_builder)
