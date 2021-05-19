@@ -19,6 +19,7 @@ use crate::config::{
 };
 use crate::map::util::extract_image_from_tileset;
 use crate::map::Map;
+use crate::physics::item::produce_physics_messages_for_scene_item;
 use crate::physics::path::find_path;
 use crate::physics::util::{grid_point_from_scene_point, scene_point_from_window_point};
 use crate::physics::util::{scene_point_from_grid_point, window_point_from_scene_point};
@@ -437,46 +438,12 @@ impl MainState {
         let mut messages: Vec<Message> = vec![];
 
         // Scene items movements
-        for (scene_item_i, scene_item) in self.scene_items.iter_mut().enumerate() {
-            match &scene_item.state.current_behavior {
-                ItemBehavior::Standing => {}
-                ItemBehavior::MoveTo(move_to_scene_point, grid_path)
-                | ItemBehavior::MoveFastTo(move_to_scene_point, grid_path)
-                | ItemBehavior::HideTo(move_to_scene_point, grid_path) => {
-                    if let Some(going_to_grid_point) = grid_path.first() {
-                        let going_to_scene_point =
-                            scene_point_from_grid_point(going_to_grid_point, &self.map);
-
-                        let velocity = velocity_for_behavior(&scene_item.state.current_behavior)
-                            .expect("must have velocity here");
-                        let move_vector =
-                            (going_to_scene_point - scene_item.position).normalize() * velocity;
-                        let new_position = ScenePoint::new(
-                            scene_item.position.x + move_vector.x,
-                            scene_item.position.y + move_vector.y,
-                        );
-                        messages.push(Message::SceneItemMessage(
-                            scene_item_i,
-                            SceneItemModifier::ChangePosition(new_position),
-                        ));
-                        let new_grid_position =
-                            util::grid_point_from_scene_point(&scene_item.position, &self.map);
-                        if scene_item.grid_position != new_grid_position {
-                            messages.push(Message::MainStateMessage(
-                                MainStateModifier::ChangeSceneItemGridPosition(
-                                    scene_item_i,
-                                    scene_item.grid_position.clone(),
-                                    new_grid_position.clone(),
-                                ),
-                            ));
-                            messages.push(Message::SceneItemMessage(
-                                scene_item_i,
-                                SceneItemModifier::ChangeGridPosition(new_grid_position.clone()),
-                            ));
-                        }
-                    }
-                }
-            }
+        for (scene_item_i, scene_item) in self.scene_items.iter().enumerate() {
+            messages.extend(produce_physics_messages_for_scene_item(
+                scene_item_i,
+                &scene_item,
+                &self.map,
+            ))
         }
 
         // (FAKE) Drop a bomb to motivate stop move

@@ -23,7 +23,7 @@ type ScenePoint = Vec2;
 type SceneItemId = usize;
 type GridPath = Vec<GridPoint>;
 
-enum Message {
+pub enum Message {
     SceneItemMessage(SceneItemId, SceneItemModifier),
     MainStateMessage(MainStateModifier),
 }
