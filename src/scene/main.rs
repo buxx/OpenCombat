@@ -327,6 +327,7 @@ impl MainState {
         let mut scene_item_menu_clicked = false;
         let mut prepare_order_clicked = false;
 
+        // Click on scene item
         if let Some(scene_item_usize) =
             self.get_first_scene_item_for_scene_point(&scene_click_point)
         {
@@ -335,6 +336,7 @@ impl MainState {
             scene_item_selected = true;
         }
 
+        // Click during preparing order
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             match scene_item_prepare_order {
                 SceneItemPrepareOrder::Move(scene_item_usize)
@@ -347,6 +349,7 @@ impl MainState {
                     };
                     let mut scene_item = self.get_scene_item_mut(*scene_item_usize);
                     scene_item.next_order = Some(order);
+                    self.current_prepare_move_found_paths = HashMap::new();
                 }
             }
 
@@ -354,6 +357,7 @@ impl MainState {
             prepare_order_clicked = true;
         }
 
+        // Click during display of scene item menu
         if let Some((scene_item_usize, scene_menu_point)) = self.scene_item_menu {
             let menu_sprite_info = vertical_menu_sprite_info(UiComponent::SceneItemMenu);
             if let Some(menu_item) =
