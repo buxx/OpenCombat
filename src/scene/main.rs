@@ -23,7 +23,7 @@ use crate::physics::item::produce_physics_messages_for_scene_item;
 use crate::physics::path::find_path;
 use crate::physics::util::{grid_point_from_scene_point, scene_point_from_window_point};
 use crate::physics::util::{scene_point_from_grid_point, window_point_from_scene_point};
-use crate::physics::visibility::Visibility;
+use crate::physics::visibility::{see_him, Visibility};
 use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent, PhysicEvent};
 use crate::scene::item::{
@@ -46,6 +46,8 @@ enum DebugTerrain {
 pub enum MainStateModifier {
     ChangeSceneItemGridPosition(SceneItemId, GridPoint, GridPoint),
     InsertCurrentPrepareMoveFoundPaths(SceneItemId, Vec<GridPoint>),
+    NewSeenOpponent(SceneItemId),
+    LostSeenOpponent(SceneItemId),
 }
 
 pub struct MainState {
@@ -93,6 +95,7 @@ pub struct MainState {
 
     // Gameplay
     current_side: Side,
+    opposite_visible_scene_items: Vec<SceneItemId>,
 }
 
 impl MainState {
@@ -216,6 +219,7 @@ impl MainState {
             scene_item_prepare_order: None,
             current_prepare_move_found_paths: HashMap::new(),
             current_side: Side::A,
+            opposite_visible_scene_items: vec![],
         };
 
         Ok(main_state)
@@ -284,6 +288,24 @@ impl MainState {
                     DebugTerrain::Opacity => DebugTerrain::None,
                 };
                 self.last_key_consumed.insert(KeyCode::F10, Instant::now());
+            }
+        }
+        if input::keyboard::is_key_pressed(ctx, KeyCode::F9) {
+            if self
+                .last_key_consumed
+                .get(&KeyCode::F9)
+                .unwrap_or(&self.start)
+                .elapsed()
+                .as_millis()
+                > 250
+            {
+                self.current_side = match self.current_side {
+                    Side::A => Side::B,
+                    Side::B => Side::A,
+                };
+                self.last_key_consumed.insert(KeyCode::F9, Instant::now());
+                self.selected_scene_items = vec![];
+                self.opposite_visible_scene_items = vec![];
             }
         }
         if input::keyboard::is_key_pressed(ctx, KeyCode::T) {
@@ -375,7 +397,7 @@ impl MainState {
 
         // Click on scene item
         if let Some(scene_item_usize) =
-            self.get_first_scene_item_for_scene_point(&scene_click_point)
+            self.get_first_scene_item_for_scene_point(&scene_click_point, true)
         {
             self.selected_scene_items.drain(..);
             self.selected_scene_items.push(scene_item_usize);
@@ -449,7 +471,7 @@ impl MainState {
         // TODO: selection et right click sur un item PAS dans la selection: scene_item_menu sur un item
 
         if let Some(scene_item_usize) =
-            self.get_first_scene_item_for_scene_point(&scene_right_click_point)
+            self.get_first_scene_item_for_scene_point(&scene_right_click_point, true)
         {
             if self.selected_scene_items.contains(&scene_item_usize) {
                 let scene_item = self.get_scene_item(scene_item_usize);
@@ -469,7 +491,7 @@ impl MainState {
         let scene_to = scene_point_from_window_point(&window_to, &self.display_offset);
         self.selected_scene_items.drain(..);
         self.selected_scene_items
-            .extend(self.get_scene_items_for_scene_area(&scene_from, &scene_to));
+            .extend(self.get_scene_items_for_scene_area(&scene_from, &scene_to, true));
 
         vec![]
     }
@@ -539,6 +561,17 @@ impl MainState {
                         self.current_prepare_move_found_paths
                             .insert(scene_item_i, path);
                     }
+                    MainStateModifier::NewSeenOpponent(scene_item_id) => {
+                        self.opposite_visible_scene_items.push(scene_item_id);
+                    }
+                    MainStateModifier::LostSeenOpponent(scene_item_id) => {
+                        self.opposite_visible_scene_items.remove(
+                            self.opposite_visible_scene_items
+                                .iter()
+                                .position(|x| *x == scene_item_id)
+                                .expect("Must be here"),
+                        );
+                    }
                 },
             }
         }
@@ -558,24 +591,52 @@ impl MainState {
 
     fn seek(&mut self) {
         let mut messages: Vec<Message> = vec![];
+        let mut see_opponents: Vec<SceneItemId> = vec![];
 
         for (scene_item_from_i, scene_item_from) in self.scene_items.iter().enumerate() {
             let mut visibilities: Vec<Visibility> = vec![];
             for (scene_item_to_i, scene_item_to) in self.scene_items.iter().enumerate() {
-                if scene_item_from_i == scene_item_to_i {
+                if scene_item_from.side == scene_item_to.side {
                     continue;
                 }
-                // TODO: Compute visibility only for ennemies
-                visibilities.push(Visibility::new(
-                    scene_item_from,
-                    &scene_item_to.position,
-                    &self.map,
-                ));
+                let visibility =
+                    Visibility::new(scene_item_from, &scene_item_to.position, &self.map);
+                if scene_item_to.side != self.current_side {
+                    if see_him(scene_item_from, scene_item_to, &visibility) {
+                        if !see_opponents.contains(&scene_item_to_i) {
+                            see_opponents.push(scene_item_to_i);
+                        }
+                    }
+                    // else {
+                    //     if let Some(i) = self.opposite_visible_scene_items.iter().position(|x| *x == scene_item_to_i) {
+                    //         self.opposite_visible_scene_items.remove(i);
+                    //     }
+                    // }
+                }
+                visibilities.push(visibility);
             }
             messages.push(Message::SceneItemMessage(
                 scene_item_from_i,
                 SceneItemModifier::ChangeVisibilities(visibilities),
             ));
+        }
+
+        // Remove opponent not sen anymore
+        for previously_seen_opponent in self.opposite_visible_scene_items.iter() {
+            if !see_opponents.contains(previously_seen_opponent) {
+                messages.push(Message::MainStateMessage(
+                    MainStateModifier::LostSeenOpponent(*previously_seen_opponent),
+                ));
+            }
+        }
+
+        // Add new seen opponents
+        for see_opponent in see_opponents.iter() {
+            if !self.opposite_visible_scene_items.contains(see_opponent) {
+                messages.push(Message::MainStateMessage(
+                    MainStateModifier::NewSeenOpponent(*see_opponent),
+                ));
+            }
         }
 
         self.consume_messages(messages)
@@ -608,9 +669,20 @@ impl MainState {
         }
     }
 
-    fn get_first_scene_item_for_scene_point(&self, scene_position: &ScenePoint) -> Option<usize> {
+    fn get_first_scene_item_for_scene_point(
+        &self,
+        scene_position: &ScenePoint,
+        limit: bool,
+    ) -> Option<usize> {
         // TODO: if found multiple: select nearest
         for (i, scene_item) in self.scene_items.iter().enumerate() {
+            if limit
+                && scene_item.side != self.current_side
+                && !self.opposite_visible_scene_items.contains(&i)
+            {
+                continue;
+            }
+
             let sprite_info = scene_item.sprite_info();
             if scene_item.position.x >= scene_position.x - sprite_info.tile_width
                 && scene_item.position.x <= scene_position.x + sprite_info.tile_width
@@ -624,10 +696,22 @@ impl MainState {
         None
     }
 
-    fn get_scene_items_for_scene_area(&self, from: &ScenePoint, to: &ScenePoint) -> Vec<usize> {
+    fn get_scene_items_for_scene_area(
+        &self,
+        from: &ScenePoint,
+        to: &ScenePoint,
+        limit: bool,
+    ) -> Vec<usize> {
         let mut selection = vec![];
 
         for (i, scene_item) in self.scene_items.iter().enumerate() {
+            if limit
+                && scene_item.side != self.current_side
+                && !self.opposite_visible_scene_items.contains(&i)
+            {
+                continue;
+            }
+
             if scene_item.position.x >= from.x
                 && scene_item.position.x <= to.x
                 && scene_item.position.y >= from.y
@@ -641,7 +725,13 @@ impl MainState {
     }
 
     fn generate_scene_item_sprites(&mut self) -> GameResult {
-        for scene_item in self.scene_items.iter() {
+        for (i, scene_item) in self.scene_items.iter().enumerate() {
+            if scene_item.side != self.current_side
+                && !self.opposite_visible_scene_items.contains(&i)
+            {
+                continue;
+            }
+
             self.sprite_sheet_batch.add(
                 scene_item
                     .as_draw_param(scene_item.current_frame)
@@ -672,7 +762,13 @@ impl MainState {
             let end_x = start_x + interior.width;
             let end_y = start_y + interior.height;
 
-            for scene_item in self.scene_items.iter() {
+            for (i, scene_item) in self.scene_items.iter().enumerate() {
+                if scene_item.side != self.current_side
+                    && !self.opposite_visible_scene_items.contains(&i)
+                {
+                    continue;
+                }
+
                 if scene_item.position.x >= start_x
                     && scene_item.position.x <= end_x
                     && scene_item.position.y >= start_y
@@ -703,12 +799,17 @@ impl MainState {
         if self.debug {
             // Draw circle on each scene item position
             for scene_item in self.scene_items.iter() {
+                let color = if scene_item.side == self.current_side {
+                    graphics::GREEN
+                } else {
+                    graphics::RED
+                };
                 mesh_builder.circle(
                     DrawMode::fill(),
                     scene_item.position.clone(),
                     2.0,
                     2.0,
-                    graphics::WHITE,
+                    color,
                 )?;
             }
 
@@ -746,6 +847,11 @@ impl MainState {
     ) -> GameResult<MeshBuilder> {
         for i in &self.selected_scene_items {
             let scene_item = self.get_scene_item(*i);
+            let color = if scene_item.side == self.current_side {
+                graphics::GREEN
+            } else {
+                graphics::RED
+            };
 
             // Selection square
             mesh_builder.rectangle(
@@ -756,7 +862,7 @@ impl MainState {
                     DEFAULT_SELECTED_SQUARE_SIDE,
                     DEFAULT_SELECTED_SQUARE_SIDE,
                 ),
-                graphics::GREEN,
+                color,
             )?;
 
             // Move path if moving

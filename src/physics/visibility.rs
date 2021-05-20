@@ -60,3 +60,13 @@ impl Visibility {
         }
     }
 }
+
+pub fn see_him(
+    _scene_item_from: &SceneItem,
+    _scene_item_to: &SceneItem,
+    visibility: &Visibility,
+) -> bool {
+    // TODO: Modify algorithm according to firing/hide/wal/run...
+
+    return visibility.total_opacity < 0.5;
+}
