@@ -5,7 +5,6 @@ use crate::map::Map;
 use crate::physics::path::find_path;
 use crate::physics::util::{grid_point_from_scene_point, scene_point_from_grid_point};
 use crate::scene::item::{ItemState, SceneItem, SceneItemModifier};
-use crate::scene::main::MainState;
 use crate::util::velocity_for_behavior;
 use std::f32::consts::FRAC_PI_2;
 
@@ -44,10 +43,9 @@ pub fn digest_next_order(scene_item: &SceneItem, map: &Map) -> Vec<SceneItemModi
     scene_item_modifiers
 }
 
-pub fn digest_current_order(scene_item: &SceneItem, map: &Map) -> Vec<SceneItemModifier> {
-    let mut scene_item_modifiers: Vec<SceneItemModifier> = vec![];
+pub fn digest_current_order(_: &SceneItem, _: &Map) -> Vec<SceneItemModifier> {
     // TODO: here, compute state according to order. Ex: if too much fear, move order do not produce escape state
-    scene_item_modifiers
+    vec![]
 }
 
 pub fn digest_current_behavior(scene_item: &SceneItem, map: &Map) -> Vec<SceneItemModifier> {

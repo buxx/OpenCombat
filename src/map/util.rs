@@ -1,9 +1,6 @@
 use core::option::Option::{None, Some};
 use ggez::error::{GameError, GameResult};
-use ggez::GameError::GamepadError;
-use tiled::{
-    Image as TiledImage, Layer, LayerData, Map as TiledMap, ObjectGroup, Tile as TiledTile, Tileset,
-};
+use tiled::{Image as TiledImage, Layer, LayerData, Map as TiledMap, ObjectGroup, Tileset};
 
 pub fn extract_image_from_image_layer(
     tiled_map: &TiledMap,
@@ -100,8 +97,8 @@ pub fn extract_gids(layer: &Layer) -> GameResult<Vec<u32>> {
 
     match &layer.tiles {
         LayerData::Finite(layer_tiles) => {
-            for (x, tiles_row) in layer_tiles.iter().enumerate() {
-                for (y, layer_tile) in tiles_row.iter().enumerate() {
+            for (_, tiles_row) in layer_tiles.iter().enumerate() {
+                for (_, layer_tile) in tiles_row.iter().enumerate() {
                     if !gids.contains(&layer_tile.gid) {
                         gids.push(layer_tile.gid);
                     }

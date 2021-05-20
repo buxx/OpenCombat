@@ -4,7 +4,7 @@ use std::path::Path;
 use std::time::{Duration, Instant};
 
 use ggez::event::MouseButton;
-use ggez::graphics::{Color, DrawMode, MeshBuilder, StrokeOptions, WHITE};
+use ggez::graphics::{Color, DrawMode, MeshBuilder, StrokeOptions};
 use ggez::input::keyboard::KeyCode;
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
@@ -23,6 +23,7 @@ use crate::physics::item::produce_physics_messages_for_scene_item;
 use crate::physics::path::find_path;
 use crate::physics::util::{grid_point_from_scene_point, scene_point_from_window_point};
 use crate::physics::util::{scene_point_from_grid_point, window_point_from_scene_point};
+use crate::physics::visibility::Visibility;
 use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent, PhysicEvent};
 use crate::scene::item::{
@@ -33,9 +34,7 @@ use crate::scene::util::{update_background_batch, update_decor_batches};
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
-use crate::util::velocity_for_behavior;
 use crate::{scene, Message, Offset, SceneItemId, ScenePoint, WindowPoint};
-use std::ops::Index;
 
 #[derive(PartialEq)]
 enum DebugTerrain {
@@ -46,6 +45,7 @@ enum DebugTerrain {
 
 pub enum MainStateModifier {
     ChangeSceneItemGridPosition(SceneItemId, GridPoint, GridPoint),
+    InsertCurrentPrepareMoveFoundPaths(SceneItemId, Vec<GridPoint>),
 }
 
 pub struct MainState {
@@ -131,7 +131,7 @@ impl MainState {
 
         let mut scene_items = vec![];
         for x in 0..1 {
-            for y in 0..4 {
+            for y in 0..5 {
                 scene_items.push(SceneItem::new(
                     SceneItemType::Soldier,
                     ScenePoint::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
@@ -197,7 +197,9 @@ impl MainState {
             .expect(SCENE_ITEMS_CHANGE_ERR_MSG)
     }
 
-    fn inputs(&mut self, ctx: &Context) {
+    fn inputs(&mut self, ctx: &Context) -> Vec<Message> {
+        let mut messages = vec![];
+
         let display_offset_by =
             if input::keyboard::is_mod_active(ctx, input::keyboard::KeyMods::SHIFT) {
                 DISPLAY_OFFSET_BY_SPEED
@@ -264,12 +266,14 @@ impl MainState {
 
         while let Some(user_event) = self.user_events.pop() {
             match user_event {
-                UserEvent::Click(window_click_point) => self.digest_click(window_click_point),
+                UserEvent::Click(window_click_point) => {
+                    messages.extend(self.digest_click(window_click_point))
+                }
                 UserEvent::AreaSelection(window_from, window_to) => {
-                    self.digest_area_selection(window_from, window_to)
+                    messages.extend(self.digest_area_selection(window_from, window_to))
                 }
                 UserEvent::RightClick(window_right_click_point) => {
-                    self.digest_right_click(window_right_click_point)
+                    messages.extend(self.digest_right_click(window_right_click_point))
                 }
                 UserEvent::DrawMovePaths => {
                     if let Some(SceneItemPrepareOrder::Move(_))
@@ -279,15 +283,17 @@ impl MainState {
                         for scene_item_i in self.selected_scene_items.iter() {
                             if let None = self.current_prepare_move_found_paths.get(scene_item_i) {
                                 let scene_item = self.get_scene_item(*scene_item_i);
-                                self.current_prepare_move_found_paths.insert(
-                                    *scene_item_i,
-                                    find_path(
-                                        &self.map,
-                                        &scene_item.grid_position,
-                                        &self.current_cursor_grid_point,
-                                    )
-                                    .unwrap_or(vec![]),
-                                );
+                                messages.push(Message::MainStateMessage(
+                                    MainStateModifier::InsertCurrentPrepareMoveFoundPaths(
+                                        *scene_item_i,
+                                        find_path(
+                                            &self.map,
+                                            &scene_item.grid_position,
+                                            &self.current_cursor_grid_point,
+                                        )
+                                        .unwrap_or(vec![]),
+                                    ),
+                                ));
                             }
                         }
                     }
@@ -318,9 +324,13 @@ impl MainState {
             }
         }
         self.waiting_cursor.extend(re_push);
+
+        messages
     }
 
-    fn digest_click(&mut self, window_click_point: WindowPoint) {
+    fn digest_click(&mut self, window_click_point: WindowPoint) -> Vec<Message> {
+        let mut messages = vec![];
+
         let scene_click_point =
             scene_point_from_window_point(&window_click_point, &self.display_offset);
         let mut scene_item_selected = false;
@@ -347,8 +357,10 @@ impl MainState {
                         SceneItemPrepareOrder::MoveFast(_) => Order::MoveFastTo(scene_click_point),
                         SceneItemPrepareOrder::Hide(_) => Order::HideTo(scene_click_point),
                     };
-                    let mut scene_item = self.get_scene_item_mut(*scene_item_usize);
-                    scene_item.next_order = Some(order);
+                    messages.push(Message::SceneItemMessage(
+                        *scene_item_usize,
+                        SceneItemModifier::SetNextOrder(order),
+                    ));
                     self.current_prepare_move_found_paths = HashMap::new();
                 }
             }
@@ -387,10 +399,12 @@ impl MainState {
 
         if !prepare_order_clicked && !scene_item_menu_clicked && !scene_item_selected {
             self.selected_scene_items.drain(..);
-        }
+        };
+
+        messages
     }
 
-    fn digest_right_click(&mut self, window_right_click_point: WindowPoint) {
+    fn digest_right_click(&mut self, window_right_click_point: WindowPoint) -> Vec<Message> {
         let scene_right_click_point =
             scene_point_from_window_point(&window_right_click_point, &self.display_offset);
 
@@ -405,15 +419,23 @@ impl MainState {
                 let scene_item = self.get_scene_item(scene_item_usize);
                 self.scene_item_menu = Some((scene_item_usize, scene_item.position))
             }
-        }
+        };
+
+        vec![]
     }
 
-    fn digest_area_selection(&mut self, window_from: WindowPoint, window_to: WindowPoint) {
+    fn digest_area_selection(
+        &mut self,
+        window_from: WindowPoint,
+        window_to: WindowPoint,
+    ) -> Vec<Message> {
         let scene_from = scene_point_from_window_point(&window_from, &self.display_offset);
         let scene_to = scene_point_from_window_point(&window_to, &self.display_offset);
         self.selected_scene_items.drain(..);
         self.selected_scene_items
             .extend(self.get_scene_items_for_scene_area(&scene_from, &scene_to));
+
+        vec![]
     }
 
     fn change_scene_item_grid_position(
@@ -477,6 +499,10 @@ impl MainState {
                             to_grid_position,
                         );
                     }
+                    MainStateModifier::InsertCurrentPrepareMoveFoundPaths(scene_item_i, path) => {
+                        self.current_prepare_move_found_paths
+                            .insert(scene_item_i, path);
+                    }
                 },
             }
         }
@@ -498,12 +524,22 @@ impl MainState {
         let mut messages: Vec<Message> = vec![];
 
         for (scene_item_from_i, scene_item_from) in self.scene_items.iter().enumerate() {
+            let mut visibilities: Vec<Visibility> = vec![];
             for (scene_item_to_i, scene_item_to) in self.scene_items.iter().enumerate() {
                 if scene_item_from_i == scene_item_to_i {
                     continue;
                 }
-                // Use bresenham algorithm to compute opacity etc ...
+                // TODO: Compute visibility only for ennemies
+                visibilities.push(Visibility::new(
+                    scene_item_from,
+                    &scene_item_to.position,
+                    &self.map,
+                ));
             }
+            messages.push(Message::SceneItemMessage(
+                scene_item_from_i,
+                SceneItemModifier::ChangeVisibilities(visibilities),
+            ));
         }
 
         self.consume_messages(messages)
@@ -624,7 +660,7 @@ impl MainState {
         Ok(())
     }
 
-    fn update_mesh_builder_with_debug(
+    fn update_scene_mesh_with_debug(
         &self,
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
@@ -668,7 +704,7 @@ impl MainState {
         GameResult::Ok(mesh_builder)
     }
 
-    fn update_mesh_builder_with_selected_items(
+    fn update_scene_mesh_with_selected_items(
         &self,
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
@@ -715,7 +751,7 @@ impl MainState {
         GameResult::Ok(mesh_builder)
     }
 
-    fn update_mesh_builder_with_selection_area(
+    fn update_scene_mesh_with_selection_area(
         &self,
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
@@ -741,7 +777,7 @@ impl MainState {
         GameResult::Ok(mesh_builder)
     }
 
-    fn update_mesh_builder_with_prepare_order(
+    fn update_scene_mesh_with_prepare_order(
         &self,
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
@@ -797,12 +833,49 @@ impl MainState {
 
         GameResult::Ok(mesh_builder)
     }
+
+    fn update_visibilities_mesh(&self, mut mesh_builder: MeshBuilder) -> GameResult<MeshBuilder> {
+        if self.debug {
+            for selected_scene_item_i in self.selected_scene_items.iter() {
+                let scene_item_from = self.get_scene_item(*selected_scene_item_i);
+                for visibility in scene_item_from.visibilities.iter() {
+                    let mut previous_scene_point: ScenePoint = scene_item_from.position;
+                    let mut previous_opacity: f32 = 0.0;
+
+                    for (segment_scene_point, segment_new_opacity) in
+                        visibility.opacity_segments.iter().skip(1)
+                    {
+                        let mut color_canal_value = 1.0 - previous_opacity;
+                        if color_canal_value < 0.0 {
+                            color_canal_value = 0.0;
+                        }
+                        mesh_builder.line(
+                            &vec![previous_scene_point, *segment_scene_point],
+                            1.0,
+                            Color {
+                                r: color_canal_value,
+                                g: color_canal_value,
+                                b: color_canal_value,
+                                a: 1.0,
+                            },
+                        )?;
+
+                        previous_scene_point = *segment_scene_point;
+                        previous_opacity = *segment_new_opacity;
+                    }
+                }
+            }
+        }
+
+        Ok(mesh_builder)
+    }
 }
 
 impl event::EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while check_update_time(ctx, TARGET_FPS) {
-            self.inputs(ctx);
+            let messages = self.inputs(ctx);
+            self.consume_messages(messages);
 
             // TODO: meta: calculer par ex qui voit qui (soldat voit un ennemi: ajouter l'event a vu
             // ennemi, dans animate il se mettra a tirer)
@@ -859,14 +932,16 @@ impl event::EventHandler for MainState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::BLACK);
         let mut scene_mesh_builder = MeshBuilder::new();
+        let mut visibilities_mesh_builder = MeshBuilder::new();
 
         self.generate_scene_item_sprites()?;
         self.generate_scene_item_menu_sprites()?;
 
-        scene_mesh_builder = self.update_mesh_builder_with_debug(scene_mesh_builder)?;
-        scene_mesh_builder = self.update_mesh_builder_with_selected_items(scene_mesh_builder)?;
-        scene_mesh_builder = self.update_mesh_builder_with_selection_area(scene_mesh_builder)?;
-        scene_mesh_builder = self.update_mesh_builder_with_prepare_order(scene_mesh_builder)?;
+        scene_mesh_builder = self.update_scene_mesh_with_debug(scene_mesh_builder)?;
+        scene_mesh_builder = self.update_scene_mesh_with_selected_items(scene_mesh_builder)?;
+        scene_mesh_builder = self.update_scene_mesh_with_selection_area(scene_mesh_builder)?;
+        scene_mesh_builder = self.update_scene_mesh_with_prepare_order(scene_mesh_builder)?;
+        visibilities_mesh_builder = self.update_visibilities_mesh(visibilities_mesh_builder)?;
 
         let window_draw_param = graphics::DrawParam::new().dest(window_point_from_scene_point(
             &ScenePoint::new(0.0, 0.0),
@@ -886,6 +961,11 @@ impl event::EventHandler for MainState {
             let debug_terrain_opacity_mesh =
                 self.debug_terrain_opacity_mesh_builder.build(ctx).unwrap();
             graphics::draw(ctx, &debug_terrain_opacity_mesh, window_draw_param)?;
+        }
+
+        // Draw visibilities
+        if let Ok(visibilities_mesh) = visibilities_mesh_builder.build(ctx) {
+            graphics::draw(ctx, &visibilities_mesh, window_draw_param)?;
         }
 
         // Draw scene items

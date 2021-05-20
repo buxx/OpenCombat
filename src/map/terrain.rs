@@ -49,7 +49,7 @@ impl TerrainTile {
             },
             "MiddleGrass" => Self {
                 id: TerrainTileId::MiddleGrass,
-                opacity: 0.1,
+                opacity: 0.025,
                 tile_width,
                 tile_height,
                 relative_tile_width,
@@ -60,7 +60,7 @@ impl TerrainTile {
             },
             "HighGrass" => Self {
                 id: TerrainTileId::HighGrass,
-                opacity: 0.2,
+                opacity: 0.05,
                 tile_width,
                 tile_height,
                 relative_tile_width,
@@ -82,7 +82,7 @@ impl TerrainTile {
             },
             "Mud" => Self {
                 id: TerrainTileId::Mud,
-                opacity: 0.1,
+                opacity: 0.02,
                 tile_width,
                 tile_height,
                 relative_tile_width,

@@ -4,6 +4,7 @@ use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH};
 use crate::map::Map;
+use crate::physics::visibility::Visibility;
 use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent};
 use crate::scene::SpriteType;
@@ -68,6 +69,7 @@ pub struct SceneItem {
     pub current_order: Option<Order>,
     pub next_order: Option<Order>,
     pub display_angle: f32,
+    pub visibilities: Vec<Visibility>,
 }
 
 impl SceneItem {
@@ -82,6 +84,7 @@ impl SceneItem {
             current_order: None,
             next_order: None,
             display_angle: 0.0,
+            visibilities: vec![],
         }
     }
 
@@ -130,6 +133,8 @@ pub enum SceneItemModifier {
     ChangePosition(ScenePoint),
     ChangeGridPosition(GridPoint),
     ReachMoveGridPoint,
+    ChangeVisibilities(Vec<Visibility>),
+    SetNextOrder(Order),
 }
 
 pub fn apply_scene_item_modifiers(
@@ -149,8 +154,6 @@ pub fn apply_scene_item_modifier(
     scene_item: &mut SceneItem,
     modifier: SceneItemModifier,
 ) -> Vec<Message> {
-    let mut messages: Vec<Message> = vec![];
-
     match modifier {
         SceneItemModifier::SwitchToNextOrder => {
             if let Some(next_order) = &scene_item.next_order {
@@ -186,7 +189,13 @@ pub fn apply_scene_item_modifier(
                 }
             }
         },
+        SceneItemModifier::ChangeVisibilities(visibilities) => {
+            scene_item.visibilities = visibilities
+        }
+        SceneItemModifier::SetNextOrder(order) => {
+            scene_item.next_order = Some(order);
+        }
     }
 
-    messages
+    vec![]
 }

@@ -1,7 +1,4 @@
-use crate::map::util::extract_image_from_tileset;
-use ggez::graphics;
 use std::collections::HashMap;
-use std::path::Path;
 use tiled::{Image as TiledImage, Layer, Tileset};
 
 pub struct DecorTile {

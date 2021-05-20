@@ -40,3 +40,5 @@ pub const MOVE_VELOCITY: f32 = 1.0;
 pub const MOVE_FAST_VELOCITY: f32 = 2.0;
 // Velocity of move hide vector
 pub const MOVE_HIDE_VELOCITY: f32 = 0.5;
+// Visibility computing must ignore firsts tiles
+pub const VISIBILITY_IGNORE_FIRSTS: usize = 4;

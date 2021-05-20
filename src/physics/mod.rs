@@ -1,6 +1,7 @@
 pub mod item;
 pub mod path;
 pub mod util;
+pub mod visibility;
 
 #[derive(Debug)]
 pub enum PhysicEvent {

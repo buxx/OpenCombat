@@ -6,8 +6,8 @@ use std::path::Path;
 use ggez::GameError;
 use ggez::GameResult;
 use tiled::{
-    parse_with_path, Image as TiledImage, Image, ImageLayer, Layer, LayerData, Map as TiledMap,
-    ObjectGroup, Orientation, PropertyValue, Tileset,
+    parse_with_path, Image as TiledImage, Layer, LayerData, Map as TiledMap, ObjectGroup,
+    Orientation, Tileset,
 };
 
 use crate::map::decor::{Decor, DecorTile};

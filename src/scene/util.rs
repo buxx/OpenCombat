@@ -3,7 +3,6 @@ use ggez::{graphics, GameResult};
 
 use crate::map::Map;
 use crate::ScenePoint;
-use tiled::Tileset;
 
 pub fn update_terrain_batch(
     mut terrain_batch: graphics::spritebatch::SpriteBatch,

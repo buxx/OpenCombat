@@ -15,9 +15,9 @@ pub fn produce_physics_messages_for_scene_item(
 
     match &scene_item.state.current_behavior {
         ItemBehavior::Standing => {}
-        ItemBehavior::MoveTo(move_to_scene_point, grid_path)
-        | ItemBehavior::MoveFastTo(move_to_scene_point, grid_path)
-        | ItemBehavior::HideTo(move_to_scene_point, grid_path) => {
+        ItemBehavior::MoveTo(_, grid_path)
+        | ItemBehavior::MoveFastTo(_, grid_path)
+        | ItemBehavior::HideTo(_, grid_path) => {
             if let Some(going_to_grid_point) = grid_path.first() {
                 let going_to_scene_point = scene_point_from_grid_point(going_to_grid_point, &map);
 
