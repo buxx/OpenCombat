@@ -28,7 +28,7 @@ use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent, PhysicEvent};
 use crate::scene::item::{
     apply_scene_item_modifier, apply_scene_item_modifiers, ItemState, SceneItem, SceneItemModifier,
-    SceneItemType,
+    SceneItemType, Side,
 };
 use crate::scene::util::{update_background_batch, update_decor_batches};
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
@@ -71,7 +71,8 @@ pub struct MainState {
 
     // scene items
     scene_items: Vec<SceneItem>,
-    scene_items_by_grid_position: HashMap<GridPoint, Vec<usize>>,
+    scene_items_by_grid_position: HashMap<GridPoint, Vec<SceneItemId>>,
+    scene_items_by_side: HashMap<Side, Vec<SceneItemId>>,
 
     // events
     physics_events: Vec<PhysicEvent>,
@@ -85,10 +86,13 @@ pub struct MainState {
     cursor_on_same_grid_point_since: Instant,
     waiting_cursor: Vec<CursorImmobile>,
     user_events: Vec<UserEvent>,
-    selected_scene_items: Vec<usize>,             // scene_item usize
-    scene_item_menu: Option<(usize, ScenePoint)>, // scene_item usize, display_at
+    selected_scene_items: Vec<SceneItemId>, // scene_item usize
+    scene_item_menu: Option<(SceneItemId, ScenePoint)>, // scene_item usize, display_at
     scene_item_prepare_order: Option<SceneItemPrepareOrder>,
     current_prepare_move_found_paths: HashMap<SceneItemId, Vec<GridPoint>>,
+
+    // Gameplay
+    current_side: Side,
 }
 
 impl MainState {
@@ -130,24 +134,54 @@ impl MainState {
         update_decor_batches(&mut decor_batches, &map);
 
         let mut scene_items = vec![];
+        let mut scene_items_by_grid_position: HashMap<GridPoint, Vec<usize>> = HashMap::new();
+        let mut scene_items_by_side: HashMap<Side, Vec<SceneItemId>> = HashMap::new();
+        let mut scene_item_id: usize = 0;
+
         for x in 0..1 {
             for y in 0..5 {
-                scene_items.push(SceneItem::new(
+                let scene_item = SceneItem::new(
                     SceneItemType::Soldier,
                     ScenePoint::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
                     ItemState::new(ItemBehavior::Standing),
                     &map,
-                ));
+                    Side::A,
+                );
+                scene_items_by_side
+                    .entry(Side::A)
+                    .or_default()
+                    .push(scene_item_id);
+                let grid_position = util::grid_point_from_scene_point(&scene_item.position, &map);
+                scene_items_by_grid_position
+                    .entry(grid_position)
+                    .or_default()
+                    .push(scene_item_id);
+                scene_items.push(scene_item);
+                scene_item_id += 1;
             }
         }
 
-        let mut scene_items_by_grid_position: HashMap<GridPoint, Vec<usize>> = HashMap::new();
-        for (i, scene_item) in scene_items.iter().enumerate() {
-            let grid_position = util::grid_point_from_scene_point(&scene_item.position, &map);
-            scene_items_by_grid_position
-                .entry(grid_position)
-                .or_default()
-                .push(i);
+        for x in 0..1 {
+            for y in 0..5 {
+                let scene_item = SceneItem::new(
+                    SceneItemType::Soldier,
+                    ScenePoint::new((x as f32 * 24.0) + 550.0, (y as f32 * 24.0) + 200.0),
+                    ItemState::new(ItemBehavior::Standing),
+                    &map,
+                    Side::B,
+                );
+                scene_items_by_side
+                    .entry(Side::B)
+                    .or_default()
+                    .push(scene_item_id);
+                let grid_position = util::grid_point_from_scene_point(&scene_item.position, &map);
+                scene_items_by_grid_position
+                    .entry(grid_position)
+                    .or_default()
+                    .push(scene_item_id);
+                scene_items.push(scene_item);
+                scene_item_id += 1;
+            }
         }
 
         let main_state = MainState {
@@ -167,6 +201,7 @@ impl MainState {
             decor_batches,
             scene_items,
             scene_items_by_grid_position,
+            scene_items_by_side,
             physics_events: vec![],
             last_key_consumed: HashMap::new(),
             left_click_down: None,
@@ -180,6 +215,7 @@ impl MainState {
             scene_item_menu: None,
             scene_item_prepare_order: None,
             current_prepare_move_found_paths: HashMap::new(),
+            current_side: Side::A,
         };
 
         Ok(main_state)

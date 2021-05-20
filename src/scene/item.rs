@@ -59,6 +59,12 @@ pub enum SceneItemType {
     Soldier,
 }
 
+#[derive(PartialEq, Eq, Hash)]
+pub enum Side {
+    A,
+    B,
+}
+
 pub struct SceneItem {
     pub type_: SceneItemType,
     pub position: ScenePoint,
@@ -70,10 +76,17 @@ pub struct SceneItem {
     pub next_order: Option<Order>,
     pub display_angle: f32,
     pub visibilities: Vec<Visibility>,
+    pub side: Side,
 }
 
 impl SceneItem {
-    pub fn new(type_: SceneItemType, position: ScenePoint, state: ItemState, map: &Map) -> Self {
+    pub fn new(
+        type_: SceneItemType,
+        position: ScenePoint,
+        state: ItemState,
+        map: &Map,
+        side: Side,
+    ) -> Self {
         Self {
             type_,
             position: position.clone(),
@@ -85,6 +98,7 @@ impl SceneItem {
             next_order: None,
             display_angle: 0.0,
             visibilities: vec![],
+            side,
         }
     }
 
