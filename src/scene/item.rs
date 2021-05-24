@@ -3,13 +3,15 @@ use ggez::graphics;
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH};
+use crate::gameplay::weapon::Weapon;
 use crate::map::Map;
 use crate::physics::visibility::Visibility;
-use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent};
+use crate::physics::{GridPoint, HitType, PhysicEvent};
+use crate::scene::main::MainStateModifier;
 use crate::scene::SpriteType;
-use crate::weapon::Weapon;
-use crate::{Message, Offset, ScenePoint};
+use crate::Message::MainStateMessage;
+use crate::{Message, Offset, SceneItemId, ScenePoint};
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,
@@ -30,6 +32,7 @@ impl SceneItemSpriteInfo {
             SpriteType::WalkingSoldier => (12.0, 12.0, 12.0, 8, 0.5),
             SpriteType::CrawlingSoldier => (26.0, 26.0, 26.0, 8, 1.0),
             SpriteType::StandingSoldier => (0.0, 12.0, 12.0, 1, 0.0),
+            SpriteType::EngagingSoldier => (52.0, 26.0, 26.0, 1, 0.0),
         };
 
         Self {
@@ -50,7 +53,7 @@ pub enum SceneItemType {
     Soldier,
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub enum Side {
     A,
     B,
@@ -71,7 +74,7 @@ pub struct SceneItem {
     pub side: Side,
     pub weapon: Weapon,
     pub reloading_since: Option<u32>,
-    pub acquiring_since: Option<u32>,
+    pub acquiring_until: Option<u32>,
 }
 
 impl SceneItem {
@@ -99,7 +102,7 @@ impl SceneItem {
             side,
             weapon,
             reloading_since: None,
-            acquiring_since: None,
+            acquiring_until: None,
         }
     }
 
@@ -137,10 +140,36 @@ impl SceneItem {
             ItemBehavior::MoveTo(_, _) => SpriteType::WalkingSoldier,
             ItemBehavior::MoveFastTo(_, _) => SpriteType::WalkingSoldier,
             ItemBehavior::Standing => SpriteType::StandingSoldier,
-            // FIXME BS NOW
-            ItemBehavior::EngageSceneItem(_) => SpriteType::CrawlingSoldier,
-            ItemBehavior::EngageGridPoint(_) => SpriteType::CrawlingSoldier,
+            ItemBehavior::EngageSceneItem(_) => SpriteType::EngagingSoldier,
+            ItemBehavior::EngageGridPoint(_) => SpriteType::EngagingSoldier,
         }
+    }
+
+    pub fn visible_visibilities(&self) -> Vec<&Visibility> {
+        self.visibilities
+            .iter()
+            .filter(|v| v.visible)
+            .collect::<Vec<&Visibility>>()
+    }
+
+    pub fn visibility_for(&self, scene_item_id: SceneItemId) -> Option<&Visibility> {
+        for visibility in self.visibilities.iter() {
+            if visibility.to_scene_item_id == scene_item_id {
+                return Some(visibility);
+            }
+        }
+
+        None
+    }
+
+    pub fn visible_visibility_for(&self, scene_item_id: SceneItemId) -> Option<&Visibility> {
+        for visibility in self.visible_visibilities().iter() {
+            if visibility.to_scene_item_id == scene_item_id {
+                return Some(visibility);
+            }
+        }
+
+        None
     }
 }
 
@@ -153,25 +182,32 @@ pub enum SceneItemModifier {
     ReachMoveGridPoint,
     ChangeVisibilities(Vec<Visibility>),
     SetNextOrder(Order),
+    AcquireUntil(u32), // until frame_i
+    FireOnSceneItem(SceneItemId, ScenePoint),
+    Disengage,
 }
 
 pub fn apply_scene_item_modifiers(
+    frame_i: u32,
     scene_item: &mut SceneItem,
     modifiers: Vec<SceneItemModifier>,
 ) -> Vec<Message> {
     let mut messages: Vec<Message> = vec![];
 
     for modifier in modifiers.into_iter() {
-        messages.extend(apply_scene_item_modifier(scene_item, modifier))
+        messages.extend(apply_scene_item_modifier(frame_i, scene_item, modifier))
     }
 
     messages
 }
 
 pub fn apply_scene_item_modifier(
+    frame_i: u32,
     scene_item: &mut SceneItem,
     modifier: SceneItemModifier,
 ) -> Vec<Message> {
+    let mut messages: Vec<Message> = vec![];
+
     match modifier {
         SceneItemModifier::SwitchToNextOrder => {
             if let Some(next_order) = &scene_item.next_order {
@@ -205,7 +241,11 @@ pub fn apply_scene_item_modifier(
                 grid_path.drain(0..1);
                 // If target reached
                 if grid_path.len() == 0 {
-                    apply_scene_item_modifier(scene_item, SceneItemModifier::SwitchToNextOrder);
+                    apply_scene_item_modifier(
+                        frame_i,
+                        scene_item,
+                        SceneItemModifier::SwitchToNextOrder,
+                    );
                 }
             }
         },
@@ -215,7 +255,30 @@ pub fn apply_scene_item_modifier(
         SceneItemModifier::SetNextOrder(order) => {
             scene_item.next_order = Some(order);
         }
+        SceneItemModifier::AcquireUntil(until_frame_i) => {
+            scene_item.acquiring_until = Some(until_frame_i)
+        }
+        SceneItemModifier::FireOnSceneItem(scene_item_id, scene_point) => {
+            scene_item.acquiring_until = None;
+            scene_item.weapon.need_reload = true;
+            scene_item.reloading_since = Some(frame_i);
+
+            // FIXME BS NOW: compute which hit
+            let hit_type = HitType::Missed;
+            messages.push(Message::MainStateMessage(
+                MainStateModifier::PushPhysicEvent(PhysicEvent::BulletFire(
+                    scene_item.position,
+                    scene_item.id,
+                    scene_point,
+                    Some(scene_item_id),
+                    hit_type,
+                )),
+            ))
+        }
+        SceneItemModifier::Disengage => {
+            scene_item.behavior = ItemBehavior::Standing;
+        }
     }
 
-    vec![]
+    messages
 }

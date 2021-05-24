@@ -11,12 +11,12 @@ use scene::main::MainState;
 
 mod behavior;
 mod config;
+mod gameplay;
 mod map;
 mod physics;
 mod scene;
 mod ui;
 mod util;
-mod weapon;
 
 type WindowPoint = Vec2;
 type Offset = Vec2;

@@ -1,4 +1,4 @@
-use crate::behavior::engagement::digest_engage_behavior;
+use crate::behavior::engagement::digest_engage_scene_item_behavior;
 use crate::behavior::movement::{digest_move_behavior, digest_next_move_order};
 use crate::behavior::order::Order;
 use crate::behavior::standing::digest_standing_behavior;
@@ -32,15 +32,24 @@ pub fn digest_current_order(_: &SceneItem, _: &Map) -> Vec<SceneItemModifier> {
     vec![]
 }
 
-pub fn digest_behavior(scene_item: &SceneItem, map: &Map) -> Vec<SceneItemModifier> {
+pub fn digest_behavior(frame_i: u32, scene_item: &SceneItem, map: &Map) -> Vec<SceneItemModifier> {
     let mut scene_item_modifiers: Vec<SceneItemModifier> = vec![];
 
     match &scene_item.behavior {
         ItemBehavior::Standing => {
             scene_item_modifiers.extend(digest_standing_behavior(scene_item, map));
         }
-        ItemBehavior::EngageSceneItem(_) => {}
-        ItemBehavior::EngageGridPoint(_) => {}
+        ItemBehavior::EngageSceneItem(engage_scene_item_id) => {
+            scene_item_modifiers.extend(digest_engage_scene_item_behavior(
+                frame_i,
+                scene_item,
+                *engage_scene_item_id,
+                map,
+            ));
+        }
+        ItemBehavior::EngageGridPoint(_) => {
+            // TODO
+        }
         ItemBehavior::MoveTo(_, grid_path) => {
             scene_item_modifiers.extend(digest_move_behavior(scene_item, grid_path, map));
         }

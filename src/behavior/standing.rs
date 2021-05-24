@@ -9,13 +9,7 @@ pub fn digest_standing_behavior(scene_item: &SceneItem, _map: &Map) -> Vec<Scene
 
     // Visible enemy
     // TODO: Choose enemy by opacity/team repartition etc
-    if let Some(visibility) = scene_item
-        .visibilities
-        .iter()
-        .filter(|v| v.visible)
-        .collect::<Vec<&Visibility>>()
-        .first()
-    {
+    if let Some(visibility) = scene_item.visible_visibilities().first() {
         scene_item_modifiers.push(SceneItemModifier::ChangeBehavior(
             ItemBehavior::EngageSceneItem(visibility.to_scene_item_id),
         ));

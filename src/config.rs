@@ -1,7 +1,5 @@
 // execute update code 60x per seconds
 pub const TARGET_FPS: u32 = 60;
-// execute meta code each 20 frames
-pub const META_EACH: u32 = 20;
 // execute physics code each 10 frames
 pub const PHYSICS_EACH: u32 = 10;
 // execute animate code each 15 frames

@@ -14,13 +14,15 @@ use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
     ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I, META_EACH,
-    PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, TARGET_FPS,
+    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I, PHYSICS_EACH,
+    SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, TARGET_FPS,
 };
+use crate::gameplay::weapon::{Weapon, WeaponType};
 use crate::map::util::extract_image_from_tileset;
 use crate::map::Map;
 use crate::physics::item::produce_physics_messages_for_scene_item;
 use crate::physics::path::find_path;
+use crate::physics::projectile::{bullet_fire, Projectile};
 use crate::physics::util::{grid_point_from_scene_point, scene_point_from_window_point};
 use crate::physics::util::{scene_point_from_grid_point, window_point_from_scene_point};
 use crate::physics::visibility::Visibility;
@@ -34,7 +36,6 @@ use crate::scene::util::{update_background_batch, update_decor_batches};
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
-use crate::weapon::{Weapon, WeaponType};
 use crate::{scene, Message, Offset, SceneItemId, ScenePoint, WindowPoint};
 
 #[derive(PartialEq)]
@@ -49,11 +50,13 @@ pub enum MainStateModifier {
     InsertCurrentPrepareMoveFoundPaths(SceneItemId, Vec<GridPoint>),
     NewSeenOpponent(SceneItemId),
     LostSeenOpponent(SceneItemId),
+    PushPhysicEvent(PhysicEvent),
+    NewProjectile(Projectile),
 }
 
 pub struct MainState {
     // time
-    frame_i: u32,
+    frame_i: u32, // FIXME BS NOW: regler le probleme du reset (acquiring_until etc)
     start: Instant,
 
     // map
@@ -71,6 +74,7 @@ pub struct MainState {
     debug_terrain_batch: graphics::spritebatch::SpriteBatch,
     debug_terrain_opacity_mesh_builder: MeshBuilder,
     decor_batches: Vec<graphics::spritebatch::SpriteBatch>,
+    projectiles: Vec<Projectile>,
 
     // scene items
     scene_items: Vec<SceneItem>,
@@ -207,6 +211,7 @@ impl MainState {
             debug_terrain_batch,
             debug_terrain_opacity_mesh_builder,
             decor_batches,
+            projectiles: vec![],
             scene_items,
             scene_items_by_grid_position,
             scene_items_by_side,
@@ -526,7 +531,39 @@ impl MainState {
     fn physics(&mut self) {
         let mut messages: Vec<Message> = vec![];
 
-        // Scene items movements
+        while let Some(physic_event) = &self.physics_events.pop() {
+            match physic_event {
+                PhysicEvent::Explosion => {
+                    for scene_item in self.scene_items.iter_mut() {
+                        scene_item.meta_events.push(MetaEvent::FeelExplosion);
+                    }
+                }
+                PhysicEvent::BulletFire(
+                    from_scene_point,
+                    from_scene_item_id,
+                    to_scene_point,
+                    scene_item_id,
+                    hit_type,
+                ) => {
+                    let from_scene_item = self.get_scene_item(*from_scene_item_id);
+                    let target_scene_item = if let Some(scene_item_id) = scene_item_id {
+                        Some(self.get_scene_item(*scene_item_id))
+                    } else {
+                        None
+                    };
+                    messages.extend(bullet_fire(
+                        self.frame_i,
+                        from_scene_point,
+                        from_scene_item,
+                        to_scene_point,
+                        target_scene_item,
+                        hit_type,
+                    ));
+                }
+            }
+        }
+
+        // Ex: Scene items movements
         for (scene_item_i, scene_item) in self.scene_items.iter().enumerate() {
             messages.extend(produce_physics_messages_for_scene_item(
                 scene_item_i,
@@ -535,20 +572,16 @@ impl MainState {
             ))
         }
 
-        // (FAKE) Drop a bomb to motivate stop move
-        if self.frame_i % 600 == 0 && self.frame_i != 0 {
-            self.physics_events.push(PhysicEvent::Explosion);
-        }
-
         self.consume_messages(messages);
     }
 
     fn consume_messages(&mut self, messages: Vec<Message>) {
+        let frame_i = self.frame_i;
         for message in messages.into_iter() {
             match message {
                 Message::SceneItemMessage(i, scene_item_modifier) => {
                     let scene_item = self.get_scene_item_mut(i);
-                    apply_scene_item_modifier(scene_item, scene_item_modifier);
+                    apply_scene_item_modifier(frame_i, scene_item, scene_item_modifier);
                 }
                 Message::MainStateMessage(main_state_modifier) => match main_state_modifier {
                     MainStateModifier::ChangeSceneItemGridPosition(
@@ -577,19 +610,13 @@ impl MainState {
                                 .expect("Must be here"),
                         );
                     }
-                },
-            }
-        }
-    }
-
-    fn metas(&mut self) {
-        for physic_event in &self.physics_events {
-            match physic_event {
-                PhysicEvent::Explosion => {
-                    for scene_item in self.scene_items.iter_mut() {
-                        scene_item.meta_events.push(MetaEvent::FeelExplosion);
+                    MainStateModifier::PushPhysicEvent(event) => {
+                        self.physics_events.push(event);
                     }
-                }
+                    MainStateModifier::NewProjectile(projectile) => {
+                        self.projectiles.push(projectile);
+                    }
+                },
             }
         }
     }
@@ -620,7 +647,7 @@ impl MainState {
             ));
         }
 
-        // Remove opponent not sen anymore
+        // Remove opponent not seen anymore
         for previously_seen_opponent in self.opposite_visible_scene_items.iter() {
             if !see_opponents.contains(previously_seen_opponent) {
                 messages.push(Message::MainStateMessage(
@@ -646,16 +673,19 @@ impl MainState {
 
         for (_, scene_item) in self.scene_items.iter_mut().enumerate() {
             messages.extend(apply_scene_item_modifiers(
+                self.frame_i,
                 scene_item,
                 digest_next_order(&scene_item, &self.map),
             ));
             messages.extend(apply_scene_item_modifiers(
+                self.frame_i,
                 scene_item,
                 digest_current_order(&scene_item, &self.map),
             ));
             messages.extend(apply_scene_item_modifiers(
+                self.frame_i,
                 scene_item,
-                digest_behavior(&scene_item, &self.map),
+                digest_behavior(self.frame_i, &scene_item, &self.map),
             ));
         }
 
@@ -977,6 +1007,47 @@ impl MainState {
         GameResult::Ok(mesh_builder)
     }
 
+    fn update_scene_mesh_with_projectiles(
+        &mut self,
+        mut mesh_builder: MeshBuilder,
+    ) -> GameResult<MeshBuilder> {
+        let mut continue_projectiles: Vec<Projectile> = vec![];
+
+        while let Some(projectile) = self.projectiles.pop() {
+            if projectile.start <= self.frame_i && projectile.end > self.frame_i {
+                let color = if projectile.side == self.current_side {
+                    Color {
+                        r: 0.0,
+                        g: 1.0,
+                        b: 0.0,
+                        a: 0.5,
+                    }
+                } else {
+                    Color {
+                        r: 1.0,
+                        g: 0.0,
+                        b: 0.0,
+                        a: 0.5,
+                    }
+                };
+
+                mesh_builder.line(
+                    &vec![projectile.from_scene_point, projectile.to_scene_point],
+                    1.0,
+                    color,
+                )?;
+            }
+
+            // Projectile must be displayed net frame too
+            if projectile.end >= self.frame_i {
+                continue_projectiles.push(projectile)
+            }
+        }
+
+        self.projectiles = continue_projectiles;
+        GameResult::Ok(mesh_builder)
+    }
+
     fn update_visibilities_mesh(&self, mut mesh_builder: MeshBuilder) -> GameResult<MeshBuilder> {
         if self.debug {
             for selected_scene_item_i in self.selected_scene_items.iter() {
@@ -1026,17 +1097,11 @@ impl event::EventHandler for MainState {
             let tick_animate = self.frame_i % ANIMATE_EACH == 0;
             let tick_seek = self.frame_i % SEEK_EACH == 0;
             let tick_physics = self.frame_i % PHYSICS_EACH == 0;
-            let tick_meta = self.frame_i % META_EACH == 0;
             let tick_interiors = self.frame_i % INTERIORS_EACH == 0;
 
             // Apply moves, explosions, etc
             if tick_physics {
                 self.physics();
-            }
-
-            // Generate meta events according to physics events and current physic state
-            if tick_meta {
-                self.metas();
             }
 
             // Seek scene items between them
@@ -1064,9 +1129,6 @@ impl event::EventHandler for MainState {
             if self.frame_i >= MAX_FRAME_I {
                 self.frame_i = 0;
             }
-
-            // Empty physics event
-            self.physics_events.drain(..);
         }
 
         Ok(())
@@ -1084,6 +1146,7 @@ impl event::EventHandler for MainState {
         scene_mesh_builder = self.update_scene_mesh_with_selected_items(scene_mesh_builder)?;
         scene_mesh_builder = self.update_scene_mesh_with_selection_area(scene_mesh_builder)?;
         scene_mesh_builder = self.update_scene_mesh_with_prepare_order(scene_mesh_builder)?;
+        scene_mesh_builder = self.update_scene_mesh_with_projectiles(scene_mesh_builder)?;
         visibilities_mesh_builder = self.update_visibilities_mesh(visibilities_mesh_builder)?;
 
         let window_draw_param = graphics::DrawParam::new().dest(window_point_from_scene_point(
