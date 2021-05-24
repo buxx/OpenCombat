@@ -8,12 +8,15 @@ use bresenham::Bresenham;
 pub struct Visibility {
     pub from_scene_point: ScenePoint,
     pub to_scene_point: ScenePoint,
+    pub to_scene_item_id: usize,
     pub total_opacity: f32,
     pub opacity_segments: Vec<(ScenePoint, f32)>,
+    pub visible: bool,
 }
 
 impl Visibility {
-    pub fn new(scene_item_from: &SceneItem, to_scene_point: &ScenePoint, map: &Map) -> Self {
+    pub fn new(scene_item_from: &SceneItem, to_scene_item: &SceneItem, map: &Map) -> Self {
+        let to_scene_point = &to_scene_item.position;
         let mut opacity_segments: Vec<(ScenePoint, f32)> = vec![];
         let mut grid_path: GridPath = vec![];
         let mut total_opacity: f32 = 0.0;
@@ -52,21 +55,16 @@ impl Visibility {
             }
         }
 
+        // TODO: Modify algorithm according to firing/hide/wal/run...
+        let visible = total_opacity < 0.5;
+
         Self {
             from_scene_point: scene_item_from.position,
             to_scene_point: to_scene_point.clone(),
+            to_scene_item_id: to_scene_item.id,
             opacity_segments,
             total_opacity,
+            visible,
         }
     }
-}
-
-pub fn see_him(
-    _scene_item_from: &SceneItem,
-    _scene_item_to: &SceneItem,
-    visibility: &Visibility,
-) -> bool {
-    // TODO: Modify algorithm according to firing/hide/wal/run...
-
-    return visibility.total_opacity < 0.5;
 }

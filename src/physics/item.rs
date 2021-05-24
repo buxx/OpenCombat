@@ -13,7 +13,7 @@ pub fn produce_physics_messages_for_scene_item(
 ) -> Vec<Message> {
     let mut messages: Vec<Message> = vec![];
 
-    match &scene_item.state.current_behavior {
+    match &scene_item.behavior {
         ItemBehavior::Standing => {}
         ItemBehavior::MoveTo(_, grid_path)
         | ItemBehavior::MoveFastTo(_, grid_path)
@@ -21,8 +21,8 @@ pub fn produce_physics_messages_for_scene_item(
             if let Some(going_to_grid_point) = grid_path.first() {
                 let going_to_scene_point = scene_point_from_grid_point(going_to_grid_point, &map);
 
-                let velocity = velocity_for_behavior(&scene_item.state.current_behavior)
-                    .expect("must have velocity here");
+                let velocity =
+                    velocity_for_behavior(&scene_item.behavior).expect("must have velocity here");
                 let move_vector =
                     (going_to_scene_point - scene_item.position).normalize() * velocity;
                 let new_position = ScenePoint::new(
@@ -49,6 +49,8 @@ pub fn produce_physics_messages_for_scene_item(
                 }
             }
         }
+        ItemBehavior::EngageSceneItem(_) => {}
+        ItemBehavior::EngageGridPoint(_) => {}
     }
 
     messages

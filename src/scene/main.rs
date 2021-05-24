@@ -9,7 +9,7 @@ use ggez::input::keyboard::KeyCode;
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
 
-use crate::behavior::animate::{digest_current_behavior, digest_current_order, digest_next_order};
+use crate::behavior::animate::{digest_behavior, digest_current_order, digest_next_order};
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
@@ -23,17 +23,18 @@ use crate::physics::item::produce_physics_messages_for_scene_item;
 use crate::physics::path::find_path;
 use crate::physics::util::{grid_point_from_scene_point, scene_point_from_window_point};
 use crate::physics::util::{scene_point_from_grid_point, window_point_from_scene_point};
-use crate::physics::visibility::{see_him, Visibility};
+use crate::physics::visibility::Visibility;
 use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent, PhysicEvent};
 use crate::scene::item::{
-    apply_scene_item_modifier, apply_scene_item_modifiers, ItemState, SceneItem, SceneItemModifier,
+    apply_scene_item_modifier, apply_scene_item_modifiers, SceneItem, SceneItemModifier,
     SceneItemType, Side,
 };
 use crate::scene::util::{update_background_batch, update_decor_batches};
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
+use crate::weapon::{Weapon, WeaponType};
 use crate::{scene, Message, Offset, SceneItemId, ScenePoint, WindowPoint};
 
 #[derive(PartialEq)]
@@ -144,11 +145,13 @@ impl MainState {
         for x in 0..1 {
             for y in 0..5 {
                 let scene_item = SceneItem::new(
+                    scene_item_id,
                     SceneItemType::Soldier,
                     ScenePoint::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
-                    ItemState::new(ItemBehavior::Standing),
+                    ItemBehavior::Standing,
                     &map,
                     Side::A,
+                    Weapon::new(WeaponType::GarandM1),
                 );
                 scene_items_by_side
                     .entry(Side::A)
@@ -167,11 +170,13 @@ impl MainState {
         for x in 0..1 {
             for y in 0..5 {
                 let scene_item = SceneItem::new(
+                    scene_item_id,
                     SceneItemType::Soldier,
                     ScenePoint::new((x as f32 * 24.0) + 550.0, (y as f32 * 24.0) + 200.0),
-                    ItemState::new(ItemBehavior::Standing),
+                    ItemBehavior::Standing,
                     &map,
                     Side::B,
+                    Weapon::new(WeaponType::MauserG41),
                 );
                 scene_items_by_side
                     .entry(Side::B)
@@ -599,19 +604,13 @@ impl MainState {
                 if scene_item_from.side == scene_item_to.side {
                     continue;
                 }
-                let visibility =
-                    Visibility::new(scene_item_from, &scene_item_to.position, &self.map);
+                let visibility = Visibility::new(scene_item_from, &scene_item_to, &self.map);
                 if scene_item_to.side != self.current_side {
-                    if see_him(scene_item_from, scene_item_to, &visibility) {
+                    if visibility.visible {
                         if !see_opponents.contains(&scene_item_to_i) {
                             see_opponents.push(scene_item_to_i);
                         }
                     }
-                    // else {
-                    //     if let Some(i) = self.opposite_visible_scene_items.iter().position(|x| *x == scene_item_to_i) {
-                    //         self.opposite_visible_scene_items.remove(i);
-                    //     }
-                    // }
                 }
                 visibilities.push(visibility);
             }
@@ -656,7 +655,7 @@ impl MainState {
             ));
             messages.extend(apply_scene_item_modifiers(
                 scene_item,
-                digest_current_behavior(&scene_item, &self.map),
+                digest_behavior(&scene_item, &self.map),
             ));
         }
 
@@ -866,8 +865,10 @@ impl MainState {
             )?;
 
             // Move path if moving
-            match &scene_item.state.current_behavior {
+            match &scene_item.behavior {
                 ItemBehavior::Standing => {}
+                ItemBehavior::EngageSceneItem(_) => {}
+                ItemBehavior::EngageGridPoint(_) => {}
                 ItemBehavior::HideTo(_, grid_path)
                 | ItemBehavior::MoveTo(_, grid_path)
                 | ItemBehavior::MoveFastTo(_, grid_path) => {

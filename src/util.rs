@@ -1,5 +1,7 @@
 use crate::behavior::ItemBehavior;
 use crate::config::{MOVE_FAST_VELOCITY, MOVE_HIDE_VELOCITY, MOVE_VELOCITY};
+use crate::ScenePoint;
+use std::f32::consts::FRAC_PI_2;
 
 pub fn velocity_for_behavior(behavior: &ItemBehavior) -> Option<f32> {
     match behavior {
@@ -8,4 +10,8 @@ pub fn velocity_for_behavior(behavior: &ItemBehavior) -> Option<f32> {
         ItemBehavior::HideTo(_, _) => Some(MOVE_HIDE_VELOCITY),
         _ => None,
     }
+}
+
+pub fn angle(to_point: ScenePoint, from_point: ScenePoint) -> f32 {
+    f32::atan2(to_point.y - from_point.y, to_point.x - from_point.x) + FRAC_PI_2
 }

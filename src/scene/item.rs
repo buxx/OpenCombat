@@ -8,6 +8,7 @@ use crate::physics::visibility::Visibility;
 use crate::physics::GridPoint;
 use crate::physics::{util, MetaEvent};
 use crate::scene::SpriteType;
+use crate::weapon::Weapon;
 use crate::{Message, Offset, ScenePoint};
 
 pub struct SceneItemSpriteInfo {
@@ -45,16 +46,6 @@ impl SceneItemSpriteInfo {
     }
 }
 
-pub struct ItemState {
-    pub current_behavior: ItemBehavior,
-}
-
-impl ItemState {
-    pub fn new(current_behavior: ItemBehavior) -> Self {
-        Self { current_behavior }
-    }
-}
-
 pub enum SceneItemType {
     Soldier,
 }
@@ -66,10 +57,11 @@ pub enum Side {
 }
 
 pub struct SceneItem {
+    pub id: usize,
     pub type_: SceneItemType,
     pub position: ScenePoint,
     pub grid_position: GridPoint,
-    pub state: ItemState,
+    pub behavior: ItemBehavior,
     pub meta_events: Vec<MetaEvent>,
     pub current_frame: f32,
     pub current_order: Option<Order>,
@@ -77,21 +69,27 @@ pub struct SceneItem {
     pub display_angle: f32,
     pub visibilities: Vec<Visibility>,
     pub side: Side,
+    pub weapon: Weapon,
+    pub reloading_since: Option<u32>,
+    pub acquiring_since: Option<u32>,
 }
 
 impl SceneItem {
     pub fn new(
+        id: usize,
         type_: SceneItemType,
         position: ScenePoint,
-        state: ItemState,
+        behavior: ItemBehavior,
         map: &Map,
         side: Side,
+        weapon: Weapon,
     ) -> Self {
         Self {
+            id,
             type_,
             position: position.clone(),
             grid_position: util::grid_point_from_scene_point(&position.clone(), map),
-            state,
+            behavior,
             meta_events: vec![],
             current_frame: 0.0,
             current_order: None,
@@ -99,6 +97,9 @@ impl SceneItem {
             display_angle: 0.0,
             visibilities: vec![],
             side,
+            weapon,
+            reloading_since: None,
+            acquiring_since: None,
         }
     }
 
@@ -131,11 +132,14 @@ impl SceneItem {
     pub fn sprite_type(&self) -> SpriteType {
         // Here some logical about state, nature (soldier, tank, ...) and current behavior to
         // determine sprite type
-        match self.state.current_behavior {
+        match self.behavior {
             ItemBehavior::HideTo(_, _) => SpriteType::CrawlingSoldier,
             ItemBehavior::MoveTo(_, _) => SpriteType::WalkingSoldier,
             ItemBehavior::MoveFastTo(_, _) => SpriteType::WalkingSoldier,
             ItemBehavior::Standing => SpriteType::StandingSoldier,
+            // FIXME BS NOW
+            ItemBehavior::EngageSceneItem(_) => SpriteType::CrawlingSoldier,
+            ItemBehavior::EngageGridPoint(_) => SpriteType::CrawlingSoldier,
         }
     }
 }
@@ -143,7 +147,7 @@ impl SceneItem {
 pub enum SceneItemModifier {
     SwitchToNextOrder,
     ChangeDisplayAngle(f32),
-    ChangeState(ItemState),
+    ChangeBehavior(ItemBehavior),
     ChangePosition(ScenePoint),
     ChangeGridPosition(GridPoint),
     ReachMoveGridPoint,
@@ -176,14 +180,14 @@ pub fn apply_scene_item_modifier(
             } else {
                 scene_item.current_order = None;
                 // TODO: Depending to context
-                scene_item.state = ItemState::new(ItemBehavior::Standing);
+                scene_item.behavior = ItemBehavior::Standing;
             }
         }
         SceneItemModifier::ChangeDisplayAngle(new_angle) => {
             scene_item.display_angle = new_angle;
         }
-        SceneItemModifier::ChangeState(new_state) => {
-            scene_item.state = new_state;
+        SceneItemModifier::ChangeBehavior(new_behavior) => {
+            scene_item.behavior = new_behavior;
         }
         SceneItemModifier::ChangePosition(new_point) => {
             scene_item.position = new_point;
@@ -191,8 +195,10 @@ pub fn apply_scene_item_modifier(
         SceneItemModifier::ChangeGridPosition(new_grid_point) => {
             scene_item.grid_position = new_grid_point;
         }
-        SceneItemModifier::ReachMoveGridPoint => match &mut scene_item.state.current_behavior {
+        SceneItemModifier::ReachMoveGridPoint => match &mut scene_item.behavior {
             ItemBehavior::Standing => {}
+            ItemBehavior::EngageSceneItem(_) => {}
+            ItemBehavior::EngageGridPoint(_) => {}
             ItemBehavior::HideTo(_, grid_path)
             | ItemBehavior::MoveTo(_, grid_path)
             | ItemBehavior::MoveFastTo(_, grid_path) => {
