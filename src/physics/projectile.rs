@@ -1,27 +1,49 @@
+use crate::physics::hit::determine_hit_type;
+use crate::physics::visibility::Visibility;
 use crate::physics::HitType;
-use crate::scene::item::{SceneItem, Side};
+use crate::scene::item::{SceneItem, SceneItemModifier, Side};
 use crate::scene::main::MainStateModifier;
 use crate::{Message, ScenePoint};
 
 pub fn bullet_fire(
     frame_i: u32,
-    from_scene_point: &ScenePoint,
+    visibility: &Visibility,
     from_scene_item: &SceneItem,
-    to_scene_point: &ScenePoint,
-    target_scene_item: Option<&SceneItem>,
-    hit_type: &HitType,
+    to_scene_item: Option<&SceneItem>,
 ) -> Vec<Message> {
     let mut messages: Vec<Message> = vec![];
 
     messages.push(Message::MainStateMessage(MainStateModifier::NewProjectile(
         Projectile::new(
-            from_scene_point.clone(),
-            to_scene_point.clone(),
+            visibility.from_scene_point,
+            visibility.to_scene_point,
             frame_i,
             frame_i + 5, // FIXME: depending distance
             from_scene_item.side.clone(),
         ),
     )));
+
+    if let Some(to_scene_item) = to_scene_item {
+        messages.extend(
+            match determine_hit_type(visibility, from_scene_item, to_scene_item) {
+                HitType::Deadly => {
+                    vec![Message::SceneItemMessage(
+                        to_scene_item.id,
+                        SceneItemModifier::Death,
+                    )]
+                }
+                HitType::Incapacity => {
+                    vec![Message::SceneItemMessage(
+                        to_scene_item.id,
+                        SceneItemModifier::Incapacity,
+                    )]
+                }
+                HitType::Missed => {
+                    vec![]
+                }
+            },
+        )
+    }
 
     messages
 }

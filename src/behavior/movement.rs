@@ -7,7 +7,6 @@ use crate::physics::util::{grid_point_from_scene_point, scene_point_from_grid_po
 use crate::scene::item::{SceneItem, SceneItemModifier};
 use crate::util::{angle, velocity_for_behavior};
 use crate::{GridPath, ScenePoint};
-use std::f32::consts::FRAC_PI_2;
 
 pub fn digest_next_move_order(
     scene_item: &SceneItem,

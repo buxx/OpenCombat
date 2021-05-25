@@ -39,11 +39,11 @@ pub fn digest_behavior(frame_i: u32, scene_item: &SceneItem, map: &Map) -> Vec<S
         ItemBehavior::Standing => {
             scene_item_modifiers.extend(digest_standing_behavior(scene_item, map));
         }
-        ItemBehavior::EngageSceneItem(engage_scene_item_id) => {
+        ItemBehavior::EngageSceneItem(to_scene_item_id) => {
             scene_item_modifiers.extend(digest_engage_scene_item_behavior(
                 frame_i,
                 scene_item,
-                *engage_scene_item_id,
+                *to_scene_item_id,
                 map,
             ));
         }
@@ -59,6 +59,8 @@ pub fn digest_behavior(frame_i: u32, scene_item: &SceneItem, map: &Map) -> Vec<S
         ItemBehavior::HideTo(_, grid_path) => {
             scene_item_modifiers.extend(digest_move_behavior(scene_item, grid_path, map));
         }
+        ItemBehavior::Unconscious => {}
+        ItemBehavior::Dead => {}
     }
 
     scene_item_modifiers

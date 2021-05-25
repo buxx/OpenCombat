@@ -1,5 +1,6 @@
-use crate::{SceneItemId, ScenePoint};
+use crate::physics::visibility::Visibility;
 
+pub mod hit;
 pub mod item;
 pub mod path;
 pub mod projectile;
@@ -8,15 +9,7 @@ pub mod visibility;
 
 #[derive(Debug)]
 pub enum PhysicEvent {
-    Explosion,
-    // from scene point, from scene item, to scene point, target scene item, hit type
-    BulletFire(
-        ScenePoint,
-        SceneItemId,
-        ScenePoint,
-        Option<SceneItemId>,
-        HitType,
-    ),
+    BulletFire(Visibility),
 }
 
 #[derive(Debug)]
@@ -28,8 +21,9 @@ pub enum MetaEvent {
 pub enum HitType {
     Deadly,
     Incapacity,
-    Hurting,
-    VeryClose,
+    // TODO: manage these cases
+    // Hurting,
+    // VeryClose,
     Missed,
 }
 

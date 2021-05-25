@@ -7,10 +7,9 @@ use crate::gameplay::weapon::Weapon;
 use crate::map::Map;
 use crate::physics::visibility::Visibility;
 use crate::physics::{util, MetaEvent};
-use crate::physics::{GridPoint, HitType, PhysicEvent};
+use crate::physics::{GridPoint, PhysicEvent};
 use crate::scene::main::MainStateModifier;
 use crate::scene::SpriteType;
-use crate::Message::MainStateMessage;
 use crate::{Message, Offset, SceneItemId, ScenePoint};
 
 pub struct SceneItemSpriteInfo {
@@ -33,6 +32,8 @@ impl SceneItemSpriteInfo {
             SpriteType::CrawlingSoldier => (26.0, 26.0, 26.0, 8, 1.0),
             SpriteType::StandingSoldier => (0.0, 12.0, 12.0, 1, 0.0),
             SpriteType::EngagingSoldier => (52.0, 26.0, 26.0, 1, 0.0),
+            SpriteType::DeadSoldier => (78.0, 26.0, 26.0, 1, 0.0),
+            SpriteType::UnconsciousSoldier => (78.0, 26.0, 26.0, 1, 0.0),
         };
 
         Self {
@@ -75,6 +76,8 @@ pub struct SceneItem {
     pub weapon: Weapon,
     pub reloading_since: Option<u32>,
     pub acquiring_until: Option<u32>,
+    pub alive: bool,
+    pub incapacity: bool,
 }
 
 impl SceneItem {
@@ -103,6 +106,8 @@ impl SceneItem {
             weapon,
             reloading_since: None,
             acquiring_until: None,
+            alive: true,
+            incapacity: false,
         }
     }
 
@@ -142,29 +147,24 @@ impl SceneItem {
             ItemBehavior::Standing => SpriteType::StandingSoldier,
             ItemBehavior::EngageSceneItem(_) => SpriteType::EngagingSoldier,
             ItemBehavior::EngageGridPoint(_) => SpriteType::EngagingSoldier,
+            ItemBehavior::Dead => SpriteType::UnconsciousSoldier,
+            ItemBehavior::Unconscious => SpriteType::DeadSoldier,
         }
     }
 
-    pub fn visible_visibilities(&self) -> Vec<&Visibility> {
+    pub fn visible_scene_items_visibilities(&self) -> Vec<&Visibility> {
         self.visibilities
             .iter()
-            .filter(|v| v.visible)
+            .filter(|v| v.visible && v.to_scene_item_id.is_some())
             .collect::<Vec<&Visibility>>()
     }
 
-    pub fn visibility_for(&self, scene_item_id: SceneItemId) -> Option<&Visibility> {
-        for visibility in self.visibilities.iter() {
-            if visibility.to_scene_item_id == scene_item_id {
-                return Some(visibility);
-            }
-        }
-
-        None
-    }
-
-    pub fn visible_visibility_for(&self, scene_item_id: SceneItemId) -> Option<&Visibility> {
-        for visibility in self.visible_visibilities().iter() {
-            if visibility.to_scene_item_id == scene_item_id {
+    pub fn visible_scene_items_visibilities_for(
+        &self,
+        scene_item_id: SceneItemId,
+    ) -> Option<&Visibility> {
+        for visibility in self.visible_scene_items_visibilities().iter() {
+            if visibility.to_scene_item_id.expect("visible_scene_items_visibilities must return only visibilities with to_scene_item_id") == scene_item_id {
                 return Some(visibility);
             }
         }
@@ -183,8 +183,10 @@ pub enum SceneItemModifier {
     ChangeVisibilities(Vec<Visibility>),
     SetNextOrder(Order),
     AcquireUntil(u32), // until frame_i
-    FireOnSceneItem(SceneItemId, ScenePoint),
+    FireOnSceneItem(Visibility),
     Disengage,
+    Death,
+    Incapacity,
 }
 
 pub fn apply_scene_item_modifiers(
@@ -233,6 +235,8 @@ pub fn apply_scene_item_modifier(
         }
         SceneItemModifier::ReachMoveGridPoint => match &mut scene_item.behavior {
             ItemBehavior::Standing => {}
+            ItemBehavior::Unconscious => {}
+            ItemBehavior::Dead => {}
             ItemBehavior::EngageSceneItem(_) => {}
             ItemBehavior::EngageGridPoint(_) => {}
             ItemBehavior::HideTo(_, grid_path)
@@ -258,25 +262,29 @@ pub fn apply_scene_item_modifier(
         SceneItemModifier::AcquireUntil(until_frame_i) => {
             scene_item.acquiring_until = Some(until_frame_i)
         }
-        SceneItemModifier::FireOnSceneItem(scene_item_id, scene_point) => {
+        SceneItemModifier::FireOnSceneItem(visibility) => {
             scene_item.acquiring_until = None;
             scene_item.weapon.need_reload = true;
             scene_item.reloading_since = Some(frame_i);
-
-            // FIXME BS NOW: compute which hit
-            let hit_type = HitType::Missed;
             messages.push(Message::MainStateMessage(
-                MainStateModifier::PushPhysicEvent(PhysicEvent::BulletFire(
-                    scene_item.position,
-                    scene_item.id,
-                    scene_point,
-                    Some(scene_item_id),
-                    hit_type,
-                )),
+                MainStateModifier::PushPhysicEvent(PhysicEvent::BulletFire(visibility)),
             ))
         }
         SceneItemModifier::Disengage => {
             scene_item.behavior = ItemBehavior::Standing;
+        }
+        SceneItemModifier::Death => {
+            scene_item.alive = false;
+            scene_item.incapacity = true;
+            scene_item.next_order = None;
+            scene_item.current_order = None;
+            scene_item.behavior = ItemBehavior::Unconscious;
+        }
+        SceneItemModifier::Incapacity => {
+            scene_item.incapacity = true;
+            scene_item.next_order = None;
+            scene_item.current_order = None;
+            scene_item.behavior = ItemBehavior::Unconscious;
         }
     }
 

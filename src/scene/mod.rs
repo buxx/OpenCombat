@@ -7,4 +7,6 @@ pub enum SpriteType {
     CrawlingSoldier,
     StandingSoldier,
     EngagingSoldier,
+    DeadSoldier,
+    UnconsciousSoldier,
 }

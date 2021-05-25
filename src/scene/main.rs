@@ -4,7 +4,7 @@ use std::path::Path;
 use std::time::{Duration, Instant};
 
 use ggez::event::MouseButton;
-use ggez::graphics::{Color, DrawMode, MeshBuilder, StrokeOptions};
+use ggez::graphics::{Color, DrawMode, FilterMode, MeshBuilder, StrokeOptions, Text};
 use ggez::input::keyboard::KeyCode;
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
@@ -32,7 +32,7 @@ use crate::scene::item::{
     apply_scene_item_modifier, apply_scene_item_modifiers, SceneItem, SceneItemModifier,
     SceneItemType, Side,
 };
-use crate::scene::util::{update_background_batch, update_decor_batches};
+use crate::scene::util::{not_incapacitated, update_background_batch, update_decor_batches};
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
@@ -527,37 +527,24 @@ impl MainState {
             .push(scene_item_i)
     }
 
-    // TODO: manage errors
     fn physics(&mut self) {
         let mut messages: Vec<Message> = vec![];
 
         while let Some(physic_event) = &self.physics_events.pop() {
             match physic_event {
-                PhysicEvent::Explosion => {
-                    for scene_item in self.scene_items.iter_mut() {
-                        scene_item.meta_events.push(MetaEvent::FeelExplosion);
-                    }
-                }
-                PhysicEvent::BulletFire(
-                    from_scene_point,
-                    from_scene_item_id,
-                    to_scene_point,
-                    scene_item_id,
-                    hit_type,
-                ) => {
-                    let from_scene_item = self.get_scene_item(*from_scene_item_id);
-                    let target_scene_item = if let Some(scene_item_id) = scene_item_id {
-                        Some(self.get_scene_item(*scene_item_id))
+                PhysicEvent::BulletFire(visibility) => {
+                    let from_scene_item = self.get_scene_item(visibility.from_scene_id);
+                    let to_scene_item = if let Some(to_scene_item_id) = visibility.to_scene_item_id
+                    {
+                        Some(self.get_scene_item(to_scene_item_id))
                     } else {
                         None
                     };
                     messages.extend(bullet_fire(
                         self.frame_i,
-                        from_scene_point,
+                        &visibility,
                         from_scene_item,
-                        to_scene_point,
-                        target_scene_item,
-                        hit_type,
+                        to_scene_item,
                     ));
                 }
             }
@@ -626,12 +613,17 @@ impl MainState {
         let mut see_opponents: Vec<SceneItemId> = vec![];
 
         for (scene_item_from_i, scene_item_from) in self.scene_items.iter().enumerate() {
+            if !not_incapacitated(scene_item_from) {
+                continue;
+            }
+
             let mut visibilities: Vec<Visibility> = vec![];
             for (scene_item_to_i, scene_item_to) in self.scene_items.iter().enumerate() {
                 if scene_item_from.side == scene_item_to.side {
                     continue;
                 }
-                let visibility = Visibility::new(scene_item_from, &scene_item_to, &self.map);
+                let visibility =
+                    Visibility::with_scene_item_target(scene_item_from, &scene_item_to, &self.map);
                 if scene_item_to.side != self.current_side {
                     if visibility.visible {
                         if !see_opponents.contains(&scene_item_to_i) {
@@ -672,6 +664,10 @@ impl MainState {
         let mut messages: Vec<Message> = vec![];
 
         for (_, scene_item) in self.scene_items.iter_mut().enumerate() {
+            if !not_incapacitated(scene_item) {
+                continue;
+            }
+
             messages.extend(apply_scene_item_modifiers(
                 self.frame_i,
                 scene_item,
@@ -792,6 +788,10 @@ impl MainState {
             let end_y = start_y + interior.height;
 
             for (i, scene_item) in self.scene_items.iter().enumerate() {
+                if !not_incapacitated(scene_item) {
+                    continue;
+                }
+
                 if scene_item.side != self.current_side
                     && !self.opposite_visible_scene_items.contains(&i)
                 {
@@ -896,6 +896,8 @@ impl MainState {
 
             // Move path if moving
             match &scene_item.behavior {
+                ItemBehavior::Dead => {}
+                ItemBehavior::Unconscious => {}
                 ItemBehavior::Standing => {}
                 ItemBehavior::EngageSceneItem(_) => {}
                 ItemBehavior::EngageGridPoint(_) => {}
@@ -1083,6 +1085,34 @@ impl MainState {
 
         Ok(mesh_builder)
     }
+
+    fn generate_debug_texts(&self) -> Vec<(ScenePoint, Text)> {
+        let mut texts: Vec<(ScenePoint, Text)> = vec![];
+
+        if self.debug {
+            for selected_scene_item_i in self.selected_scene_items.iter() {
+                let scene_item_from = self.get_scene_item(*selected_scene_item_i);
+                for visibility in scene_item_from.visibilities.iter() {
+                    if visibility.to_scene_item_id.is_some() {
+                        texts.push((
+                            visibility.to_scene_point,
+                            Text::new(format!(
+                                "{:.2}({:.2})",
+                                visibility.path_final_opacity, visibility.to_scene_item_opacity
+                            )),
+                        ))
+                    } else {
+                        texts.push((
+                            visibility.to_scene_point,
+                            Text::new(format!("{:.2}", visibility.path_final_opacity)),
+                        ))
+                    }
+                }
+            }
+        }
+
+        texts
+    }
 }
 
 impl event::EventHandler for MainState {
@@ -1148,6 +1178,7 @@ impl event::EventHandler for MainState {
         scene_mesh_builder = self.update_scene_mesh_with_prepare_order(scene_mesh_builder)?;
         scene_mesh_builder = self.update_scene_mesh_with_projectiles(scene_mesh_builder)?;
         visibilities_mesh_builder = self.update_visibilities_mesh(visibilities_mesh_builder)?;
+        let debug_texts = self.generate_debug_texts();
 
         let window_draw_param = graphics::DrawParam::new().dest(window_point_from_scene_point(
             &ScenePoint::new(0.0, 0.0),
@@ -1172,6 +1203,14 @@ impl event::EventHandler for MainState {
         // Draw visibilities
         if let Ok(visibilities_mesh) = visibilities_mesh_builder.build(ctx) {
             graphics::draw(ctx, &visibilities_mesh, window_draw_param)?;
+        }
+
+        // Draw debug texts
+        for (text_scene_point, text) in debug_texts.iter() {
+            graphics::queue_text(ctx, text, *text_scene_point, Some(graphics::WHITE));
+        }
+        if self.debug {
+            graphics::draw_queued_text(ctx, window_draw_param, None, FilterMode::Linear);
         }
 
         // Draw scene items

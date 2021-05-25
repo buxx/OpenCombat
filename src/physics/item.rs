@@ -51,6 +51,8 @@ pub fn produce_physics_messages_for_scene_item(
         }
         ItemBehavior::EngageSceneItem(_) => {}
         ItemBehavior::EngageGridPoint(_) => {}
+        ItemBehavior::Unconscious => {}
+        ItemBehavior::Dead => {}
     }
 
     messages

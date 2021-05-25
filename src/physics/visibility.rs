@@ -1,25 +1,32 @@
-use crate::config::VISIBILITY_IGNORE_FIRSTS;
+use crate::config::VISIBILITY_FIRSTS;
 use crate::map::Map;
 use crate::physics::util::grid_point_from_scene_point;
 use crate::scene::item::SceneItem;
 use crate::{GridPath, ScenePoint};
 use bresenham::Bresenham;
 
+#[derive(Debug, Clone)]
 pub struct Visibility {
     pub from_scene_point: ScenePoint,
+    pub from_scene_id: usize,
     pub to_scene_point: ScenePoint,
-    pub to_scene_item_id: usize,
-    pub total_opacity: f32,
+    pub to_scene_item_id: Option<usize>,
+    pub path_final_opacity: f32,
+    pub to_scene_item_opacity: f32,
     pub opacity_segments: Vec<(ScenePoint, f32)>,
     pub visible: bool,
 }
 
 impl Visibility {
-    pub fn new(scene_item_from: &SceneItem, to_scene_item: &SceneItem, map: &Map) -> Self {
+    pub fn with_scene_item_target(
+        scene_item_from: &SceneItem,
+        to_scene_item: &SceneItem,
+        map: &Map,
+    ) -> Self {
         let to_scene_point = &to_scene_item.position;
         let mut opacity_segments: Vec<(ScenePoint, f32)> = vec![];
         let mut grid_path: GridPath = vec![];
-        let mut total_opacity: f32 = 0.0;
+        let mut path_final_opacity: f32 = 0.0;
 
         // Compute line pixels
         let pixels = Bresenham::new(
@@ -41,29 +48,33 @@ impl Visibility {
                     .get(&(grid_point.x as u32, grid_point.y as u32))
                     .expect("Work with path only in map !");
                 // Firsts tiles opacity are ignored
-                let grid_point_opacity = if grid_path.len() <= VISIBILITY_IGNORE_FIRSTS {
+                let grid_point_opacity = if grid_path.len() <= VISIBILITY_FIRSTS {
                     0.0
                 } else {
                     terrain_tile.opacity
                 };
-                total_opacity += grid_point_opacity;
+                path_final_opacity += grid_point_opacity;
                 grid_path.push(grid_point);
                 opacity_segments.push((
                     ScenePoint::new(pixel_x as f32, pixel_y as f32),
-                    total_opacity,
+                    path_final_opacity,
                 ));
             }
         }
 
         // TODO: Modify algorithm according to firing/hide/wal/run...
-        let visible = total_opacity < 0.5;
+        let visible = path_final_opacity < 0.5;
+        // TODO: Target opacity is modified by firing/running, etc
+        let to_scene_item_opacity = path_final_opacity;
 
         Self {
+            from_scene_id: scene_item_from.id,
             from_scene_point: scene_item_from.position,
             to_scene_point: to_scene_point.clone(),
-            to_scene_item_id: to_scene_item.id,
+            to_scene_item_id: Some(to_scene_item.id),
             opacity_segments,
-            total_opacity,
+            path_final_opacity,
+            to_scene_item_opacity,
             visible,
         }
     }

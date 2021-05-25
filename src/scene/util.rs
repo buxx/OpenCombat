@@ -2,6 +2,7 @@ use ggez::graphics::{Color, DrawMode, MeshBuilder};
 use ggez::{graphics, GameResult};
 
 use crate::map::Map;
+use crate::scene::item::SceneItem;
 use crate::ScenePoint;
 
 pub fn update_terrain_batch(
@@ -95,4 +96,8 @@ pub fn update_background_batch(background_batch: &mut graphics::spritebatch::Spr
             .src(graphics::Rect::new(0.0, 0.0, 1.0, 1.0))
             .dest(ScenePoint::new(0.0, 0.0)),
     );
+}
+
+pub fn not_incapacitated(scene_item: &SceneItem) -> bool {
+    scene_item.alive && !scene_item.incapacity
 }

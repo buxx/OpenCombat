@@ -7,9 +7,10 @@ pub mod standing;
 use crate::physics::GridPoint;
 use crate::{GridPath, SceneItemId, ScenePoint};
 
-#[derive(PartialEq)]
 pub enum ItemBehavior {
-    Standing, // since
+    Dead,
+    Unconscious,
+    Standing,
     HideTo(ScenePoint, GridPath),
     MoveTo(ScenePoint, GridPath),
     MoveFastTo(ScenePoint, GridPath),

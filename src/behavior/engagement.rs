@@ -1,4 +1,3 @@
-use crate::behavior::ItemBehavior;
 use crate::map::Map;
 use crate::scene::item::{SceneItem, SceneItemModifier};
 use crate::SceneItemId;
@@ -14,14 +13,13 @@ pub fn digest_engage_scene_item_behavior(
 ) -> Vec<SceneItemModifier> {
     let mut scene_item_modifiers: Vec<SceneItemModifier> = vec![];
 
-    if let Some(visibility) = scene_item.visible_visibility_for(engage_scene_item_id) {
+    // FIXME BS NOW: il faut reussir a Disengage lorsque la target est morte ...
+    if let Some(visibility) = scene_item.visible_scene_items_visibilities_for(engage_scene_item_id)
+    {
         // Always acquire a target before fire
         if let Some(acquiring_until) = scene_item.acquiring_until {
             if acquiring_until <= frame_i {
-                scene_item_modifiers.push(SceneItemModifier::FireOnSceneItem(
-                    engage_scene_item_id,
-                    visibility.to_scene_point,
-                ))
+                scene_item_modifiers.push(SceneItemModifier::FireOnSceneItem(visibility.clone()))
             }
         } else {
             let mut rng = rand::thread_rng(); // TODO: Does it cost resources ?

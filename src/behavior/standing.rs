@@ -1,6 +1,5 @@
 use crate::behavior::ItemBehavior;
 use crate::map::Map;
-use crate::physics::visibility::Visibility;
 use crate::scene::item::{SceneItem, SceneItemModifier};
 use crate::util::angle;
 
@@ -9,9 +8,9 @@ pub fn digest_standing_behavior(scene_item: &SceneItem, _map: &Map) -> Vec<Scene
 
     // Visible enemy
     // TODO: Choose enemy by opacity/team repartition etc
-    if let Some(visibility) = scene_item.visible_visibilities().first() {
+    if let Some(visibility) = scene_item.visible_scene_items_visibilities().first() {
         scene_item_modifiers.push(SceneItemModifier::ChangeBehavior(
-            ItemBehavior::EngageSceneItem(visibility.to_scene_item_id),
+            ItemBehavior::EngageSceneItem(visibility.to_scene_item_id.expect("visible_scene_items_visibilities must return only visibilities with to_scene_item_id")),
         ));
         scene_item_modifiers.push(SceneItemModifier::ChangeDisplayAngle(angle(
             visibility.to_scene_point,
