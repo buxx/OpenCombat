@@ -1,3 +1,4 @@
+use crate::behavior::ItemBehavior;
 use crate::config::VISIBILITY_FIRSTS;
 use crate::map::Map;
 use crate::physics::util::grid_point_from_scene_point;
@@ -62,10 +63,21 @@ impl Visibility {
             }
         }
 
-        // TODO: Modify algorithm according to firing/hide/wal/run...
-        let visible = path_final_opacity < 0.5;
+        let to_scene_item_opacity_modifier_by_behavior: f32 = match to_scene_item.behavior {
+            ItemBehavior::Dead => 0.0,
+            ItemBehavior::Unconscious => 0.0,
+            ItemBehavior::Standing => 0.5,
+            ItemBehavior::HideTo(_, _) => -1.0,
+            ItemBehavior::MoveTo(_, _) => 1.0,
+            ItemBehavior::MoveFastTo(_, _) => 2.0,
+            // FIXME BS NOW: quand il y a des tirs seulement
+            ItemBehavior::EngageSceneItem(_) => 0.0,
+            ItemBehavior::EngageGridPoint(_) => 0.0,
+        };
+
         // TODO: Target opacity is modified by firing/running, etc
-        let to_scene_item_opacity = path_final_opacity;
+        let to_scene_item_opacity = path_final_opacity - to_scene_item_opacity_modifier_by_behavior;
+        let visible = to_scene_item_opacity < 0.5;
 
         Self {
             from_scene_id: scene_item_from.id,

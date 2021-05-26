@@ -619,7 +619,7 @@ impl MainState {
 
             let mut visibilities: Vec<Visibility> = vec![];
             for (scene_item_to_i, scene_item_to) in self.scene_items.iter().enumerate() {
-                if scene_item_from.side == scene_item_to.side || incapacitated(scene_item_to)  {
+                if scene_item_from.side == scene_item_to.side || incapacitated(scene_item_to) {
                     continue;
                 }
                 let visibility =
