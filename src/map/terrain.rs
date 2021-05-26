@@ -104,7 +104,7 @@ impl TerrainTile {
             },
             "BrickWall" => Self {
                 id: TerrainTileId::BrickWall,
-                opacity: 1.0,
+                opacity: 3.0,
                 tile_width,
                 tile_height,
                 relative_tile_width,

@@ -78,6 +78,7 @@ pub struct SceneItem {
     pub acquiring_until: Option<u32>,
     pub alive: bool,
     pub incapacity: bool,
+    pub last_bullet_fire: Option<u32>,
 }
 
 impl SceneItem {
@@ -108,6 +109,7 @@ impl SceneItem {
             acquiring_until: None,
             alive: true,
             incapacity: false,
+            last_bullet_fire: None,
         }
     }
 
@@ -187,6 +189,7 @@ pub enum SceneItemModifier {
     Disengage,
     Death,
     Incapacity,
+    SetLastBulletFire(u32),
 }
 
 pub fn apply_scene_item_modifiers(
@@ -285,6 +288,9 @@ pub fn apply_scene_item_modifier(
             scene_item.next_order = None;
             scene_item.current_order = None;
             scene_item.behavior = ItemBehavior::Unconscious;
+        }
+        SceneItemModifier::SetLastBulletFire(frame_i) => {
+            scene_item.last_bullet_fire = Some(frame_i)
         }
     }
 

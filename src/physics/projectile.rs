@@ -22,6 +22,10 @@ pub fn bullet_fire(
             from_scene_item.side.clone(),
         ),
     )));
+    messages.push(Message::SceneItemMessage(
+        from_scene_item.id,
+        SceneItemModifier::SetLastBulletFire(frame_i),
+    ));
 
     if let Some(to_scene_item) = to_scene_item {
         messages.extend(

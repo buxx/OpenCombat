@@ -5,6 +5,7 @@ use crate::physics::util::grid_point_from_scene_point;
 use crate::scene::item::SceneItem;
 use crate::{GridPath, ScenePoint};
 use bresenham::Bresenham;
+use std::cmp;
 
 #[derive(Debug, Clone)]
 pub struct Visibility {
@@ -20,6 +21,7 @@ pub struct Visibility {
 
 impl Visibility {
     pub fn with_scene_item_target(
+        frame_i: u32,
         scene_item_from: &SceneItem,
         to_scene_item: &SceneItem,
         map: &Map,
@@ -28,6 +30,13 @@ impl Visibility {
         let mut opacity_segments: Vec<(ScenePoint, f32)> = vec![];
         let mut grid_path: GridPath = vec![];
         let mut path_final_opacity: f32 = 0.0;
+        let mut to_scene_item_opacity: f32 = 0.0;
+        let visible_by_bullet_fire =
+            if let Some(last_bullet_fire_frame_i) = to_scene_item.last_bullet_fire {
+                frame_i - last_bullet_fire_frame_i < 240
+            } else {
+                false
+            };
 
         // Compute line pixels
         let pixels = Bresenham::new(
@@ -55,6 +64,7 @@ impl Visibility {
                     terrain_tile.opacity
                 };
                 path_final_opacity += grid_point_opacity;
+                to_scene_item_opacity += grid_point_opacity;
                 grid_path.push(grid_point);
                 opacity_segments.push((
                     ScenePoint::new(pixel_x as f32, pixel_y as f32),
@@ -63,20 +73,31 @@ impl Visibility {
             }
         }
 
-        let to_scene_item_opacity_modifier_by_behavior: f32 = match to_scene_item.behavior {
+        // Disable to_scene_item firsts if seen because firing
+        if visible_by_bullet_fire {
+            let start_from = grid_path.len() - cmp::min(grid_path.len(), VISIBILITY_FIRSTS);
+            for grid_point in grid_path[start_from..].iter() {
+                let terrain_tile = map
+                    .terrain
+                    .tiles
+                    .get(&(grid_point.x as u32, grid_point.y as u32))
+                    .expect("Work with path only in map !");
+                to_scene_item_opacity -= terrain_tile.opacity;
+            }
+        }
+
+        let by_behavior_modifier: f32 = match to_scene_item.behavior {
             ItemBehavior::Dead => 0.0,
             ItemBehavior::Unconscious => 0.0,
             ItemBehavior::Standing => 0.5,
             ItemBehavior::HideTo(_, _) => -1.0,
             ItemBehavior::MoveTo(_, _) => 1.0,
             ItemBehavior::MoveFastTo(_, _) => 2.0,
-            // FIXME BS NOW: quand il y a des tirs seulement
             ItemBehavior::EngageSceneItem(_) => 0.0,
             ItemBehavior::EngageGridPoint(_) => 0.0,
         };
 
-        // TODO: Target opacity is modified by firing/running, etc
-        let to_scene_item_opacity = path_final_opacity - to_scene_item_opacity_modifier_by_behavior;
+        to_scene_item_opacity = to_scene_item_opacity - by_behavior_modifier;
         let visible = to_scene_item_opacity < 0.5;
 
         Self {

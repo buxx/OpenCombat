@@ -622,8 +622,12 @@ impl MainState {
                 if scene_item_from.side == scene_item_to.side || incapacitated(scene_item_to) {
                     continue;
                 }
-                let visibility =
-                    Visibility::with_scene_item_target(scene_item_from, &scene_item_to, &self.map);
+                let visibility = Visibility::with_scene_item_target(
+                    self.frame_i,
+                    scene_item_from,
+                    &scene_item_to,
+                    &self.map,
+                );
                 if scene_item_to.side != self.current_side {
                     if visibility.visible {
                         if !see_opponents.contains(&scene_item_to_i) {
@@ -1211,7 +1215,7 @@ impl event::EventHandler for MainState {
             graphics::queue_text(ctx, text, *text_scene_point, Some(graphics::WHITE));
         }
         if self.debug {
-            graphics::draw_queued_text(ctx, window_draw_param, None, FilterMode::Linear);
+            graphics::draw_queued_text(ctx, window_draw_param, None, FilterMode::Linear)?;
         }
 
         // Draw scene items
