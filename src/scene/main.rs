@@ -32,7 +32,7 @@ use crate::scene::item::{
     apply_scene_item_modifier, apply_scene_item_modifiers, SceneItem, SceneItemModifier,
     SceneItemType, Side,
 };
-use crate::scene::util::{not_incapacitated, update_background_batch, update_decor_batches};
+use crate::scene::util::{incapacitated, update_background_batch, update_decor_batches};
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
@@ -613,13 +613,13 @@ impl MainState {
         let mut see_opponents: Vec<SceneItemId> = vec![];
 
         for (scene_item_from_i, scene_item_from) in self.scene_items.iter().enumerate() {
-            if !not_incapacitated(scene_item_from) {
+            if incapacitated(scene_item_from) {
                 continue;
             }
 
             let mut visibilities: Vec<Visibility> = vec![];
             for (scene_item_to_i, scene_item_to) in self.scene_items.iter().enumerate() {
-                if scene_item_from.side == scene_item_to.side {
+                if scene_item_from.side == scene_item_to.side || incapacitated(scene_item_to)  {
                     continue;
                 }
                 let visibility =
@@ -664,7 +664,7 @@ impl MainState {
         let mut messages: Vec<Message> = vec![];
 
         for (_, scene_item) in self.scene_items.iter_mut().enumerate() {
-            if !not_incapacitated(scene_item) {
+            if incapacitated(scene_item) {
                 continue;
             }
 
@@ -753,6 +753,7 @@ impl MainState {
         for (i, scene_item) in self.scene_items.iter().enumerate() {
             if scene_item.side != self.current_side
                 && !self.opposite_visible_scene_items.contains(&i)
+                && !incapacitated(scene_item)
             {
                 continue;
             }
@@ -788,7 +789,7 @@ impl MainState {
             let end_y = start_y + interior.height;
 
             for (i, scene_item) in self.scene_items.iter().enumerate() {
-                if !not_incapacitated(scene_item) {
+                if incapacitated(scene_item) {
                     continue;
                 }
 

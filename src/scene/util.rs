@@ -98,6 +98,6 @@ pub fn update_background_batch(background_batch: &mut graphics::spritebatch::Spr
     );
 }
 
-pub fn not_incapacitated(scene_item: &SceneItem) -> bool {
-    scene_item.alive && !scene_item.incapacity
+pub fn incapacitated(scene_item: &SceneItem) -> bool {
+    !scene_item.alive || scene_item.incapacity
 }

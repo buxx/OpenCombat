@@ -13,7 +13,6 @@ pub fn digest_engage_scene_item_behavior(
 ) -> Vec<SceneItemModifier> {
     let mut scene_item_modifiers: Vec<SceneItemModifier> = vec![];
 
-    // FIXME BS NOW: il faut reussir a Disengage lorsque la target est morte ...
     if let Some(visibility) = scene_item.visible_scene_items_visibilities_for(engage_scene_item_id)
     {
         // Always acquire a target before fire
