@@ -42,3 +42,11 @@ pub const MOVE_FAST_VELOCITY: f32 = 2.0;
 pub const MOVE_HIDE_VELOCITY: f32 = 0.5;
 // Visibility computing must consider firsts tiles differently
 pub const VISIBILITY_FIRSTS: usize = 4;
+// Increment value when bullet fire
+pub const UNDER_FIRE_INTENSITY_INCREMENT: f32 = 30.0;
+// Decrement value at animate tick
+pub const UNDER_FIRE_INTENSITY_DECREMENT: f32 = 5.0;
+// Maximum value of under fire intensity
+pub const UNDER_FIRE_INTENSITY_MAX: i32 = 500;
+// Stop move order if under fire intensity reached
+pub const STOP_MOVE_ORDER_IF_UNDER_FIRE_INTENSITY: f32 = 75.0;

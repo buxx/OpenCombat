@@ -44,7 +44,11 @@ pub fn bullet_fire(
                     ]
                 }
                 HitType::Missed => {
-                    vec![]
+                    // TODO: Add reducer by big miss or near miss, distance, etc ...
+                    vec![Message::SceneItemMessage(
+                        to_scene_item.id,
+                        SceneItemModifier::IncrementUnderFire,
+                    )]
                 }
             },
         )

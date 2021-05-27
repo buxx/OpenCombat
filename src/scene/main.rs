@@ -16,7 +16,7 @@ use crate::behavior::ItemBehavior;
 use crate::config::{
     ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
     DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I, PHYSICS_EACH,
-    SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, TARGET_FPS,
+    SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, TARGET_FPS, UNDER_FIRE_INTENSITY_DECREMENT,
 };
 use crate::gameplay::weapon::{Weapon, WeaponType};
 use crate::map::util::extract_image_from_tileset;
@@ -694,6 +694,10 @@ impl MainState {
                 scene_item,
                 digest_behavior(self.frame_i, &scene_item, &self.map),
             ));
+
+            scene_item.under_fire_intensity -= UNDER_FIRE_INTENSITY_DECREMENT;
+            scene_item.under_fire_intensity =
+                std::cmp::max(scene_item.under_fire_intensity as i32, 0) as f32;
         }
 
         self.consume_messages(messages);
@@ -1103,8 +1107,8 @@ impl MainState {
 
         if self.debug {
             for selected_scene_item_i in self.selected_scene_items.iter() {
-                let scene_item_from = self.get_scene_item(*selected_scene_item_i);
-                for visibility in scene_item_from.visibilities.iter() {
+                let scene_item = self.get_scene_item(*selected_scene_item_i);
+                for visibility in scene_item.visibilities.iter() {
                     if visibility.to_scene_item_id.is_some() {
                         texts.push((
                             visibility.to_scene_point,
@@ -1120,6 +1124,11 @@ impl MainState {
                         ))
                     }
                 }
+
+                texts.push((
+                    ScenePoint::new(scene_item.position.x + 10.0, scene_item.position.y),
+                    Text::new(format!("{:.2}", scene_item.under_fire_intensity)),
+                ))
             }
         }
 

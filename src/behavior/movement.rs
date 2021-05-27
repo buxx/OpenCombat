@@ -1,6 +1,8 @@
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
-use crate::config::MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT;
+use crate::config::{
+    MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT, STOP_MOVE_ORDER_IF_UNDER_FIRE_INTENSITY,
+};
 use crate::map::Map;
 use crate::physics::path::find_path;
 use crate::physics::util::{grid_point_from_scene_point, scene_point_from_grid_point};
@@ -76,6 +78,20 @@ pub fn digest_move_behavior(
         }
     } else {
         eprintln!("No grid point in grid path !")
+    }
+
+    scene_item_modifiers
+}
+
+pub fn digest_stop_move_behavior(
+    scene_item: &SceneItem,
+    _grid_path: &GridPath,
+    _map: &Map,
+) -> Vec<SceneItemModifier> {
+    let mut scene_item_modifiers: Vec<SceneItemModifier> = vec![];
+
+    if scene_item.under_fire_intensity >= STOP_MOVE_ORDER_IF_UNDER_FIRE_INTENSITY {
+        scene_item_modifiers.push(SceneItemModifier::CancelOrders(Some(ItemBehavior::Hide)));
     }
 
     scene_item_modifiers

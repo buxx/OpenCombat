@@ -3,7 +3,10 @@ use ggez::graphics;
 use crate::audio::Sound;
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
-use crate::config::{SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH};
+use crate::config::{
+    SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH,
+    UNDER_FIRE_INTENSITY_INCREMENT, UNDER_FIRE_INTENSITY_MAX,
+};
 use crate::gameplay::weapon::Weapon;
 use crate::map::Map;
 use crate::physics::visibility::Visibility;
@@ -80,6 +83,7 @@ pub struct SceneItem {
     pub alive: bool,
     pub incapacity: bool,
     pub last_bullet_fire: Option<FrameI>,
+    pub under_fire_intensity: f32,
 }
 
 impl SceneItem {
@@ -111,6 +115,7 @@ impl SceneItem {
             alive: true,
             incapacity: false,
             last_bullet_fire: None,
+            under_fire_intensity: 0.0,
         }
     }
 
@@ -192,6 +197,8 @@ pub enum SceneItemModifier {
     Death,
     Incapacity,
     SetLastBulletFire(FrameI),
+    IncrementUnderFire,
+    CancelOrders(Option<ItemBehavior>),
 }
 
 pub fn apply_scene_item_modifiers(
@@ -292,16 +299,31 @@ pub fn apply_scene_item_modifier(
             scene_item.incapacity = true;
             scene_item.next_order = None;
             scene_item.current_order = None;
+            scene_item.under_fire_intensity = 0.0;
             scene_item.behavior = ItemBehavior::Unconscious;
         }
         SceneItemModifier::Incapacity => {
             scene_item.incapacity = true;
             scene_item.next_order = None;
             scene_item.current_order = None;
+            scene_item.under_fire_intensity = 0.0;
             scene_item.behavior = ItemBehavior::Unconscious;
         }
         SceneItemModifier::SetLastBulletFire(frame_i) => {
             scene_item.last_bullet_fire = Some(frame_i)
+        }
+        SceneItemModifier::IncrementUnderFire => {
+            scene_item.under_fire_intensity += UNDER_FIRE_INTENSITY_INCREMENT;
+            scene_item.under_fire_intensity = std::cmp::min(
+                scene_item.under_fire_intensity as i32,
+                UNDER_FIRE_INTENSITY_MAX,
+            ) as f32;
+        }
+        SceneItemModifier::CancelOrders(behavior) => {
+            scene_item.current_order = None;
+            if let Some(behavior_) = behavior {
+                scene_item.behavior = behavior_
+            }
         }
     }
 

@@ -1,5 +1,7 @@
 use crate::behavior::engagement::digest_engage_scene_item_behavior;
-use crate::behavior::movement::{digest_move_behavior, digest_next_move_order};
+use crate::behavior::movement::{
+    digest_move_behavior, digest_next_move_order, digest_stop_move_behavior,
+};
 use crate::behavior::order::Order;
 use crate::behavior::standing::digest_standing_behavior;
 use crate::behavior::ItemBehavior;
@@ -61,9 +63,11 @@ pub fn digest_behavior(
         }
         ItemBehavior::MoveTo(_, grid_path) => {
             scene_item_modifiers.extend(digest_move_behavior(scene_item, grid_path, map));
+            scene_item_modifiers.extend(digest_stop_move_behavior(scene_item, grid_path, map));
         }
         ItemBehavior::MoveFastTo(_, grid_path) => {
             scene_item_modifiers.extend(digest_move_behavior(scene_item, grid_path, map));
+            scene_item_modifiers.extend(digest_stop_move_behavior(scene_item, grid_path, map));
         }
         ItemBehavior::HideTo(_, grid_path) => {
             scene_item_modifiers.extend(digest_move_behavior(scene_item, grid_path, map));
