@@ -36,7 +36,7 @@ pub fn create_debug_terrain_opacity_mesh_builder(map: &Map) -> GameResult<MeshBu
     for ((grid_x, grid_y), tile) in map.terrain.tiles.iter() {
         let dest_x = *grid_x as f32 * tile.tile_width as f32;
         let dest_y = *grid_y as f32 * tile.tile_height as f32;
-        let color_modifier = 0.6 * tile.opacity;
+        let color_modifier = 0.6 * tile.opacity * 3.0;
         debug_terrain_opacity_mesh.rectangle(
             DrawMode::fill(),
             graphics::Rect::new(
