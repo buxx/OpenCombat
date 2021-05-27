@@ -37,7 +37,7 @@ use crate::scene::util::{incapacitated, update_background_batch, update_decor_ba
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
-use crate::{scene, Message, Offset, SceneItemId, ScenePoint, WindowPoint};
+use crate::{scene, FrameI, Message, Offset, SceneItemId, ScenePoint, WindowPoint};
 use std::io::BufReader;
 
 #[derive(PartialEq)]
@@ -59,7 +59,7 @@ pub enum MainStateModifier {
 
 pub struct MainState {
     // time
-    frame_i: u32, // FIXME BS NOW: regler le probleme du reset (acquiring_until etc)
+    frame_i: FrameI, // FIXME BS NOW: regler le probleme du reset (acquiring_until etc)
     start: Instant,
 
     // map

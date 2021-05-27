@@ -24,6 +24,7 @@ type Offset = Vec2;
 type ScenePoint = Vec2;
 type SceneItemId = usize;
 type GridPath = Vec<GridPoint>;
+type FrameI = u32;
 
 pub enum Message {
     SceneItemMessage(SceneItemId, SceneItemModifier),

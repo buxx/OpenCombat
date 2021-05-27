@@ -4,10 +4,10 @@ use crate::physics::visibility::Visibility;
 use crate::physics::HitType;
 use crate::scene::item::{SceneItem, SceneItemModifier, Side};
 use crate::scene::main::MainStateModifier;
-use crate::{Message, ScenePoint};
+use crate::{FrameI, Message, ScenePoint};
 
 pub fn bullet_fire(
-    frame_i: u32,
+    frame_i: FrameI,
     visibility: &Visibility,
     from_scene_item: &SceneItem,
     to_scene_item: Option<&SceneItem>,

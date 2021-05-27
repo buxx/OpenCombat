@@ -11,7 +11,7 @@ use crate::physics::{util, MetaEvent};
 use crate::physics::{GridPoint, PhysicEvent};
 use crate::scene::main::MainStateModifier;
 use crate::scene::SpriteType;
-use crate::{Message, Offset, SceneItemId, ScenePoint};
+use crate::{FrameI, Message, Offset, SceneItemId, ScenePoint};
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,
@@ -75,11 +75,11 @@ pub struct SceneItem {
     pub visibilities: Vec<Visibility>,
     pub side: Side,
     pub weapon: Weapon,
-    pub reloading_since: Option<u32>,
-    pub acquiring_until: Option<u32>,
+    pub reloading_since: Option<FrameI>,
+    pub acquiring_until: Option<FrameI>,
     pub alive: bool,
     pub incapacity: bool,
-    pub last_bullet_fire: Option<u32>,
+    pub last_bullet_fire: Option<FrameI>,
 }
 
 impl SceneItem {
@@ -186,16 +186,16 @@ pub enum SceneItemModifier {
     ReachMoveGridPoint,
     ChangeVisibilities(Vec<Visibility>),
     SetNextOrder(Order),
-    AcquireUntil(u32), // until frame_i
+    AcquireUntil(FrameI), // until frame_i
     FireOnSceneItem(Visibility),
     Disengage,
     Death,
     Incapacity,
-    SetLastBulletFire(u32),
+    SetLastBulletFire(FrameI),
 }
 
 pub fn apply_scene_item_modifiers(
-    frame_i: u32,
+    frame_i: FrameI,
     scene_item: &mut SceneItem,
     modifiers: Vec<SceneItemModifier>,
 ) -> Vec<Message> {
@@ -209,7 +209,7 @@ pub fn apply_scene_item_modifiers(
 }
 
 pub fn apply_scene_item_modifier(
-    frame_i: u32,
+    frame_i: FrameI,
     scene_item: &mut SceneItem,
     modifier: SceneItemModifier,
 ) -> Vec<Message> {

@@ -3,7 +3,7 @@ use crate::config::VISIBILITY_FIRSTS;
 use crate::map::Map;
 use crate::physics::util::grid_point_from_scene_point;
 use crate::scene::item::SceneItem;
-use crate::{GridPath, ScenePoint};
+use crate::{FrameI, GridPath, ScenePoint};
 use bresenham::Bresenham;
 use std::cmp;
 
@@ -21,7 +21,7 @@ pub struct Visibility {
 
 impl Visibility {
     pub fn with_scene_item_target(
-        frame_i: u32,
+        frame_i: FrameI,
         scene_item_from: &SceneItem,
         to_scene_item: &SceneItem,
         map: &Map,

@@ -1,3 +1,5 @@
+use crate::FrameI;
+
 // execute update code 60x per seconds
 pub const TARGET_FPS: u32 = 60;
 // execute physics code each 10 frames
@@ -11,7 +13,7 @@ pub const SPRITE_EACH: u32 = 10;
 // compute interior sprites each 60 frames
 pub const INTERIORS_EACH: u32 = 60;
 // max of frame_i used to calculate ticks
-pub const MAX_FRAME_I: u32 = 4294967295;
+pub const MAX_FRAME_I: FrameI = 4294967295;
 // pixel offset by tick when player move screen display
 pub const DISPLAY_OFFSET_BY: f32 = 3.0;
 // pixel offset by tick when player move screen display with speed

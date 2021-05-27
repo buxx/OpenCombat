@@ -1,12 +1,12 @@
 use crate::map::Map;
 use crate::scene::item::{SceneItem, SceneItemModifier};
-use crate::SceneItemId;
+use crate::{FrameI, SceneItemId};
 use rand::Rng;
 
 const DEFAULT_FRAMES_TO_ACQUIRE: u32 = 60 * 4;
 
 pub fn digest_engage_scene_item_behavior(
-    frame_i: u32,
+    frame_i: FrameI,
     scene_item: &SceneItem,
     engage_scene_item_id: SceneItemId,
     _map: &Map,

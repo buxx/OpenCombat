@@ -5,6 +5,7 @@ use crate::behavior::standing::digest_standing_behavior;
 use crate::behavior::ItemBehavior;
 use crate::map::Map;
 use crate::scene::item::{SceneItem, SceneItemModifier};
+use crate::FrameI;
 
 pub fn digest_next_order(scene_item: &SceneItem, map: &Map) -> Vec<SceneItemModifier> {
     let mut scene_item_modifiers: Vec<SceneItemModifier> = vec![];
@@ -32,7 +33,11 @@ pub fn digest_current_order(_: &SceneItem, _: &Map) -> Vec<SceneItemModifier> {
     vec![]
 }
 
-pub fn digest_behavior(frame_i: u32, scene_item: &SceneItem, map: &Map) -> Vec<SceneItemModifier> {
+pub fn digest_behavior(
+    frame_i: FrameI,
+    scene_item: &SceneItem,
+    map: &Map,
+) -> Vec<SceneItemModifier> {
     let mut scene_item_modifiers: Vec<SceneItemModifier> = vec![];
 
     match &scene_item.behavior {
