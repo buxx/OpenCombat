@@ -16,4 +16,5 @@ pub enum ItemBehavior {
     MoveFastTo(ScenePoint, GridPath),
     EngageSceneItem(SceneItemId),
     EngageGridPoint(GridPoint),
+    Hide,
 }

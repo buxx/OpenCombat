@@ -14,7 +14,7 @@ pub fn produce_physics_messages_for_scene_item(
     let mut messages: Vec<Message> = vec![];
 
     match &scene_item.behavior {
-        ItemBehavior::Standing => {}
+        ItemBehavior::Standing | ItemBehavior::Hide => {}
         ItemBehavior::MoveTo(_, grid_path)
         | ItemBehavior::MoveFastTo(_, grid_path)
         | ItemBehavior::HideTo(_, grid_path) => {

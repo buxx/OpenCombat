@@ -39,6 +39,10 @@ pub fn digest_behavior(frame_i: u32, scene_item: &SceneItem, map: &Map) -> Vec<S
         ItemBehavior::Standing => {
             scene_item_modifiers.extend(digest_standing_behavior(scene_item, map));
         }
+        ItemBehavior::Hide => {
+            // TODO: Change digest_standing_behavior name
+            scene_item_modifiers.extend(digest_standing_behavior(scene_item, map));
+        }
         ItemBehavior::EngageSceneItem(to_scene_item_id) => {
             scene_item_modifiers.extend(digest_engage_scene_item_behavior(
                 frame_i,

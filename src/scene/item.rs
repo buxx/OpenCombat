@@ -152,6 +152,7 @@ impl SceneItem {
             ItemBehavior::EngageGridPoint(_) => SpriteType::EngagingSoldier,
             ItemBehavior::Dead => SpriteType::UnconsciousSoldier,
             ItemBehavior::Unconscious => SpriteType::DeadSoldier,
+            ItemBehavior::Hide => SpriteType::EngagingSoldier,
         }
     }
 
@@ -220,9 +221,17 @@ pub fn apply_scene_item_modifier(
                 scene_item.current_order = Some(next_order.clone());
                 scene_item.next_order = None;
             } else {
+                let new_behavior = if let Some(order) = &scene_item.current_order {
+                    match order {
+                        Order::HideTo(_) => ItemBehavior::Hide,
+                        _ => ItemBehavior::Standing,
+                    }
+                } else {
+                    ItemBehavior::Standing
+                };
+
                 scene_item.current_order = None;
-                // TODO: Depending to context
-                scene_item.behavior = ItemBehavior::Standing;
+                scene_item.behavior = new_behavior;
             }
         }
         SceneItemModifier::ChangeDisplayAngle(new_angle) => {
@@ -238,9 +247,10 @@ pub fn apply_scene_item_modifier(
             scene_item.grid_position = new_grid_point;
         }
         SceneItemModifier::ReachMoveGridPoint => match &mut scene_item.behavior {
-            ItemBehavior::Standing => {}
-            ItemBehavior::Unconscious => {}
-            ItemBehavior::Dead => {}
+            ItemBehavior::Standing
+            | ItemBehavior::Hide
+            | ItemBehavior::Unconscious
+            | ItemBehavior::Dead => {}
             ItemBehavior::EngageSceneItem(_) => {}
             ItemBehavior::EngageGridPoint(_) => {}
             ItemBehavior::HideTo(_, grid_path)

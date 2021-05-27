@@ -91,6 +91,7 @@ impl Visibility {
             ItemBehavior::Unconscious => 0.0,
             ItemBehavior::Standing => 0.5,
             ItemBehavior::HideTo(_, _) => -1.0,
+            ItemBehavior::Hide => -1.5,
             ItemBehavior::MoveTo(_, _) => 1.0,
             ItemBehavior::MoveFastTo(_, _) => 2.0,
             ItemBehavior::EngageSceneItem(_) => 0.0,

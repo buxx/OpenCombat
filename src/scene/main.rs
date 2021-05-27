@@ -908,9 +908,9 @@ impl MainState {
 
             // Move path if moving
             match &scene_item.behavior {
-                ItemBehavior::Dead => {}
-                ItemBehavior::Unconscious => {}
+                ItemBehavior::Dead | ItemBehavior::Unconscious => {}
                 ItemBehavior::Standing => {}
+                ItemBehavior::Hide => {}
                 ItemBehavior::EngageSceneItem(_) => {}
                 ItemBehavior::EngageGridPoint(_) => {}
                 ItemBehavior::HideTo(_, grid_path)
