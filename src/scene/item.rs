@@ -1,5 +1,6 @@
 use ggez::graphics;
 
+use crate::audio::Sound;
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH};
@@ -248,11 +249,11 @@ pub fn apply_scene_item_modifier(
                 grid_path.drain(0..1);
                 // If target reached
                 if grid_path.len() == 0 {
-                    apply_scene_item_modifier(
+                    messages.extend(apply_scene_item_modifier(
                         frame_i,
                         scene_item,
                         SceneItemModifier::SwitchToNextOrder,
-                    );
+                    ));
                 }
             }
         },

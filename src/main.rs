@@ -9,6 +9,7 @@ use crate::scene::item::SceneItemModifier;
 use crate::scene::main::MainStateModifier;
 use scene::main::MainState;
 
+mod audio;
 mod behavior;
 mod config;
 mod gameplay;

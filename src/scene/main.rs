@@ -9,6 +9,7 @@ use ggez::input::keyboard::KeyCode;
 use ggez::timer::check_update_time;
 use ggez::{event, graphics, input, Context, GameResult};
 
+use crate::audio::{Audio, Sound};
 use crate::behavior::animate::{digest_behavior, digest_current_order, digest_next_order};
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
@@ -37,6 +38,7 @@ use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
 use crate::{scene, Message, Offset, SceneItemId, ScenePoint, WindowPoint};
+use std::io::BufReader;
 
 #[derive(PartialEq)]
 enum DebugTerrain {
@@ -52,6 +54,7 @@ pub enum MainStateModifier {
     LostSeenOpponent(SceneItemId),
     PushPhysicEvent(PhysicEvent),
     NewProjectile(Projectile),
+    NewSound(Sound),
 }
 
 pub struct MainState {
@@ -101,6 +104,8 @@ pub struct MainState {
     // Gameplay
     current_side: Side,
     opposite_visible_scene_items: Vec<SceneItemId>,
+
+    audio: Audio,
 }
 
 impl MainState {
@@ -230,6 +235,7 @@ impl MainState {
             current_prepare_move_found_paths: HashMap::new(),
             current_side: Side::A,
             opposite_visible_scene_items: vec![],
+            audio: Audio::new(),
         };
 
         Ok(main_state)
@@ -603,6 +609,7 @@ impl MainState {
                     MainStateModifier::NewProjectile(projectile) => {
                         self.projectiles.push(projectile);
                     }
+                    MainStateModifier::NewSound(sound) => self.audio.play(sound),
                 },
             }
         }

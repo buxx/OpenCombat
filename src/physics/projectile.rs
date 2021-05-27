@@ -1,3 +1,4 @@
+use crate::audio::Sound;
 use crate::physics::hit::determine_hit_type;
 use crate::physics::visibility::Visibility;
 use crate::physics::HitType;
@@ -31,16 +32,16 @@ pub fn bullet_fire(
         messages.extend(
             match determine_hit_type(visibility, from_scene_item, to_scene_item) {
                 HitType::Deadly => {
-                    vec![Message::SceneItemMessage(
-                        to_scene_item.id,
-                        SceneItemModifier::Death,
-                    )]
+                    vec![
+                        Message::SceneItemMessage(to_scene_item.id, SceneItemModifier::Death),
+                        Message::MainStateMessage(MainStateModifier::NewSound(Sound::Injured1)),
+                    ]
                 }
                 HitType::Incapacity => {
-                    vec![Message::SceneItemMessage(
-                        to_scene_item.id,
-                        SceneItemModifier::Incapacity,
-                    )]
+                    vec![
+                        Message::SceneItemMessage(to_scene_item.id, SceneItemModifier::Incapacity),
+                        Message::MainStateMessage(MainStateModifier::NewSound(Sound::Injured1)),
+                    ]
                 }
                 HitType::Missed => {
                     vec![]
@@ -48,6 +49,11 @@ pub fn bullet_fire(
             },
         )
     }
+
+    // FIXME BS NOW: weapon type
+    messages.push(Message::MainStateMessage(MainStateModifier::NewSound(
+        Sound::GarandM1SingleShot,
+    )));
 
     messages
 }
