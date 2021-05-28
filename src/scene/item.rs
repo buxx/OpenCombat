@@ -37,7 +37,7 @@ impl SceneItemSpriteInfo {
             SpriteType::StandingSoldier => (0.0, 12.0, 12.0, 1, 0.0),
             SpriteType::EngagingSoldier => (52.0, 26.0, 26.0, 1, 0.0),
             SpriteType::DeadSoldier => (78.0, 26.0, 26.0, 1, 0.0),
-            SpriteType::UnconsciousSoldier => (78.0, 26.0, 26.0, 1, 0.0),
+            SpriteType::UnconsciousSoldier => (104.0, 26.0, 26.0, 1, 0.0),
         };
 
         Self {
@@ -155,8 +155,8 @@ impl SceneItem {
             ItemBehavior::Standing => SpriteType::StandingSoldier,
             ItemBehavior::EngageSceneItem(_) => SpriteType::EngagingSoldier,
             ItemBehavior::EngageGridPoint(_) => SpriteType::EngagingSoldier,
-            ItemBehavior::Dead => SpriteType::UnconsciousSoldier,
-            ItemBehavior::Unconscious => SpriteType::DeadSoldier,
+            ItemBehavior::Dead => SpriteType::DeadSoldier,
+            ItemBehavior::Unconscious => SpriteType::UnconsciousSoldier,
             ItemBehavior::Hide => SpriteType::EngagingSoldier,
         }
     }
