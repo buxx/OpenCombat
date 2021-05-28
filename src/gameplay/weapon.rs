@@ -1,7 +1,10 @@
+use crate::audio::Sound;
+use crate::{Factor, Meters};
+
 pub enum WeaponType {
     GarandM1,
     MauserG41,
-    MosinNagantM18911930,
+    MosinNagant1938,
 }
 
 pub struct Weapon {
@@ -14,6 +17,40 @@ impl Weapon {
         Self {
             type_,
             need_reload: false,
+        }
+    }
+}
+
+pub struct WeaponCharacteristic {
+    pub miss_by_distance_factors: Vec<(Meters, Factor)>,
+    pub sound: Sound,
+}
+
+impl WeaponCharacteristic {
+    pub fn new(type_: &WeaponType) -> Self {
+        // TODO: perf ?
+        let default_miss_by_distance_factors: Vec<(Meters, Factor)> = vec![
+            (0.0, 0.5),
+            (100.0, 1.0),
+            (150.0, 1.5),
+            (250.0, 2.0),
+            (300.0, 4.0),
+            (500.0, 10.0),
+        ];
+
+        match type_ {
+            WeaponType::GarandM1 => Self {
+                miss_by_distance_factors: default_miss_by_distance_factors,
+                sound: Sound::GarandM1SingleShot,
+            },
+            WeaponType::MauserG41 => Self {
+                miss_by_distance_factors: default_miss_by_distance_factors,
+                sound: Sound::GarandM1SingleShot,
+            },
+            WeaponType::MosinNagant1938 => Self {
+                miss_by_distance_factors: default_miss_by_distance_factors,
+                sound: Sound::GarandM1SingleShot,
+            },
         }
     }
 }

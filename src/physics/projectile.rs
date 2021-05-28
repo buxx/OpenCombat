@@ -1,4 +1,6 @@
 use crate::audio::Sound;
+use crate::config::TARGET_FPS;
+use crate::gameplay::weapon::WeaponCharacteristic;
 use crate::physics::hit::determine_hit_type;
 use crate::physics::visibility::Visibility;
 use crate::physics::HitType;
@@ -29,34 +31,38 @@ pub fn bullet_fire(
     ));
 
     if let Some(to_scene_item) = to_scene_item {
-        messages.extend(
-            match determine_hit_type(visibility, from_scene_item, to_scene_item) {
-                HitType::Deadly => {
-                    vec![
-                        Message::SceneItemMessage(to_scene_item.id, SceneItemModifier::Death),
-                        Message::MainStateMessage(MainStateModifier::NewSound(Sound::Injured1)),
-                    ]
-                }
-                HitType::Incapacity => {
-                    vec![
-                        Message::SceneItemMessage(to_scene_item.id, SceneItemModifier::Incapacity),
-                        Message::MainStateMessage(MainStateModifier::NewSound(Sound::Injured1)),
-                    ]
-                }
-                HitType::Missed => {
-                    // TODO: Add reducer by big miss or near miss, distance, etc ...
-                    vec![Message::SceneItemMessage(
-                        to_scene_item.id,
-                        SceneItemModifier::IncrementUnderFire,
-                    )]
-                }
-            },
-        )
+        let (hit_value, max_hit, hit_type) =
+            determine_hit_type(visibility, from_scene_item, to_scene_item);
+        messages.extend(match &hit_type {
+            HitType::Deadly => {
+                vec![
+                    Message::SceneItemMessage(to_scene_item.id, SceneItemModifier::Death),
+                    Message::MainStateMessage(MainStateModifier::NewSound(Sound::Injured1)),
+                ]
+            }
+            HitType::Incapacity => {
+                vec![
+                    Message::SceneItemMessage(to_scene_item.id, SceneItemModifier::Incapacity),
+                    Message::MainStateMessage(MainStateModifier::NewSound(Sound::Injured1)),
+                ]
+            }
+            HitType::Missed => {
+                // TODO: Add reducer by big miss or near miss, distance, etc ...
+                vec![Message::SceneItemMessage(
+                    to_scene_item.id,
+                    SceneItemModifier::IncrementUnderFire,
+                )]
+            }
+        });
+        messages.push(Message::MainStateMessage(MainStateModifier::NewDebugText(
+            frame_i + TARGET_FPS / 2,
+            to_scene_item.position,
+            format!("{:.0}/{:.0}({:?})", hit_value, max_hit, hit_type),
+        )))
     }
 
-    // FIXME BS NOW: weapon type
     messages.push(Message::MainStateMessage(MainStateModifier::NewSound(
-        Sound::GarandM1SingleShot,
+        WeaponCharacteristic::new(&from_scene_item.weapon.type_).sound,
     )));
 
     messages

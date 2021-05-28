@@ -24,7 +24,9 @@ use crate::map::Map;
 use crate::physics::item::produce_physics_messages_for_scene_item;
 use crate::physics::path::find_path;
 use crate::physics::projectile::{bullet_fire, Projectile};
-use crate::physics::util::{grid_point_from_scene_point, scene_point_from_window_point};
+use crate::physics::util::{
+    grid_point_from_scene_point, meters_between_scene_points, scene_point_from_window_point,
+};
 use crate::physics::util::{scene_point_from_grid_point, window_point_from_scene_point};
 use crate::physics::visibility::Visibility;
 use crate::physics::GridPoint;
@@ -37,7 +39,7 @@ use crate::scene::util::{incapacitated, update_background_batch, update_decor_ba
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
-use crate::{scene, FrameI, Message, Offset, SceneItemId, ScenePoint, WindowPoint};
+use crate::{scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, WindowPoint};
 use std::io::BufReader;
 
 #[derive(PartialEq)]
@@ -55,7 +57,11 @@ pub enum MainStateModifier {
     PushPhysicEvent(PhysicEvent),
     NewProjectile(Projectile),
     NewSound(Sound),
+    NewDebugText(FrameI, ScenePoint, String),
 }
+
+#[derive(Clone)]
+struct DebugText(FrameI, ScenePoint, String);
 
 pub struct MainState {
     // time
@@ -78,6 +84,7 @@ pub struct MainState {
     debug_terrain_opacity_mesh_builder: MeshBuilder,
     decor_batches: Vec<graphics::spritebatch::SpriteBatch>,
     projectiles: Vec<Projectile>,
+    debug_texts: Vec<DebugText>,
 
     // scene items
     scene_items: Vec<SceneItem>,
@@ -217,6 +224,7 @@ impl MainState {
             debug_terrain_opacity_mesh_builder,
             decor_batches,
             projectiles: vec![],
+            debug_texts: vec![],
             scene_items,
             scene_items_by_grid_position,
             scene_items_by_side,
@@ -610,6 +618,9 @@ impl MainState {
                         self.projectiles.push(projectile);
                     }
                     MainStateModifier::NewSound(sound) => self.audio.play(sound),
+                    MainStateModifier::NewDebugText(frame_i, scene_point, message) => self
+                        .debug_texts
+                        .push(DebugText(frame_i, scene_point, message)),
                 },
             }
         }
@@ -1102,8 +1113,8 @@ impl MainState {
         Ok(mesh_builder)
     }
 
-    fn generate_debug_texts(&self) -> Vec<(ScenePoint, Text)> {
-        let mut texts: Vec<(ScenePoint, Text)> = vec![];
+    fn generate_debug_texts(&mut self) -> Vec<(ScenePoint, Text, Option<Color>)> {
+        let mut texts: Vec<(ScenePoint, Text, Option<Color>)> = vec![];
 
         if self.debug {
             for selected_scene_item_i in self.selected_scene_items.iter() {
@@ -1116,11 +1127,13 @@ impl MainState {
                                 "{:.2}({:.2})",
                                 visibility.path_final_opacity, visibility.to_scene_item_opacity
                             )),
+                            None,
                         ))
                     } else {
                         texts.push((
                             visibility.to_scene_point,
                             Text::new(format!("{:.2}", visibility.path_final_opacity)),
+                            None,
                         ))
                     }
                 }
@@ -1128,7 +1141,68 @@ impl MainState {
                 texts.push((
                     ScenePoint::new(scene_item.position.x + 10.0, scene_item.position.y),
                     Text::new(format!("{:.2}", scene_item.under_fire_intensity)),
+                    None,
                 ))
+            }
+
+            let mut continue_debug_texts: Vec<DebugText> = vec![];
+            let mut displayed_positions: Vec<ScenePoint> = vec![];
+            while let Some(debug_text) = self.debug_texts.pop() {
+                let DebugText(max_frame_i, scene_point, message) = &debug_text;
+                let display_at_scene_point = if displayed_positions.contains(scene_point) {
+                    let counted = displayed_positions
+                        .iter()
+                        .filter(|p| *p == scene_point)
+                        .collect::<Vec<&ScenePoint>>()
+                        .len();
+                    ScenePoint::new(scene_point.x + (counted * 125) as f32, scene_point.y)
+                } else {
+                    *scene_point
+                };
+                texts.push((
+                    ScenePoint::new(display_at_scene_point.x, display_at_scene_point.y),
+                    Text::new(message.clone()),
+                    None,
+                ));
+                if *max_frame_i > self.frame_i {
+                    continue_debug_texts.push(debug_text.clone());
+                }
+                displayed_positions.push(*scene_point);
+            }
+            self.debug_texts = continue_debug_texts;
+        } else {
+            self.debug_texts.drain(..);
+        }
+
+        texts
+    }
+
+    fn generate_prepare_order_texts(&self) -> Vec<(ScenePoint, Text, Option<Color>)> {
+        let mut texts: Vec<(ScenePoint, Text, Option<Color>)> = vec![];
+
+        if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
+            match scene_item_prepare_order {
+                SceneItemPrepareOrder::Move(scene_item_usize)
+                | SceneItemPrepareOrder::MoveFast(scene_item_usize)
+                | SceneItemPrepareOrder::Hide(scene_item_usize) => {
+                    // FIXME BS NOW: Depending from distance and weapon
+                    let color = graphics::GREEN;
+                    let scene_item = self.get_scene_item(*scene_item_usize);
+                    let distance: Meters = meters_between_scene_points(
+                        &scene_item.position,
+                        &self.current_cursor_point,
+                    );
+                    let scene_point = scene_point_from_window_point(
+                        &self.current_cursor_point,
+                        &self.display_offset,
+                    );
+                    let draw_to_scene_point = ScenePoint::new(scene_point.x + 10.0, scene_point.y);
+                    texts.push((
+                        draw_to_scene_point,
+                        Text::new(format!("{:.0}m", distance)),
+                        Some(color),
+                    ))
+                }
             }
         }
 
@@ -1199,7 +1273,8 @@ impl event::EventHandler for MainState {
         scene_mesh_builder = self.update_scene_mesh_with_prepare_order(scene_mesh_builder)?;
         scene_mesh_builder = self.update_scene_mesh_with_projectiles(scene_mesh_builder)?;
         visibilities_mesh_builder = self.update_visibilities_mesh(visibilities_mesh_builder)?;
-        let debug_texts = self.generate_debug_texts();
+        let mut texts = self.generate_debug_texts();
+        texts.extend(self.generate_prepare_order_texts());
 
         let window_draw_param = graphics::DrawParam::new().dest(window_point_from_scene_point(
             &ScenePoint::new(0.0, 0.0),
@@ -1227,12 +1302,15 @@ impl event::EventHandler for MainState {
         }
 
         // Draw debug texts
-        for (text_scene_point, text) in debug_texts.iter() {
-            graphics::queue_text(ctx, text, *text_scene_point, Some(graphics::WHITE));
+        for (text_scene_point, text, color) in texts.iter() {
+            graphics::queue_text(
+                ctx,
+                text,
+                *text_scene_point,
+                color.or(Some(graphics::WHITE)),
+            );
         }
-        if self.debug {
-            graphics::draw_queued_text(ctx, window_draw_param, None, FilterMode::Linear)?;
-        }
+        graphics::draw_queued_text(ctx, window_draw_param, None, FilterMode::Linear)?;
 
         // Draw scene items
         graphics::draw(ctx, &self.sprite_sheet_batch, window_draw_param)?;
