@@ -40,6 +40,7 @@ use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
 use crate::{scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, WindowPoint};
+use std::cmp::Ordering;
 use std::io::BufReader;
 
 #[derive(PartialEq)]
@@ -57,11 +58,32 @@ pub enum MainStateModifier {
     PushPhysicEvent(PhysicEvent),
     NewProjectile(Projectile),
     NewSound(Sound),
-    NewDebugText(FrameI, ScenePoint, String),
+    NewDebugText(DebugText),
 }
 
 #[derive(Clone)]
-struct DebugText(FrameI, ScenePoint, String);
+pub struct DebugText {
+    frame_i: FrameI,
+    scene_point: ScenePoint,
+    message: String,
+    scene_item_id: Option<SceneItemId>,
+}
+
+impl DebugText {
+    pub fn new(
+        frame_i: FrameI,
+        scene_point: ScenePoint,
+        message: String,
+        scene_item_id: Option<SceneItemId>,
+    ) -> Self {
+        Self {
+            frame_i,
+            scene_point,
+            message,
+            scene_item_id,
+        }
+    }
+}
 
 pub struct MainState {
     // time
@@ -618,9 +640,9 @@ impl MainState {
                         self.projectiles.push(projectile);
                     }
                     MainStateModifier::NewSound(sound) => self.audio.play(sound),
-                    MainStateModifier::NewDebugText(frame_i, scene_point, message) => self
-                        .debug_texts
-                        .push(DebugText(frame_i, scene_point, message)),
+                    MainStateModifier::NewDebugText(debug_text) => {
+                        self.debug_texts.push(debug_text)
+                    }
                 },
             }
         }
@@ -1146,28 +1168,43 @@ impl MainState {
             }
 
             let mut continue_debug_texts: Vec<DebugText> = vec![];
-            let mut displayed_positions: Vec<ScenePoint> = vec![];
+            let mut debug_texts_by_scene_point: HashMap<(i32, i32), Vec<DebugText>> =
+                HashMap::new();
             while let Some(debug_text) = self.debug_texts.pop() {
-                let DebugText(max_frame_i, scene_point, message) = &debug_text;
-                let display_at_scene_point = if displayed_positions.contains(scene_point) {
-                    let counted = displayed_positions
-                        .iter()
-                        .filter(|p| *p == scene_point)
-                        .collect::<Vec<&ScenePoint>>()
-                        .len();
-                    ScenePoint::new(scene_point.x + (counted * 125) as f32, scene_point.y)
-                } else {
-                    *scene_point
-                };
-                texts.push((
-                    ScenePoint::new(display_at_scene_point.x, display_at_scene_point.y),
-                    Text::new(message.clone()),
-                    None,
-                ));
-                if *max_frame_i > self.frame_i {
-                    continue_debug_texts.push(debug_text.clone());
+                debug_texts_by_scene_point
+                    .entry((
+                        debug_text.scene_point.x as i32,
+                        debug_text.scene_point.y as i32,
+                    ))
+                    .or_default()
+                    .push(debug_text);
+            }
+            for ((scene_point_x, scene_point_y), debug_texts) in
+                debug_texts_by_scene_point.iter_mut()
+            {
+                debug_texts.sort_by(|d1, d2| d1.message.partial_cmp(&d2.message).unwrap());
+                for (i, debug_text) in debug_texts.iter().enumerate() {
+                    let text = (
+                        ScenePoint::new(
+                            *scene_point_x as f32 + 75.0 + (i as f32 * 140.0),
+                            *scene_point_y as f32,
+                        ),
+                        Text::new(debug_text.message.clone()),
+                        None,
+                    );
+
+                    if let Some(to_scene_id) = debug_text.scene_item_id {
+                        if self.selected_scene_items.contains(&to_scene_id) {
+                            texts.push(text);
+                        }
+                    } else {
+                        texts.push(text);
+                    }
+
+                    if debug_text.frame_i > self.frame_i {
+                        continue_debug_texts.push(debug_text.clone());
+                    }
                 }
-                displayed_positions.push(*scene_point);
             }
             self.debug_texts = continue_debug_texts;
         } else {

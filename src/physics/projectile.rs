@@ -5,7 +5,7 @@ use crate::physics::hit::determine_hit_type;
 use crate::physics::visibility::Visibility;
 use crate::physics::HitType;
 use crate::scene::item::{SceneItem, SceneItemModifier, Side};
-use crate::scene::main::MainStateModifier;
+use crate::scene::main::{DebugText, MainStateModifier};
 use crate::{FrameI, Message, ScenePoint};
 
 pub fn bullet_fire(
@@ -55,9 +55,12 @@ pub fn bullet_fire(
             }
         });
         messages.push(Message::MainStateMessage(MainStateModifier::NewDebugText(
-            frame_i + TARGET_FPS / 2,
-            to_scene_item.position,
-            format!("{:.0}/{:.0}({:?})", hit_value, max_hit, hit_type),
+            DebugText::new(
+                frame_i + TARGET_FPS / 2,
+                to_scene_item.position,
+                format!("{:.0}/{:.0}({:?})", hit_value, max_hit, hit_type),
+                Some(to_scene_item.id),
+            ),
         )))
     }
 
