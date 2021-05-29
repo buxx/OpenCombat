@@ -42,6 +42,7 @@ use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
 use crate::{scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, WindowPoint};
 use std::cmp::Ordering;
 use std::io::BufReader;
+use crate::ui::order::OrderMarker;
 
 #[derive(PartialEq)]
 enum DebugTerrain {
@@ -83,6 +84,10 @@ impl DebugText {
             scene_item_id,
         }
     }
+}
+
+pub trait Drag {
+    fn get_scene_point(&self) -> &ScenePoint;
 }
 
 pub struct MainState {
@@ -129,6 +134,7 @@ pub struct MainState {
     scene_item_menu: Option<(SceneItemId, ScenePoint)>, // scene_item usize, display_at
     scene_item_prepare_order: Option<SceneItemPrepareOrder>,
     current_prepare_move_found_paths: HashMap<SceneItemId, Vec<GridPoint>>,
+    dragging: Option<Box<dyn Drag>>,
 
     // Gameplay
     current_side: Side,
@@ -263,6 +269,7 @@ impl MainState {
             scene_item_menu: None,
             scene_item_prepare_order: None,
             current_prepare_move_found_paths: HashMap::new(),
+            dragging: None,
             current_side: Side::A,
             opposite_visible_scene_items: vec![],
             audio: Audio::new(),
@@ -828,6 +835,32 @@ impl MainState {
         Ok(())
     }
 
+    fn generate_order_sprites(&mut self) -> GameResult {
+        for scene_item in self.scene_items.iter() {
+            if scene_item.side != self.current_side
+                    && !self.opposite_visible_scene_items.contains(&scene_item.id)
+                {
+                    continue;
+                }
+            if let Some(current_order) = &scene_item.current_order {
+                let (order_marker, move_to_scene_point) = match current_order {
+                    Order::MoveTo(move_to_scene_point) => {
+                        (OrderMarker::MoveTo, move_to_scene_point)
+                    }
+                    Order::MoveFastTo(move_to_scene_point) => {
+                        (OrderMarker::MoveFastTo, move_to_scene_point)
+                    }
+                    Order::HideTo(move_to_scene_point) => {
+                        (OrderMarker::HideTo, move_to_scene_point)
+                    }
+                };
+                self.ui_batch.add(order_marker.sprite_info().as_draw_params(move_to_scene_point));
+            }
+        }
+
+        Ok(())
+    }
+
     fn update_interior_sprites(&mut self) -> GameResult {
         self.interiors_batch.clear();
         for interior in self.map.interiors_objects.objects.iter() {
@@ -1303,6 +1336,7 @@ impl event::EventHandler for MainState {
 
         self.generate_scene_item_sprites()?;
         self.generate_scene_item_menu_sprites()?;
+        self.generate_order_sprites()?;
 
         scene_mesh_builder = self.update_scene_mesh_with_debug(scene_mesh_builder)?;
         scene_mesh_builder = self.update_scene_mesh_with_selected_items(scene_mesh_builder)?;

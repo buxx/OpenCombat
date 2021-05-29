@@ -1,6 +1,7 @@
 use crate::WindowPoint;
 use std::time::Duration;
 
+pub mod order;
 pub mod vertical_menu;
 
 const SCENE_ITEM_MENU_WIDTH: f32 = 71.0;
