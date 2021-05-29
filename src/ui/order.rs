@@ -7,11 +7,12 @@ const ORDER_MARKER_START_Y: f32 = 100.0;
 const ORDER_MARKER_WIDTH: f32 = 11.0;
 const ORDER_MARKER_HEIGHT: f32 = 11.0;
 
+#[derive(PartialEq)]
 pub enum OrderMarker {
-    MoveTo,
-    MoveFastTo,
-    HideTo,
-    FireTo,
+    MoveTo(ScenePoint),
+    MoveFastTo(ScenePoint),
+    HideTo(ScenePoint),
+    FireTo(ScenePoint),
 }
 
 pub struct OrderMarkerSpriteInfo {
@@ -43,7 +44,7 @@ impl OrderMarkerSpriteInfo {
 impl OrderMarker {
     pub fn sprite_info(&self) -> OrderMarkerSpriteInfo {
         match self {
-            OrderMarker::MoveTo => OrderMarkerSpriteInfo {
+            OrderMarker::MoveTo(_) => OrderMarkerSpriteInfo {
                 relative_start_x: ORDER_MARKER_START_X / UI_SPRITE_SHEET_WIDTH,
                 relative_start_y: ORDER_MARKER_START_Y / UI_SPRITE_SHEET_HEIGHT,
                 relative_width: ORDER_MARKER_WIDTH / UI_SPRITE_SHEET_WIDTH,
@@ -51,25 +52,28 @@ impl OrderMarker {
                 width: ORDER_MARKER_WIDTH,
                 height: ORDER_MARKER_HEIGHT,
             },
-            OrderMarker::MoveFastTo => OrderMarkerSpriteInfo {
+            OrderMarker::MoveFastTo(_) => OrderMarkerSpriteInfo {
                 relative_start_x: ORDER_MARKER_START_X / UI_SPRITE_SHEET_WIDTH,
-                relative_start_y: (ORDER_MARKER_START_Y + (ORDER_MARKER_HEIGHT * 1.0)) / UI_SPRITE_SHEET_HEIGHT,
+                relative_start_y: (ORDER_MARKER_START_Y + (ORDER_MARKER_HEIGHT * 1.0))
+                    / UI_SPRITE_SHEET_HEIGHT,
                 relative_width: ORDER_MARKER_WIDTH / UI_SPRITE_SHEET_WIDTH,
                 relative_height: ORDER_MARKER_HEIGHT / UI_SPRITE_SHEET_HEIGHT,
                 width: ORDER_MARKER_WIDTH,
                 height: ORDER_MARKER_HEIGHT,
             },
-            OrderMarker::HideTo => OrderMarkerSpriteInfo {
+            OrderMarker::HideTo(_) => OrderMarkerSpriteInfo {
                 relative_start_x: ORDER_MARKER_START_X / UI_SPRITE_SHEET_WIDTH,
-                relative_start_y: (ORDER_MARKER_START_Y + (ORDER_MARKER_HEIGHT * 2.0)) / UI_SPRITE_SHEET_HEIGHT,
+                relative_start_y: (ORDER_MARKER_START_Y + (ORDER_MARKER_HEIGHT * 2.0))
+                    / UI_SPRITE_SHEET_HEIGHT,
                 relative_width: ORDER_MARKER_WIDTH / UI_SPRITE_SHEET_WIDTH,
                 relative_height: ORDER_MARKER_HEIGHT / UI_SPRITE_SHEET_HEIGHT,
                 width: ORDER_MARKER_WIDTH,
                 height: ORDER_MARKER_HEIGHT,
             },
-            OrderMarker::FireTo => OrderMarkerSpriteInfo {
+            OrderMarker::FireTo(_) => OrderMarkerSpriteInfo {
                 relative_start_x: ORDER_MARKER_START_X / UI_SPRITE_SHEET_WIDTH,
-                relative_start_y: (ORDER_MARKER_START_Y + (ORDER_MARKER_HEIGHT * 3.0)) / UI_SPRITE_SHEET_HEIGHT,
+                relative_start_y: (ORDER_MARKER_START_Y + (ORDER_MARKER_HEIGHT * 3.0))
+                    / UI_SPRITE_SHEET_HEIGHT,
                 relative_width: ORDER_MARKER_WIDTH / UI_SPRITE_SHEET_WIDTH,
                 relative_height: ORDER_MARKER_HEIGHT / UI_SPRITE_SHEET_HEIGHT,
                 width: ORDER_MARKER_WIDTH,

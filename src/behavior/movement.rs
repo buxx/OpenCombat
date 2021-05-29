@@ -61,20 +61,6 @@ pub fn digest_move_behavior(
             velocity_for_behavior(&scene_item.behavior).expect("must have velocity here");
         if distance < MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT * velocity {
             scene_item_modifiers.push(SceneItemModifier::ReachMoveGridPoint);
-
-            // FIXME BS NOW: dans le code qui consomme le ReachMoveGridPoint
-            // Test if reached destination is from an order. If it is, switch to next order.
-            if let Some(current_order) = &scene_item.current_order {
-                match current_order {
-                    Order::MoveTo(move_to_scene_point)
-                    | Order::MoveFastTo(move_to_scene_point)
-                    | Order::HideTo(move_to_scene_point) => {
-                        if *move_to_scene_point == going_to_scene_point {
-                            scene_item_modifiers.push(SceneItemModifier::SwitchToNextOrder);
-                        }
-                    }
-                }
-            }
         }
     } else {
         eprintln!("No grid point in grid path !")

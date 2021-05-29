@@ -36,13 +36,15 @@ use crate::scene::item::{
     SceneItemType, Side,
 };
 use crate::scene::util::{incapacitated, update_background_batch, update_decor_batches};
+use crate::ui::order::OrderMarker;
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
+use crate::util::order_maker_for_order;
 use crate::{scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, WindowPoint};
 use std::cmp::Ordering;
 use std::io::BufReader;
-use crate::ui::order::OrderMarker;
+use std::ops::Index;
 
 #[derive(PartialEq)]
 enum DebugTerrain {
@@ -60,6 +62,8 @@ pub enum MainStateModifier {
     NewProjectile(Projectile),
     NewSound(Sound),
     NewDebugText(DebugText),
+    NewOrderMarker(Order),
+    RemoveOrderMarker(Order),
 }
 
 #[derive(Clone)]
@@ -112,6 +116,7 @@ pub struct MainState {
     decor_batches: Vec<graphics::spritebatch::SpriteBatch>,
     projectiles: Vec<Projectile>,
     debug_texts: Vec<DebugText>,
+    order_markers: Vec<OrderMarker>,
 
     // scene items
     scene_items: Vec<SceneItem>,
@@ -253,6 +258,7 @@ impl MainState {
             decor_batches,
             projectiles: vec![],
             debug_texts: vec![],
+            order_markers: vec![],
             scene_items,
             scene_items_by_grid_position,
             scene_items_by_side,
@@ -470,7 +476,10 @@ impl MainState {
                     };
                     messages.push(Message::SceneItemMessage(
                         *scene_item_usize,
-                        SceneItemModifier::SetNextOrder(order),
+                        SceneItemModifier::SetNextOrder(order.clone()),
+                    ));
+                    messages.push(Message::MainStateMessage(
+                        MainStateModifier::NewOrderMarker(order.clone()),
                     ));
                     self.current_prepare_move_found_paths = HashMap::new();
                 }
@@ -649,6 +658,19 @@ impl MainState {
                     MainStateModifier::NewSound(sound) => self.audio.play(sound),
                     MainStateModifier::NewDebugText(debug_text) => {
                         self.debug_texts.push(debug_text)
+                    }
+                    MainStateModifier::NewOrderMarker(order) => {
+                        self.generate_new_order_marker(order)
+                    }
+                    MainStateModifier::RemoveOrderMarker(order) => {
+                        let order_marker_to_found = order_maker_for_order(&order);
+                        if let Some(i) = self
+                            .order_markers
+                            .iter()
+                            .position(|o| *o == order_marker_to_found)
+                        {
+                            self.order_markers.remove(i);
+                        }
                     }
                 },
             }
@@ -835,27 +857,23 @@ impl MainState {
         Ok(())
     }
 
-    fn generate_order_sprites(&mut self) -> GameResult {
-        for scene_item in self.scene_items.iter() {
-            if scene_item.side != self.current_side
-                    && !self.opposite_visible_scene_items.contains(&scene_item.id)
-                {
-                    continue;
-                }
-            if let Some(current_order) = &scene_item.current_order {
-                let (order_marker, move_to_scene_point) = match current_order {
-                    Order::MoveTo(move_to_scene_point) => {
-                        (OrderMarker::MoveTo, move_to_scene_point)
-                    }
-                    Order::MoveFastTo(move_to_scene_point) => {
-                        (OrderMarker::MoveFastTo, move_to_scene_point)
-                    }
-                    Order::HideTo(move_to_scene_point) => {
-                        (OrderMarker::HideTo, move_to_scene_point)
-                    }
-                };
-                self.ui_batch.add(order_marker.sprite_info().as_draw_params(move_to_scene_point));
-            }
+    fn generate_new_order_marker(&mut self, from_order: Order) {
+        self.order_markers.push(order_maker_for_order(&from_order));
+    }
+
+    fn generate_order_marker_sprites(&mut self) -> GameResult {
+        for order_marker in self.order_markers.iter() {
+            let draw_to_scene_point = match &order_marker {
+                OrderMarker::MoveTo(scene_point)
+                | OrderMarker::MoveFastTo(scene_point)
+                | OrderMarker::HideTo(scene_point)
+                | OrderMarker::FireTo(scene_point) => scene_point,
+            };
+            self.ui_batch.add(
+                order_marker
+                    .sprite_info()
+                    .as_draw_params(draw_to_scene_point),
+            );
         }
 
         Ok(())
@@ -1336,7 +1354,7 @@ impl event::EventHandler for MainState {
 
         self.generate_scene_item_sprites()?;
         self.generate_scene_item_menu_sprites()?;
-        self.generate_order_sprites()?;
+        self.generate_order_marker_sprites()?;
 
         scene_mesh_builder = self.update_scene_mesh_with_debug(scene_mesh_builder)?;
         scene_mesh_builder = self.update_scene_mesh_with_selected_items(scene_mesh_builder)?;

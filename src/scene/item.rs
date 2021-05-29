@@ -224,6 +224,12 @@ pub fn apply_scene_item_modifier(
 
     match modifier {
         SceneItemModifier::SwitchToNextOrder => {
+            if let Some(current_order) = &scene_item.current_order {
+                messages.push(Message::MainStateMessage(
+                    MainStateModifier::RemoveOrderMarker(current_order.clone()),
+                ))
+            };
+
             if let Some(next_order) = &scene_item.next_order {
                 scene_item.current_order = Some(next_order.clone());
                 scene_item.next_order = None;
