@@ -488,7 +488,6 @@ impl MainState {
         let mut re_push: Vec<CursorImmobile> = vec![];
         while let Some(waiting_cursor) = self.waiting_cursor.pop() {
             if cursor_immobile_since >= waiting_cursor.0 {
-                println!("wainting reached: {:?}", waiting_cursor.1.clone());
                 self.user_events.push(waiting_cursor.1.clone());
             } else {
                 re_push.push(waiting_cursor)
@@ -686,11 +685,17 @@ impl MainState {
 
     fn consume_messages(&mut self, messages: Vec<Message>) {
         let frame_i = self.frame_i;
+        let mut new_messages: Vec<Message> = vec![];
+
         for message in messages.into_iter() {
             match message {
                 Message::SceneItemMessage(i, scene_item_modifier) => {
                     let scene_item = self.get_scene_item_mut(i);
-                    apply_scene_item_modifier(frame_i, scene_item, scene_item_modifier);
+                    new_messages.extend(apply_scene_item_modifier(
+                        frame_i,
+                        scene_item,
+                        scene_item_modifier,
+                    ));
                 }
                 Message::MainStateMessage(main_state_modifier) => match main_state_modifier {
                     MainStateModifier::ChangeSceneItemGridPosition(
@@ -743,6 +748,10 @@ impl MainState {
                     }
                 },
             }
+        }
+
+        if new_messages.len() > 0 {
+            self.consume_messages(new_messages);
         }
     }
 
