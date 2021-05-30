@@ -17,11 +17,3 @@ pub fn velocity_for_behavior(behavior: &ItemBehavior) -> Option<f32> {
 pub fn angle(to_point: ScenePoint, from_point: ScenePoint) -> f32 {
     f32::atan2(to_point.y - from_point.y, to_point.x - from_point.x) + FRAC_PI_2
 }
-
-pub fn order_maker_for_order(order: &Order) -> OrderMarker {
-    match order {
-        Order::MoveTo(move_to_scene_point) => OrderMarker::MoveTo(*move_to_scene_point),
-        Order::MoveFastTo(move_to_scene_point) => OrderMarker::MoveFastTo(*move_to_scene_point),
-        Order::HideTo(move_to_scene_point) => OrderMarker::HideTo(*move_to_scene_point),
-    }
-}

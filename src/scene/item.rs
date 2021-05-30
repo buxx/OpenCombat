@@ -224,9 +224,9 @@ pub fn apply_scene_item_modifier(
 
     match modifier {
         SceneItemModifier::SwitchToNextOrder => {
-            if let Some(current_order) = &scene_item.current_order {
+            if scene_item.current_order.is_some() {
                 messages.push(Message::MainStateMessage(
-                    MainStateModifier::RemoveOrderMarker(current_order.clone()),
+                    MainStateModifier::RemoveOrderMarker(scene_item.id),
                 ))
             };
 
@@ -307,6 +307,9 @@ pub fn apply_scene_item_modifier(
             scene_item.current_order = None;
             scene_item.under_fire_intensity = 0.0;
             scene_item.behavior = ItemBehavior::Unconscious;
+            messages.push(Message::MainStateMessage(
+                MainStateModifier::RemoveOrderMarker(scene_item.id),
+            ));
         }
         SceneItemModifier::Incapacity => {
             scene_item.incapacity = true;
@@ -314,6 +317,9 @@ pub fn apply_scene_item_modifier(
             scene_item.current_order = None;
             scene_item.under_fire_intensity = 0.0;
             scene_item.behavior = ItemBehavior::Unconscious;
+            messages.push(Message::MainStateMessage(
+                MainStateModifier::RemoveOrderMarker(scene_item.id),
+            ));
         }
         SceneItemModifier::SetLastBulletFire(frame_i) => {
             scene_item.last_bullet_fire = Some(frame_i)

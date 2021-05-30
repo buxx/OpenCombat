@@ -38,9 +38,8 @@ use crate::scene::item::{
 use crate::scene::util::{incapacitated, update_background_batch, update_decor_batches};
 use crate::ui::order::OrderMarker;
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
-use crate::ui::{CursorImmobile, MenuItem};
+use crate::ui::{CursorImmobile, Dragging, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
-use crate::util::order_maker_for_order;
 use crate::{scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, WindowPoint};
 use std::cmp::Ordering;
 use std::io::BufReader;
@@ -62,8 +61,8 @@ pub enum MainStateModifier {
     NewProjectile(Projectile),
     NewSound(Sound),
     NewDebugText(DebugText),
-    NewOrderMarker(Order),
-    RemoveOrderMarker(Order),
+    NewOrderMarker(OrderMarker),
+    RemoveOrderMarker(SceneItemId),
 }
 
 #[derive(Clone)]
@@ -88,10 +87,6 @@ impl DebugText {
             scene_item_id,
         }
     }
-}
-
-pub trait Drag {
-    fn get_scene_point(&self) -> &ScenePoint;
 }
 
 pub struct MainState {
@@ -139,7 +134,7 @@ pub struct MainState {
     scene_item_menu: Option<(SceneItemId, ScenePoint)>, // scene_item usize, display_at
     scene_item_prepare_order: Option<SceneItemPrepareOrder>,
     current_prepare_move_found_paths: HashMap<SceneItemId, Vec<GridPoint>>,
-    dragging: Option<Box<dyn Drag>>,
+    dragging: Option<Dragging>,
 
     // Gameplay
     current_side: Side,
@@ -397,18 +392,27 @@ impl MainState {
                     | Some(SceneItemPrepareOrder::MoveFast(_))
                     | Some(SceneItemPrepareOrder::Hide(_)) = &self.scene_item_prepare_order
                     {
-                        for scene_item_i in self.selected_scene_items.iter() {
+                        let mut scene_item_ids = self.selected_scene_items.clone();
+                        if let Some(drag) = &self.dragging {
+                            match drag {
+                                Dragging::OrderMarker(scene_item_i) => {
+                                    scene_item_ids.push(*scene_item_i)
+                                }
+                            }
+                        }
+                        for scene_item_i in scene_item_ids.iter() {
                             if let None = self.current_prepare_move_found_paths.get(scene_item_i) {
                                 let scene_item = self.get_scene_item(*scene_item_i);
+                                let path = find_path(
+                                    &self.map,
+                                    &scene_item.grid_position,
+                                    &self.current_cursor_grid_point,
+                                )
+                                .unwrap_or(vec![]);
                                 messages.push(Message::MainStateMessage(
                                     MainStateModifier::InsertCurrentPrepareMoveFoundPaths(
                                         *scene_item_i,
-                                        find_path(
-                                            &self.map,
-                                            &scene_item.grid_position,
-                                            &self.current_cursor_grid_point,
-                                        )
-                                        .unwrap_or(vec![]),
+                                        path,
                                     ),
                                 ));
                             }
@@ -427,6 +431,55 @@ impl MainState {
                         }
                     }
                 }
+                UserEvent::BeginDragOrderMarker(scene_item_id) => {
+                    self.dragging = Some(Dragging::OrderMarker(scene_item_id));
+                    let scene_item = self.get_scene_item(scene_item_id);
+                    if let Some(current_order) = &scene_item.current_order {
+                        self.scene_item_prepare_order = match current_order {
+                            Order::MoveTo(_) => Some(SceneItemPrepareOrder::Move(scene_item_id)),
+                            Order::MoveFastTo(_) => {
+                                Some(SceneItemPrepareOrder::MoveFast(scene_item_id))
+                            }
+                            Order::HideTo(_) => Some(SceneItemPrepareOrder::Hide(scene_item_id)),
+                        }
+                    }
+                }
+                UserEvent::MoveDrag => {
+                    if let Some(dragging) = &self.dragging {
+                        match dragging {
+                            Dragging::OrderMarker(scene_item_id) => {
+                                if let Some(order_marker) = self
+                                    .order_markers
+                                    .iter_mut()
+                                    .filter(|o| o.get_scene_item_id() == *scene_item_id)
+                                    .collect::<Vec<&mut OrderMarker>>()
+                                    .first_mut()
+                                {
+                                    order_marker.set_scene_point(scene_point_from_window_point(
+                                        &self.current_cursor_point,
+                                        &self.display_offset,
+                                    ))
+                                }
+                            }
+                        }
+                    }
+                }
+                UserEvent::ReleaseDrag => {
+                    if let Some(dragging) = &self.dragging {
+                        match dragging {
+                            Dragging::OrderMarker(scene_item_id) => {
+                                let (messages_, _) = self.digest_click_during_prepare_order(
+                                    &scene_point_from_window_point(
+                                        &self.current_cursor_point,
+                                        &self.display_offset,
+                                    ),
+                                );
+                                messages.extend(messages_);
+                            }
+                        }
+                    }
+                    self.dragging = None;
+                }
             }
         }
 
@@ -435,6 +488,7 @@ impl MainState {
         let mut re_push: Vec<CursorImmobile> = vec![];
         while let Some(waiting_cursor) = self.waiting_cursor.pop() {
             if cursor_immobile_since >= waiting_cursor.0 {
+                println!("wainting reached: {:?}", waiting_cursor.1.clone());
                 self.user_events.push(waiting_cursor.1.clone());
             } else {
                 re_push.push(waiting_cursor)
@@ -452,45 +506,23 @@ impl MainState {
             scene_point_from_window_point(&window_click_point, &self.display_offset);
         let mut scene_item_selected = false;
         let mut scene_item_menu_clicked = false;
-        let mut prepare_order_clicked = false;
 
         // Click on scene item
-        if let Some(scene_item_usize) =
+        if let Some(scene_item_id) =
             self.get_first_scene_item_for_scene_point(&scene_click_point, true)
         {
             self.selected_scene_items.drain(..);
-            self.selected_scene_items.push(scene_item_usize);
+            self.selected_scene_items.push(scene_item_id);
             scene_item_selected = true;
         }
 
         // Click during preparing order
-        if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
-            match scene_item_prepare_order {
-                SceneItemPrepareOrder::Move(scene_item_usize)
-                | SceneItemPrepareOrder::MoveFast(scene_item_usize)
-                | SceneItemPrepareOrder::Hide(scene_item_usize) => {
-                    let order = match scene_item_prepare_order {
-                        SceneItemPrepareOrder::Move(_) => Order::MoveTo(scene_click_point),
-                        SceneItemPrepareOrder::MoveFast(_) => Order::MoveFastTo(scene_click_point),
-                        SceneItemPrepareOrder::Hide(_) => Order::HideTo(scene_click_point),
-                    };
-                    messages.push(Message::SceneItemMessage(
-                        *scene_item_usize,
-                        SceneItemModifier::SetNextOrder(order.clone()),
-                    ));
-                    messages.push(Message::MainStateMessage(
-                        MainStateModifier::NewOrderMarker(order.clone()),
-                    ));
-                    self.current_prepare_move_found_paths = HashMap::new();
-                }
-            }
-
-            self.scene_item_prepare_order = None;
-            prepare_order_clicked = true;
-        }
+        let (messages_, prepare_order_clicked) =
+            self.digest_click_during_prepare_order(&scene_click_point);
+        messages.extend(messages_);
 
         // Click during display of scene item menu
-        if let Some((scene_item_usize, scene_menu_point)) = self.scene_item_menu {
+        if let Some((scene_item_id, scene_menu_point)) = self.scene_item_menu {
             let menu_sprite_info = vertical_menu_sprite_info(UiComponent::SceneItemMenu);
             if let Some(menu_item) =
                 menu_sprite_info.item_clicked(&scene_menu_point, &scene_click_point)
@@ -498,17 +530,17 @@ impl MainState {
                 match menu_item {
                     MenuItem::Move => {
                         self.scene_item_prepare_order =
-                            Some(SceneItemPrepareOrder::Move(scene_item_usize));
+                            Some(SceneItemPrepareOrder::Move(scene_item_id));
                         self.scene_item_menu = None;
                     }
                     MenuItem::MoveFast => {
                         self.scene_item_prepare_order =
-                            Some(SceneItemPrepareOrder::MoveFast(scene_item_usize));
+                            Some(SceneItemPrepareOrder::MoveFast(scene_item_id));
                         self.scene_item_menu = None;
                     }
                     MenuItem::Hide => {
                         self.scene_item_prepare_order =
-                            Some(SceneItemPrepareOrder::Hide(scene_item_usize));
+                            Some(SceneItemPrepareOrder::Hide(scene_item_id));
                         self.scene_item_menu = None;
                     }
                 }
@@ -524,6 +556,44 @@ impl MainState {
         messages
     }
 
+    fn digest_click_during_prepare_order(
+        &mut self,
+        scene_click_point: &ScenePoint,
+    ) -> (Vec<Message>, bool) {
+        let mut messages: Vec<Message> = vec![];
+        let mut prepare_order_clicked: bool = false;
+
+        if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
+            match scene_item_prepare_order {
+                SceneItemPrepareOrder::Move(scene_item_id)
+                | SceneItemPrepareOrder::MoveFast(scene_item_id)
+                | SceneItemPrepareOrder::Hide(scene_item_id) => {
+                    let order = match scene_item_prepare_order {
+                        SceneItemPrepareOrder::Move(_) => Order::MoveTo(*scene_click_point),
+                        SceneItemPrepareOrder::MoveFast(_) => Order::MoveFastTo(*scene_click_point),
+                        SceneItemPrepareOrder::Hide(_) => Order::HideTo(*scene_click_point),
+                    };
+                    messages.push(Message::SceneItemMessage(
+                        *scene_item_id,
+                        SceneItemModifier::SetNextOrder(order.clone()),
+                    ));
+                    messages.push(Message::MainStateMessage(
+                        MainStateModifier::NewOrderMarker(OrderMarker::new(
+                            *scene_item_id,
+                            &order.clone(),
+                        )),
+                    ));
+                    self.current_prepare_move_found_paths = HashMap::new();
+                }
+            }
+
+            self.scene_item_prepare_order = None;
+            prepare_order_clicked = true;
+        }
+
+        (messages, prepare_order_clicked)
+    }
+
     fn digest_right_click(&mut self, window_right_click_point: WindowPoint) -> Vec<Message> {
         let scene_right_click_point =
             scene_point_from_window_point(&window_right_click_point, &self.display_offset);
@@ -532,12 +602,12 @@ impl MainState {
         // TODO: selection et right click sur un item de la selection: scene_item_menu sur un TOUS les item de la selection
         // TODO: selection et right click sur un item PAS dans la selection: scene_item_menu sur un item
 
-        if let Some(scene_item_usize) =
+        if let Some(scene_item_id) =
             self.get_first_scene_item_for_scene_point(&scene_right_click_point, true)
         {
-            if self.selected_scene_items.contains(&scene_item_usize) {
-                let scene_item = self.get_scene_item(scene_item_usize);
-                self.scene_item_menu = Some((scene_item_usize, scene_item.position))
+            if self.selected_scene_items.contains(&scene_item_id) {
+                let scene_item = self.get_scene_item(scene_item_id);
+                self.scene_item_menu = Some((scene_item_id, scene_item.position))
             }
         };
 
@@ -659,15 +729,14 @@ impl MainState {
                     MainStateModifier::NewDebugText(debug_text) => {
                         self.debug_texts.push(debug_text)
                     }
-                    MainStateModifier::NewOrderMarker(order) => {
-                        self.generate_new_order_marker(order)
+                    MainStateModifier::NewOrderMarker(order_marker) => {
+                        self.order_markers.push(order_marker);
                     }
-                    MainStateModifier::RemoveOrderMarker(order) => {
-                        let order_marker_to_found = order_maker_for_order(&order);
+                    MainStateModifier::RemoveOrderMarker(scene_item_id) => {
                         if let Some(i) = self
                             .order_markers
                             .iter()
-                            .position(|o| *o == order_marker_to_found)
+                            .position(|o| o.get_scene_item_id() == scene_item_id)
                         {
                             self.order_markers.remove(i);
                         }
@@ -771,6 +840,40 @@ impl MainState {
         }
     }
 
+    fn generate_user_event_for_dragging_when_mouse_down(
+        &self,
+        scene_point: &ScenePoint,
+    ) -> Vec<UserEvent> {
+        // Try to begin drag on OrderMarker
+        for order_marker in &self.order_markers {
+            let (scene_item_id, draw_to_scene_point) = match order_marker {
+                OrderMarker::MoveTo(scene_item_id, scene_point)
+                | OrderMarker::MoveFastTo(scene_item_id, scene_point)
+                | OrderMarker::HideTo(scene_item_id, scene_point)
+                | OrderMarker::FireTo(scene_item_id, scene_point) => (scene_item_id, scene_point),
+            };
+            if order_marker
+                .sprite_info()
+                .point_is_inside(&draw_to_scene_point, scene_point)
+            {
+                return vec![UserEvent::BeginDragOrderMarker(*scene_item_id)];
+            }
+        }
+
+        vec![]
+    }
+
+    fn generate_user_event_for_dragging_when_mouse_up(
+        &self,
+        scene_point: &ScenePoint,
+    ) -> Vec<UserEvent> {
+        if self.dragging.is_some() {
+            return vec![UserEvent::ReleaseDrag];
+        }
+
+        vec![]
+    }
+
     fn get_first_scene_item_for_scene_point(
         &self,
         scene_position: &ScenePoint,
@@ -857,17 +960,13 @@ impl MainState {
         Ok(())
     }
 
-    fn generate_new_order_marker(&mut self, from_order: Order) {
-        self.order_markers.push(order_maker_for_order(&from_order));
-    }
-
     fn generate_order_marker_sprites(&mut self) -> GameResult {
         for order_marker in self.order_markers.iter() {
             let draw_to_scene_point = match &order_marker {
-                OrderMarker::MoveTo(scene_point)
-                | OrderMarker::MoveFastTo(scene_point)
-                | OrderMarker::HideTo(scene_point)
-                | OrderMarker::FireTo(scene_point) => scene_point,
+                OrderMarker::MoveTo(_, scene_point)
+                | OrderMarker::MoveFastTo(_, scene_point)
+                | OrderMarker::HideTo(_, scene_point)
+                | OrderMarker::FireTo(_, scene_point) => scene_point,
             };
             self.ui_batch.add(
                 order_marker
@@ -1035,7 +1134,9 @@ impl MainState {
                 scene_point_from_window_point(&window_left_click_down_point, &self.display_offset);
             let scene_current_cursor_position =
                 scene_point_from_window_point(&self.current_cursor_point, &self.display_offset);
-            if scene_left_click_down_point != scene_current_cursor_position {
+            if scene_left_click_down_point != scene_current_cursor_position
+                && self.dragging.is_none()
+            {
                 mesh_builder.rectangle(
                     DrawMode::stroke(1.0),
                     graphics::Rect::new(
@@ -1058,16 +1159,16 @@ impl MainState {
     ) -> GameResult<MeshBuilder> {
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             match scene_item_prepare_order {
-                SceneItemPrepareOrder::Move(scene_item_usize)
-                | SceneItemPrepareOrder::MoveFast(scene_item_usize)
-                | SceneItemPrepareOrder::Hide(scene_item_usize) => {
+                SceneItemPrepareOrder::Move(scene_item_id)
+                | SceneItemPrepareOrder::MoveFast(scene_item_id)
+                | SceneItemPrepareOrder::Hide(scene_item_id) => {
                     let color = match &scene_item_prepare_order {
                         SceneItemPrepareOrder::Move(_) => graphics::BLUE,
                         SceneItemPrepareOrder::MoveFast(_) => graphics::MAGENTA,
                         SceneItemPrepareOrder::Hide(_) => graphics::YELLOW,
                     };
 
-                    let scene_item = self.get_scene_item(*scene_item_usize);
+                    let scene_item = self.get_scene_item(*scene_item_id);
                     mesh_builder.line(
                         &vec![
                             scene_item.position.clone(),
@@ -1270,12 +1371,12 @@ impl MainState {
 
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             match scene_item_prepare_order {
-                SceneItemPrepareOrder::Move(scene_item_usize)
-                | SceneItemPrepareOrder::MoveFast(scene_item_usize)
-                | SceneItemPrepareOrder::Hide(scene_item_usize) => {
+                SceneItemPrepareOrder::Move(scene_item_id)
+                | SceneItemPrepareOrder::MoveFast(scene_item_id)
+                | SceneItemPrepareOrder::Hide(scene_item_id) => {
                     // FIXME BS NOW: Depending from distance and weapon
                     let color = graphics::GREEN;
-                    let scene_item = self.get_scene_item(*scene_item_usize);
+                    let scene_item = self.get_scene_item(*scene_item_id);
                     let distance: Meters = meters_between_scene_points(
                         &scene_item.position,
                         &self.current_cursor_point,
@@ -1432,6 +1533,13 @@ impl event::EventHandler for MainState {
         match button {
             MouseButton::Left => {
                 self.left_click_down = Some(WindowPoint::new(x, y));
+                self.user_events
+                    .extend(self.generate_user_event_for_dragging_when_mouse_down(
+                        &scene_point_from_window_point(
+                            &WindowPoint::new(x, y),
+                            &self.display_offset,
+                        ),
+                    ));
             }
             MouseButton::Right => {
                 self.right_click_down = Some(WindowPoint::new(x, y));
@@ -1444,22 +1552,31 @@ impl event::EventHandler for MainState {
     fn mouse_button_up_event(&mut self, _ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
         match button {
             MouseButton::Left => {
-                if let Some(left_click_down) = self.left_click_down {
-                    if left_click_down == WindowPoint::new(x, y) {
-                        self.user_events.push(UserEvent::Click(left_click_down));
-                    } else {
-                        let from = WindowPoint::new(
-                            cmp::min(left_click_down.x as i32, x as i32) as f32,
-                            cmp::min(left_click_down.y as i32, y as i32) as f32,
-                        );
-                        let to = WindowPoint::new(
-                            cmp::max(left_click_down.x as i32, x as i32) as f32,
-                            cmp::max(left_click_down.y as i32, y as i32) as f32,
-                        );
-                        self.user_events.push(UserEvent::AreaSelection(from, to));
+                if self.dragging.is_none() {
+                    if let Some(left_click_down) = self.left_click_down {
+                        if left_click_down == WindowPoint::new(x, y) {
+                            self.user_events.push(UserEvent::Click(left_click_down));
+                        } else {
+                            let from = WindowPoint::new(
+                                cmp::min(left_click_down.x as i32, x as i32) as f32,
+                                cmp::min(left_click_down.y as i32, y as i32) as f32,
+                            );
+                            let to = WindowPoint::new(
+                                cmp::max(left_click_down.x as i32, x as i32) as f32,
+                                cmp::max(left_click_down.y as i32, y as i32) as f32,
+                            );
+                            self.user_events.push(UserEvent::AreaSelection(from, to));
+                        }
                     }
-                }
+                };
                 self.left_click_down = None;
+                self.user_events
+                    .extend(self.generate_user_event_for_dragging_when_mouse_up(
+                        &scene_point_from_window_point(
+                            &WindowPoint::new(x, y),
+                            &self.display_offset,
+                        ),
+                    ));
             }
             MouseButton::Right => {
                 if let Some(right_click_down) = self.right_click_down {
@@ -1491,6 +1608,10 @@ impl event::EventHandler for MainState {
             self.cursor_on_same_grid_point_since = Instant::now();
         } else {
             self.cursor_on_same_grid_point_since = Instant::now();
+        }
+
+        if self.dragging.is_some() {
+            self.user_events.push(UserEvent::MoveDrag)
         }
     }
 }
