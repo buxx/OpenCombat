@@ -19,17 +19,28 @@ mod scene;
 mod ui;
 mod util;
 
+/// Represent coordinates on the window
 type WindowPoint = Vec2;
+/// Represent an offset (used by example for moving on the scene)
 type Offset = Vec2;
+/// Represent coordinates on the battle scene
 type ScenePoint = Vec2;
+/// Represent scene item position in MainState.scene_items vector. It is used like an identifier
 type SceneItemId = usize;
+/// Represent a path in the map grid
 type GridPath = Vec<GridPoint>;
+/// Represent a frame number
 type FrameI = u32;
+/// Float representing meters
 type Meters = f32;
+/// Float representing a multiplier
 type Factor = f32;
 
+/// Main message enum, mostly used as function returns
 pub enum Message {
+    /// Message to apply on scene item to mutate it
     SceneItemMessage(SceneItemId, SceneItemModifier),
+    /// Message to apply on MainState to mutate it
     MainStateMessage(MainStateModifier),
 }
 

@@ -89,57 +89,99 @@ impl DebugText {
     }
 }
 
+/// Main battle object: it contains all battle scene state
 pub struct MainState {
     // time
-    frame_i: FrameI, // FIXME BS NOW: regler le probleme du reset (acquiring_until etc)
+    /// Store the current frame number.
+    /// It is incremented at each .update real execution (target is TARGET_FPS)
+    frame_i: FrameI,
+    /// Store program start Instant (used to initialize some struct attributes)
     start: Instant,
 
     // map
+    /// Map
     pub map: Map,
 
     // display
+    /// If true, display debug info on screen
     debug: bool,
+    /// According to the value, display classic background image, or tiles types, or
+    /// opacity tiles values
     debug_terrain: DebugTerrain,
+    /// If true, hide decor layer
     hide_decor: bool,
+    /// Offset to apply to battle scene
     display_offset: Offset,
+    /// Sprite batch to display sprite sheet parts (scene items)
     sprite_sheet_batch: graphics::spritebatch::SpriteBatch,
+    /// Sprite batch to display map background sprite
     background_batch: graphics::spritebatch::SpriteBatch,
+    /// Sprite batch to display map interiors sprites
     interiors_batch: graphics::spritebatch::SpriteBatch,
+    /// Sprite batch to display ui components like scene item menu
     ui_batch: graphics::spritebatch::SpriteBatch,
+    /// Sprite batch used to display tiles type when debug_terrain is set to
     debug_terrain_batch: graphics::spritebatch::SpriteBatch,
+    /// Mesh builder used to display tiles opacity when debug_terrain is set to
     debug_terrain_opacity_mesh_builder: MeshBuilder,
+    /// Sprite batch used to display decor layer sprites
     decor_batches: Vec<graphics::spritebatch::SpriteBatch>,
+    /// Current projectiles (like bullet fire). Used to display them
     projectiles: Vec<Projectile>,
+    /// Vector of debug texts to display
     debug_texts: Vec<DebugText>,
+    /// List of current order markers to display on the battle scene
     order_markers: Vec<OrderMarker>,
 
     // scene items
+    /// Vector of battle scene items. Positions (SceneItemId) are used as scene item ids
     scene_items: Vec<SceneItem>,
+    /// List of scene item ids for given grid point
     scene_items_by_grid_position: HashMap<GridPoint, Vec<SceneItemId>>,
+    /// List of scene item ids for given side
     scene_items_by_side: HashMap<Side, Vec<SceneItemId>>,
 
     // events
+    /// Vector of emitted physic event. This vector will be immediately consumed to produce messages
     physics_events: Vec<PhysicEvent>,
 
     // user interactions
+    /// Instant for given KeyCode. Used to know for how long a key was consumed
+    /// (and avoid repeated too much quick key action)
     last_key_consumed: HashMap<KeyCode, Instant>,
+    /// WindowPoint where left click was down, if left click currently down
     left_click_down: Option<WindowPoint>,
+    /// WindowPoint where right click was down, if right click currently down
     right_click_down: Option<WindowPoint>,
+    /// Current WindowPoint of mouse cursor
     current_cursor_point: WindowPoint,
+    /// Current GridPoint of mouse cursor
     current_cursor_grid_point: GridPoint,
+    /// Instance since mouse cursor is in same GridPoint
     cursor_on_same_grid_point_since: Instant,
+    /// Collection of UserEvent to trigger when cursor is immobile since given duration
     waiting_cursor: Vec<CursorImmobile>,
+    /// Collection of user produced event. They will be immediately consumed
     user_events: Vec<UserEvent>,
-    selected_scene_items: Vec<SceneItemId>, // scene_item usize
-    scene_item_menu: Option<(SceneItemId, ScenePoint)>, // scene_item usize, display_at
+    /// Currently user selected scene items
+    selected_scene_items: Vec<SceneItemId>,
+    /// If Some, currently displayed scene item menu
+    scene_item_menu: Option<(SceneItemId, ScenePoint)>, // scene item id, display_at
+    /// If Some, user is preparing order (some display must be done like lines, path finding ...)
     scene_item_prepare_order: Option<SceneItemPrepareOrder>,
+    /// When user is preparing move order, found path by scene item ids are stored here.
     current_prepare_move_found_paths: HashMap<SceneItemId, Vec<GridPoint>>,
+    /// If Some, current dragged object by user (like order marker)
     dragging: Option<Dragging>,
 
     // Gameplay
+    /// Current player side
     current_side: Side,
+    /// List of current player visible enemies
     opposite_visible_scene_items: Vec<SceneItemId>,
 
+    // FX
+    /// Audio object used to play sounds
     audio: Audio,
 }
 
