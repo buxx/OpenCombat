@@ -840,22 +840,27 @@ impl MainState {
             }
 
             let mut visibilities: Vec<Visibility> = vec![];
+            // Iterate over all other scene items
             for (scene_item_to_i, scene_item_to) in self.scene_items.iter().enumerate() {
+                // Which is in other side and not incapacitated
                 if scene_item_from.side == scene_item_to.side || incapacitated(scene_item_to) {
                     continue;
                 }
+                // Determine visibility between these two scene items
                 let visibility = Visibility::with_scene_item_target(
                     self.frame_i,
                     scene_item_from,
                     &scene_item_to,
                     &self.map,
                 );
-                if scene_item_to.side != self.current_side {
-                    if visibility.visible {
-                        if !see_opponents.contains(&scene_item_to_i) {
-                            see_opponents.push(scene_item_to_i);
-                        }
-                    }
+
+                // If it is an visible enemy
+                if scene_item_to.side != self.current_side
+                    && visibility.visible
+                    && !see_opponents.contains(&scene_item_to_i)
+                {
+                    // Add it to visible enemies
+                    see_opponents.push(scene_item_to_i);
                 }
                 visibilities.push(visibility);
             }
@@ -889,7 +894,9 @@ impl MainState {
     fn animate(&mut self) {
         let mut messages: Vec<Message> = vec![];
 
+        // For each scene item
         for (_, scene_item) in self.scene_items.iter_mut().enumerate() {
+            // Which is not incapacitated
             if incapacitated(scene_item) {
                 continue;
             }
@@ -910,6 +917,7 @@ impl MainState {
                 digest_behavior(self.frame_i, &scene_item, &self.map),
             ));
 
+            // At each animate tick, under_fire_intensity is decreased
             scene_item.under_fire_intensity -= UNDER_FIRE_INTENSITY_DECREMENT;
             scene_item.under_fire_intensity =
                 std::cmp::max(scene_item.under_fire_intensity as i32, 0) as f32;
@@ -924,11 +932,11 @@ impl MainState {
         }
     }
 
-    fn generate_user_event_for_dragging_when_mouse_down(
+    fn generate_dragging_user_event_when_mouse_down(
         &self,
         scene_point: &ScenePoint,
     ) -> Vec<UserEvent> {
-        // Try to begin drag on OrderMarker
+        // Iterate over all order marker
         for order_marker in &self.order_markers {
             let (scene_item_id, draw_to_scene_point) = match order_marker {
                 OrderMarker::MoveTo(scene_item_id, scene_point)
@@ -936,10 +944,12 @@ impl MainState {
                 | OrderMarker::HideTo(scene_item_id, scene_point)
                 | OrderMarker::FireTo(scene_item_id, scene_point) => (scene_item_id, scene_point),
             };
+            // And check if cursor is over it
             if order_marker
                 .sprite_info()
                 .point_is_inside(&draw_to_scene_point, scene_point)
             {
+                // When order maker found under cursor, return matching user event
                 return vec![UserEvent::BeginDragOrderMarker(*scene_item_id)];
             }
         }
@@ -1618,7 +1628,7 @@ impl event::EventHandler for MainState {
             MouseButton::Left => {
                 self.left_click_down = Some(WindowPoint::new(x, y));
                 self.user_events
-                    .extend(self.generate_user_event_for_dragging_when_mouse_down(
+                    .extend(self.generate_dragging_user_event_when_mouse_down(
                         &scene_point_from_window_point(
                             &WindowPoint::new(x, y),
                             &self.display_offset,
