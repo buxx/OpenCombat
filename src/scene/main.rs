@@ -187,6 +187,10 @@ pub struct MainState {
 
 impl MainState {
     pub fn new(ctx: &mut Context) -> GameResult<MainState> {
+        // TODO: map and resources will be managed differently. A battle will must start from a
+        // configuration file.
+        // For now, most of the code is hardcoded to permit to test game engine.
+
         let map = Map::new(&Path::new("resources/map1.tmx"))?;
 
         let sprite_sheet_image = graphics::Image::new(ctx, "/sprite_sheet.png")?;
@@ -321,6 +325,17 @@ impl MainState {
         Ok(main_state)
     }
 
+    fn key_pressed(&self, ctx: &Context, key: KeyCode, since_ms: u128) -> bool {
+        input::keyboard::is_key_pressed(ctx, key)
+            && self
+                .last_key_consumed
+                .get(&key)
+                .unwrap_or(&self.start)
+                .elapsed()
+                .as_millis()
+                > since_ms
+    }
+
     fn get_scene_item(&self, index: usize) -> &SceneItem {
         self.scene_items
             .get(index)
@@ -333,9 +348,12 @@ impl MainState {
             .expect(SCENE_ITEMS_CHANGE_ERR_MSG)
     }
 
+    /// Consume context to determine user inputs.
+    /// Produce according Messages and mutate some attributes
     fn inputs(&mut self, ctx: &Context) -> Vec<Message> {
         let mut messages = vec![];
 
+        // Move battle scene on the window fastly or not
         let display_offset_by =
             if input::keyboard::is_mod_active(ctx, input::keyboard::KeyMods::SHIFT) {
                 DISPLAY_OFFSET_BY_SPEED
@@ -343,6 +361,7 @@ impl MainState {
                 DISPLAY_OFFSET_BY
             };
 
+        // Move battle scene on the window according to user keys
         if input::keyboard::is_key_pressed(ctx, KeyCode::Left) {
             self.display_offset.x += display_offset_by;
         }
@@ -356,85 +375,70 @@ impl MainState {
             self.display_offset.y -= display_offset_by;
         }
 
-        if input::keyboard::is_key_pressed(ctx, KeyCode::F12) {
-            if self
-                .last_key_consumed
-                .get(&KeyCode::F12)
-                .unwrap_or(&self.start)
-                .elapsed()
-                .as_millis()
-                > 250
-            {
-                self.debug = !self.debug;
-                self.last_key_consumed.insert(KeyCode::F12, Instant::now());
-            }
-        }
-        if input::keyboard::is_key_pressed(ctx, KeyCode::F10) {
-            if self
-                .last_key_consumed
-                .get(&KeyCode::F10)
-                .unwrap_or(&self.start)
-                .elapsed()
-                .as_millis()
-                > 250
-            {
-                self.debug_terrain = match &self.debug_terrain {
-                    DebugTerrain::None => DebugTerrain::Tiles,
-                    DebugTerrain::Tiles => DebugTerrain::Opacity,
-                    DebugTerrain::Opacity => DebugTerrain::None,
-                };
-                self.last_key_consumed.insert(KeyCode::F10, Instant::now());
-            }
-        }
-        if input::keyboard::is_key_pressed(ctx, KeyCode::F9) {
-            if self
-                .last_key_consumed
-                .get(&KeyCode::F9)
-                .unwrap_or(&self.start)
-                .elapsed()
-                .as_millis()
-                > 250
-            {
-                self.current_side = match self.current_side {
-                    Side::A => Side::B,
-                    Side::B => Side::A,
-                };
-                self.last_key_consumed.insert(KeyCode::F9, Instant::now());
-                self.selected_scene_items = vec![];
-                self.opposite_visible_scene_items = vec![];
-            }
-        }
-        if input::keyboard::is_key_pressed(ctx, KeyCode::T) {
-            if self
-                .last_key_consumed
-                .get(&KeyCode::T)
-                .unwrap_or(&self.start)
-                .elapsed()
-                .as_millis()
-                > 250
-            {
-                self.hide_decor = !self.hide_decor;
-                self.last_key_consumed.insert(KeyCode::T, Instant::now());
-            }
+        // F12 key enable debug
+        if self.key_pressed(ctx, KeyCode::F12, 250) {
+            self.debug = !self.debug;
+            self.last_key_consumed.insert(KeyCode::F12, Instant::now());
         }
 
+        // F10 key switch debug terrain mode
+        if self.key_pressed(ctx, KeyCode::F10, 250) {
+            self.debug_terrain = match &self.debug_terrain {
+                DebugTerrain::None => DebugTerrain::Tiles,
+                DebugTerrain::Tiles => DebugTerrain::Opacity,
+                DebugTerrain::Opacity => DebugTerrain::None,
+            };
+            self.last_key_consumed.insert(KeyCode::F10, Instant::now());
+        }
+
+        // F9 key change player current side
+        if self.key_pressed(ctx, KeyCode::F9, 250) {
+            self.current_side = match self.current_side {
+                Side::A => Side::B,
+                Side::B => Side::A,
+            };
+            self.last_key_consumed.insert(KeyCode::F9, Instant::now());
+            self.selected_scene_items = vec![];
+            self.opposite_visible_scene_items = vec![];
+        }
+
+        // T key hide/show decor
+        if self.key_pressed(ctx, KeyCode::T, 250) {
+            self.hide_decor = !self.hide_decor;
+            self.last_key_consumed.insert(KeyCode::T, Instant::now());
+        }
+
+        // Consumption of user events
         while let Some(user_event) = self.user_events.pop() {
             match user_event {
+                // Left click done
                 UserEvent::Click(window_click_point) => {
                     messages.extend(self.digest_click(window_click_point))
                 }
+
+                // Area selection done
                 UserEvent::AreaSelection(window_from, window_to) => {
                     messages.extend(self.digest_area_selection(window_from, window_to))
                 }
+
+                // Right click done
                 UserEvent::RightClick(window_right_click_point) => {
                     messages.extend(self.digest_right_click(window_right_click_point))
                 }
+
+                // Current user behavior require to draw path finding
                 UserEvent::DrawMovePaths => {
+                    // For all move orders
                     if let Some(SceneItemPrepareOrder::Move(_))
                     | Some(SceneItemPrepareOrder::MoveFast(_))
                     | Some(SceneItemPrepareOrder::Hide(_)) = &self.scene_item_prepare_order
                     {
+                        // Draw path finding must be from scene item. By default,
+                        // found path from selected scene items
                         let mut scene_item_ids = self.selected_scene_items.clone();
+
+                        // But, if user is dragging order marker, add matching scene item id to list
+                        // to display path finding from matching scene item order
                         if let Some(drag) = &self.dragging {
                             match drag {
                                 Dragging::OrderMarker(scene_item_i) => {
@@ -442,6 +446,8 @@ impl MainState {
                                 }
                             }
                         }
+
+                        // Then find path for each scene items
                         for scene_item_i in scene_item_ids.iter() {
                             if let None = self.current_prepare_move_found_paths.get(scene_item_i) {
                                 let scene_item = self.get_scene_item(*scene_item_i);
@@ -461,11 +467,15 @@ impl MainState {
                         }
                     }
                 }
+
+                // When user cursor move
                 UserEvent::CursorMove(_) => {
+                    // If user preparing move order
                     if let Some(SceneItemPrepareOrder::Move(_))
                     | Some(SceneItemPrepareOrder::MoveFast(_))
                     | Some(SceneItemPrepareOrder::Hide(_)) = &self.scene_item_prepare_order
                     {
+                        // Require find path drawing in 250ms
                         let waiting_cursor_not_move =
                             CursorImmobile(Duration::from_millis(250), UserEvent::DrawMovePaths);
                         if !self.waiting_cursor.contains(&waiting_cursor_not_move) {
@@ -473,9 +483,13 @@ impl MainState {
                         }
                     }
                 }
+
+                // User begin drag order marker
                 UserEvent::BeginDragOrderMarker(scene_item_id) => {
                     self.dragging = Some(Dragging::OrderMarker(scene_item_id));
                     let scene_item = self.get_scene_item(scene_item_id);
+                    // Fill self.scene_item_prepare_order with matching order marker order because
+                    // release of order marker define new order
                     if let Some(current_order) = &scene_item.current_order {
                         self.scene_item_prepare_order = match current_order {
                             Order::MoveTo(_) => Some(SceneItemPrepareOrder::Move(scene_item_id)),
@@ -486,10 +500,15 @@ impl MainState {
                         }
                     }
                 }
+
+                // User is moving it's dragged object
                 UserEvent::MoveDrag => {
+                    // Must be Some, but avoid crash if it not ...
                     if let Some(dragging) = &self.dragging {
                         match dragging {
+                            // Dragging order marker
                             Dragging::OrderMarker(scene_item_id) => {
+                                // Find matching order marker
                                 if let Some(order_marker) = self
                                     .order_markers
                                     .iter_mut()
@@ -497,6 +516,7 @@ impl MainState {
                                     .collect::<Vec<&mut OrderMarker>>()
                                     .first_mut()
                                 {
+                                    // To mutate its position
                                     order_marker.set_scene_point(scene_point_from_window_point(
                                         &self.current_cursor_point,
                                         &self.display_offset,
@@ -506,10 +526,17 @@ impl MainState {
                         }
                     }
                 }
+
+                // User currently dragged object is released
                 UserEvent::ReleaseDrag => {
+                    // Must be Some, but avoid crash if it not ...
                     if let Some(dragging) = &self.dragging {
                         match dragging {
+                            // When dragging order marker
                             Dragging::OrderMarker(scene_item_id) => {
+                                // Simulate a left click like if we are giving order.
+                                // self.scene_item_prepare_order was filled with matching order marker
+                                // so left click will confirm this order
                                 let (messages_, _) = self.digest_click_during_prepare_order(
                                     &scene_point_from_window_point(
                                         &self.current_cursor_point,
@@ -530,6 +557,7 @@ impl MainState {
         let mut re_push: Vec<CursorImmobile> = vec![];
         while let Some(waiting_cursor) = self.waiting_cursor.pop() {
             if cursor_immobile_since >= waiting_cursor.0 {
+                // waiting_cursor.1 is UserEvent
                 self.user_events.push(waiting_cursor.1.clone());
             } else {
                 re_push.push(waiting_cursor)
@@ -565,6 +593,7 @@ impl MainState {
         // Click during display of scene item menu
         if let Some((scene_item_id, scene_menu_point)) = self.scene_item_menu {
             let menu_sprite_info = vertical_menu_sprite_info(UiComponent::SceneItemMenu);
+            // If menu item was clicked
             if let Some(menu_item) =
                 menu_sprite_info.item_clicked(&scene_menu_point, &scene_click_point)
             {
@@ -574,11 +603,13 @@ impl MainState {
                             Some(SceneItemPrepareOrder::Move(scene_item_id));
                         self.scene_item_menu = None;
                     }
+
                     MenuItem::MoveFast => {
                         self.scene_item_prepare_order =
                             Some(SceneItemPrepareOrder::MoveFast(scene_item_id));
                         self.scene_item_menu = None;
                     }
+
                     MenuItem::Hide => {
                         self.scene_item_prepare_order =
                             Some(SceneItemPrepareOrder::Hide(scene_item_id));
@@ -606,6 +637,7 @@ impl MainState {
 
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             match scene_item_prepare_order {
+                // Preparing move order
                 SceneItemPrepareOrder::Move(scene_item_id)
                 | SceneItemPrepareOrder::MoveFast(scene_item_id)
                 | SceneItemPrepareOrder::Hide(scene_item_id) => {
@@ -636,12 +668,10 @@ impl MainState {
     }
 
     fn digest_right_click(&mut self, window_right_click_point: WindowPoint) -> Vec<Message> {
+        // TODO: see https://github.com/buxx/OpenCombat/issues/62
+
         let scene_right_click_point =
             scene_point_from_window_point(&window_right_click_point, &self.display_offset);
-
-        // TODO: aucune selection et right click sur un item: scene_item_menu sur un item
-        // TODO: selection et right click sur un item de la selection: scene_item_menu sur un TOUS les item de la selection
-        // TODO: selection et right click sur un item PAS dans la selection: scene_item_menu sur un item
 
         if let Some(scene_item_id) =
             self.get_first_scene_item_for_scene_point(&scene_right_click_point, true)
@@ -713,7 +743,7 @@ impl MainState {
             }
         }
 
-        // Ex: Scene items movements
+        // Produce physics messages for scene items, like moves
         for (scene_item_i, scene_item) in self.scene_items.iter().enumerate() {
             messages.extend(produce_physics_messages_for_scene_item(
                 scene_item_i,
@@ -797,11 +827,14 @@ impl MainState {
         }
     }
 
+    /// Compute visibility algorithms
     fn seek(&mut self) {
         let mut messages: Vec<Message> = vec![];
         let mut see_opponents: Vec<SceneItemId> = vec![];
 
+        // For each scene items
         for (scene_item_from_i, scene_item_from) in self.scene_items.iter().enumerate() {
+            // which is not incapacitated
             if incapacitated(scene_item_from) {
                 continue;
             }
