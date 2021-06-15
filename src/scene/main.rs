@@ -576,15 +576,6 @@ impl MainState {
         let mut scene_item_selected = false;
         let mut scene_item_menu_clicked = false;
 
-        // Click on scene item
-        if let Some(scene_item_id) =
-            self.get_first_scene_item_for_scene_point(&scene_click_point, true)
-        {
-            self.selected_scene_items.drain(..);
-            self.selected_scene_items.push(scene_item_id);
-            scene_item_selected = true;
-        }
-
         // Click during preparing order
         let (messages_, prepare_order_clicked) =
             self.digest_click_during_prepare_order(&scene_click_point);
@@ -620,6 +611,17 @@ impl MainState {
             self.scene_item_menu = None;
             scene_item_menu_clicked = true;
         };
+
+        // Click on scene item
+        if !scene_item_menu_clicked {
+            if let Some(scene_item_id) =
+                self.get_first_scene_item_for_scene_point(&scene_click_point, true)
+            {
+                self.selected_scene_items.drain(..);
+                self.selected_scene_items.push(scene_item_id);
+                scene_item_selected = true;
+            }
+        }
 
         if !prepare_order_clicked && !scene_item_menu_clicked && !scene_item_selected {
             self.selected_scene_items.drain(..);
