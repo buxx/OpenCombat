@@ -947,7 +947,7 @@ impl MainState {
             // And check if cursor is over it
             if order_marker
                 .sprite_info()
-                .point_is_inside(&draw_to_scene_point, scene_point)
+                .contains(&draw_to_scene_point, scene_point)
             {
                 // When order maker found under cursor, return matching user event
                 return vec![UserEvent::BeginDragOrderMarker(*scene_item_id)];
@@ -968,11 +968,37 @@ impl MainState {
         vec![]
     }
 
+    fn get_scene_items_for_scene_point(
+        &self,
+        scene_position: &ScenePoint,
+        limit: bool,
+    ) -> Vec<SceneItemId> {
+        let mut scene_item_ids = vec![];
+
+        for (i, scene_item) in self.scene_items.iter().enumerate() {
+            if limit
+                && scene_item.side != self.current_side
+                && !self.opposite_visible_scene_items.contains(&i)
+            {
+                continue;
+            }
+
+            if scene_item
+                .sprite_info()
+                .contains(&scene_position, &scene_item.position)
+            {
+                scene_item_ids.push(i);
+            }
+        }
+
+        scene_item_ids
+    }
+
     fn get_first_scene_item_for_scene_point(
         &self,
         scene_position: &ScenePoint,
         limit: bool,
-    ) -> Option<usize> {
+    ) -> Option<SceneItemId> {
         // TODO: if found multiple: select nearest
         for (i, scene_item) in self.scene_items.iter().enumerate() {
             if limit
@@ -983,11 +1009,7 @@ impl MainState {
             }
 
             let sprite_info = scene_item.sprite_info();
-            if scene_item.position.x >= scene_position.x - sprite_info.tile_width
-                && scene_item.position.x <= scene_position.x + sprite_info.tile_width
-                && scene_item.position.y >= scene_position.y - sprite_info.tile_height
-                && scene_item.position.y <= scene_position.y + sprite_info.tile_height
-            {
+            if sprite_info.contains(&scene_position, &scene_item.position) {
                 return Some(i);
             }
         }
@@ -1150,14 +1172,79 @@ impl MainState {
                 )?;
             }
 
+            let cursor_scene_point =
+                scene_point_from_window_point(&self.current_cursor_point, &self.display_offset);
+
             // Draw circle at cursor position
             mesh_builder.circle(
                 DrawMode::fill(),
-                scene_point_from_window_point(&self.current_cursor_point, &self.display_offset),
+                cursor_scene_point,
                 2.0,
                 2.0,
                 graphics::BLUE,
             )?;
+
+            // Draw selection area on all scene items
+            for scene_item in self.scene_items.iter() {
+                let scene_item_sprite = scene_item.sprite_info();
+                mesh_builder.rectangle(
+                    DrawMode::stroke(1.0),
+                    scene_item_sprite.rectangle(&scene_item.position),
+                    Color {
+                        r: 0.8,
+                        g: 1.0,
+                        b: 1.0,
+                        a: 0.2,
+                    },
+                )?;
+            }
+
+            // Draw selection area on cursor hover scene items
+            for scene_item_id in self
+                .get_scene_items_for_scene_point(&cursor_scene_point, false)
+                .iter()
+            {
+                let scene_item = self.get_scene_item(*scene_item_id);
+                let scene_item_sprite = scene_item.sprite_info();
+                mesh_builder.rectangle(
+                    DrawMode::stroke(1.0),
+                    scene_item_sprite.rectangle(&scene_item.position),
+                    Color {
+                        r: 0.8,
+                        g: 1.0,
+                        b: 1.0,
+                        a: 1.0,
+                    },
+                )?;
+            }
+
+            // Draw selection area on all order marker and hover
+            for order_marker in self.order_markers.iter() {
+                let order_marker_position = order_marker.get_scene_point();
+                let order_marker_sprite = order_marker.sprite_info();
+                mesh_builder.rectangle(
+                    DrawMode::stroke(1.0),
+                    order_marker_sprite.rectangle(&order_marker_position),
+                    Color {
+                        r: 0.8,
+                        g: 1.0,
+                        b: 0.5,
+                        a: 0.2,
+                    },
+                )?;
+                if order_marker_sprite.contains(&order_marker_position, &cursor_scene_point) {
+                    mesh_builder.rectangle(
+                        DrawMode::stroke(1.0),
+                        order_marker_sprite.rectangle(&order_marker_position),
+                        Color {
+                            r: 0.8,
+                            g: 1.0,
+                            b: 0.5,
+                            a: 1.0,
+                        },
+                    )?;
+                }
+            }
         }
 
         GameResult::Ok(mesh_builder)

@@ -15,6 +15,7 @@ use crate::physics::{GridPoint, PhysicEvent};
 use crate::scene::main::MainStateModifier;
 use crate::scene::SpriteType;
 use crate::{FrameI, Message, Offset, SceneItemId, ScenePoint};
+use ggez::mint::Point2;
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,
@@ -23,8 +24,8 @@ pub struct SceneItemSpriteInfo {
     pub tile_count: u16,
     pub tile_width: f32,
     pub tile_height: f32,
-    pub _half_tile_width: f32,
-    pub _half_tile_height: f32,
+    pub half_tile_width: f32,
+    pub half_tile_height: f32,
     pub tick_speed: f32,
 }
 
@@ -47,10 +48,24 @@ impl SceneItemSpriteInfo {
             tile_count,
             tile_width,
             tile_height,
-            _half_tile_width: tile_width / 2.0,
-            _half_tile_height: tile_height / 2.0,
+            half_tile_width: tile_width / 2.0,
+            half_tile_height: tile_height / 2.0,
             tick_speed,
         }
+    }
+
+    pub fn contains(&self, scene_point: &ScenePoint, scene_item_position: &ScenePoint) -> bool {
+        self.rectangle(scene_item_position)
+            .contains(Point2::from([scene_point.x, scene_point.y]))
+    }
+
+    pub fn rectangle(&self, from_scene_point: &ScenePoint) -> graphics::Rect {
+        graphics::Rect::new(
+            from_scene_point.x - self.half_tile_width,
+            from_scene_point.y - self.half_tile_height,
+            self.tile_width,
+            self.tile_height,
+        )
     }
 }
 
