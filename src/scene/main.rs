@@ -1066,8 +1066,10 @@ impl MainState {
 
     fn generate_scene_item_menu_sprites(&mut self) -> GameResult {
         if let Some((_, scene_point)) = self.scene_item_menu {
+            let cursor_scene_point =
+                scene_point_from_window_point(&self.current_cursor_point, &self.display_offset);
             for draw_param in vertical_menu_sprite_info(UiComponent::SceneItemMenu)
-                .as_draw_params(&scene_point, &self.current_cursor_point)
+                .as_draw_params(&scene_point, &cursor_scene_point)
             {
                 self.ui_batch.add(draw_param);
             }
