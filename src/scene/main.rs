@@ -30,7 +30,7 @@ use crate::physics::util::{
 use crate::physics::util::{scene_point_from_grid_point, window_point_from_scene_point};
 use crate::physics::visibility::Visibility;
 use crate::physics::GridPoint;
-use crate::physics::{util, MetaEvent, PhysicEvent};
+use crate::physics::{util, PhysicEvent};
 use crate::scene::item::{
     apply_scene_item_modifier, apply_scene_item_modifiers, SceneItem, SceneItemModifier,
     SceneItemType, Side,
@@ -41,9 +41,6 @@ use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, Dragging, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
 use crate::{scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, WindowPoint};
-use std::cmp::Ordering;
-use std::io::BufReader;
-use std::ops::Index;
 
 #[derive(PartialEq)]
 enum DebugTerrain {
@@ -139,7 +136,7 @@ pub struct MainState {
     /// List of scene item ids for given grid point
     scene_items_by_grid_position: HashMap<GridPoint, Vec<SceneItemId>>,
     /// List of scene item ids for given side
-    scene_items_by_side: HashMap<Side, Vec<SceneItemId>>,
+    _scene_items_by_side: HashMap<Side, Vec<SceneItemId>>,
 
     // events
     /// Vector of emitted physic event. This vector will be immediately consumed to produce messages
@@ -302,7 +299,7 @@ impl MainState {
             order_markers: vec![],
             scene_items,
             scene_items_by_grid_position,
-            scene_items_by_side,
+            _scene_items_by_side: scene_items_by_side,
             physics_events: vec![],
             last_key_consumed: HashMap::new(),
             left_click_down: None,
@@ -533,7 +530,7 @@ impl MainState {
                     if let Some(dragging) = &self.dragging {
                         match dragging {
                             // When dragging order marker
-                            Dragging::OrderMarker(scene_item_id) => {
+                            Dragging::OrderMarker(_) => {
                                 // Simulate a left click like if we are giving order.
                                 // self.scene_item_prepare_order was filled with matching order marker
                                 // so left click will confirm this order
@@ -961,7 +958,7 @@ impl MainState {
 
     fn generate_user_event_for_dragging_when_mouse_up(
         &self,
-        scene_point: &ScenePoint,
+        _scene_point: &ScenePoint,
     ) -> Vec<UserEvent> {
         if self.dragging.is_some() {
             return vec![UserEvent::ReleaseDrag];

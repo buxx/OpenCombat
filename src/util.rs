@@ -1,7 +1,5 @@
-use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{MOVE_FAST_VELOCITY, MOVE_HIDE_VELOCITY, MOVE_VELOCITY};
-use crate::ui::order::OrderMarker;
 use crate::ScenePoint;
 use std::f32::consts::FRAC_PI_2;
 

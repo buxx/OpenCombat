@@ -1,4 +1,4 @@
-use crate::{Factor, FrameI, Meters};
+use crate::FrameI;
 
 // execute update code 60x per seconds
 pub const TARGET_FPS: u32 = 60;

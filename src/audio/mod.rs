@@ -1,11 +1,9 @@
-use rodio::source::{SamplesConverter, SineWave};
 use rodio::{
     source::{Buffered, Source},
-    Decoder, OutputStream, OutputStreamHandle,
+    Decoder,
 };
 use std::fs::File;
 use std::io::BufReader;
-use std::path::Path;
 use std::thread;
 
 type SoundSource = Buffered<Decoder<BufReader<File>>>;
