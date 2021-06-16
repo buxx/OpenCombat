@@ -1,4 +1,4 @@
-use crate::{SceneItemId, WindowPoint};
+use crate::{SceneItemId, ScenePoint, SquadId, WindowPoint};
 use std::time::Duration;
 
 pub mod order;
@@ -9,7 +9,7 @@ const SCENE_ITEM_MENU_HEIGHT: f32 = 68.0;
 const SCENE_ITEM_MENU_ITEM_HEIGHT: f32 = 15.0;
 
 pub enum UiComponent {
-    SceneItemMenu,
+    SquadMenu(SquadId, ScenePoint),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -33,9 +33,10 @@ pub struct CursorImmobile(pub Duration, pub UserEvent);
 
 #[derive(Debug)]
 pub enum SceneItemPrepareOrder {
-    Move(usize),     // scene_item usize
-    MoveFast(usize), // scene_item usize
-    Hide(usize),     // scene_item usize
+    // FIXME BS NOW: SquadId
+    Move(SquadId),
+    MoveFast(SquadId),
+    Hide(SquadId),
 }
 
 #[derive(Clone)]

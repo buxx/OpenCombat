@@ -18,6 +18,7 @@ use crate::map::util::{
     get_tileset_i_for_gid,
 };
 use crate::physics::GridPoint;
+use core::cmp;
 
 pub mod decor;
 pub mod terrain;
@@ -30,6 +31,8 @@ pub struct Map {
     pub interiors_image: TiledImage,
     pub terrain: Terrain,
     pub decor: Decor,
+    pub terrain_grid_width: u32,
+    pub terrain_grid_height: u32,
 }
 
 impl Map {
@@ -63,10 +66,14 @@ impl Map {
         let terrain_image = extract_image_from_tileset(&terrain_tileset)?;
 
         let mut terrain_tiles: HashMap<(u32, u32), TerrainTile> = HashMap::new();
+        let mut terrain_grid_width: u32 = 0;
+        let mut terrain_grid_height: u32 = 0;
         match &terrain_layer.tiles {
             LayerData::Finite(layer_tiles) => {
                 for (x, tiles_row) in layer_tiles.iter().enumerate() {
+                    terrain_grid_height = cmp::max(terrain_grid_height, x as u32);
                     for (y, layer_tile) in tiles_row.iter().enumerate() {
+                        terrain_grid_width = cmp::max(terrain_grid_width, y as u32);
                         // FIXME BS NOW: et si gid = 0 ?
                         let tile = terrain::get_tile_from_terrain_tileset_with_id(
                             &terrain_tileset,
@@ -148,6 +155,8 @@ impl Map {
             interiors_image,
             terrain,
             decor,
+            terrain_grid_width,
+            terrain_grid_height,
         })
     }
 
@@ -180,5 +189,12 @@ impl Map {
         }
 
         successors
+    }
+
+    pub fn contains(&self, grid_point: &GridPoint) -> bool {
+        grid_point.x >= 0
+            && grid_point.y >= 0
+            && grid_point.x < self.terrain_grid_width as i32
+            && grid_point.y < self.terrain_grid_height as i32
     }
 }

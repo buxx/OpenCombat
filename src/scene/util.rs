@@ -1,6 +1,7 @@
 use ggez::graphics::{Color, DrawMode, MeshBuilder};
 use ggez::{graphics, GameResult};
 
+use crate::config::{DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF};
 use crate::map::Map;
 use crate::scene::item::SceneItem;
 use crate::ScenePoint;
@@ -100,4 +101,13 @@ pub fn update_background_batch(background_batch: &mut graphics::spritebatch::Spr
 
 pub fn incapacitated(scene_item: &SceneItem) -> bool {
     !scene_item.alive || scene_item.incapacity
+}
+
+pub fn selection_rect(scene_point: &ScenePoint) -> graphics::Rect {
+    graphics::Rect::new(
+        scene_point.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+        scene_point.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+        DEFAULT_SELECTED_SQUARE_SIDE,
+        DEFAULT_SELECTED_SQUARE_SIDE,
+    )
 }

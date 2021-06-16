@@ -14,10 +14,11 @@ use crate::behavior::animate::{digest_behavior, digest_current_order, digest_nex
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
-    ANIMATE_EACH, DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-    DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I, PHYSICS_EACH,
-    SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, TARGET_FPS, UNDER_FIRE_INTENSITY_DECREMENT,
+    ANIMATE_EACH, DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I,
+    PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, SQUADS_CHANGE_ERR_MSG,
+    TARGET_FPS, UNDER_FIRE_INTENSITY_DECREMENT,
 };
+use crate::gameplay::squad::Squad;
 use crate::gameplay::weapon::{Weapon, WeaponType};
 use crate::map::util::extract_image_from_tileset;
 use crate::map::Map;
@@ -35,12 +36,16 @@ use crate::scene::item::{
     apply_scene_item_modifier, apply_scene_item_modifiers, SceneItem, SceneItemModifier,
     SceneItemType, Side,
 };
-use crate::scene::util::{incapacitated, update_background_batch, update_decor_batches};
+use crate::scene::util::{
+    incapacitated, selection_rect, update_background_batch, update_decor_batches,
+};
 use crate::ui::order::OrderMarker;
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, Dragging, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
-use crate::{scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, WindowPoint};
+use crate::{
+    scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, SquadId, WindowPoint,
+};
 
 #[derive(PartialEq)]
 enum DebugTerrain {
@@ -51,7 +56,7 @@ enum DebugTerrain {
 
 pub enum MainStateModifier {
     ChangeSceneItemGridPosition(SceneItemId, GridPoint, GridPoint),
-    InsertCurrentPrepareMoveFoundPaths(SceneItemId, Vec<GridPoint>),
+    InsertCurrentPrepareMoveFoundPaths(SquadId, Vec<GridPoint>),
     NewSeenOpponent(SceneItemId),
     LostSeenOpponent(SceneItemId),
     PushPhysicEvent(PhysicEvent),
@@ -60,6 +65,9 @@ pub enum MainStateModifier {
     NewDebugText(DebugText),
     NewOrderMarker(OrderMarker),
     RemoveOrderMarker(SceneItemId),
+    SquadLeaderIndicateMove(SceneItemId),
+    ElectNewSquadLeader(SceneItemId),
+    ChangeSquadLeaderTo(SceneItemId),
 }
 
 #[derive(Clone)]
@@ -115,7 +123,7 @@ pub struct MainState {
     background_batch: graphics::spritebatch::SpriteBatch,
     /// Sprite batch to display map interiors sprites
     interiors_batch: graphics::spritebatch::SpriteBatch,
-    /// Sprite batch to display ui components like scene item menu
+    /// Sprite batch to display ui components like squad menu
     ui_batch: graphics::spritebatch::SpriteBatch,
     /// Sprite batch used to display tiles type when debug_terrain is set to
     debug_terrain_batch: graphics::spritebatch::SpriteBatch,
@@ -137,6 +145,8 @@ pub struct MainState {
     scene_items_by_grid_position: HashMap<GridPoint, Vec<SceneItemId>>,
     /// List of scene item ids for given side
     _scene_items_by_side: HashMap<Side, Vec<SceneItemId>>,
+    /// List of Squad compositions
+    squads: Vec<Squad>,
 
     // events
     /// Vector of emitted physic event. This vector will be immediately consumed to produce messages
@@ -162,12 +172,12 @@ pub struct MainState {
     user_events: Vec<UserEvent>,
     /// Currently user selected scene items
     selected_scene_items: Vec<SceneItemId>,
-    /// If Some, currently displayed scene item menu
-    scene_item_menu: Option<(SceneItemId, ScenePoint)>, // scene item id, display_at
+    /// If Some, currently displayed squad menu
+    squad_menu: Option<UiComponent>, // scene item id, display_at
     /// If Some, user is preparing order (some display must be done like lines, path finding ...)
     scene_item_prepare_order: Option<SceneItemPrepareOrder>,
     /// When user is preparing move order, found path by scene item ids are stored here.
-    current_prepare_move_found_paths: HashMap<SceneItemId, Vec<GridPoint>>,
+    current_prepare_move_found_paths: HashMap<SquadId, Vec<GridPoint>>,
     /// If Some, current dragged object by user (like order marker)
     dragging: Option<Dragging>,
 
@@ -227,18 +237,28 @@ impl MainState {
         let mut scene_items = vec![];
         let mut scene_items_by_grid_position: HashMap<GridPoint, Vec<usize>> = HashMap::new();
         let mut scene_items_by_side: HashMap<Side, Vec<SceneItemId>> = HashMap::new();
-        let mut scene_item_id: usize = 0;
+        let mut squads: Vec<Squad> = vec![];
 
+        let mut squad_1 = Squad::new();
         for x in 0..1 {
             for y in 0..5 {
+                let scene_item_id = scene_items.len();
+
+                if x == 0 && y == 0 {
+                    squad_1.leader = scene_item_id;
+                }
+                squad_1.members.push(scene_item_id);
+
                 let scene_item = SceneItem::new(
                     scene_item_id,
+                    squads.len(),
                     SceneItemType::Soldier,
                     ScenePoint::new((x as f32 * 24.0) + 100.0, (y as f32 * 24.0) + 100.0),
                     ItemBehavior::Standing,
                     &map,
                     Side::A,
                     Weapon::new(WeaponType::GarandM1),
+                    x == 0 && y == 0,
                 );
                 scene_items_by_side
                     .entry(Side::A)
@@ -250,20 +270,30 @@ impl MainState {
                     .or_default()
                     .push(scene_item_id);
                 scene_items.push(scene_item);
-                scene_item_id += 1;
             }
         }
+        squads.push(squad_1);
 
+        let mut squad_2 = Squad::new();
         for x in 0..1 {
             for y in 0..5 {
+                let scene_item_id = scene_items.len();
+
+                if x == 0 && y == 0 {
+                    squad_2.leader = scene_item_id;
+                }
+                squad_2.members.push(scene_item_id);
+
                 let scene_item = SceneItem::new(
                     scene_item_id,
+                    squads.len(),
                     SceneItemType::Soldier,
                     ScenePoint::new((x as f32 * 24.0) + 550.0, (y as f32 * 24.0) + 200.0),
                     ItemBehavior::Standing,
                     &map,
                     Side::B,
                     Weapon::new(WeaponType::MauserG41),
+                    x == 0 && y == 0,
                 );
                 scene_items_by_side
                     .entry(Side::B)
@@ -275,9 +305,9 @@ impl MainState {
                     .or_default()
                     .push(scene_item_id);
                 scene_items.push(scene_item);
-                scene_item_id += 1;
             }
         }
+        squads.push(squad_2);
 
         let main_state = MainState {
             frame_i: 0,
@@ -300,6 +330,7 @@ impl MainState {
             scene_items,
             scene_items_by_grid_position,
             _scene_items_by_side: scene_items_by_side,
+            squads,
             physics_events: vec![],
             last_key_consumed: HashMap::new(),
             left_click_down: None,
@@ -310,7 +341,7 @@ impl MainState {
             waiting_cursor: vec![],
             user_events: vec![],
             selected_scene_items: vec![],
-            scene_item_menu: None,
+            squad_menu: None,
             scene_item_prepare_order: None,
             current_prepare_move_found_paths: HashMap::new(),
             dragging: None,
@@ -333,9 +364,24 @@ impl MainState {
                 > since_ms
     }
 
-    fn get_scene_item(&self, index: usize) -> &SceneItem {
+    fn get_scene_item(&self, index: SceneItemId) -> &SceneItem {
         self.scene_items
             .get(index)
+            .expect(SCENE_ITEMS_CHANGE_ERR_MSG)
+    }
+
+    fn get_squad(&self, squad_id: &SquadId) -> &Squad {
+        self.squads.get(*squad_id).expect(SQUADS_CHANGE_ERR_MSG)
+    }
+
+    fn get_squad_mut(&mut self, squad_id: &SquadId) -> &mut Squad {
+        self.squads.get_mut(*squad_id).expect(SQUADS_CHANGE_ERR_MSG)
+    }
+
+    fn get_squad_leader(&self, squad_id: &SquadId) -> &SceneItem {
+        let squad = self.get_squad(squad_id);
+        self.scene_items
+            .get(squad.leader)
             .expect(SCENE_ITEMS_CHANGE_ERR_MSG)
     }
 
@@ -343,6 +389,19 @@ impl MainState {
         self.scene_items
             .get_mut(index)
             .expect(SCENE_ITEMS_CHANGE_ERR_MSG)
+    }
+
+    fn get_selected_squad_ids(&self) -> Vec<SquadId> {
+        let mut selected_squad_ids = vec![];
+
+        for selected_scene_item_id in self.selected_scene_items.iter() {
+            let scene_item = self.get_scene_item(*selected_scene_item_id);
+            if !selected_squad_ids.contains(&scene_item.squad_id) {
+                selected_squad_ids.push(scene_item.squad_id)
+            }
+        }
+
+        selected_squad_ids
     }
 
     /// Consume context to determine user inputs.
@@ -430,24 +489,25 @@ impl MainState {
                     | Some(SceneItemPrepareOrder::MoveFast(_))
                     | Some(SceneItemPrepareOrder::Hide(_)) = &self.scene_item_prepare_order
                     {
-                        // Draw path finding must be from scene item. By default,
-                        // found path from selected scene items
-                        let mut scene_item_ids = self.selected_scene_items.clone();
+                        // Draw path finding must be from squad. By default,
+                        // found path from selected squads
+                        let mut squad_ids = self.get_selected_squad_ids();
 
-                        // But, if user is dragging order marker, add matching scene item id to list
-                        // to display path finding from matching scene item order
+                        // But, if user is dragging order marker, add matching scene item squad id
+                        // to list to display path finding from matching scene item squad order
                         if let Some(drag) = &self.dragging {
                             match drag {
                                 Dragging::OrderMarker(scene_item_i) => {
-                                    scene_item_ids.push(*scene_item_i)
+                                    let scene_item = self.get_scene_item(*scene_item_i);
+                                    squad_ids.push(scene_item.squad_id)
                                 }
                             }
                         }
 
-                        // Then find path for each scene items
-                        for scene_item_i in scene_item_ids.iter() {
-                            if let None = self.current_prepare_move_found_paths.get(scene_item_i) {
-                                let scene_item = self.get_scene_item(*scene_item_i);
+                        // Then find path for each squads
+                        for squad_id in squad_ids.iter() {
+                            if let None = self.current_prepare_move_found_paths.get(squad_id) {
+                                let scene_item = self.get_squad_leader(squad_id);
                                 let path = find_path(
                                     &self.map,
                                     &scene_item.grid_position,
@@ -456,7 +516,7 @@ impl MainState {
                                 .unwrap_or(vec![]);
                                 messages.push(Message::MainStateMessage(
                                     MainStateModifier::InsertCurrentPrepareMoveFoundPaths(
-                                        *scene_item_i,
+                                        scene_item.id,
                                         path,
                                     ),
                                 ));
@@ -489,11 +549,15 @@ impl MainState {
                     // release of order marker define new order
                     if let Some(current_order) = &scene_item.current_order {
                         self.scene_item_prepare_order = match current_order {
-                            Order::MoveTo(_) => Some(SceneItemPrepareOrder::Move(scene_item_id)),
-                            Order::MoveFastTo(_) => {
-                                Some(SceneItemPrepareOrder::MoveFast(scene_item_id))
+                            Order::MoveTo(_) => {
+                                Some(SceneItemPrepareOrder::Move(scene_item.squad_id))
                             }
-                            Order::HideTo(_) => Some(SceneItemPrepareOrder::Hide(scene_item_id)),
+                            Order::MoveFastTo(_) => {
+                                Some(SceneItemPrepareOrder::MoveFast(scene_item.squad_id))
+                            }
+                            Order::HideTo(_) => {
+                                Some(SceneItemPrepareOrder::Hide(scene_item.squad_id))
+                            }
                         }
                     }
                 }
@@ -571,46 +635,50 @@ impl MainState {
         let scene_click_point =
             scene_point_from_window_point(&window_click_point, &self.display_offset);
         let mut scene_item_selected = false;
-        let mut scene_item_menu_clicked = false;
+        let mut squad_menu_clicked = false;
 
         // Click during preparing order
         let (messages_, prepare_order_clicked) =
             self.digest_click_during_prepare_order(&scene_click_point);
         messages.extend(messages_);
 
-        // Click during display of scene item menu
-        if let Some((scene_item_id, scene_menu_point)) = self.scene_item_menu {
-            let menu_sprite_info = vertical_menu_sprite_info(UiComponent::SceneItemMenu);
-            // If menu item was clicked
-            if let Some(menu_item) =
-                menu_sprite_info.item_clicked(&scene_menu_point, &scene_click_point)
-            {
-                match menu_item {
-                    MenuItem::Move => {
-                        self.scene_item_prepare_order =
-                            Some(SceneItemPrepareOrder::Move(scene_item_id));
-                        self.scene_item_menu = None;
-                    }
+        // Click during display of squad menu
+        if let Some(squad_menu) = &self.squad_menu {
+            match squad_menu {
+                UiComponent::SquadMenu(squad_id, menu_scene_point) => {
+                    let menu_sprite_info = vertical_menu_sprite_info(squad_menu);
+                    // If menu item was clicked
+                    if let Some(menu_item) =
+                        menu_sprite_info.item_clicked(menu_scene_point, &scene_click_point)
+                    {
+                        match menu_item {
+                            MenuItem::Move => {
+                                self.scene_item_prepare_order =
+                                    Some(SceneItemPrepareOrder::Move(*squad_id));
+                                self.squad_menu = None;
+                            }
 
-                    MenuItem::MoveFast => {
-                        self.scene_item_prepare_order =
-                            Some(SceneItemPrepareOrder::MoveFast(scene_item_id));
-                        self.scene_item_menu = None;
-                    }
+                            MenuItem::MoveFast => {
+                                self.scene_item_prepare_order =
+                                    Some(SceneItemPrepareOrder::MoveFast(*squad_id));
+                                self.squad_menu = None;
+                            }
 
-                    MenuItem::Hide => {
-                        self.scene_item_prepare_order =
-                            Some(SceneItemPrepareOrder::Hide(scene_item_id));
-                        self.scene_item_menu = None;
-                    }
+                            MenuItem::Hide => {
+                                self.scene_item_prepare_order =
+                                    Some(SceneItemPrepareOrder::Hide(*squad_id));
+                                self.squad_menu = None;
+                            }
+                        }
+                    };
+                    self.squad_menu = None;
+                    squad_menu_clicked = true;
                 }
-            };
-            self.scene_item_menu = None;
-            scene_item_menu_clicked = true;
+            }
         };
 
         // Click on scene item
-        if !scene_item_menu_clicked {
+        if !squad_menu_clicked {
             if let Some(scene_item_id) =
                 self.get_first_scene_item_for_scene_point(&scene_click_point, true)
             {
@@ -620,7 +688,7 @@ impl MainState {
             }
         }
 
-        if !prepare_order_clicked && !scene_item_menu_clicked && !scene_item_selected {
+        if !prepare_order_clicked && !squad_menu_clicked && !scene_item_selected {
             self.selected_scene_items.drain(..);
         };
 
@@ -637,21 +705,22 @@ impl MainState {
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             match scene_item_prepare_order {
                 // Preparing move order
-                SceneItemPrepareOrder::Move(scene_item_id)
-                | SceneItemPrepareOrder::MoveFast(scene_item_id)
-                | SceneItemPrepareOrder::Hide(scene_item_id) => {
+                SceneItemPrepareOrder::Move(squad_id)
+                | SceneItemPrepareOrder::MoveFast(squad_id)
+                | SceneItemPrepareOrder::Hide(squad_id) => {
                     let order = match scene_item_prepare_order {
                         SceneItemPrepareOrder::Move(_) => Order::MoveTo(*scene_click_point),
                         SceneItemPrepareOrder::MoveFast(_) => Order::MoveFastTo(*scene_click_point),
                         SceneItemPrepareOrder::Hide(_) => Order::HideTo(*scene_click_point),
                     };
+                    let squad = self.get_squad(squad_id);
                     messages.push(Message::SceneItemMessage(
-                        *scene_item_id,
+                        squad.leader,
                         SceneItemModifier::SetNextOrder(order.clone()),
                     ));
                     messages.push(Message::MainStateMessage(
                         MainStateModifier::NewOrderMarker(OrderMarker::new(
-                            *scene_item_id,
+                            squad.leader,
                             &order.clone(),
                         )),
                     ));
@@ -667,19 +736,25 @@ impl MainState {
     }
 
     fn digest_right_click(&mut self, window_right_click_point: WindowPoint) -> Vec<Message> {
-        // TODO: see https://github.com/buxx/OpenCombat/issues/62
-
         let scene_right_click_point =
             scene_point_from_window_point(&window_right_click_point, &self.display_offset);
 
+        // If right click on scene item, select it and open he's squad menu
         if let Some(scene_item_id) =
             self.get_first_scene_item_for_scene_point(&scene_right_click_point, true)
         {
-            if self.selected_scene_items.contains(&scene_item_id) {
-                let scene_item = self.get_scene_item(scene_item_id);
-                self.scene_item_menu = Some((scene_item_id, scene_item.position))
-            }
-        };
+            self.selected_scene_items = vec![scene_item_id];
+            let scene_item = self.get_scene_item(scene_item_id);
+            self.squad_menu = Some(UiComponent::SquadMenu(
+                scene_item.squad_id,
+                scene_right_click_point,
+            ))
+        } else if self.selected_scene_items.len() > 0 {
+            // FIXME BS: menu for multiple squad, see #93
+            let selected_squad_ids = self.get_selected_squad_ids();
+            let squad_id = selected_squad_ids.first().unwrap();
+            self.squad_menu = Some(UiComponent::SquadMenu(*squad_id, scene_right_click_point))
+        }
 
         vec![]
     }
@@ -780,9 +855,8 @@ impl MainState {
                             to_grid_position,
                         );
                     }
-                    MainStateModifier::InsertCurrentPrepareMoveFoundPaths(scene_item_i, path) => {
-                        self.current_prepare_move_found_paths
-                            .insert(scene_item_i, path);
+                    MainStateModifier::InsertCurrentPrepareMoveFoundPaths(squad_id, path) => {
+                        self.current_prepare_move_found_paths.insert(squad_id, path);
                     }
                     MainStateModifier::NewSeenOpponent(scene_item_id) => {
                         self.opposite_visible_scene_items.push(scene_item_id);
@@ -816,6 +890,68 @@ impl MainState {
                         {
                             self.order_markers.remove(i);
                         }
+                    }
+                    MainStateModifier::SquadLeaderIndicateMove(scene_item_id) => {
+                        let scene_item = self.get_scene_item(scene_item_id);
+                        let squad = self.get_squad(&scene_item.squad_id);
+                        let leader = self.get_scene_item(squad.leader);
+                        let formation_positions =
+                            squad.member_positions(&leader.position, leader.display_angle);
+                        if squad.leader != scene_item_id {
+                            eprintln!("Squad leader taken move must be done by squad leader !")
+                        } else {
+                            for member_id in &squad.members {
+                                if *member_id != scene_item_id {
+                                    let member_position =
+                                        formation_positions.get(member_id).unwrap();
+                                    let new_order: Option<Order> = match &scene_item.behavior {
+                                        ItemBehavior::Dead
+                                        | ItemBehavior::Unconscious
+                                        | ItemBehavior::Standing
+                                        | ItemBehavior::EngageSceneItem(_)
+                                        | ItemBehavior::EngageGridPoint(_)
+                                        | ItemBehavior::Hide => None,
+                                        ItemBehavior::HideTo(_, _) => {
+                                            Some(Order::HideTo(*member_position))
+                                        }
+                                        ItemBehavior::MoveTo(_, _) => {
+                                            Some(Order::MoveTo(*member_position))
+                                        }
+                                        ItemBehavior::MoveFastTo(_, _) => {
+                                            Some(Order::MoveFastTo(*member_position))
+                                        }
+                                    };
+
+                                    if let Some(new_order_) = new_order {
+                                        // Don't configure leader to follow himself
+                                        new_messages.push(Message::SceneItemMessage(
+                                            *member_id,
+                                            SceneItemModifier::SetNextOrder(new_order_.clone()),
+                                        ))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    MainStateModifier::ElectNewSquadLeader(scene_item_id) => {
+                        let squad = self.get_squad(&scene_item_id);
+                        // TODO: Sort by grade
+                        for member_id in &squad.members {
+                            let member = self.get_scene_item(*member_id);
+                            if !member.incapacity {
+                                new_messages.push(Message::MainStateMessage(
+                                    MainStateModifier::ChangeSquadLeaderTo(*member_id),
+                                ));
+                                new_messages.push(Message::SceneItemMessage(
+                                    *member_id,
+                                    SceneItemModifier::SetIsLeader,
+                                ));
+                            }
+                        }
+                    }
+                    MainStateModifier::ChangeSquadLeaderTo(scene_item_id) => {
+                        let mut squad = self.get_squad_mut(&scene_item_id);
+                        squad.leader = scene_item_id;
                     }
                 },
             }
@@ -1063,14 +1199,20 @@ impl MainState {
         Ok(())
     }
 
-    fn generate_scene_item_menu_sprites(&mut self) -> GameResult {
-        if let Some((_, scene_point)) = self.scene_item_menu {
-            let cursor_scene_point =
-                scene_point_from_window_point(&self.current_cursor_point, &self.display_offset);
-            for draw_param in vertical_menu_sprite_info(UiComponent::SceneItemMenu)
-                .as_draw_params(&scene_point, &cursor_scene_point)
-            {
-                self.ui_batch.add(draw_param);
+    fn generate_squad_menu_sprites(&mut self) -> GameResult {
+        if let Some(squad_menu) = &self.squad_menu {
+            match squad_menu {
+                UiComponent::SquadMenu(_, menu_scene_point) => {
+                    let cursor_scene_point = scene_point_from_window_point(
+                        &self.current_cursor_point,
+                        &self.display_offset,
+                    );
+                    for draw_param in vertical_menu_sprite_info(squad_menu)
+                        .as_draw_params(menu_scene_point, &cursor_scene_point)
+                    {
+                        self.ui_batch.add(draw_param);
+                    }
+                }
             }
         }
 
@@ -1246,6 +1388,24 @@ impl MainState {
                     )?;
                 }
             }
+
+            // Display selected squad formation positions
+            for squad_id in self.get_selected_squad_ids() {
+                let squad = self.get_squad(&squad_id);
+                let leader = self.get_scene_item(squad.leader);
+                for (_, scene_point) in squad
+                    .member_positions(&leader.position, leader.display_angle)
+                    .iter()
+                {
+                    mesh_builder.circle(
+                        DrawMode::fill(),
+                        *scene_point,
+                        2.0,
+                        2.0,
+                        graphics::YELLOW,
+                    )?;
+                }
+            }
         }
 
         GameResult::Ok(mesh_builder)
@@ -1255,50 +1415,82 @@ impl MainState {
         &self,
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
-        for i in &self.selected_scene_items {
-            let scene_item = self.get_scene_item(*i);
-            let color = if scene_item.side == self.current_side {
-                graphics::GREEN
-            } else {
-                graphics::RED
-            };
+        for selected_squad_id in self.get_selected_squad_ids().iter() {
+            let squad = self.get_squad(selected_squad_id);
+            let leader_scene_item = self.get_scene_item(squad.leader);
 
-            // Selection square
-            mesh_builder.rectangle(
-                DrawMode::Stroke(StrokeOptions::default()),
-                graphics::Rect::new(
-                    scene_item.position.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-                    scene_item.position.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-                    DEFAULT_SELECTED_SQUARE_SIDE,
-                    DEFAULT_SELECTED_SQUARE_SIDE,
-                ),
-                color,
-            )?;
+            // Display selection area of leader only if visible or our side
+            if leader_scene_item.side == self.current_side
+                || self
+                    .opposite_visible_scene_items
+                    .contains(&leader_scene_item.id)
+            {
+                let color = if leader_scene_item.side == self.current_side {
+                    graphics::GREEN
+                } else {
+                    graphics::RED
+                };
+                mesh_builder.rectangle(
+                    DrawMode::Stroke(StrokeOptions::default()),
+                    selection_rect(&leader_scene_item.position),
+                    color,
+                )?;
 
-            // Move path if moving
-            match &scene_item.behavior {
-                ItemBehavior::Dead | ItemBehavior::Unconscious => {}
-                ItemBehavior::Standing => {}
-                ItemBehavior::Hide => {}
-                ItemBehavior::EngageSceneItem(_) => {}
-                ItemBehavior::EngageGridPoint(_) => {}
-                ItemBehavior::HideTo(_, grid_path)
-                | ItemBehavior::MoveTo(_, grid_path)
-                | ItemBehavior::MoveFastTo(_, grid_path) => {
-                    let mut points = vec![scene_item.position];
-                    for grid_point in grid_path.iter() {
-                        points.push(scene_point_from_grid_point(grid_point, &self.map))
+                match &leader_scene_item.behavior {
+                    ItemBehavior::HideTo(_, grid_path)
+                    | ItemBehavior::MoveTo(_, grid_path)
+                    | ItemBehavior::MoveFastTo(_, grid_path) => {
+                        let mut points = vec![leader_scene_item.position];
+                        for grid_point in grid_path.iter() {
+                            points.push(scene_point_from_grid_point(grid_point, &self.map))
+                        }
+
+                        mesh_builder.line(
+                            &points,
+                            2.0,
+                            Color {
+                                r: 1.0,
+                                g: 1.0,
+                                b: 1.0,
+                                a: 0.2,
+                            },
+                        )?;
                     }
+                    _ => {}
+                }
+            }
 
-                    mesh_builder.line(
-                        &points,
-                        2.0,
+            for member_id in squad.members.iter() {
+                if *member_id == leader_scene_item.id {
+                    continue;
+                }
+                let member_scene_item = self.get_scene_item(*member_id);
+
+                // Display selection area of member only if visible or our side
+                if member_scene_item.side == self.current_side
+                    || self
+                        .opposite_visible_scene_items
+                        .contains(&member_scene_item.id)
+                {
+                    let color = if member_scene_item.side == self.current_side {
+                        Color {
+                            r: 0.0,
+                            g: 1.0,
+                            b: 0.0,
+                            a: 0.2,
+                        }
+                    } else {
                         Color {
                             r: 1.0,
-                            g: 1.0,
-                            b: 1.0,
+                            g: 0.0,
+                            b: 0.0,
                             a: 0.2,
-                        },
+                        }
+                    };
+                    mesh_builder.rectangle(
+                        DrawMode::Stroke(StrokeOptions::default()),
+                        selection_rect(&member_scene_item.position),
+                        color,
                     )?;
                 }
             }
@@ -1341,16 +1533,16 @@ impl MainState {
     ) -> GameResult<MeshBuilder> {
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             match scene_item_prepare_order {
-                SceneItemPrepareOrder::Move(scene_item_id)
-                | SceneItemPrepareOrder::MoveFast(scene_item_id)
-                | SceneItemPrepareOrder::Hide(scene_item_id) => {
+                SceneItemPrepareOrder::Move(squad_id)
+                | SceneItemPrepareOrder::MoveFast(squad_id)
+                | SceneItemPrepareOrder::Hide(squad_id) => {
                     let color = match &scene_item_prepare_order {
                         SceneItemPrepareOrder::Move(_) => graphics::BLUE,
                         SceneItemPrepareOrder::MoveFast(_) => graphics::MAGENTA,
                         SceneItemPrepareOrder::Hide(_) => graphics::YELLOW,
                     };
 
-                    let scene_item = self.get_scene_item(*scene_item_id);
+                    let scene_item = self.get_squad_leader(squad_id);
                     mesh_builder.line(
                         &vec![
                             scene_item.position.clone(),
@@ -1553,12 +1745,12 @@ impl MainState {
 
         if let Some(scene_item_prepare_order) = &self.scene_item_prepare_order {
             match scene_item_prepare_order {
-                SceneItemPrepareOrder::Move(scene_item_id)
-                | SceneItemPrepareOrder::MoveFast(scene_item_id)
-                | SceneItemPrepareOrder::Hide(scene_item_id) => {
-                    // FIXME BS NOW: Depending from distance and weapon
+                SceneItemPrepareOrder::Move(squad_id)
+                | SceneItemPrepareOrder::MoveFast(squad_id)
+                | SceneItemPrepareOrder::Hide(squad_id) => {
+                    // FIXME BS: Color depending from distance and weapon
                     let color = graphics::GREEN;
-                    let scene_item = self.get_scene_item(*scene_item_id);
+                    let scene_item = self.get_squad_leader(squad_id);
                     let distance: Meters = meters_between_scene_points(
                         &scene_item.position,
                         &self.current_cursor_point,
@@ -1636,7 +1828,7 @@ impl event::EventHandler for MainState {
         let mut visibilities_mesh_builder = MeshBuilder::new();
 
         self.generate_scene_item_sprites()?;
-        self.generate_scene_item_menu_sprites()?;
+        self.generate_squad_menu_sprites()?;
         self.generate_order_marker_sprites()?;
 
         scene_mesh_builder = self.update_scene_mesh_with_debug(scene_mesh_builder)?;

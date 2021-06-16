@@ -35,6 +35,10 @@ type FrameI = u32;
 type Meters = f32;
 /// Float representing a multiplier
 type Factor = f32;
+/// Squad id (position in main scene squad lists
+type SquadId = usize;
+/// Angle
+type Angle = f32;
 
 /// Main message enum, mostly used as function returns
 pub enum Message {

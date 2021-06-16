@@ -7,9 +7,9 @@ use crate::ui::{
 };
 use crate::{Offset, ScenePoint};
 
-pub fn vertical_menu_sprite_info(type_: UiComponent) -> VerticalMenuSpriteInfo {
-    match type_ {
-        UiComponent::SceneItemMenu => VerticalMenuSpriteInfo {
+pub fn vertical_menu_sprite_info(component: &UiComponent) -> VerticalMenuSpriteInfo {
+    match component {
+        UiComponent::SquadMenu(_, _) => VerticalMenuSpriteInfo {
             relative_start_x: 0.0,
             relative_start_y: 0.0,
             relative_width: SCENE_ITEM_MENU_WIDTH / UI_SPRITE_SHEET_WIDTH,

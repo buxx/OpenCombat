@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
+use crate::physics::GridPoint;
 use ggez::{GameError, GameResult};
 use tiled::{Image as TiledImage, Layer, PropertyValue, Tileset};
 
+#[derive(Clone)]
 pub enum TerrainTileId {
     ShortGrass,
     MiddleGrass,
@@ -13,6 +15,7 @@ pub enum TerrainTileId {
     BrickWall,
 }
 
+#[derive(Clone)]
 pub struct TerrainTile {
     pub id: TerrainTileId,
     pub tile_width: u32,

@@ -13,7 +13,7 @@ use crate::physics::{util, MetaEvent};
 use crate::physics::{GridPoint, PhysicEvent};
 use crate::scene::main::MainStateModifier;
 use crate::scene::SpriteType;
-use crate::{FrameI, Message, Offset, SceneItemId, ScenePoint};
+use crate::{Angle, FrameI, Message, Offset, SceneItemId, ScenePoint, SquadId};
 use ggez::mint::Point2;
 
 pub struct SceneItemSpriteInfo {
@@ -79,7 +79,8 @@ pub enum Side {
 }
 
 pub struct SceneItem {
-    pub id: usize,
+    pub id: SceneItemId,
+    pub squad_id: SquadId,
     pub type_: SceneItemType,
     pub position: ScenePoint,
     pub grid_position: GridPoint,
@@ -88,7 +89,7 @@ pub struct SceneItem {
     pub current_frame: f32,
     pub current_order: Option<Order>,
     pub next_order: Option<Order>,
-    pub display_angle: f32,
+    pub display_angle: Angle,
     pub visibilities: Vec<Visibility>,
     pub side: Side,
     pub weapon: Weapon,
@@ -98,20 +99,24 @@ pub struct SceneItem {
     pub incapacity: bool,
     pub last_bullet_fire: Option<FrameI>,
     pub under_fire_intensity: f32,
+    pub is_leader: bool,
 }
 
 impl SceneItem {
     pub fn new(
         id: usize,
+        squad_id: SquadId,
         type_: SceneItemType,
         position: ScenePoint,
         behavior: ItemBehavior,
         map: &Map,
         side: Side,
         weapon: Weapon,
+        is_leader: bool,
     ) -> Self {
         Self {
             id,
+            squad_id,
             type_,
             position: position.clone(),
             grid_position: util::grid_point_from_scene_point(&position.clone(), map),
@@ -130,6 +135,7 @@ impl SceneItem {
             incapacity: false,
             last_bullet_fire: None,
             under_fire_intensity: 0.0,
+            is_leader,
         }
     }
 
@@ -198,7 +204,7 @@ impl SceneItem {
 
 pub enum SceneItemModifier {
     SwitchToNextOrder,
-    ChangeDisplayAngle(f32),
+    ChangeDisplayAngle(Angle),
     ChangeBehavior(ItemBehavior),
     ChangePosition(ScenePoint),
     ChangeGridPosition(GridPoint),
@@ -213,6 +219,8 @@ pub enum SceneItemModifier {
     SetLastBulletFire(FrameI),
     IncrementUnderFire,
     CancelOrders(Option<ItemBehavior>),
+    LeaderIndicateMove, // Indicate to its squad members to follow him
+    SetIsLeader,
 }
 
 pub fn apply_scene_item_modifiers(
@@ -291,6 +299,12 @@ pub fn apply_scene_item_modifier(
                         scene_item,
                         SceneItemModifier::SwitchToNextOrder,
                     ));
+                };
+                if scene_item.is_leader {
+                    messages.push(Message::SceneItemMessage(
+                        scene_item.id,
+                        SceneItemModifier::LeaderIndicateMove,
+                    ));
                 }
             }
         },
@@ -321,8 +335,12 @@ pub fn apply_scene_item_modifier(
             scene_item.current_order = None;
             scene_item.under_fire_intensity = 0.0;
             scene_item.behavior = ItemBehavior::Unconscious;
+            scene_item.is_leader = false;
             messages.push(Message::MainStateMessage(
                 MainStateModifier::RemoveOrderMarker(scene_item.id),
+            ));
+            messages.push(Message::MainStateMessage(
+                MainStateModifier::ElectNewSquadLeader(scene_item.id),
             ));
         }
         SceneItemModifier::Incapacity => {
@@ -331,8 +349,12 @@ pub fn apply_scene_item_modifier(
             scene_item.current_order = None;
             scene_item.under_fire_intensity = 0.0;
             scene_item.behavior = ItemBehavior::Unconscious;
+            scene_item.is_leader = false;
             messages.push(Message::MainStateMessage(
                 MainStateModifier::RemoveOrderMarker(scene_item.id),
+            ));
+            messages.push(Message::MainStateMessage(
+                MainStateModifier::ElectNewSquadLeader(scene_item.id),
             ));
         }
         SceneItemModifier::SetLastBulletFire(frame_i) => {
@@ -351,6 +373,10 @@ pub fn apply_scene_item_modifier(
                 scene_item.behavior = behavior_
             }
         }
+        SceneItemModifier::LeaderIndicateMove => messages.push(Message::MainStateMessage(
+            MainStateModifier::SquadLeaderIndicateMove(scene_item.id),
+        )),
+        SceneItemModifier::SetIsLeader => scene_item.is_leader = true,
     }
 
     messages

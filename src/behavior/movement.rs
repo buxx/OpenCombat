@@ -31,7 +31,10 @@ pub fn digest_next_move_order(
             Order::HideTo(_) => ItemBehavior::HideTo(move_to_scene_point, grid_path),
         };
         scene_item_modifiers.push(SceneItemModifier::SwitchToNextOrder);
-        scene_item_modifiers.push(SceneItemModifier::ChangeBehavior(behavior))
+        scene_item_modifiers.push(SceneItemModifier::ChangeBehavior(behavior));
+        if scene_item.is_leader {
+            scene_item_modifiers.push(SceneItemModifier::LeaderIndicateMove);
+        }
     } else {
         eprintln!("No path found to given scene point {}", move_to_scene_point);
     };

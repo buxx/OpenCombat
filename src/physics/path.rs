@@ -3,6 +3,10 @@ use crate::physics::GridPoint;
 use pathfinding::prelude::{absdiff, astar};
 
 pub fn find_path(map: &Map, from: &GridPoint, to: &GridPoint) -> Option<Vec<GridPoint>> {
+    if !map.contains(from) || !map.contains(to) {
+        return None;
+    }
+
     match astar(
         from,
         |p| map.successors(p),
