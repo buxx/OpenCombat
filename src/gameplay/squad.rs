@@ -1,8 +1,9 @@
+use crate::physics::util::apply_angle_on_point;
 use crate::{Angle, SceneItemId, ScenePoint};
 use std::collections::HashMap;
 
 pub enum Formation {
-    CenteredLine,
+    Line,
 }
 
 pub struct Squad {
@@ -14,7 +15,7 @@ pub struct Squad {
 impl Squad {
     pub fn new() -> Self {
         Self {
-            formation: Formation::CenteredLine,
+            formation: Formation::Line,
             leader: 0,
             members: vec![],
         }
@@ -27,23 +28,36 @@ impl Squad {
     ) -> HashMap<SceneItemId, ScenePoint> {
         let mut positions = HashMap::new();
         match &self.formation {
-            Formation::CenteredLine => {
-                // FIXME BS NOW: hardcoded solution for test
-                // FIXME BS NOW: take care from outside map !
-                for (i, member_id) in self.members.iter().enumerate() {
+            Formation::Line => {
+                let member_ids = self
+                    .members
+                    .iter()
+                    .filter(|id| **id != self.leader)
+                    .collect::<Vec<&SceneItemId>>();
+                let mut x_offset: f32 = 0.0;
+                let mut y_offset: f32 = 0.0;
+                let mut counter: u8 = 0;
+
+                for (i, member_id) in member_ids.iter().enumerate() {
+                    if counter % 2 == 0 {
+                        x_offset += 10.0;
+                        y_offset += 0.0;
+                    }
+                    counter += 1;
+
+                    let (x_offset_, y_offset_) = if i % 2 == 0 {
+                        (x_offset, y_offset)
+                    } else {
+                        (-x_offset, -y_offset)
+                    };
+
+                    let member_scene_point = ScenePoint::new(
+                        leader_position.x + x_offset_,
+                        leader_position.y + y_offset_,
+                    );
                     let member_scene_point =
-                        ScenePoint::new(leader_position.x + (10.0 * i as f32), leader_position.y);
-                    let sin = f32::sin(angle);
-                    let cos = f32::cos(angle);
-                    let pt = (
-                        member_scene_point.x - leader_position.x,
-                        member_scene_point.y - leader_position.y,
-                    );
-                    let rotated = (
-                        leader_position.x + pt.0 * cos - pt.1 * sin,
-                        leader_position.y + pt.0 * sin + pt.1 * cos,
-                    );
-                    positions.insert(*member_id, ScenePoint::new(rotated.0, rotated.1));
+                        apply_angle_on_point(&member_scene_point, leader_position, &angle);
+                    positions.insert(**member_id, member_scene_point);
                 }
             }
         }
