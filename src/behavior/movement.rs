@@ -93,7 +93,7 @@ pub fn find_cover_grid_point(
     from_grid_point: &GridPoint,
     map: &Map,
     exclude_grid_points: &Vec<GridPoint>,
-) -> Option<GridPoint> {
+) -> Option<(GridPoint, Vec<GridPoint>)> {
     let mut tiles: Vec<(GridPoint, &TerrainTile)> = vec![(
         from_grid_point.clone(),
         map.terrain
@@ -101,8 +101,13 @@ pub fn find_cover_grid_point(
             .get(&(from_grid_point.x as u32, from_grid_point.y as u32))
             .unwrap(),
     )];
-    for grid_point in grid_points_for_square(&from_grid_point, COVER_DISTANCE, COVER_DISTANCE) {
-        if let Some(tile) = map.terrain.tiles.get(&(grid_point.x as u32, grid_point.y as u32)) {
+    let grid_points_for_square = grid_points_for_square(&from_grid_point, COVER_DISTANCE, COVER_DISTANCE);
+    for grid_point in grid_points_for_square {
+        if let Some(tile) = map
+            .terrain
+            .tiles
+            .get(&(grid_point.x as u32, grid_point.y as u32))
+        {
             tiles.push((grid_point, tile))
         }
     }
@@ -110,7 +115,11 @@ pub fn find_cover_grid_point(
 
     for (grid_point, _) in tiles.iter().rev() {
         if !exclude_grid_points.contains(grid_point) {
-            return Some(grid_point.clone())
+            let grid_points = tiles
+                .iter()
+                .map(|(p, _)| p.clone())
+                .collect::<Vec<GridPoint>>();
+            return Some((grid_point.clone(), grid_points));
         }
     }
 

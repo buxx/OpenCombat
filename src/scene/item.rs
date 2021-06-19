@@ -13,9 +13,9 @@ use crate::physics::{util, MetaEvent};
 use crate::physics::{GridPoint, PhysicEvent};
 use crate::scene::main::MainStateModifier;
 use crate::scene::SpriteType;
+use crate::Message::MainStateMessage;
 use crate::{Angle, FrameI, Message, Offset, SceneItemId, ScenePoint, SquadId};
 use ggez::mint::Point2;
-use crate::Message::MainStateMessage;
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,

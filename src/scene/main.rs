@@ -64,6 +64,7 @@ pub enum MainStateModifier {
     NewProjectile(Projectile),
     NewSound(Sound),
     NewDebugText(DebugText),
+    NewDebugPoint(DebugPoint),
     NewOrderMarker(OrderMarker),
     RemoveOrderMarker(SceneItemId),
     SquadLeaderIndicateMove(SceneItemId),
@@ -78,6 +79,12 @@ pub struct DebugText {
     scene_point: ScenePoint,
     message: String,
     scene_item_id: Option<SceneItemId>,
+}
+
+#[derive(Clone)]
+pub struct DebugPoint {
+    frame_i: FrameI,
+    scene_point: ScenePoint,
 }
 
 impl DebugText {
@@ -137,6 +144,8 @@ pub struct MainState {
     projectiles: Vec<Projectile>,
     /// Vector of debug texts to display
     debug_texts: Vec<DebugText>,
+    /// Vector of debug texts to display
+    debug_points: Vec<DebugPoint>,
     /// List of current order markers to display on the battle scene
     order_markers: Vec<OrderMarker>,
 
@@ -328,6 +337,7 @@ impl MainState {
             decor_batches,
             projectiles: vec![],
             debug_texts: vec![],
+            debug_points: vec![],
             order_markers: vec![],
             scene_items,
             scene_items_by_grid_position,
@@ -936,7 +946,8 @@ impl MainState {
                         }
                     }
                     MainStateModifier::ElectNewSquadLeader(scene_item_id) => {
-                        let squad = self.get_squad(&scene_item_id);
+                        let scene_item = self.get_scene_item(scene_item_id);
+                        let squad = self.get_squad(&scene_item.squad_id);
                         // TODO: Sort by grade
                         for member_id in &squad.members {
                             let member = self.get_scene_item(*member_id);
@@ -962,11 +973,23 @@ impl MainState {
                         for (member_id, formation_position) in
                             squad.member_positions(&leader.position, leader.display_angle)
                         {
-                            if let Some(cover_grid_point) = find_cover_grid_point(
+                            if let Some((cover_grid_point, debug_grid_points)) = find_cover_grid_point(
                                 &grid_point_from_scene_point(&formation_position, &self.map),
                                 &self.map,
                                 &already_used_cover_grid_points,
                             ) {
+                                for debug_grid_point in debug_grid_points.iter() {
+                                    new_messages.push(Message::MainStateMessage(
+                                        MainStateModifier::NewDebugPoint(DebugPoint {
+                                            frame_i: self.frame_i + 120,
+                                            scene_point: scene_point_from_grid_point(
+                                                debug_grid_point,
+                                                &self.map,
+                                            ),
+                                        }),
+                                    ))
+                                }
+
                                 let cover_scene_point =
                                     scene_point_from_grid_point(&cover_grid_point, &self.map);
                                 if let Some(new_order) = match &leader.behavior {
@@ -990,6 +1013,9 @@ impl MainState {
                                 }
                             }
                         }
+                    }
+                    MainStateModifier::NewDebugPoint(debug_point) => {
+                        self.debug_points.push(debug_point)
                     }
                 },
             }
@@ -1318,7 +1344,7 @@ impl MainState {
     }
 
     fn update_scene_mesh_with_debug(
-        &self,
+        &mut self,
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
         if self.debug {
@@ -1444,6 +1470,21 @@ impl MainState {
                     )?;
                 }
             }
+
+            let mut debug_points_left = vec![];
+            while let Some(debug_point) = self.debug_points.pop() {
+                if debug_point.frame_i >= self.frame_i {
+                    mesh_builder.circle(
+                        DrawMode::fill(),
+                        debug_point.scene_point,
+                        2.0,
+                        2.0,
+                        graphics::BLUE,
+                    )?;
+                    debug_points_left.push(debug_point);
+                }
+            }
+            self.debug_points = debug_points_left;
         }
 
         GameResult::Ok(mesh_builder)
