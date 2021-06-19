@@ -11,6 +11,7 @@ use ggez::{event, graphics, input, Context, GameResult};
 
 use crate::audio::{Audio, Sound};
 use crate::behavior::animate::{digest_behavior, digest_current_order, digest_next_order};
+use crate::behavior::movement::find_cover_grid_point;
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
@@ -68,6 +69,7 @@ pub enum MainStateModifier {
     SquadLeaderIndicateMove(SceneItemId),
     ElectNewSquadLeader(SceneItemId),
     ChangeSquadLeaderTo(SceneItemId),
+    LeaderIndicateTakeCover(SceneItemId),
 }
 
 #[derive(Clone)]
@@ -952,6 +954,42 @@ impl MainState {
                     MainStateModifier::ChangeSquadLeaderTo(scene_item_id) => {
                         let mut squad = self.get_squad_mut(&scene_item_id);
                         squad.leader = scene_item_id;
+                    }
+                    MainStateModifier::LeaderIndicateTakeCover(scene_item_id) => {
+                        let leader = self.get_scene_item(scene_item_id);
+                        let squad = self.get_squad(&leader.squad_id);
+                        let mut already_used_cover_grid_points: Vec<GridPoint> = vec![];
+                        for (member_id, formation_position) in
+                            squad.member_positions(&leader.position, leader.display_angle)
+                        {
+                            if let Some(cover_grid_point) = find_cover_grid_point(
+                                &grid_point_from_scene_point(&formation_position, &self.map),
+                                &self.map,
+                                &already_used_cover_grid_points,
+                            ) {
+                                let cover_scene_point =
+                                    scene_point_from_grid_point(&cover_grid_point, &self.map);
+                                if let Some(new_order) = match &leader.behavior {
+                                    ItemBehavior::Dead | ItemBehavior::Unconscious => None,
+                                    ItemBehavior::Standing | ItemBehavior::MoveTo(_, _) => {
+                                        Some(Order::MoveTo(cover_scene_point))
+                                    }
+                                    ItemBehavior::MoveFastTo(_, _) => {
+                                        Some(Order::MoveFastTo(cover_scene_point))
+                                    }
+                                    ItemBehavior::EngageSceneItem(_)
+                                    | ItemBehavior::EngageGridPoint(_)
+                                    | ItemBehavior::HideTo(_, _)
+                                    | ItemBehavior::Hide => Some(Order::HideTo(cover_scene_point)),
+                                } {
+                                    already_used_cover_grid_points.push(cover_grid_point);
+                                    new_messages.push(Message::SceneItemMessage(
+                                        member_id,
+                                        SceneItemModifier::SetNextOrder(new_order),
+                                    ));
+                                }
+                            }
+                        }
                     }
                 },
             }

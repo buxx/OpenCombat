@@ -1,11 +1,14 @@
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
 use crate::config::{
-    MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT, STOP_MOVE_ORDER_IF_UNDER_FIRE_INTENSITY,
+    COVER_DISTANCE, MOVE_TO_REACHED_WHEN_DISTANCE_INFERIOR_AT,
+    STOP_MOVE_ORDER_IF_UNDER_FIRE_INTENSITY,
 };
+use crate::map::terrain::{TerrainTile, grid_points_for_square};
 use crate::map::Map;
 use crate::physics::path::find_path;
 use crate::physics::util::{grid_point_from_scene_point, scene_point_from_grid_point};
+use crate::physics::GridPoint;
 use crate::scene::item::{SceneItem, SceneItemModifier};
 use crate::util::{angle, velocity_for_behavior};
 use crate::{GridPath, ScenePoint};
@@ -84,4 +87,32 @@ pub fn digest_stop_move_behavior(
     }
 
     scene_item_modifiers
+}
+
+pub fn find_cover_grid_point(
+    from_grid_point: &GridPoint,
+    map: &Map,
+    exclude_grid_points: &Vec<GridPoint>,
+) -> Option<GridPoint> {
+    let mut tiles: Vec<(GridPoint, &TerrainTile)> = vec![(
+        from_grid_point.clone(),
+        map.terrain
+            .tiles
+            .get(&(from_grid_point.x as u32, from_grid_point.y as u32))
+            .unwrap(),
+    )];
+    for grid_point in grid_points_for_square(&from_grid_point, COVER_DISTANCE, COVER_DISTANCE) {
+        if let Some(tile) = map.terrain.tiles.get(&(grid_point.x as u32, grid_point.y as u32)) {
+            tiles.push((grid_point, tile))
+        }
+    }
+    tiles.sort_by(|(_, tile_a), (_, tile_b)| tile_a.opacity.partial_cmp(&tile_b.opacity).unwrap());
+
+    for (grid_point, _) in tiles.iter().rev() {
+        if !exclude_grid_points.contains(grid_point) {
+            return Some(grid_point.clone())
+        }
+    }
+
+    None
 }

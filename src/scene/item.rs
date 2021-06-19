@@ -15,6 +15,7 @@ use crate::scene::main::MainStateModifier;
 use crate::scene::SpriteType;
 use crate::{Angle, FrameI, Message, Offset, SceneItemId, ScenePoint, SquadId};
 use ggez::mint::Point2;
+use crate::Message::MainStateMessage;
 
 pub struct SceneItemSpriteInfo {
     pub relative_start_y: f32,
@@ -219,7 +220,8 @@ pub enum SceneItemModifier {
     SetLastBulletFire(FrameI),
     IncrementUnderFire,
     CancelOrders(Option<ItemBehavior>),
-    LeaderIndicateMove, // Indicate to its squad members to follow him
+    LeaderIndicateMove,      // Indicate to its squad members to follow him
+    LeaderIndicateTakeCover, // Indicate to its squad members which next order is to place
     SetIsLeader,
 }
 
@@ -282,12 +284,6 @@ pub fn apply_scene_item_modifier(
             scene_item.grid_position = new_grid_point;
         }
         SceneItemModifier::ReachMoveGridPoint => match &mut scene_item.behavior {
-            ItemBehavior::Standing
-            | ItemBehavior::Hide
-            | ItemBehavior::Unconscious
-            | ItemBehavior::Dead => {}
-            ItemBehavior::EngageSceneItem(_) => {}
-            ItemBehavior::EngageGridPoint(_) => {}
             ItemBehavior::HideTo(_, grid_path)
             | ItemBehavior::MoveTo(_, grid_path)
             | ItemBehavior::MoveFastTo(_, grid_path) => {
@@ -299,6 +295,12 @@ pub fn apply_scene_item_modifier(
                         scene_item,
                         SceneItemModifier::SwitchToNextOrder,
                     ));
+                    if scene_item.is_leader {
+                        messages.push(Message::SceneItemMessage(
+                            scene_item.id,
+                            SceneItemModifier::LeaderIndicateTakeCover,
+                        ));
+                    }
                 };
                 if scene_item.is_leader {
                     messages.push(Message::SceneItemMessage(
@@ -307,6 +309,7 @@ pub fn apply_scene_item_modifier(
                     ));
                 }
             }
+            _ => {}
         },
         SceneItemModifier::ChangeVisibilities(visibilities) => {
             scene_item.visibilities = visibilities
@@ -377,6 +380,9 @@ pub fn apply_scene_item_modifier(
             MainStateModifier::SquadLeaderIndicateMove(scene_item.id),
         )),
         SceneItemModifier::SetIsLeader => scene_item.is_leader = true,
+        SceneItemModifier::LeaderIndicateTakeCover => {
+            messages.push(MainStateMessage(MainStateModifier::LeaderIndicateTakeCover(scene_item.id)))
+        }
     }
 
     messages

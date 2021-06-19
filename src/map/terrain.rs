@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use crate::physics::GridPoint;
 use ggez::{GameError, GameResult};
 use tiled::{Image as TiledImage, Layer, PropertyValue, Tileset};
+use crate::physics::GridPoint;
 
 #[derive(Clone)]
 pub enum TerrainTileId {
@@ -198,4 +198,22 @@ pub fn get_tile_from_terrain_tileset_with_id(
         "No tile with {} found",
         id
     )));
+}
+
+
+pub fn grid_points_for_square(center_point: &GridPoint, width: i32, height: i32) -> Vec<GridPoint> {
+    let mut points = vec![];
+
+    let start_x = center_point.x - (height / 2);
+    let end_x = start_x + height;
+    let start_y = center_point.x - (width / 2);
+    let end_y = start_y + width;
+
+    for x in start_x..end_x {
+        for y in start_y..end_y {
+            points.push(GridPoint::new(x, y))
+        }
+    }
+
+    points
 }

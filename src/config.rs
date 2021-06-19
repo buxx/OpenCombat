@@ -53,3 +53,5 @@ pub const UNDER_FIRE_INTENSITY_MAX: i32 = 500;
 pub const STOP_MOVE_ORDER_IF_UNDER_FIRE_INTENSITY: f32 = 75.0;
 // Coefficient to convert distance from two scene points into meters
 pub const DISTANCE_TO_METERS_COEFFICIENT: f32 = 0.3;
+// Grid distance to search cover point
+pub const COVER_DISTANCE: i32 = 5;
