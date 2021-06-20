@@ -1,9 +1,9 @@
 use crate::behavior::ItemBehavior;
 use crate::config::VISIBILITY_FIRSTS;
 use crate::map::Map;
-use crate::physics::util::grid_point_from_scene_point;
+use crate::physics::util::{grid_point_from_scene_point, meters_between_scene_points};
 use crate::scene::item::SceneItem;
-use crate::{FrameI, GridPath, ScenePoint};
+use crate::{FrameI, GridPath, ScenePoint, Meters};
 use bresenham::Bresenham;
 use std::cmp;
 
@@ -17,6 +17,7 @@ pub struct Visibility {
     pub to_scene_item_opacity: f32,
     pub opacity_segments: Vec<(ScenePoint, f32)>,
     pub visible: bool,
+    pub distance: Meters,
 }
 
 impl Visibility {
@@ -94,13 +95,14 @@ impl Visibility {
             ItemBehavior::Hide => -0.5,
             ItemBehavior::MoveTo(_, _) => 1.0,
             ItemBehavior::MoveFastTo(_, _) => 2.0,
-            ItemBehavior::EngageSceneItem(_) => 0.0,
+            ItemBehavior::EngageSceneItem(_, _) => 0.0,
             ItemBehavior::EngageGridPoint(_) => 0.0,
         };
 
         to_scene_item_opacity = to_scene_item_opacity - by_behavior_modifier;
         let visible = to_scene_item_opacity < 0.5;
 
+        let distance = meters_between_scene_points(&scene_item_from.position, &to_scene_item.position);
         Self {
             from_scene_id: scene_item_from.id,
             from_scene_point: scene_item_from.position,
@@ -110,6 +112,7 @@ impl Visibility {
             path_final_opacity,
             to_scene_item_opacity,
             visible,
+            distance,
         }
     }
 }

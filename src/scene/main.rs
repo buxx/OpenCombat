@@ -13,11 +13,12 @@ use crate::audio::{Audio, Sound};
 use crate::behavior::animate::{digest_behavior, digest_current_order, digest_next_order};
 use crate::behavior::movement::find_cover_grid_point;
 use crate::behavior::order::Order;
+use crate::behavior::util::take_cover_messages;
 use crate::behavior::ItemBehavior;
 use crate::config::{
-    ANIMATE_EACH, DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I,
-    PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, SQUADS_CHANGE_ERR_MSG,
-    TARGET_FPS, UNDER_FIRE_INTENSITY_DECREMENT,
+    ANIMATE_EACH, DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET, DISPLAY_OFFSET_BY,
+    DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I, PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG,
+    SEEK_EACH, SPRITE_EACH, SQUADS_CHANGE_ERR_MSG, TARGET_FPS, UNDER_FIRE_INTENSITY_DECREMENT,
 };
 use crate::gameplay::squad::Squad;
 use crate::gameplay::weapon::{Weapon, WeaponType};
@@ -27,7 +28,8 @@ use crate::physics::item::produce_physics_messages_for_scene_item;
 use crate::physics::path::find_path;
 use crate::physics::projectile::{bullet_fire, Projectile};
 use crate::physics::util::{
-    grid_point_from_scene_point, meters_between_scene_points, scene_point_from_window_point,
+    apply_angle_on_point, grid_point_from_scene_point, meters_between_scene_points,
+    scene_point_from_window_point,
 };
 use crate::physics::util::{scene_point_from_grid_point, window_point_from_scene_point};
 use crate::physics::visibility::Visibility;
@@ -44,8 +46,9 @@ use crate::ui::order::OrderMarker;
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, Dragging, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
+use crate::util::angle;
 use crate::{
-    scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, SquadId, WindowPoint,
+    scene, Angle, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, SquadId, WindowPoint,
 };
 
 #[derive(PartialEq)]
@@ -65,12 +68,13 @@ pub enum MainStateModifier {
     NewSound(Sound),
     NewDebugText(DebugText),
     NewDebugPoint(DebugPoint),
-    NewOrderMarker(OrderMarker),
+    NewOrderMarker(OrderMarker, bool), // _, avoid_duplicate
     RemoveOrderMarker(SceneItemId),
     SquadLeaderIndicateMove(SceneItemId),
     ElectNewSquadLeader(SceneItemId),
-    ChangeSquadLeaderTo(SceneItemId),
+    ChangeSquadLeaderTo(SquadId, SceneItemId),
     LeaderIndicateTakeCover(SceneItemId),
+    UpdateOrderMarkerAngleFromCursor(SceneItemId),
 }
 
 #[derive(Clone)]
@@ -83,8 +87,8 @@ pub struct DebugText {
 
 #[derive(Clone)]
 pub struct DebugPoint {
-    frame_i: FrameI,
-    scene_point: ScenePoint,
+    pub frame_i: FrameI,
+    pub scene_point: ScenePoint,
 }
 
 impl DebugText {
@@ -250,7 +254,7 @@ impl MainState {
         let mut scene_items_by_side: HashMap<Side, Vec<SceneItemId>> = HashMap::new();
         let mut squads: Vec<Squad> = vec![];
 
-        let mut squad_1 = Squad::new();
+        let mut squad_1 = Squad::new(0);
         for x in 0..1 {
             for y in 0..5 {
                 let scene_item_id = scene_items.len();
@@ -285,7 +289,7 @@ impl MainState {
         }
         squads.push(squad_1);
 
-        let mut squad_2 = Squad::new();
+        let mut squad_2 = Squad::new(1);
         for x in 0..1 {
             for y in 0..5 {
                 let scene_item_id = scene_items.len();
@@ -499,7 +503,7 @@ impl MainState {
                     // For all move orders
                     if let Some(SceneItemPrepareOrder::Move(_))
                     | Some(SceneItemPrepareOrder::MoveFast(_))
-                    | Some(SceneItemPrepareOrder::Hide(_)) = &self.scene_item_prepare_order
+                    | Some(SceneItemPrepareOrder::Sneak(_)) = &self.scene_item_prepare_order
                     {
                         // Draw path finding must be from squad. By default,
                         // found path from selected squads
@@ -542,7 +546,7 @@ impl MainState {
                     // If user preparing move order
                     if let Some(SceneItemPrepareOrder::Move(_))
                     | Some(SceneItemPrepareOrder::MoveFast(_))
-                    | Some(SceneItemPrepareOrder::Hide(_)) = &self.scene_item_prepare_order
+                    | Some(SceneItemPrepareOrder::Sneak(_)) = &self.scene_item_prepare_order
                     {
                         // Require find path drawing in 250ms
                         let waiting_cursor_not_move =
@@ -568,8 +572,22 @@ impl MainState {
                                 Some(SceneItemPrepareOrder::MoveFast(scene_item.squad_id))
                             }
                             Order::HideTo(_) => {
-                                Some(SceneItemPrepareOrder::Hide(scene_item.squad_id))
+                                Some(SceneItemPrepareOrder::Sneak(scene_item.squad_id))
                             }
+                            _ => None,
+                        }
+                    // Probably defending / hiding ?
+                    } else {
+                        match scene_item.behavior {
+                            ItemBehavior::Standing => {
+                                self.scene_item_prepare_order =
+                                    Some(SceneItemPrepareOrder::Defend(scene_item.squad_id));
+                            }
+                            ItemBehavior::Hide => {
+                                self.scene_item_prepare_order =
+                                    Some(SceneItemPrepareOrder::Hide(scene_item.squad_id));
+                            }
+                            _ => {}
                         }
                     }
                 }
@@ -589,11 +607,29 @@ impl MainState {
                                     .collect::<Vec<&mut OrderMarker>>()
                                     .first_mut()
                                 {
-                                    // To mutate its position
-                                    order_marker.set_scene_point(scene_point_from_window_point(
-                                        &self.current_cursor_point,
-                                        &self.display_offset,
-                                    ))
+                                    match order_marker {
+                                        OrderMarker::MoveTo(_, _)
+                                        | OrderMarker::MoveFastTo(_, _)
+                                        | OrderMarker::HideTo(_, _)
+                                        | OrderMarker::FireTo(_, _) => {
+                                            // To mutate its position
+                                            order_marker.set_scene_point(
+                                                scene_point_from_window_point(
+                                                    &self.current_cursor_point,
+                                                    &self.display_offset,
+                                                ),
+                                            )
+                                        }
+                                        OrderMarker::Defend(scene_item_id, _)
+                                        | OrderMarker::Hide(scene_item_id, _) => {
+                                            // To mutate its angle
+                                            messages.push(Message::MainStateMessage(
+                                                MainStateModifier::UpdateOrderMarkerAngleFromCursor(
+                                                    *scene_item_id,
+                                                ),
+                                            ));
+                                        }
+                                    };
                                 }
                             }
                         }
@@ -621,6 +657,9 @@ impl MainState {
                         }
                     }
                     self.dragging = None;
+                }
+                UserEvent::SelectSceneItemIds(selected_scene_item_ids) => {
+                    self.selected_scene_items = selected_scene_item_ids
                 }
             }
         }
@@ -676,6 +715,16 @@ impl MainState {
                                 self.squad_menu = None;
                             }
 
+                            MenuItem::Sneak => {
+                                self.scene_item_prepare_order =
+                                    Some(SceneItemPrepareOrder::Sneak(*squad_id));
+                                self.squad_menu = None;
+                            }
+                            MenuItem::Defend => {
+                                self.scene_item_prepare_order =
+                                    Some(SceneItemPrepareOrder::Defend(*squad_id));
+                                self.squad_menu = None;
+                            }
                             MenuItem::Hide => {
                                 self.scene_item_prepare_order =
                                     Some(SceneItemPrepareOrder::Hide(*squad_id));
@@ -719,11 +768,14 @@ impl MainState {
                 // Preparing move order
                 SceneItemPrepareOrder::Move(squad_id)
                 | SceneItemPrepareOrder::MoveFast(squad_id)
-                | SceneItemPrepareOrder::Hide(squad_id) => {
+                | SceneItemPrepareOrder::Sneak(squad_id) => {
                     let order = match scene_item_prepare_order {
                         SceneItemPrepareOrder::Move(_) => Order::MoveTo(*scene_click_point),
                         SceneItemPrepareOrder::MoveFast(_) => Order::MoveFastTo(*scene_click_point),
-                        SceneItemPrepareOrder::Hide(_) => Order::HideTo(*scene_click_point),
+                        SceneItemPrepareOrder::Sneak(_) => Order::HideTo(*scene_click_point),
+                        _ => {
+                            panic!("Should not be here")
+                        }
                     };
                     let squad = self.get_squad(squad_id);
                     messages.push(Message::SceneItemMessage(
@@ -734,9 +786,52 @@ impl MainState {
                         MainStateModifier::NewOrderMarker(OrderMarker::new(
                             squad.leader,
                             &order.clone(),
-                        )),
+                        ), false),
                     ));
                     self.current_prepare_move_found_paths = HashMap::new();
+                }
+                SceneItemPrepareOrder::Defend(squad_id) | SceneItemPrepareOrder::Hide(squad_id) => {
+                    let scene_cursor_point = &scene_point_from_window_point(
+                        &self.current_cursor_point,
+                        &self.display_offset,
+                    );
+                    let squad = self.get_squad(squad_id);
+                    let leader = self.get_scene_item(squad.leader);
+                    let angle_ = angle(scene_cursor_point, &leader.position);
+                    // TODO BS: add then_order ? For soldier orientation after move
+                    let (then_order, behavior) = match scene_item_prepare_order {
+                        SceneItemPrepareOrder::Defend(_) => {
+                            (Order::Defend(angle_), ItemBehavior::Standing)
+                        }
+                        SceneItemPrepareOrder::Hide(_) => (Order::Hide(angle_), ItemBehavior::Hide),
+                        _ => {
+                            panic!("Should not be here")
+                        }
+                    };
+
+                    // Compute new places according to defend/hide direction
+                    messages.extend(take_cover_messages(
+                        &leader.position,
+                        angle_,
+                        self.frame_i,
+                        squad,
+                        &behavior,
+                        &self.map,
+                    ));
+                    messages.push(Message::MainStateMessage(
+                        MainStateModifier::NewOrderMarker(OrderMarker::new(
+                            squad.leader,
+                            &then_order,
+                        ), true),
+                    ));
+                    messages.push(Message::SceneItemMessage(
+                        leader.id,
+                        SceneItemModifier::ChangeBehavior(behavior),
+                    ));
+                    messages.push(Message::SceneItemMessage(
+                        leader.id,
+                        SceneItemModifier::ChangeLookingDirection(angle_),
+                    ));
                 }
             }
 
@@ -891,7 +986,17 @@ impl MainState {
                     MainStateModifier::NewDebugText(debug_text) => {
                         self.debug_texts.push(debug_text)
                     }
-                    MainStateModifier::NewOrderMarker(order_marker) => {
+                    MainStateModifier::NewOrderMarker(order_marker, avoid_duplicate) => {
+                        let new_order_marker_scene_item_id = order_marker.get_scene_item_id();
+                        if avoid_duplicate {
+                            if let Some(order_marker_index) = self
+                                .order_markers
+                                .iter()
+                                .position(|o| o.get_scene_item_id() == new_order_marker_scene_item_id)
+                            {
+                                self.order_markers.remove(order_marker_index);
+                            }
+                        }
                         self.order_markers.push(order_marker);
                     }
                     MainStateModifier::RemoveOrderMarker(scene_item_id) => {
@@ -908,7 +1013,7 @@ impl MainState {
                         let squad = self.get_squad(&scene_item.squad_id);
                         let leader = self.get_scene_item(squad.leader);
                         let formation_positions =
-                            squad.member_positions(&leader.position, leader.display_angle);
+                            squad.member_positions(&leader.position, leader.looking_direction);
                         if squad.leader != scene_item_id {
                             eprintln!("Squad leader taken move must be done by squad leader !")
                         } else {
@@ -920,7 +1025,7 @@ impl MainState {
                                         ItemBehavior::Dead
                                         | ItemBehavior::Unconscious
                                         | ItemBehavior::Standing
-                                        | ItemBehavior::EngageSceneItem(_)
+                                        | ItemBehavior::EngageSceneItem(_, _)
                                         | ItemBehavior::EngageGridPoint(_)
                                         | ItemBehavior::Hide => None,
                                         ItemBehavior::HideTo(_, _) => {
@@ -953,7 +1058,7 @@ impl MainState {
                             let member = self.get_scene_item(*member_id);
                             if !member.incapacity {
                                 new_messages.push(Message::MainStateMessage(
-                                    MainStateModifier::ChangeSquadLeaderTo(*member_id),
+                                    MainStateModifier::ChangeSquadLeaderTo(squad.id, *member_id),
                                 ));
                                 new_messages.push(Message::SceneItemMessage(
                                     *member_id,
@@ -962,61 +1067,44 @@ impl MainState {
                             }
                         }
                     }
-                    MainStateModifier::ChangeSquadLeaderTo(scene_item_id) => {
-                        let mut squad = self.get_squad_mut(&scene_item_id);
+                    MainStateModifier::ChangeSquadLeaderTo(squad_id, scene_item_id) => {
+                        let mut squad = self.get_squad_mut(&squad_id);
                         squad.leader = scene_item_id;
                     }
                     MainStateModifier::LeaderIndicateTakeCover(scene_item_id) => {
                         let leader = self.get_scene_item(scene_item_id);
                         let squad = self.get_squad(&leader.squad_id);
-                        let mut already_used_cover_grid_points: Vec<GridPoint> = vec![];
-                        for (member_id, formation_position) in
-                            squad.member_positions(&leader.position, leader.display_angle)
-                        {
-                            if let Some((cover_grid_point, debug_grid_points)) = find_cover_grid_point(
-                                &grid_point_from_scene_point(&formation_position, &self.map),
-                                &self.map,
-                                &already_used_cover_grid_points,
-                            ) {
-                                for debug_grid_point in debug_grid_points.iter() {
-                                    new_messages.push(Message::MainStateMessage(
-                                        MainStateModifier::NewDebugPoint(DebugPoint {
-                                            frame_i: self.frame_i + 120,
-                                            scene_point: scene_point_from_grid_point(
-                                                debug_grid_point,
-                                                &self.map,
-                                            ),
-                                        }),
-                                    ))
-                                }
-
-                                let cover_scene_point =
-                                    scene_point_from_grid_point(&cover_grid_point, &self.map);
-                                if let Some(new_order) = match &leader.behavior {
-                                    ItemBehavior::Dead | ItemBehavior::Unconscious => None,
-                                    ItemBehavior::Standing | ItemBehavior::MoveTo(_, _) => {
-                                        Some(Order::MoveTo(cover_scene_point))
-                                    }
-                                    ItemBehavior::MoveFastTo(_, _) => {
-                                        Some(Order::MoveFastTo(cover_scene_point))
-                                    }
-                                    ItemBehavior::EngageSceneItem(_)
-                                    | ItemBehavior::EngageGridPoint(_)
-                                    | ItemBehavior::HideTo(_, _)
-                                    | ItemBehavior::Hide => Some(Order::HideTo(cover_scene_point)),
-                                } {
-                                    already_used_cover_grid_points.push(cover_grid_point);
-                                    new_messages.push(Message::SceneItemMessage(
-                                        member_id,
-                                        SceneItemModifier::SetNextOrder(new_order),
-                                    ));
-                                }
-                            }
-                        }
+                        new_messages.extend(take_cover_messages(
+                            &leader.position,
+                            leader.looking_direction,
+                            self.frame_i,
+                            squad,
+                            &leader.behavior,
+                            &self.map,
+                        ))
                     }
                     MainStateModifier::NewDebugPoint(debug_point) => {
                         if self.debug {
                             self.debug_points.push(debug_point)
+                        }
+                    }
+                    MainStateModifier::UpdateOrderMarkerAngleFromCursor(scene_item_id) => {
+                        let scene_item = self.get_scene_item(scene_item_id);
+                        let angle_ = angle(
+                            &scene_point_from_window_point(
+                                &self.current_cursor_point,
+                                &self.display_offset,
+                            ),
+                            &scene_item.position,
+                        );
+                        if let Some(order_marker) = self
+                            .order_markers
+                            .iter_mut()
+                            .filter(|o| o.get_scene_item_id() == scene_item_id)
+                            .collect::<Vec<&mut OrderMarker>>()
+                            .first_mut()
+                        {
+                            order_marker.set_angle(angle_);
                         }
                     }
                 },
@@ -1139,20 +1227,45 @@ impl MainState {
     ) -> Vec<UserEvent> {
         // Iterate over all order marker
         for order_marker in &self.order_markers {
-            let (scene_item_id, draw_to_scene_point) = match order_marker {
-                OrderMarker::MoveTo(scene_item_id, scene_point)
-                | OrderMarker::MoveFastTo(scene_item_id, scene_point)
-                | OrderMarker::HideTo(scene_item_id, scene_point)
-                | OrderMarker::FireTo(scene_item_id, scene_point) => (scene_item_id, scene_point),
-            };
             // And check if cursor is over it
-            if order_marker
-                .sprite_info()
-                .contains(&draw_to_scene_point, scene_point)
-            {
-                // When order maker found under cursor, return matching user event
-                return vec![UserEvent::BeginDragOrderMarker(*scene_item_id)];
-            }
+            match order_marker {
+                OrderMarker::MoveTo(_, _)
+                | OrderMarker::MoveFastTo(_, _)
+                | OrderMarker::HideTo(_, _)
+                | OrderMarker::FireTo(_, _) => {
+                    let scene_item_id = order_marker.get_scene_item_id();
+                    let order_marker_scene_point = order_marker.get_scene_point();
+                    if order_marker
+                        .sprite_info()
+                        .contains(&order_marker_scene_point, scene_point)
+                    {
+                        // When order maker found under cursor, return matching user event
+                        return vec![UserEvent::BeginDragOrderMarker(scene_item_id)];
+                    }
+                }
+                OrderMarker::Defend(_, _) | OrderMarker::Hide(_, _) => {
+                    let order_scene_item_id = order_marker.get_scene_item_id();
+                    let order_scene_item = self.get_scene_item(order_scene_item_id);
+                    let order_marker_sprite = order_marker.sprite_info();
+                    let scene_point_with_decal = ScenePoint::new(
+                        order_scene_item.position.x,
+                        order_scene_item.position.y - order_marker_sprite.height,
+                    );
+                    let order_marker_angle = order_marker.get_order_marker_angle();
+                    let no_rotated_rect = order_marker_sprite.rectangle(&scene_point_with_decal);
+                    let anti_rotated_cursor_scene_point = apply_angle_on_point(
+                        &scene_point,
+                        &order_scene_item.position,
+                        &-order_marker_angle,
+                    );
+                    if no_rotated_rect.contains(anti_rotated_cursor_scene_point) {
+                        return vec![
+                            UserEvent::SelectSceneItemIds(vec![order_scene_item_id]),
+                            UserEvent::BeginDragOrderMarker(order_scene_item_id),
+                        ];
+                    }
+                }
+            };
         }
 
         vec![]
@@ -1285,22 +1398,78 @@ impl MainState {
         Ok(())
     }
 
-    fn generate_order_marker_sprites(&mut self) -> GameResult {
-        for order_marker in self.order_markers.iter() {
-            let draw_to_scene_point = match &order_marker {
-                OrderMarker::MoveTo(_, scene_point)
-                | OrderMarker::MoveFastTo(_, scene_point)
-                | OrderMarker::HideTo(_, scene_point)
-                | OrderMarker::FireTo(_, scene_point) => scene_point,
-            };
-            self.ui_batch.add(
-                order_marker
-                    .sprite_info()
-                    .as_draw_params(draw_to_scene_point),
-            );
+    fn generate_prepare_order_sprites(&mut self) -> GameResult {
+        if let Some(prepare_order) = &self.scene_item_prepare_order {
+            match prepare_order {
+                SceneItemPrepareOrder::Move(_)
+                | SceneItemPrepareOrder::MoveFast(_)
+                | SceneItemPrepareOrder::Sneak(_) => {}
+                SceneItemPrepareOrder::Hide(_) | SceneItemPrepareOrder::Defend(_) => {
+                    let selected_squad_ids = self.get_selected_squad_ids();
+                    if let Some(selected_squad_id) = selected_squad_ids.first() {
+                        let squad = self.get_squad(selected_squad_id);
+                        let leader = self.get_scene_item(squad.leader);
+                        let scene_cursor_point = &scene_point_from_window_point(
+                            &self.current_cursor_point,
+                            &self.display_offset,
+                        );
+                        let angle_ = angle(scene_cursor_point, &leader.position);
+                        let sprite_info = match prepare_order {
+                            SceneItemPrepareOrder::Defend(_) => {
+                                OrderMarker::Defend(leader.id, angle_).sprite_info()
+                            }
+                            SceneItemPrepareOrder::Hide(_) => {
+                                OrderMarker::Hide(leader.id, angle_).sprite_info()
+                            }
+                            _ => {
+                                panic!("Should not be here")
+                            }
+                        };
+                        let draw_param = sprite_info.as_draw_params(
+                            &leader.position,
+                            angle_,
+                            Some(Offset::new(
+                                DISPLAY_DEFEND_X_OFFSET,
+                                DISPLAY_DEFEND_Y_OFFSET,
+                            )),
+                        );
+                        self.ui_batch.add(draw_param);
+                    }
+                }
+            }
         }
 
         Ok(())
+    }
+
+    fn generate_order_marker_sprites(&mut self) -> GameResult {
+        for order_marker in self.order_markers.iter() {
+            let draw_to_scene_point = self.get_order_marker_scene_point(&order_marker);
+            let angle = order_marker.get_order_marker_angle();
+            let offset = order_marker.get_order_marker_offset();
+
+            self.ui_batch.add(order_marker.sprite_info().as_draw_params(
+                &draw_to_scene_point,
+                angle,
+                offset,
+            ));
+        }
+
+        Ok(())
+    }
+
+    fn get_order_marker_scene_point(&self, order_marker: &OrderMarker) -> ScenePoint {
+        match &order_marker {
+            OrderMarker::MoveTo(_, scene_point)
+            | OrderMarker::MoveFastTo(_, scene_point)
+            | OrderMarker::HideTo(_, scene_point)
+            | OrderMarker::FireTo(_, scene_point) => scene_point.clone(),
+            OrderMarker::Defend(squad_id, _angle) | OrderMarker::Hide(squad_id, _angle) => {
+                let squad = self.get_squad(squad_id);
+                let leader = self.get_scene_item(squad.leader);
+                leader.position
+            }
+        }
     }
 
     fn update_interior_sprites(&mut self) -> GameResult {
@@ -1429,30 +1598,130 @@ impl MainState {
 
             // Draw selection area on all order marker and hover
             for order_marker in self.order_markers.iter() {
-                let order_marker_position = order_marker.get_scene_point();
-                let order_marker_sprite = order_marker.sprite_info();
-                mesh_builder.rectangle(
-                    DrawMode::stroke(1.0),
-                    order_marker_sprite.rectangle(&order_marker_position),
-                    Color {
-                        r: 0.8,
-                        g: 1.0,
-                        b: 0.5,
-                        a: 0.2,
-                    },
-                )?;
-                if order_marker_sprite.contains(&order_marker_position, &cursor_scene_point) {
-                    mesh_builder.rectangle(
-                        DrawMode::stroke(1.0),
-                        order_marker_sprite.rectangle(&order_marker_position),
-                        Color {
-                            r: 0.8,
-                            g: 1.0,
-                            b: 0.5,
-                            a: 1.0,
-                        },
-                    )?;
-                }
+                match order_marker {
+                    // Movement order markers
+                    OrderMarker::MoveTo(_, _)
+                    | OrderMarker::MoveFastTo(_, _)
+                    | OrderMarker::HideTo(_, _)
+                    | OrderMarker::FireTo(_, _) => {
+                        let order_marker_position = self.get_order_marker_scene_point(order_marker);
+                        let order_marker_sprite = order_marker.sprite_info();
+                        mesh_builder.rectangle(
+                            DrawMode::stroke(1.0),
+                            order_marker_sprite.rectangle(&order_marker_position),
+                            Color {
+                                r: 0.8,
+                                g: 1.0,
+                                b: 0.5,
+                                a: 0.2,
+                            },
+                        )?;
+                        if order_marker_sprite.contains(&order_marker_position, &cursor_scene_point)
+                        {
+                            mesh_builder.rectangle(
+                                DrawMode::stroke(1.0),
+                                order_marker_sprite.rectangle(&order_marker_position),
+                                Color {
+                                    r: 0.8,
+                                    g: 1.0,
+                                    b: 0.5,
+                                    a: 1.0,
+                                },
+                            )?;
+                        }
+                    }
+                    // Defend/Hide order markers
+                    OrderMarker::Defend(_, _) | OrderMarker::Hide(_, _) => {
+                        let order_scene_item_id = order_marker.get_scene_item_id();
+                        let order_scene_item = self.get_scene_item(order_scene_item_id);
+                        let order_marker_position = self.get_order_marker_scene_point(order_marker);
+                        let order_marker_sprite = order_marker.sprite_info();
+                        let order_marker_angle = order_marker.get_order_marker_angle();
+                        let scene_point_with_decal = ScenePoint::new(
+                            order_scene_item.position.x,
+                            order_scene_item.position.y - order_marker_sprite.height,
+                        );
+                        let hover_rectangle = order_marker_sprite.rotated_rectangle(
+                            &scene_point_with_decal,
+                            &order_marker_position,
+                            order_marker_angle,
+                        );
+
+                        mesh_builder.line(
+                            &[
+                                hover_rectangle.top_left,
+                                hover_rectangle.top_right,
+                                hover_rectangle.bottom_right,
+                                hover_rectangle.bottom_left,
+                                hover_rectangle.top_left,
+                            ],
+                            1.0,
+                            Color {
+                                r: 0.8,
+                                g: 1.0,
+                                b: 0.5,
+                                a: 0.5,
+                            },
+                        )?;
+
+                        // Generate non-rotated rectangle and anto rotated cursor to know if
+                        // cursor is inside defend/hide marker
+                        let no_rotated_rect =
+                            order_marker_sprite.rectangle(&scene_point_with_decal);
+                        let anti_rotated_cursor_scene_point = apply_angle_on_point(
+                            &cursor_scene_point,
+                            &order_scene_item.position,
+                            &-order_marker_angle,
+                        );
+                        mesh_builder.circle(
+                            DrawMode::fill(),
+                            anti_rotated_cursor_scene_point,
+                            2.0,
+                            2.0,
+                            graphics::RED,
+                        )?;
+                        mesh_builder.rectangle(
+                            DrawMode::stroke(1.0),
+                            no_rotated_rect,
+                            Color {
+                                r: 1.0,
+                                g: 0.0,
+                                b: 0.0,
+                                a: 0.5,
+                            },
+                        )?;
+
+                        // Use non-rotated rectangle to know if hover
+                        if no_rotated_rect.contains(anti_rotated_cursor_scene_point) {
+                            mesh_builder.line(
+                                &[
+                                    hover_rectangle.top_left,
+                                    hover_rectangle.top_right,
+                                    hover_rectangle.bottom_right,
+                                    hover_rectangle.bottom_left,
+                                    hover_rectangle.top_left,
+                                ],
+                                1.0,
+                                Color {
+                                    r: 0.8,
+                                    g: 1.0,
+                                    b: 0.5,
+                                    a: 1.0,
+                                },
+                            )?;
+                            mesh_builder.rectangle(
+                                DrawMode::stroke(1.0),
+                                no_rotated_rect,
+                                Color {
+                                    r: 1.0,
+                                    g: 0.0,
+                                    b: 0.0,
+                                    a: 1.0,
+                                },
+                            )?;
+                        }
+                    }
+                };
             }
 
             // Display selected squad formation positions
@@ -1460,7 +1729,7 @@ impl MainState {
                 let squad = self.get_squad(&squad_id);
                 let leader = self.get_scene_item(squad.leader);
                 for (_, scene_point) in squad
-                    .member_positions(&leader.position, leader.display_angle)
+                    .member_positions(&leader.position, leader.looking_direction)
                     .iter()
                 {
                     mesh_builder.circle(
@@ -1616,11 +1885,14 @@ impl MainState {
             match scene_item_prepare_order {
                 SceneItemPrepareOrder::Move(squad_id)
                 | SceneItemPrepareOrder::MoveFast(squad_id)
-                | SceneItemPrepareOrder::Hide(squad_id) => {
+                | SceneItemPrepareOrder::Sneak(squad_id) => {
                     let color = match &scene_item_prepare_order {
                         SceneItemPrepareOrder::Move(_) => graphics::BLUE,
                         SceneItemPrepareOrder::MoveFast(_) => graphics::MAGENTA,
-                        SceneItemPrepareOrder::Hide(_) => graphics::YELLOW,
+                        SceneItemPrepareOrder::Sneak(_) => graphics::YELLOW,
+                        _ => {
+                            panic!("Should not be here")
+                        }
                     };
 
                     let scene_item = self.get_squad_leader(squad_id);
@@ -1636,6 +1908,7 @@ impl MainState {
                         color,
                     )?;
                 }
+                SceneItemPrepareOrder::Defend(_) | SceneItemPrepareOrder::Hide(_) => {}
             }
         }
 
@@ -1828,7 +2101,7 @@ impl MainState {
             match scene_item_prepare_order {
                 SceneItemPrepareOrder::Move(squad_id)
                 | SceneItemPrepareOrder::MoveFast(squad_id)
-                | SceneItemPrepareOrder::Hide(squad_id) => {
+                | SceneItemPrepareOrder::Sneak(squad_id) => {
                     // FIXME BS: Color depending from distance and weapon
                     let color = graphics::GREEN;
                     let scene_item = self.get_squad_leader(squad_id);
@@ -1847,6 +2120,7 @@ impl MainState {
                         Some(color),
                     ))
                 }
+                SceneItemPrepareOrder::Defend(_) | SceneItemPrepareOrder::Hide(_) => {}
             }
         }
 
@@ -1910,6 +2184,7 @@ impl event::EventHandler for MainState {
 
         self.generate_scene_item_sprites()?;
         self.generate_squad_menu_sprites()?;
+        self.generate_prepare_order_sprites()?;
         self.generate_order_marker_sprites()?;
 
         scene_mesh_builder = self.update_scene_mesh_with_debug(scene_mesh_builder)?;

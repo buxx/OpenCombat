@@ -1,5 +1,5 @@
 use crate::physics::util::apply_angle_on_point;
-use crate::{Angle, SceneItemId, ScenePoint};
+use crate::{Angle, SceneItemId, ScenePoint, SquadId};
 use std::collections::HashMap;
 
 pub enum Formation {
@@ -7,14 +7,16 @@ pub enum Formation {
 }
 
 pub struct Squad {
+    pub id: SquadId,
     pub formation: Formation,
     pub leader: SceneItemId,
     pub members: Vec<SceneItemId>,
 }
 
 impl Squad {
-    pub fn new() -> Self {
+    pub fn new(id: SquadId) -> Self {
         Self {
+            id,
             formation: Formation::Line,
             leader: 0,
             members: vec![],

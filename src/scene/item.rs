@@ -2,11 +2,8 @@ use ggez::graphics;
 
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
-use crate::config::{
-    SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH,
-    UNDER_FIRE_INTENSITY_INCREMENT, UNDER_FIRE_INTENSITY_MAX,
-};
-use crate::gameplay::weapon::Weapon;
+use crate::config::{SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH, UNDER_FIRE_INTENSITY_INCREMENT, UNDER_FIRE_INTENSITY_MAX, MAXIMAL_HIDING_DISTANCE};
+use crate::gameplay::weapon::{Weapon, SceneItemWeapon};
 use crate::map::Map;
 use crate::physics::visibility::Visibility;
 use crate::physics::{util, MetaEvent};
@@ -90,7 +87,7 @@ pub struct SceneItem {
     pub current_frame: f32,
     pub current_order: Option<Order>,
     pub next_order: Option<Order>,
-    pub display_angle: Angle,
+    pub looking_direction: Angle,
     pub visibilities: Vec<Visibility>,
     pub side: Side,
     pub weapon: Weapon,
@@ -126,7 +123,7 @@ impl SceneItem {
             current_frame: 0.0,
             current_order: None,
             next_order: None,
-            display_angle: 0.0,
+            looking_direction: 0.0,
             visibilities: vec![],
             side,
             weapon,
@@ -162,7 +159,7 @@ impl SceneItem {
                 sprite_info.relative_tile_width,
                 sprite_info.relative_tile_height,
             ))
-            .rotation(self.display_angle)
+            .rotation(self.looking_direction)
             .offset(Offset::new(0.5, 0.5))
     }
 
@@ -174,7 +171,7 @@ impl SceneItem {
             ItemBehavior::MoveTo(_, _) => SpriteType::WalkingSoldier,
             ItemBehavior::MoveFastTo(_, _) => SpriteType::WalkingSoldier,
             ItemBehavior::Standing => SpriteType::StandingSoldier,
-            ItemBehavior::EngageSceneItem(_) => SpriteType::EngagingSoldier,
+            ItemBehavior::EngageSceneItem(_, _) => SpriteType::EngagingSoldier,
             ItemBehavior::EngageGridPoint(_) => SpriteType::EngagingSoldier,
             ItemBehavior::Dead => SpriteType::DeadSoldier,
             ItemBehavior::Unconscious => SpriteType::UnconsciousSoldier,
@@ -187,6 +184,34 @@ impl SceneItem {
             .iter()
             .filter(|v| v.visible && v.to_scene_item_id.is_some())
             .collect::<Vec<&Visibility>>()
+    }
+
+    pub fn reachable_visible_scene_items_visibilities(&self) -> Vec<(SceneItemWeapon, &Visibility)> {
+        let mut visibilities: Vec<(SceneItemWeapon, &Visibility)> = vec![];
+        for visibility in self.visible_scene_items_visibilities() {
+            if let Some(weapon) = self.can_engage_with_weapon(visibility) {
+                if !self.is_hiding() || visibility.distance <= MAXIMAL_HIDING_DISTANCE {
+                    visibilities.push((weapon, visibility));
+                }
+            }
+        }
+        visibilities
+    }
+
+    pub fn can_engage_with_weapon(&self, visibility: &Visibility) -> Option<SceneItemWeapon> {
+        // TODO: manage multiple weapons
+        let weapon_characteristics = self.weapon.characteristics();
+        if visibility.distance >= weapon_characteristics.minimal_auto_engage_distance && visibility.distance <= weapon_characteristics.maximal_auto_engage_distance {
+            return Some(SceneItemWeapon::MainWeapon)
+        }
+        None
+    }
+
+    pub fn is_hiding(&self) -> bool {
+        match self.behavior {
+            ItemBehavior::Hide => {true}
+            _ => {false}
+        }
     }
 
     pub fn visible_scene_items_visibilities_for(
@@ -205,7 +230,7 @@ impl SceneItem {
 
 pub enum SceneItemModifier {
     SwitchToNextOrder,
-    ChangeDisplayAngle(Angle),
+    ChangeLookingDirection(Angle),
     ChangeBehavior(ItemBehavior),
     ChangePosition(ScenePoint),
     ChangeGridPosition(GridPoint),
@@ -271,8 +296,8 @@ pub fn apply_scene_item_modifier(
                 scene_item.behavior = new_behavior;
             }
         }
-        SceneItemModifier::ChangeDisplayAngle(new_angle) => {
-            scene_item.display_angle = new_angle;
+        SceneItemModifier::ChangeLookingDirection(new_angle) => {
+            scene_item.looking_direction = new_angle;
         }
         SceneItemModifier::ChangeBehavior(new_behavior) => {
             scene_item.behavior = new_behavior;
@@ -381,9 +406,9 @@ pub fn apply_scene_item_modifier(
             MainStateModifier::SquadLeaderIndicateMove(scene_item.id),
         )),
         SceneItemModifier::SetIsLeader => scene_item.is_leader = true,
-        SceneItemModifier::LeaderIndicateTakeCover => {
-            messages.push(MainStateMessage(MainStateModifier::LeaderIndicateTakeCover(scene_item.id)))
-        }
+        SceneItemModifier::LeaderIndicateTakeCover => messages.push(MainStateMessage(
+            MainStateModifier::LeaderIndicateTakeCover(scene_item.id),
+        )),
     }
 
     messages

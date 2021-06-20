@@ -1,11 +1,14 @@
 pub mod animate;
+pub mod defend;
 pub mod engagement;
 pub mod movement;
 pub mod order;
 pub mod standing;
+pub mod util;
 
 use crate::physics::GridPoint;
 use crate::{GridPath, SceneItemId, ScenePoint};
+use crate::gameplay::weapon::SceneItemWeapon;
 
 pub enum ItemBehavior {
     Dead,
@@ -14,7 +17,7 @@ pub enum ItemBehavior {
     HideTo(ScenePoint, GridPath),
     MoveTo(ScenePoint, GridPath),
     MoveFastTo(ScenePoint, GridPath),
-    EngageSceneItem(SceneItemId),
+    EngageSceneItem(SceneItemWeapon, SceneItemId),
     EngageGridPoint(GridPoint),
     Hide,
 }

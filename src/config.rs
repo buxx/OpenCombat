@@ -1,4 +1,4 @@
-use crate::FrameI;
+use crate::{FrameI, Meters};
 
 // execute update code 60x per seconds
 pub const TARGET_FPS: u32 = 60;
@@ -55,3 +55,8 @@ pub const STOP_MOVE_ORDER_IF_UNDER_FIRE_INTENSITY: f32 = 75.0;
 pub const DISTANCE_TO_METERS_COEFFICIENT: f32 = 0.3;
 // Grid distance to search cover point
 pub const COVER_DISTANCE: i32 = 5;
+// Offset of defend/hide sprite from leader position
+pub const DISPLAY_DEFEND_X_OFFSET: f32 = 0.5;
+pub const DISPLAY_DEFEND_Y_OFFSET: f32 = 1.5;
+// Maximal meters distance to engage for hide squad
+pub const MAXIMAL_HIDING_DISTANCE: Meters = 50.0;

@@ -1,6 +1,12 @@
 use crate::audio::Sound;
 use crate::{Factor, Meters};
 
+#[derive(Clone, Copy)]
+pub enum SceneItemWeapon {
+    MainWeapon,
+}
+
+#[derive(Clone, Copy)]
 pub enum WeaponType {
     GarandM1,
     MauserG41,
@@ -19,11 +25,17 @@ impl Weapon {
             need_reload: false,
         }
     }
+
+    pub fn characteristics(&self) -> WeaponCharacteristic {
+        WeaponCharacteristic::new(&self.type_)
+    }
 }
 
 pub struct WeaponCharacteristic {
     pub miss_by_distance_factors: Vec<(Meters, Factor)>,
     pub sound: Sound,
+    pub minimal_auto_engage_distance: Meters,
+    pub maximal_auto_engage_distance: Meters,
 }
 
 impl WeaponCharacteristic {
@@ -42,14 +54,20 @@ impl WeaponCharacteristic {
             WeaponType::GarandM1 => Self {
                 miss_by_distance_factors: default_miss_by_distance_factors,
                 sound: Sound::GarandM1SingleShot,
+                minimal_auto_engage_distance: 0.0,
+                maximal_auto_engage_distance: 350.0,
             },
             WeaponType::MauserG41 => Self {
                 miss_by_distance_factors: default_miss_by_distance_factors,
                 sound: Sound::GarandM1SingleShot,
+                minimal_auto_engage_distance: 0.0,
+                maximal_auto_engage_distance: 350.0,
             },
             WeaponType::MosinNagant1938 => Self {
                 miss_by_distance_factors: default_miss_by_distance_factors,
                 sound: Sound::GarandM1SingleShot,
+                minimal_auto_engage_distance: 0.0,
+                maximal_auto_engage_distance: 350.0,
             },
         }
     }
