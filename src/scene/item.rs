@@ -296,6 +296,7 @@ pub fn apply_scene_item_modifier(
                         SceneItemModifier::SwitchToNextOrder,
                     ));
                     if scene_item.is_leader {
+                        // TODO: Place a debug line here to prevent infinite take cover order
                         messages.push(Message::SceneItemMessage(
                             scene_item.id,
                             SceneItemModifier::LeaderIndicateTakeCover,
