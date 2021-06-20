@@ -1015,7 +1015,9 @@ impl MainState {
                         }
                     }
                     MainStateModifier::NewDebugPoint(debug_point) => {
-                        self.debug_points.push(debug_point)
+                        if self.debug {
+                            self.debug_points.push(debug_point)
+                        }
                     }
                 },
             }
