@@ -1063,6 +1063,7 @@ impl MainState {
                                     *member_id,
                                     SceneItemModifier::SetIsLeader,
                                 ));
+                                continue
                             }
                         }
                     }
