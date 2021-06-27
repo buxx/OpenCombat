@@ -69,7 +69,7 @@ pub enum MainStateModifier {
     NewDebugPoint(DebugPoint),
     NewOrderMarker(OrderMarker, bool), // _, avoid_duplicate
     RemoveOrderMarker(SceneItemId),
-    SquadLeaderIndicateMove(SceneItemId),
+    SquadLeaderGiveFollowOrder(SceneItemId),
     ElectNewSquadLeader(SceneItemId),
     ChangeSquadLeaderTo(SquadId, SceneItemId),
     LeaderIndicateTakeCover(SceneItemId),
@@ -1007,14 +1007,16 @@ impl MainState {
                             self.order_markers.remove(i);
                         }
                     }
-                    MainStateModifier::SquadLeaderIndicateMove(scene_item_id) => {
+                    MainStateModifier::SquadLeaderGiveFollowOrder(scene_item_id) => {
                         let scene_item = self.get_scene_item(scene_item_id);
                         let squad = self.get_squad(&scene_item.squad_id);
                         let leader = self.get_scene_item(squad.leader);
                         let formation_positions =
                             squad.member_positions(&leader.position, leader.looking_direction);
                         if squad.leader != scene_item_id {
-                            eprintln!("Squad leader taken move must be done by squad leader !")
+                            // FIXME BS NOW: Lorsque le squad leader est tué pendant move, les unit
+                            // se repositionnes sans cesse et on passe par cette ligne très souvent
+                            eprintln!("Squad leader taken move must be done by squad leader ! (not {})", scene_item_id)
                         } else {
                             for member_id in &squad.members {
                                 if *member_id != scene_item_id {
@@ -1063,7 +1065,7 @@ impl MainState {
                                     *member_id,
                                     SceneItemModifier::SetIsLeader,
                                 ));
-                                continue
+                                break
                             }
                         }
                     }

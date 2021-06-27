@@ -39,7 +39,7 @@ pub fn digest_next_move_order(
         scene_item_modifiers.push(SceneItemModifier::SwitchToNextOrder);
         scene_item_modifiers.push(SceneItemModifier::ChangeBehavior(behavior));
         if scene_item.is_leader {
-            scene_item_modifiers.push(SceneItemModifier::LeaderIndicateMove);
+            scene_item_modifiers.push(SceneItemModifier::GiveFollowOrder);
         }
     } else {
         eprintln!("No path found to given scene point {}", move_to_scene_point);

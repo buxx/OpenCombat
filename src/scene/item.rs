@@ -252,7 +252,7 @@ pub enum SceneItemModifier {
     SetLastBulletFire(FrameI),
     IncrementUnderFire,
     CancelOrders(Option<ItemBehavior>),
-    LeaderIndicateMove,      // Indicate to its squad members to follow him
+    GiveFollowOrder,      // Indicate to its squad members to follow him
     LeaderIndicateTakeCover, // Indicate to its squad members which next order is to place
     SetIsLeader,
 }
@@ -333,12 +333,13 @@ pub fn apply_scene_item_modifier(
                             scene_item.id,
                             SceneItemModifier::LeaderIndicateTakeCover,
                         ));
+                        println!("HELLO")
                     }
                 };
                 if scene_item.is_leader {
                     messages.push(Message::SceneItemMessage(
                         scene_item.id,
-                        SceneItemModifier::LeaderIndicateMove,
+                        SceneItemModifier::GiveFollowOrder,
                     ));
                 }
             }
@@ -409,8 +410,8 @@ pub fn apply_scene_item_modifier(
                 scene_item.behavior = behavior_
             }
         }
-        SceneItemModifier::LeaderIndicateMove => messages.push(Message::MainStateMessage(
-            MainStateModifier::SquadLeaderIndicateMove(scene_item.id),
+        SceneItemModifier::GiveFollowOrder => messages.push(Message::MainStateMessage(
+            MainStateModifier::SquadLeaderGiveFollowOrder(scene_item.id),
         )),
         SceneItemModifier::SetIsLeader => scene_item.is_leader = true,
         SceneItemModifier::LeaderIndicateTakeCover => messages.push(MainStateMessage(
