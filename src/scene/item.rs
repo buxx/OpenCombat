@@ -370,7 +370,7 @@ pub fn apply_scene_item_modifier(
             scene_item.next_order = None;
             scene_item.current_order = None;
             scene_item.under_fire_intensity = 0.0;
-            scene_item.behavior = ItemBehavior::Unconscious;
+            scene_item.behavior = ItemBehavior::Dead;
             scene_item.is_leader = false;
             messages.push(Message::MainStateMessage(
                 MainStateModifier::RemoveOrderMarker(scene_item.id),
