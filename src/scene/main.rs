@@ -11,7 +11,6 @@ use ggez::{event, graphics, input, Context, GameResult};
 
 use crate::audio::{Audio, Sound};
 use crate::behavior::animate::{digest_behavior, digest_current_order, digest_next_order};
-use crate::behavior::movement::find_cover_grid_point;
 use crate::behavior::order::Order;
 use crate::behavior::util::take_cover_messages;
 use crate::behavior::ItemBehavior;
@@ -48,7 +47,7 @@ use crate::ui::{CursorImmobile, Dragging, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
 use crate::util::angle;
 use crate::{
-    scene, Angle, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, SquadId, WindowPoint,
+    scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, SquadId, WindowPoint,
 };
 
 #[derive(PartialEq)]
@@ -783,10 +782,10 @@ impl MainState {
                         SceneItemModifier::SetNextOrder(order.clone()),
                     ));
                     messages.push(Message::MainStateMessage(
-                        MainStateModifier::NewOrderMarker(OrderMarker::new(
-                            squad.leader,
-                            &order.clone(),
-                        ), false),
+                        MainStateModifier::NewOrderMarker(
+                            OrderMarker::new(squad.leader, &order.clone()),
+                            false,
+                        ),
                     ));
                     self.current_prepare_move_found_paths = HashMap::new();
                 }
@@ -819,10 +818,10 @@ impl MainState {
                         &self.map,
                     ));
                     messages.push(Message::MainStateMessage(
-                        MainStateModifier::NewOrderMarker(OrderMarker::new(
-                            squad.leader,
-                            &then_order,
-                        ), true),
+                        MainStateModifier::NewOrderMarker(
+                            OrderMarker::new(squad.leader, &then_order),
+                            true,
+                        ),
                     ));
                     messages.push(Message::SceneItemMessage(
                         leader.id,
@@ -989,10 +988,10 @@ impl MainState {
                     MainStateModifier::NewOrderMarker(order_marker, avoid_duplicate) => {
                         let new_order_marker_scene_item_id = order_marker.get_scene_item_id();
                         if avoid_duplicate {
-                            if let Some(order_marker_index) = self
-                                .order_markers
-                                .iter()
-                                .position(|o| o.get_scene_item_id() == new_order_marker_scene_item_id)
+                            if let Some(order_marker_index) =
+                                self.order_markers.iter().position(|o| {
+                                    o.get_scene_item_id() == new_order_marker_scene_item_id
+                                })
                             {
                                 self.order_markers.remove(order_marker_index);
                             }

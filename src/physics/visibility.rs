@@ -3,7 +3,7 @@ use crate::config::VISIBILITY_FIRSTS;
 use crate::map::Map;
 use crate::physics::util::{grid_point_from_scene_point, meters_between_scene_points};
 use crate::scene::item::SceneItem;
-use crate::{FrameI, GridPath, ScenePoint, Meters};
+use crate::{FrameI, GridPath, Meters, ScenePoint};
 use bresenham::Bresenham;
 use std::cmp;
 
@@ -102,7 +102,8 @@ impl Visibility {
         to_scene_item_opacity = to_scene_item_opacity - by_behavior_modifier;
         let visible = to_scene_item_opacity < 0.5;
 
-        let distance = meters_between_scene_points(&scene_item_from.position, &to_scene_item.position);
+        let distance =
+            meters_between_scene_points(&scene_item_from.position, &to_scene_item.position);
         Self {
             from_scene_id: scene_item_from.id,
             from_scene_point: scene_item_from.position,

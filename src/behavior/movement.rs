@@ -98,9 +98,11 @@ pub fn find_cover_grid_point(
     exclude_grid_points: &Vec<GridPoint>,
 ) -> Option<(GridPoint, Vec<GridPoint>)> {
     let mut tiles: Vec<(GridPoint, &TerrainTile)> = vec![];
-    if let Some(tile) = map.terrain
-            .tiles
-            .get(&(from_grid_point.x as u32, from_grid_point.y as u32)) {
+    if let Some(tile) = map
+        .terrain
+        .tiles
+        .get(&(from_grid_point.x as u32, from_grid_point.y as u32))
+    {
         tiles.push((from_grid_point.clone(), tile))
     }
     let grid_points_for_square =

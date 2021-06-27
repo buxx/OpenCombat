@@ -2,8 +2,11 @@ use ggez::graphics;
 
 use crate::behavior::order::Order;
 use crate::behavior::ItemBehavior;
-use crate::config::{SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH, UNDER_FIRE_INTENSITY_INCREMENT, UNDER_FIRE_INTENSITY_MAX, MAXIMAL_HIDING_DISTANCE};
-use crate::gameplay::weapon::{Weapon, SceneItemWeapon};
+use crate::config::{
+    MAXIMAL_HIDING_DISTANCE, SCENE_ITEMS_SPRITE_SHEET_HEIGHT, SCENE_ITEMS_SPRITE_SHEET_WIDTH,
+    UNDER_FIRE_INTENSITY_INCREMENT, UNDER_FIRE_INTENSITY_MAX,
+};
+use crate::gameplay::weapon::{SceneItemWeapon, Weapon};
 use crate::map::Map;
 use crate::physics::visibility::Visibility;
 use crate::physics::{util, MetaEvent};
@@ -186,7 +189,9 @@ impl SceneItem {
             .collect::<Vec<&Visibility>>()
     }
 
-    pub fn reachable_visible_scene_items_visibilities(&self) -> Vec<(SceneItemWeapon, &Visibility)> {
+    pub fn reachable_visible_scene_items_visibilities(
+        &self,
+    ) -> Vec<(SceneItemWeapon, &Visibility)> {
         let mut visibilities: Vec<(SceneItemWeapon, &Visibility)> = vec![];
         for visibility in self.visible_scene_items_visibilities() {
             if let Some(weapon) = self.can_engage_with_weapon(visibility) {
@@ -201,16 +206,18 @@ impl SceneItem {
     pub fn can_engage_with_weapon(&self, visibility: &Visibility) -> Option<SceneItemWeapon> {
         // TODO: manage multiple weapons
         let weapon_characteristics = self.weapon.characteristics();
-        if visibility.distance >= weapon_characteristics.minimal_auto_engage_distance && visibility.distance <= weapon_characteristics.maximal_auto_engage_distance {
-            return Some(SceneItemWeapon::MainWeapon)
+        if visibility.distance >= weapon_characteristics.minimal_auto_engage_distance
+            && visibility.distance <= weapon_characteristics.maximal_auto_engage_distance
+        {
+            return Some(SceneItemWeapon::MainWeapon);
         }
         None
     }
 
     pub fn is_hiding(&self) -> bool {
         match self.behavior {
-            ItemBehavior::Hide => {true}
-            _ => {false}
+            ItemBehavior::Hide => true,
+            _ => false,
         }
     }
 

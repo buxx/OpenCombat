@@ -3,21 +3,21 @@ use crate::scene::item::{SceneItem, SceneItemModifier};
 use crate::Angle;
 
 pub fn digest_defend_order(
-    scene_item: &SceneItem,
-    angle: &Angle,
-    map: &Map,
+    _scene_item: &SceneItem,
+    _angle: &Angle,
+    _map: &Map,
 ) -> Vec<SceneItemModifier> {
-    let mut scene_item_modifiers: Vec<SceneItemModifier> = vec![];
+    let scene_item_modifiers: Vec<SceneItemModifier> = vec![];
 
     scene_item_modifiers
 }
 
 pub fn digest_hide_order(
-    scene_item: &SceneItem,
-    angle: &Angle,
-    map: &Map,
+    _scene_item: &SceneItem,
+    _angle: &Angle,
+    _map: &Map,
 ) -> Vec<SceneItemModifier> {
-    let mut scene_item_modifiers: Vec<SceneItemModifier> = vec![];
+    let scene_item_modifiers: Vec<SceneItemModifier> = vec![];
 
     scene_item_modifiers
 }

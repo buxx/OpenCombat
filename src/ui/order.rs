@@ -62,7 +62,7 @@ impl OrderMarker {
             | OrderMarker::MoveFastTo(_, _)
             | OrderMarker::HideTo(_, _)
             | OrderMarker::FireTo(_, _) => None,
-            OrderMarker::Defend(_, angle) | OrderMarker::Hide(_, angle) => Some(Offset::new(
+            OrderMarker::Defend(_, _) | OrderMarker::Hide(_, _) => Some(Offset::new(
                 DISPLAY_DEFEND_X_OFFSET,
                 DISPLAY_DEFEND_Y_OFFSET,
             )),

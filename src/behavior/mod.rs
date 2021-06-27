@@ -6,9 +6,9 @@ pub mod order;
 pub mod standing;
 pub mod util;
 
+use crate::gameplay::weapon::SceneItemWeapon;
 use crate::physics::GridPoint;
 use crate::{GridPath, SceneItemId, ScenePoint};
-use crate::gameplay::weapon::SceneItemWeapon;
 
 pub enum ItemBehavior {
     Dead,

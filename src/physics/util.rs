@@ -1,7 +1,7 @@
 use crate::config::DISTANCE_TO_METERS_COEFFICIENT;
 use crate::map::Map;
 use crate::physics::GridPoint;
-use crate::{Angle, ScenePoint, WindowPoint, Meters};
+use crate::{Angle, Meters, ScenePoint, WindowPoint};
 
 pub fn grid_point_from_scene_point(position: &ScenePoint, map: &Map) -> GridPoint {
     GridPoint::new(
