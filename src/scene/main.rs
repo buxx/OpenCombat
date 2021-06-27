@@ -2043,6 +2043,11 @@ impl MainState {
                     ScenePoint::new(scene_item.position.x + 10.0, scene_item.position.y),
                     Text::new(format!("{:.2}", scene_item.under_fire_intensity)),
                     None,
+                ));
+                texts.push((
+                    ScenePoint::new(scene_item.position.x, scene_item.position.y - 50.0),
+                    Text::new(format!("{}", scene_item.behavior)),
+                    Some(graphics::BLUE),
                 ))
             }
 
