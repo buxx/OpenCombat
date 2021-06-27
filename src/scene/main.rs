@@ -1463,9 +1463,8 @@ impl MainState {
             | OrderMarker::MoveFastTo(_, scene_point)
             | OrderMarker::HideTo(_, scene_point)
             | OrderMarker::FireTo(_, scene_point) => scene_point.clone(),
-            OrderMarker::Defend(squad_id, _angle) | OrderMarker::Hide(squad_id, _angle) => {
-                let squad = self.get_squad(squad_id);
-                let leader = self.get_scene_item(squad.leader);
+            OrderMarker::Defend(scene_item_id, _angle) | OrderMarker::Hide(squad_id, _angle) => {
+                let leader = self.get_scene_item(*scene_item_id);
                 leader.position
             }
         }
