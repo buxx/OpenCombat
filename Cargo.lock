@@ -800,8 +800,8 @@ dependencies = [
 
 [[package]]
 name = "ggez"
-version = "0.6.0-rc0"
-source = "git+https://github.com/ggez/ggez?tag=0.6.0-rc0#668be1d18c8da514870c993363d5a3677bc9c0a3"
+version = "0.6.0-rc1"
+source = "git+https://github.com/ggez/ggez?rev=359442b7869b580e8dae8435226e3888617ea5e8#359442b7869b580e8dae8435226e3888617ea5e8"
 dependencies = [
  "approx",
  "bitflags",

@@ -1,12 +1,12 @@
-use std::{cmp, thread};
 use std::collections::HashMap;
 use std::path::Path;
 use std::time::{Duration, Instant};
+use std::{cmp, thread};
 
 use ggez::event::MouseButton;
 use ggez::graphics::{Color, DrawMode, FilterMode, MeshBuilder, StrokeOptions, Text};
 use ggez::input::keyboard::KeyCode;
-use ggez::timer::{check_update_time, average_delta};
+use ggez::timer::{average_delta, check_update_time};
 use ggez::{event, graphics, input, Context, GameResult};
 
 use crate::audio::{Audio, Sound};
@@ -14,7 +14,12 @@ use crate::behavior::animate::{digest_behavior, digest_current_order, digest_nex
 use crate::behavior::order::Order;
 use crate::behavior::util::take_cover_messages;
 use crate::behavior::ItemBehavior;
-use crate::config::{ANIMATE_EACH, DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET, DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I, PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, SQUADS_CHANGE_ERR_MSG, TARGET_FPS, UNDER_FIRE_INTENSITY_DECREMENT, FRAME_EXPECTED_DURATION};
+use crate::config::{
+    ANIMATE_EACH, DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET, DISPLAY_OFFSET_BY,
+    DISPLAY_OFFSET_BY_SPEED, FRAME_EXPECTED_DURATION, INTERIORS_EACH, MAX_FRAME_I, PHYSICS_EACH,
+    SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, SQUADS_CHANGE_ERR_MSG, TARGET_FPS,
+    UNDER_FIRE_INTENSITY_DECREMENT,
+};
 use crate::gameplay::squad::Squad;
 use crate::gameplay::weapon::{Weapon, WeaponType};
 use crate::map::util::extract_image_from_tileset;
@@ -41,7 +46,7 @@ use crate::ui::order::OrderMarker;
 use crate::ui::vertical_menu::vertical_menu_sprite_info;
 use crate::ui::{CursorImmobile, Dragging, MenuItem};
 use crate::ui::{SceneItemPrepareOrder, UiComponent, UserEvent};
-use crate::util::angle;
+use crate::util::{angle, BLUE, GREEN, MAGENTA, RED, YELLOW};
 use crate::{
     scene, FrameI, Message, Meters, Offset, SceneItemId, ScenePoint, SquadId, WindowPoint,
 };
@@ -1494,9 +1499,9 @@ impl MainState {
             // Draw circle on each scene item position
             for scene_item in self.scene_items.iter() {
                 let color = if scene_item.side == self.current_side {
-                    graphics::GREEN
+                    GREEN
                 } else {
-                    graphics::RED
+                    RED
                 };
                 mesh_builder.circle(
                     DrawMode::fill(),
@@ -1518,7 +1523,7 @@ impl MainState {
                     scene_left_click_down_point,
                     2.0,
                     2.0,
-                    graphics::YELLOW,
+                    YELLOW,
                 )?;
             }
 
@@ -1526,13 +1531,7 @@ impl MainState {
                 scene_point_from_window_point(&self.current_cursor_point, &self.display_offset);
 
             // Draw circle at cursor position
-            mesh_builder.circle(
-                DrawMode::fill(),
-                cursor_scene_point,
-                2.0,
-                2.0,
-                graphics::BLUE,
-            )?;
+            mesh_builder.circle(DrawMode::fill(), cursor_scene_point, 2.0, 2.0, BLUE)?;
 
             // Draw selection area on all scene items
             for scene_item in self.scene_items.iter() {
@@ -1650,7 +1649,7 @@ impl MainState {
                             anti_rotated_cursor_scene_point,
                             2.0,
                             2.0,
-                            graphics::RED,
+                            RED,
                         )?;
                         mesh_builder.rectangle(
                             DrawMode::stroke(1.0),
@@ -1704,13 +1703,7 @@ impl MainState {
                     .member_positions(&leader.position, leader.looking_direction)
                     .iter()
                 {
-                    mesh_builder.circle(
-                        DrawMode::fill(),
-                        *scene_point,
-                        2.0,
-                        2.0,
-                        graphics::YELLOW,
-                    )?;
+                    mesh_builder.circle(DrawMode::fill(), *scene_point, 2.0, 2.0, YELLOW)?;
                 }
             }
 
@@ -1722,7 +1715,7 @@ impl MainState {
                         debug_point.scene_point,
                         2.0,
                         2.0,
-                        graphics::BLUE,
+                        BLUE,
                     )?;
                     debug_points_left.push(debug_point);
                 }
@@ -1748,9 +1741,9 @@ impl MainState {
                     .contains(&leader_scene_item.id)
             {
                 let color = if leader_scene_item.side == self.current_side {
-                    graphics::GREEN
+                    GREEN
                 } else {
-                    graphics::RED
+                    RED
                 };
                 mesh_builder.rectangle(
                     DrawMode::Stroke(StrokeOptions::default()),
@@ -1841,7 +1834,7 @@ impl MainState {
                         scene_current_cursor_position.x - scene_left_click_down_point.x,
                         scene_current_cursor_position.y - scene_left_click_down_point.y,
                     ),
-                    graphics::GREEN,
+                    GREEN,
                 )?;
             }
         }
@@ -1859,9 +1852,9 @@ impl MainState {
                 | SceneItemPrepareOrder::MoveFast(squad_id)
                 | SceneItemPrepareOrder::Sneak(squad_id) => {
                     let color = match &scene_item_prepare_order {
-                        SceneItemPrepareOrder::Move(_) => graphics::BLUE,
-                        SceneItemPrepareOrder::MoveFast(_) => graphics::MAGENTA,
-                        SceneItemPrepareOrder::Sneak(_) => graphics::YELLOW,
+                        SceneItemPrepareOrder::Move(_) => BLUE,
+                        SceneItemPrepareOrder::MoveFast(_) => MAGENTA,
+                        SceneItemPrepareOrder::Sneak(_) => YELLOW,
                         _ => {
                             panic!("Should not be here")
                         }
@@ -2020,7 +2013,7 @@ impl MainState {
                 texts.push((
                     ScenePoint::new(scene_item.position.x, scene_item.position.y - 50.0),
                     Text::new(format!("{}", scene_item.behavior)),
-                    Some(graphics::BLUE),
+                    Some(BLUE),
                 ))
             }
 
@@ -2080,7 +2073,7 @@ impl MainState {
                 | SceneItemPrepareOrder::MoveFast(squad_id)
                 | SceneItemPrepareOrder::Sneak(squad_id) => {
                     // FIXME BS: Color depending from distance and weapon
-                    let color = graphics::GREEN;
+                    let color = GREEN;
                     let scene_item = self.get_squad_leader(squad_id);
                     let distance: Meters = meters_between_scene_points(
                         &scene_item.position,
@@ -2162,7 +2155,7 @@ impl event::EventHandler for MainState {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        graphics::clear(ctx, graphics::BLACK);
+        graphics::clear(ctx, Color::BLACK);
         let mut scene_mesh_builder = MeshBuilder::new();
         let mut visibilities_mesh_builder = MeshBuilder::new();
 
@@ -2207,12 +2200,7 @@ impl event::EventHandler for MainState {
 
         // Draw debug texts
         for (text_scene_point, text, color) in texts.iter() {
-            graphics::queue_text(
-                ctx,
-                text,
-                *text_scene_point,
-                color.or(Some(graphics::WHITE)),
-            );
+            graphics::queue_text(ctx, text, *text_scene_point, color.or(Some(Color::WHITE)));
         }
         graphics::draw_queued_text(ctx, window_draw_param, None, FilterMode::Linear)?;
 

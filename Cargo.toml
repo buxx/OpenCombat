@@ -5,7 +5,7 @@ authors = ["Sevajol Bastien <contact@bux.fr>"]
 edition = "2018"
 
 [dependencies]
-ggez = { git = "https://github.com/ggez/ggez", tag = "0.6.0-rc0" }
+ggez = { git = "https://github.com/ggez/ggez", rev = "359442b7869b580e8dae8435226e3888617ea5e8" }
 glam = "0.12.0"
 tiled = "0.9.5"
 pathfinding = "2.1.4"
