@@ -799,6 +799,10 @@ impl MainState {
                         SceneItemPrepareOrder::Hide(_) => Order::Hide(angle_),
                         _ => panic!("Should not be here"),
                     };
+
+                    messages.push(Message::MainStateMessage(
+                        MainStateModifier::RemoveOrderMarker(squad.leader),
+                    ));
                     messages.push(Message::MainStateMessage(
                         MainStateModifier::NewOrderMarker(OrderMarker::new(squad.leader, &order)),
                     ));
