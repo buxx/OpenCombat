@@ -252,7 +252,7 @@ pub enum SceneItemModifier {
     SetLastBulletFire(FrameI),
     IncrementUnderFire,
     CancelOrders(Option<ItemBehavior>),
-    GiveFollowOrder,      // Indicate to its squad members to follow him
+    GiveFollowOrder,         // Indicate to its squad members to follow him
     LeaderIndicateTakeCover, // Indicate to its squad members which next order is to place
     SetIsLeader,
 }

@@ -778,9 +778,7 @@ impl MainState {
                     };
                     let squad = self.get_squad(squad_id);
                     messages.push(Message::MainStateMessage(
-                        MainStateModifier::NewOrderMarker(
-                            OrderMarker::new(squad.leader, &order),
-                        ),
+                        MainStateModifier::NewOrderMarker(OrderMarker::new(squad.leader, &order)),
                     ));
                     messages.push(Message::SceneItemMessage(
                         squad.leader,
@@ -802,9 +800,7 @@ impl MainState {
                         _ => panic!("Should not be here"),
                     };
                     messages.push(Message::MainStateMessage(
-                        MainStateModifier::NewOrderMarker(
-                            OrderMarker::new(squad.leader, &order),
-                        ),
+                        MainStateModifier::NewOrderMarker(OrderMarker::new(squad.leader, &order)),
                     ));
                     messages.push(Message::SceneItemMessage(
                         squad.leader,
@@ -985,7 +981,10 @@ impl MainState {
                         if squad.leader != scene_item_id {
                             // FIXME BS NOW: Lorsque le squad leader est tué pendant move, les unit
                             // se repositionnes sans cesse et on passe par cette ligne très souvent
-                            eprintln!("Squad leader taken move must be done by squad leader ! (not {})", scene_item_id)
+                            eprintln!(
+                                "Squad leader taken move must be done by squad leader ! (not {})",
+                                scene_item_id
+                            )
                         } else {
                             for member_id in &squad.members {
                                 if *member_id != scene_item_id {
@@ -1034,7 +1033,7 @@ impl MainState {
                                     *member_id,
                                     SceneItemModifier::SetIsLeader,
                                 ));
-                                break
+                                break;
                             }
                         }
                     }
@@ -1435,7 +1434,8 @@ impl MainState {
             | OrderMarker::MoveFastTo(_, scene_point)
             | OrderMarker::HideTo(_, scene_point)
             | OrderMarker::FireTo(_, scene_point) => scene_point.clone(),
-            OrderMarker::Defend(scene_item_id, _angle) | OrderMarker::Hide(scene_item_id, _angle) => {
+            OrderMarker::Defend(scene_item_id, _angle)
+            | OrderMarker::Hide(scene_item_id, _angle) => {
                 let leader = self.get_scene_item(*scene_item_id);
                 leader.position
             }
