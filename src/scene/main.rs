@@ -777,14 +777,14 @@ impl MainState {
                         }
                     };
                     let squad = self.get_squad(squad_id);
-                    messages.push(Message::SceneItemMessage(
-                        squad.leader,
-                        SceneItemModifier::SetNextOrder(order.clone()),
-                    ));
                     messages.push(Message::MainStateMessage(
                         MainStateModifier::NewOrderMarker(
-                            OrderMarker::new(squad.leader, &order.clone()),
+                            OrderMarker::new(squad.leader, &order),
                         ),
+                    ));
+                    messages.push(Message::SceneItemMessage(
+                        squad.leader,
+                        SceneItemModifier::SetNextOrder(order),
                     ));
                     self.current_prepare_move_found_paths = HashMap::new();
                 }
@@ -796,44 +796,19 @@ impl MainState {
                     let squad = self.get_squad(squad_id);
                     let leader = self.get_scene_item(squad.leader);
                     let angle_ = angle(scene_cursor_point, &leader.position);
-                    // TODO BS: add then_order ? For soldier orientation after move
-                    let (then_order, behavior) = match scene_item_prepare_order {
-                        SceneItemPrepareOrder::Defend(_) => {
-                            (Order::Defend(angle_), ItemBehavior::Standing)
-                        }
-                        SceneItemPrepareOrder::Hide(_) => (Order::Hide(angle_), ItemBehavior::Hide),
-                        _ => {
-                            panic!("Should not be here")
-                        }
+                    let order = match scene_item_prepare_order {
+                        SceneItemPrepareOrder::Defend(_) => Order::Defend(angle_),
+                        SceneItemPrepareOrder::Hide(_) => Order::Hide(angle_),
+                        _ => panic!("Should not be here"),
                     };
-
-                    // Compute new places according to defend/hide direction
-                    messages.extend(take_cover_messages(
-                        &leader.position,
-                        angle_,
-                        self.frame_i,
-                        squad,
-                        &behavior,
-                        &self.map,
-                    ));
-                    // Remove possible previous order marker for this squad
-                    messages.push(Message::MainStateMessage(
-                        MainStateModifier::RemoveOrderMarker(
-                            squad.leader,
-                        ),
-                    ));
                     messages.push(Message::MainStateMessage(
                         MainStateModifier::NewOrderMarker(
-                            OrderMarker::new(squad.leader, &then_order),
+                            OrderMarker::new(squad.leader, &order),
                         ),
                     ));
                     messages.push(Message::SceneItemMessage(
-                        leader.id,
-                        SceneItemModifier::ChangeBehavior(behavior),
-                    ));
-                    messages.push(Message::SceneItemMessage(
-                        leader.id,
-                        SceneItemModifier::ChangeLookingDirection(angle_),
+                        squad.leader,
+                        SceneItemModifier::SetNextOrder(order),
                     ));
                 }
             }
