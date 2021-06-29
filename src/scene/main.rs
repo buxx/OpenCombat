@@ -1,4 +1,4 @@
-use std::cmp;
+use std::{cmp, thread};
 use std::collections::HashMap;
 use std::path::Path;
 use std::time::{Duration, Instant};
@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 use ggez::event::MouseButton;
 use ggez::graphics::{Color, DrawMode, FilterMode, MeshBuilder, StrokeOptions, Text};
 use ggez::input::keyboard::KeyCode;
-use ggez::timer::check_update_time;
+use ggez::timer::{check_update_time, average_delta};
 use ggez::{event, graphics, input, Context, GameResult};
 
 use crate::audio::{Audio, Sound};
@@ -14,11 +14,7 @@ use crate::behavior::animate::{digest_behavior, digest_current_order, digest_nex
 use crate::behavior::order::Order;
 use crate::behavior::util::take_cover_messages;
 use crate::behavior::ItemBehavior;
-use crate::config::{
-    ANIMATE_EACH, DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET, DISPLAY_OFFSET_BY,
-    DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I, PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG,
-    SEEK_EACH, SPRITE_EACH, SQUADS_CHANGE_ERR_MSG, TARGET_FPS, UNDER_FIRE_INTENSITY_DECREMENT,
-};
+use crate::config::{ANIMATE_EACH, DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET, DISPLAY_OFFSET_BY, DISPLAY_OFFSET_BY_SPEED, INTERIORS_EACH, MAX_FRAME_I, PHYSICS_EACH, SCENE_ITEMS_CHANGE_ERR_MSG, SEEK_EACH, SPRITE_EACH, SQUADS_CHANGE_ERR_MSG, TARGET_FPS, UNDER_FIRE_INTENSITY_DECREMENT, FRAME_EXPECTED_DURATION};
 use crate::gameplay::squad::Squad;
 use crate::gameplay::weapon::{Weapon, WeaponType};
 use crate::map::util::extract_image_from_tileset;
@@ -114,6 +110,8 @@ pub struct MainState {
     frame_i: FrameI,
     /// Store program start Instant (used to initialize some struct attributes)
     start: Instant,
+    /// Store expected frame duration to avoid construct Duration struct each update
+    expected_frame_duration: Duration,
 
     // map
     /// Map
@@ -326,6 +324,7 @@ impl MainState {
         let main_state = MainState {
             frame_i: 0,
             start: Instant::now(),
+            expected_frame_duration: Duration::from_millis(FRAME_EXPECTED_DURATION),
             map,
             debug: false,
             debug_terrain: DebugTerrain::None,
@@ -2150,6 +2149,13 @@ impl event::EventHandler for MainState {
             if self.frame_i >= MAX_FRAME_I {
                 self.frame_i = 0;
             }
+        }
+
+        // Sleep if necessary to reach TARGET_FPS
+        let average_delta_ = average_delta(ctx);
+        if average_delta_ < self.expected_frame_duration {
+            let sleep_duration = self.expected_frame_duration - average_delta_;
+            thread::sleep(sleep_duration);
         }
 
         Ok(())

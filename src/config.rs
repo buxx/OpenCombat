@@ -2,6 +2,8 @@ use crate::{FrameI, Meters};
 
 // execute update code 60x per seconds
 pub const TARGET_FPS: u32 = 60;
+// Frame duration target to reach TARGET_FPS as milliseconds
+pub const FRAME_EXPECTED_DURATION: u64 = (1000.0 / TARGET_FPS as f32) as u64;
 // execute physics code each 10 frames
 pub const PHYSICS_EACH: u32 = 10;
 // execute animate code each 15 frames
