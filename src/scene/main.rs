@@ -67,7 +67,7 @@ pub enum MainStateModifier {
     NewSound(Sound),
     NewDebugText(DebugText),
     NewDebugPoint(DebugPoint),
-    NewOrderMarker(OrderMarker, bool), // _, avoid_duplicate
+    NewOrderMarker(OrderMarker),
     RemoveOrderMarker(SceneItemId),
     SquadLeaderGiveFollowOrder(SceneItemId),
     ElectNewSquadLeader(SceneItemId),
@@ -784,7 +784,6 @@ impl MainState {
                     messages.push(Message::MainStateMessage(
                         MainStateModifier::NewOrderMarker(
                             OrderMarker::new(squad.leader, &order.clone()),
-                            false,
                         ),
                     ));
                     self.current_prepare_move_found_paths = HashMap::new();
@@ -817,10 +816,15 @@ impl MainState {
                         &behavior,
                         &self.map,
                     ));
+                    // Remove possible previous order marker for this squad
+                    messages.push(Message::MainStateMessage(
+                        MainStateModifier::RemoveOrderMarker(
+                            squad.leader,
+                        ),
+                    ));
                     messages.push(Message::MainStateMessage(
                         MainStateModifier::NewOrderMarker(
                             OrderMarker::new(squad.leader, &then_order),
-                            true,
                         ),
                     ));
                     messages.push(Message::SceneItemMessage(
@@ -985,17 +989,7 @@ impl MainState {
                     MainStateModifier::NewDebugText(debug_text) => {
                         self.debug_texts.push(debug_text)
                     }
-                    MainStateModifier::NewOrderMarker(order_marker, avoid_duplicate) => {
-                        let new_order_marker_scene_item_id = order_marker.get_scene_item_id();
-                        if avoid_duplicate {
-                            if let Some(order_marker_index) =
-                                self.order_markers.iter().position(|o| {
-                                    o.get_scene_item_id() == new_order_marker_scene_item_id
-                                })
-                            {
-                                self.order_markers.remove(order_marker_index);
-                            }
-                        }
+                    MainStateModifier::NewOrderMarker(order_marker) => {
                         self.order_markers.push(order_marker);
                     }
                     MainStateModifier::RemoveOrderMarker(scene_item_id) => {

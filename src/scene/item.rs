@@ -281,9 +281,11 @@ pub fn apply_scene_item_modifier(
     match modifier {
         SceneItemModifier::SwitchToNextOrder => {
             if scene_item.current_order.is_some() {
-                messages.push(Message::MainStateMessage(
-                    MainStateModifier::RemoveOrderMarker(scene_item.id),
-                ))
+                if scene_item.is_leader {
+                    messages.push(Message::MainStateMessage(
+                        MainStateModifier::RemoveOrderMarker(scene_item.id),
+                    ))
+                }
             };
 
             if let Some(next_order) = &scene_item.next_order {
@@ -320,7 +322,7 @@ pub fn apply_scene_item_modifier(
             | ItemBehavior::MoveTo(_, grid_path)
             | ItemBehavior::MoveFastTo(_, grid_path) => {
                 grid_path.drain(0..1);
-                // If target reached
+                // If move target reached
                 if grid_path.len() == 0 {
                     messages.extend(apply_scene_item_modifier(
                         frame_i,
@@ -333,7 +335,6 @@ pub fn apply_scene_item_modifier(
                             scene_item.id,
                             SceneItemModifier::LeaderIndicateTakeCover,
                         ));
-                        println!("HELLO")
                     }
                 };
                 if scene_item.is_leader {
@@ -372,6 +373,11 @@ pub fn apply_scene_item_modifier(
             scene_item.current_order = None;
             scene_item.under_fire_intensity = 0.0;
             scene_item.behavior = ItemBehavior::Dead;
+            if scene_item.is_leader {
+                messages.push(Message::MainStateMessage(
+                    MainStateModifier::RemoveOrderMarker(scene_item.id),
+                ));
+            }
             scene_item.is_leader = false;
             messages.push(Message::MainStateMessage(
                 MainStateModifier::RemoveOrderMarker(scene_item.id),
@@ -386,10 +392,12 @@ pub fn apply_scene_item_modifier(
             scene_item.current_order = None;
             scene_item.under_fire_intensity = 0.0;
             scene_item.behavior = ItemBehavior::Unconscious;
+            if scene_item.is_leader {
+                messages.push(Message::MainStateMessage(
+                    MainStateModifier::RemoveOrderMarker(scene_item.id),
+                ));
+            }
             scene_item.is_leader = false;
-            messages.push(Message::MainStateMessage(
-                MainStateModifier::RemoveOrderMarker(scene_item.id),
-            ));
             messages.push(Message::MainStateMessage(
                 MainStateModifier::ElectNewSquadLeader(scene_item.id),
             ));
