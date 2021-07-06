@@ -1,3 +1,5 @@
+use log;
+
 use crate::behavior::defend::{digest_defend_order, digest_hide_order};
 use crate::behavior::engagement::digest_engage_scene_item_behavior;
 use crate::behavior::movement::{
@@ -12,6 +14,10 @@ use crate::FrameI;
 
 pub fn digest_next_order(scene_item: &SceneItem, map: &Map) -> Vec<SceneItemModifier> {
     let mut scene_item_modifiers: Vec<SceneItemModifier> = vec![];
+
+    if let Some(next_order) = &scene_item.next_order {
+        log::debug!("SI {} Digest next order: {:?}", scene_item.id, next_order);
+    };
 
     if let Some(next_order) = &scene_item.next_order {
         match next_order {

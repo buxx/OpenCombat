@@ -1,5 +1,5 @@
 [package]
-name = "open_combat"
+name = "opencombat"
 version = "0.1.0"
 authors = ["Sevajol Bastien <contact@bux.fr>"]
 edition = "2018"
@@ -12,3 +12,5 @@ pathfinding = "2.1.4"
 bresenham = "0.1.1"
 rand = "0.8.3"
 rodio = "0.14.0"
+log = "0.4.14"
+env_logger = "0.8.4"

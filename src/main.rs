@@ -3,6 +3,7 @@ use std::path;
 
 use ggez::{event, GameResult};
 use glam::Vec2;
+use log;
 
 use crate::physics::GridPoint;
 use crate::scene::item::SceneItemModifier;
@@ -49,6 +50,8 @@ pub enum Message {
 }
 
 pub fn main() -> GameResult {
+    env_logger::init();
+    log::info!("Starting");
     let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
         let mut path = path::PathBuf::from(manifest_dir);
         path.push("resources");
@@ -57,11 +60,14 @@ pub fn main() -> GameResult {
         path::PathBuf::from("./resources")
     };
 
+    log::info!("Initializing context");
     let cb = ggez::ContextBuilder::new("oc", "bux")
         .add_resource_path(resource_dir)
         .window_mode(ggez::conf::WindowMode::default().dimensions(800.0, 600.0));
     let (mut ctx, event_loop) = cb.build()?;
 
+    log::info!("Loading state");
     let state = MainState::new(&mut ctx)?;
+    log::info!("Display scene");
     event::run(ctx, event_loop, state)
 }
