@@ -237,6 +237,7 @@ impl SceneItem {
 
 pub enum SceneItemModifier {
     SwitchToNextOrder,
+    RemoveNextOrder,
     ChangeLookingDirection(Angle),
     ChangeBehavior(ItemBehavior),
     ChangePosition(ScenePoint),
@@ -279,15 +280,10 @@ pub fn apply_scene_item_modifier(
     let mut messages: Vec<Message> = vec![];
 
     match modifier {
+        SceneItemModifier::RemoveNextOrder => {
+            scene_item.next_order = None;
+        }
         SceneItemModifier::SwitchToNextOrder => {
-            if scene_item.current_order.is_some() {
-                if scene_item.is_leader {
-                    messages.push(Message::MainStateMessage(
-                        MainStateModifier::RemoveOrderMarker(scene_item.id),
-                    ))
-                }
-            };
-
             if let Some(next_order) = &scene_item.next_order {
                 scene_item.current_order = Some(next_order.clone());
                 scene_item.next_order = None;
@@ -330,7 +326,7 @@ pub fn apply_scene_item_modifier(
                         SceneItemModifier::SwitchToNextOrder,
                     ));
                     if scene_item.is_leader {
-                        // TODO: Place a debug line here to prevent infinite take cover order
+                        log::debug!("SI {} Leader indicate take cover", scene_item.id);
                         messages.push(Message::SceneItemMessage(
                             scene_item.id,
                             SceneItemModifier::LeaderIndicateTakeCover,

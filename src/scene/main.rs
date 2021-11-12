@@ -566,6 +566,11 @@ impl MainState {
                     let scene_item = self.get_scene_item(scene_item_id);
                     // Fill self.scene_item_prepare_order with matching order marker order because
                     // release of order marker define new order
+                    log::debug!(
+                        "SI {} Begin drag order marker during order {:?}",
+                        scene_item_id,
+                        &scene_item.current_order,
+                    );
                     if let Some(current_order) = &scene_item.current_order {
                         self.scene_item_prepare_order = match current_order {
                             Order::MoveTo(_) => {
@@ -957,6 +962,13 @@ impl MainState {
                         self.debug_texts.push(debug_text)
                     }
                     MainStateModifier::NewOrderMarker(order_marker) => {
+                        if let Some(i) = self
+                            .order_markers
+                            .iter()
+                            .position(|o| o.get_scene_item_id() == order_marker.get_scene_item_id())
+                        {
+                            self.order_markers.remove(i);
+                        }
                         self.order_markers.push(order_marker);
                     }
                     MainStateModifier::RemoveOrderMarker(scene_item_id) => {
@@ -2216,7 +2228,7 @@ impl event::EventHandler for MainState {
 
         graphics::present(ctx)?;
 
-        // println!("FPS: {}", ggez::timer::fps(ctx));
+        // log::info!("FPS: {}", ggez::timer::fps(ctx));
         Ok(())
     }
 
