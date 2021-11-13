@@ -1,3 +1,5 @@
+use glam::Vec2;
+
 use crate::config::DISTANCE_TO_METERS_COEFFICIENT;
 use crate::map::Map;
 use crate::physics::GridPoint;
@@ -20,10 +22,11 @@ pub fn scene_point_from_grid_point(grid_point: &GridPoint, map: &Map) -> ScenePo
 pub fn scene_point_from_window_point(
     window_point: &WindowPoint,
     display_offset: &WindowPoint,
+    scale: Vec2,
 ) -> ScenePoint {
     ScenePoint::new(
-        window_point.x - display_offset.x,
-        window_point.y - display_offset.y,
+        (window_point.x - display_offset.x) / scale.x,
+        (window_point.y - display_offset.y) / scale.y,
     )
 }
 

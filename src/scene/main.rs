@@ -8,6 +8,7 @@ use ggez::graphics::{Color, DrawMode, FilterMode, MeshBuilder, StrokeOptions, Te
 use ggez::input::keyboard::KeyCode;
 use ggez::timer::{average_delta, check_update_time};
 use ggez::{event, graphics, input, Context, GameResult};
+use glam::Vec2;
 
 use crate::audio::{Audio, Sound};
 use crate::behavior::animate::{digest_behavior, digest_current_order, digest_next_order};
@@ -123,6 +124,7 @@ pub struct MainState {
     pub map: Map,
 
     // display
+    scale: Vec2,
     /// If true, display debug info on screen
     debug: bool,
     /// According to the value, display classic background image, or tiles types, or
@@ -331,6 +333,7 @@ impl MainState {
             start: Instant::now(),
             expected_frame_duration: Duration::from_millis(FRAME_EXPECTED_DURATION),
             map,
+            scale: Vec2::new(1.0, 1.0),
             debug: false,
             debug_terrain: DebugTerrain::None,
             hide_decor: false,
@@ -448,6 +451,16 @@ impl MainState {
         }
         if input::keyboard::is_key_pressed(ctx, KeyCode::Down) {
             self.display_offset.y -= display_offset_by;
+        }
+
+        // Z key enable zoom
+        if self.key_pressed(ctx, KeyCode::Z, 250) {
+            if self.scale == Vec2::new(1.0, 1.0) {
+                self.scale = Vec2::new(2.0, 2.0);
+            } else {
+                self.scale = Vec2::new(1.0, 1.0);
+            }
+            self.last_key_consumed.insert(KeyCode::Z, Instant::now());
         }
 
         // F12 key enable debug
@@ -617,6 +630,7 @@ impl MainState {
                                                 scene_point_from_window_point(
                                                     &self.current_cursor_point,
                                                     &self.display_offset,
+                                                    self.scale,
                                                 ),
                                             )
                                         }
@@ -650,6 +664,7 @@ impl MainState {
                                     &scene_point_from_window_point(
                                         &self.current_cursor_point,
                                         &self.display_offset,
+                                        self.scale,
                                     ),
                                 );
                                 messages.extend(messages_);
@@ -684,7 +699,7 @@ impl MainState {
         let mut messages = vec![];
 
         let scene_click_point =
-            scene_point_from_window_point(&window_click_point, &self.display_offset);
+            scene_point_from_window_point(&window_click_point, &self.display_offset, self.scale);
         let mut scene_item_selected = false;
         let mut squad_menu_clicked = false;
 
@@ -791,6 +806,7 @@ impl MainState {
                     let scene_cursor_point = &scene_point_from_window_point(
                         &self.current_cursor_point,
                         &self.display_offset,
+                        self.scale,
                     );
                     let squad = self.get_squad(squad_id);
                     let leader = self.get_scene_item(squad.leader);
@@ -818,8 +834,11 @@ impl MainState {
     }
 
     fn digest_right_click(&mut self, window_right_click_point: WindowPoint) -> Vec<Message> {
-        let scene_right_click_point =
-            scene_point_from_window_point(&window_right_click_point, &self.display_offset);
+        let scene_right_click_point = scene_point_from_window_point(
+            &window_right_click_point,
+            &self.display_offset,
+            self.scale,
+        );
 
         // If right click on scene item, select it and open he's squad menu
         if let Some(scene_item_id) =
@@ -846,8 +865,9 @@ impl MainState {
         window_from: WindowPoint,
         window_to: WindowPoint,
     ) -> Vec<Message> {
-        let scene_from = scene_point_from_window_point(&window_from, &self.display_offset);
-        let scene_to = scene_point_from_window_point(&window_to, &self.display_offset);
+        let scene_from =
+            scene_point_from_window_point(&window_from, &self.display_offset, self.scale);
+        let scene_to = scene_point_from_window_point(&window_to, &self.display_offset, self.scale);
         self.selected_scene_items.drain(..);
         self.selected_scene_items
             .extend(self.get_scene_items_for_scene_area(&scene_from, &scene_to, true));
@@ -1072,6 +1092,7 @@ impl MainState {
                             &scene_point_from_window_point(
                                 &self.current_cursor_point,
                                 &self.display_offset,
+                                self.scale,
                             ),
                             &scene_item.position,
                         );
@@ -1363,6 +1384,7 @@ impl MainState {
                     let cursor_scene_point = scene_point_from_window_point(
                         &self.current_cursor_point,
                         &self.display_offset,
+                        self.scale,
                     );
                     for draw_param in vertical_menu_sprite_info(squad_menu)
                         .as_draw_params(menu_scene_point, &cursor_scene_point)
@@ -1390,6 +1412,7 @@ impl MainState {
                         let scene_cursor_point = &scene_point_from_window_point(
                             &self.current_cursor_point,
                             &self.display_offset,
+                            self.scale,
                         );
                         let angle_ = angle(scene_cursor_point, &leader.position);
                         let sprite_info = match prepare_order {
@@ -1518,6 +1541,7 @@ impl MainState {
                 let scene_left_click_down_point = scene_point_from_window_point(
                     &window_left_click_down_point,
                     &self.display_offset,
+                    self.scale,
                 );
                 mesh_builder.circle(
                     DrawMode::fill(),
@@ -1528,8 +1552,11 @@ impl MainState {
                 )?;
             }
 
-            let cursor_scene_point =
-                scene_point_from_window_point(&self.current_cursor_point, &self.display_offset);
+            let cursor_scene_point = scene_point_from_window_point(
+                &self.current_cursor_point,
+                &self.display_offset,
+                self.scale,
+            );
 
             // Draw circle at cursor position
             mesh_builder.circle(DrawMode::fill(), cursor_scene_point, 2.0, 2.0, BLUE)?;
@@ -1820,10 +1847,16 @@ impl MainState {
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
         if let Some(window_left_click_down_point) = self.left_click_down {
-            let scene_left_click_down_point =
-                scene_point_from_window_point(&window_left_click_down_point, &self.display_offset);
-            let scene_current_cursor_position =
-                scene_point_from_window_point(&self.current_cursor_point, &self.display_offset);
+            let scene_left_click_down_point = scene_point_from_window_point(
+                &window_left_click_down_point,
+                &self.display_offset,
+                self.scale,
+            );
+            let scene_current_cursor_position = scene_point_from_window_point(
+                &self.current_cursor_point,
+                &self.display_offset,
+                self.scale,
+            );
             if scene_left_click_down_point != scene_current_cursor_position
                 && self.dragging.is_none()
             {
@@ -1868,6 +1901,7 @@ impl MainState {
                             scene_point_from_window_point(
                                 &self.current_cursor_point,
                                 &self.display_offset,
+                                self.scale,
                             ),
                         ],
                         2.0,
@@ -1887,6 +1921,7 @@ impl MainState {
             points.push(scene_point_from_window_point(
                 &self.current_cursor_point,
                 &self.display_offset,
+                self.scale,
             ));
 
             mesh_builder.line(
@@ -2083,6 +2118,7 @@ impl MainState {
                     let scene_point = scene_point_from_window_point(
                         &self.current_cursor_point,
                         &self.display_offset,
+                        self.scale,
                     );
                     let draw_to_scene_point = ScenePoint::new(scene_point.x + 10.0, scene_point.y);
                     texts.push((
@@ -2174,10 +2210,12 @@ impl event::EventHandler for MainState {
         let mut texts = self.generate_debug_texts();
         texts.extend(self.generate_prepare_order_texts());
 
-        let window_draw_param = graphics::DrawParam::new().dest(window_point_from_scene_point(
-            &ScenePoint::new(0.0, 0.0),
-            &self.display_offset,
-        ));
+        let window_draw_param = graphics::DrawParam::new()
+            .dest(window_point_from_scene_point(
+                &ScenePoint::new(0.0, 0.0),
+                &self.display_offset,
+            ))
+            .scale(self.scale);
 
         // Draw map background
         graphics::draw(ctx, &self.background_batch, window_draw_param)?;
@@ -2241,6 +2279,7 @@ impl event::EventHandler for MainState {
                         &scene_point_from_window_point(
                             &WindowPoint::new(x, y),
                             &self.display_offset,
+                            self.scale,
                         ),
                     ));
             }
@@ -2278,6 +2317,7 @@ impl event::EventHandler for MainState {
                         &scene_point_from_window_point(
                             &WindowPoint::new(x, y),
                             &self.display_offset,
+                            self.scale,
                         ),
                     ));
             }
@@ -2295,7 +2335,11 @@ impl event::EventHandler for MainState {
     fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
         let new_current_cursor_position = WindowPoint::new(x, y);
         let new_current_grid_cursor_position = grid_point_from_scene_point(
-            &scene_point_from_window_point(&new_current_cursor_position, &self.display_offset),
+            &scene_point_from_window_point(
+                &new_current_cursor_position,
+                &self.display_offset,
+                self.scale,
+            ),
             &self.map,
         );
 
