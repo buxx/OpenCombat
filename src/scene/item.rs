@@ -313,35 +313,41 @@ pub fn apply_scene_item_modifier(
         SceneItemModifier::ChangeGridPosition(new_grid_point) => {
             scene_item.grid_position = new_grid_point;
         }
-        SceneItemModifier::ReachMoveGridPoint => match &mut scene_item.behavior {
-            ItemBehavior::HideTo(_, grid_path)
-            | ItemBehavior::MoveTo(_, grid_path)
-            | ItemBehavior::MoveFastTo(_, grid_path) => {
-                grid_path.drain(0..1);
-                // If move target reached
-                if grid_path.len() == 0 {
-                    messages.extend(apply_scene_item_modifier(
-                        frame_i,
-                        scene_item,
-                        SceneItemModifier::SwitchToNextOrder,
-                    ));
+        SceneItemModifier::ReachMoveGridPoint => {
+            log::debug!("SI {} reach move grid point", scene_item.id);
+            match &mut scene_item.behavior {
+                ItemBehavior::HideTo(_, grid_path)
+                | ItemBehavior::MoveTo(_, grid_path)
+                | ItemBehavior::MoveFastTo(_, grid_path) => {
+                    if grid_path.len() > 0 {
+                        grid_path.remove(0);
+                    }
+
+                    // If move target reached
+                    if grid_path.len() == 0 {
+                        messages.extend(apply_scene_item_modifier(
+                            frame_i,
+                            scene_item,
+                            SceneItemModifier::SwitchToNextOrder,
+                        ));
+                        if scene_item.is_leader {
+                            log::debug!("SI {} Leader indicate take cover", scene_item.id);
+                            messages.push(Message::SceneItemMessage(
+                                scene_item.id,
+                                SceneItemModifier::LeaderIndicateTakeCover,
+                            ));
+                        }
+                    };
                     if scene_item.is_leader {
-                        log::debug!("SI {} Leader indicate take cover", scene_item.id);
                         messages.push(Message::SceneItemMessage(
                             scene_item.id,
-                            SceneItemModifier::LeaderIndicateTakeCover,
+                            SceneItemModifier::GiveFollowOrder,
                         ));
                     }
-                };
-                if scene_item.is_leader {
-                    messages.push(Message::SceneItemMessage(
-                        scene_item.id,
-                        SceneItemModifier::GiveFollowOrder,
-                    ));
                 }
+                _ => {}
             }
-            _ => {}
-        },
+        }
         SceneItemModifier::ChangeVisibilities(visibilities) => {
             scene_item.visibilities = visibilities
         }

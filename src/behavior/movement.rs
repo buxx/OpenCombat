@@ -72,7 +72,8 @@ pub fn digest_move_behavior(
             scene_item_modifiers.push(SceneItemModifier::ReachMoveGridPoint);
         }
     } else {
-        eprintln!("No grid point in grid path !")
+        eprintln!("No grid point in grid path !");
+        scene_item_modifiers.push(SceneItemModifier::ReachMoveGridPoint);
     }
 
     scene_item_modifiers
