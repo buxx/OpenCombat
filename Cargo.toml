@@ -5,12 +5,12 @@ authors = ["Sevajol Bastien <contact@bux.fr>"]
 edition = "2018"
 
 [dependencies]
-ggez = { git = "https://github.com/ggez/ggez", rev = "359442b7869b580e8dae8435226e3888617ea5e8" }
-glam = "0.12.0"
+ggez = "0.7.0"
+glam = { version = "0.20.0", features = ["mint"]}
 tiled = "0.9.5"
 pathfinding = "2.1.4"
 bresenham = "0.1.1"
 rand = "0.8.3"
 rodio = "0.14.0"
 log = "0.4.14"
-env_logger = "0.8.4"
+env_logger = "0.9.0"
