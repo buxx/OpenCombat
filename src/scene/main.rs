@@ -59,6 +59,73 @@ enum DebugTerrain {
     Opacity,
 }
 
+#[derive(PartialEq)]
+enum DebugLevel {
+    Debug0,
+    Debug1,
+    Debug2,
+    Debug3,
+}
+
+impl DebugLevel {
+    pub fn enabled(&self) -> bool {
+        match self {
+            DebugLevel::Debug0 => false,
+            DebugLevel::Debug1 => true,
+            DebugLevel::Debug2 => true,
+            DebugLevel::Debug3 => true,
+        }
+    }
+    pub fn scene_item_circles(&self) -> bool {
+        match self {
+            DebugLevel::Debug0 => false,
+            DebugLevel::Debug1 => true,
+            DebugLevel::Debug2 => true,
+            DebugLevel::Debug3 => true,
+        }
+    }
+    pub fn mouse(&self) -> bool {
+        match self {
+            DebugLevel::Debug0 => false,
+            DebugLevel::Debug1 => true,
+            DebugLevel::Debug2 => true,
+            DebugLevel::Debug3 => true,
+        }
+    }
+    pub fn areas(&self) -> bool {
+        match self {
+            DebugLevel::Debug0 => false,
+            DebugLevel::Debug1 => true,
+            DebugLevel::Debug2 => true,
+            DebugLevel::Debug3 => true,
+        }
+    }
+    pub fn formation_positions(&self) -> bool {
+        match self {
+            DebugLevel::Debug0 => false,
+            DebugLevel::Debug1 => false,
+            DebugLevel::Debug2 => false,
+            DebugLevel::Debug3 => true,
+        }
+    }
+    pub fn visibilities(&self) -> bool {
+        match self {
+            DebugLevel::Debug0 => false,
+            DebugLevel::Debug1 => false,
+            DebugLevel::Debug2 => true,
+            DebugLevel::Debug3 => true,
+        }
+    }
+    pub fn scene_items_text_infos(&self) -> bool {
+        match self {
+            DebugLevel::Debug0 => false,
+            DebugLevel::Debug1 => false,
+            DebugLevel::Debug2 => false,
+            DebugLevel::Debug3 => true,
+        }
+    }
+}
+
 pub enum MainStateModifier {
     ChangeSceneItemGridPosition(SceneItemId, GridPoint, GridPoint),
     InsertCurrentPrepareMoveFoundPaths(SquadId, Vec<GridPoint>),
@@ -126,7 +193,7 @@ pub struct MainState {
     // display
     scale: Vec2,
     /// If true, display debug info on screen
-    debug: bool,
+    debug: DebugLevel,
     /// According to the value, display classic background image, or tiles types, or
     /// opacity tiles values
     debug_terrain: DebugTerrain,
@@ -334,7 +401,7 @@ impl MainState {
             expected_frame_duration: Duration::from_millis(FRAME_EXPECTED_DURATION),
             map,
             scale: Vec2::new(1.0, 1.0),
-            debug: false,
+            debug: DebugLevel::Debug0,
             debug_terrain: DebugTerrain::None,
             hide_decor: false,
             display_offset: Offset::new(0.0, 0.0),
@@ -463,9 +530,15 @@ impl MainState {
             self.last_key_consumed.insert(KeyCode::Z, Instant::now());
         }
 
-        // F12 key enable debug
+        // F12 key switch debug mode
         if self.key_pressed(ctx, KeyCode::F12, 250) {
-            self.debug = !self.debug;
+            self.debug = match self.debug {
+                DebugLevel::Debug0 => DebugLevel::Debug1,
+                DebugLevel::Debug1 => DebugLevel::Debug2,
+                DebugLevel::Debug2 => DebugLevel::Debug3,
+                DebugLevel::Debug3 => DebugLevel::Debug0,
+            };
+
             self.last_key_consumed.insert(KeyCode::F12, Instant::now());
         }
 
@@ -1082,7 +1155,7 @@ impl MainState {
                         ))
                     }
                     MainStateModifier::NewDebugPoint(debug_point) => {
-                        if self.debug {
+                        if self.debug.enabled() {
                             self.debug_points.push(debug_point)
                         }
                     }
@@ -1519,7 +1592,13 @@ impl MainState {
         &mut self,
         mut mesh_builder: MeshBuilder,
     ) -> GameResult<MeshBuilder> {
-        if self.debug {
+        let cursor_scene_point = scene_point_from_window_point(
+            &self.current_cursor_point,
+            &self.display_offset,
+            self.scale,
+        );
+
+        if self.debug.scene_item_circles() {
             // Draw circle on each scene item position
             for scene_item in self.scene_items.iter() {
                 let color = if scene_item.side == self.current_side {
@@ -1535,7 +1614,9 @@ impl MainState {
                     color,
                 )?;
             }
+        }
 
+        if self.debug.mouse() {
             // Draw circle where left click down
             if let Some(window_left_click_down_point) = self.left_click_down {
                 let scene_left_click_down_point = scene_point_from_window_point(
@@ -1552,15 +1633,11 @@ impl MainState {
                 )?;
             }
 
-            let cursor_scene_point = scene_point_from_window_point(
-                &self.current_cursor_point,
-                &self.display_offset,
-                self.scale,
-            );
-
             // Draw circle at cursor position
             mesh_builder.circle(DrawMode::fill(), cursor_scene_point, 2.0, 2.0, BLUE)?;
+        }
 
+        if self.debug.areas() {
             // Draw selection area on all scene items
             for scene_item in self.scene_items.iter() {
                 let scene_item_sprite = scene_item.sprite_info();
@@ -1722,7 +1799,9 @@ impl MainState {
                     }
                 };
             }
+        }
 
+        if self.debug.formation_positions() {
             // Display selected squad formation positions
             for squad_id in self.get_selected_squad_ids() {
                 let squad = self.get_squad(&squad_id);
@@ -1981,7 +2060,7 @@ impl MainState {
     }
 
     fn update_visibilities_mesh(&self, mut mesh_builder: MeshBuilder) -> GameResult<MeshBuilder> {
-        if self.debug {
+        if self.debug.visibilities() {
             for selected_scene_item_i in self.selected_scene_items.iter() {
                 let scene_item_from = self.get_scene_item(*selected_scene_item_i);
                 for visibility in scene_item_from.visibilities.iter() {
@@ -2019,7 +2098,7 @@ impl MainState {
     fn generate_debug_texts(&mut self) -> Vec<(ScenePoint, Text, Option<Color>)> {
         let mut texts: Vec<(ScenePoint, Text, Option<Color>)> = vec![];
 
-        if self.debug {
+        if self.debug.scene_items_text_infos() {
             for selected_scene_item_i in self.selected_scene_items.iter() {
                 let scene_item = self.get_scene_item(*selected_scene_item_i);
                 for visibility in scene_item.visibilities.iter() {
