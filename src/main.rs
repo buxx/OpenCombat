@@ -4,9 +4,9 @@ use ggez::GameResult;
 use types::*;
 
 mod config;
+mod engine;
 mod entity;
 mod message;
-mod state;
 mod types;
 
 fn main() -> GameResult {
@@ -24,6 +24,6 @@ fn main() -> GameResult {
             WorldY::from(20.),
         )))),
     ];
-    let state = state::MainState::new(config, entities)?;
+    let state = engine::Engine::new(config, entities)?;
     event::run(context, event_loop, state)
 }

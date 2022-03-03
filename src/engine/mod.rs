@@ -9,18 +9,15 @@ use crate::entity::Entity;
 mod react;
 mod tick;
 
-pub struct MainState {
+pub struct Engine {
     config: Config,
     entities: Vec<Box<dyn Entity + Send + Sync>>,
     frame_i: u64,
 }
 
-impl MainState {
-    pub fn new(
-        config: Config,
-        entities: Vec<Box<dyn Entity + Send + Sync>>,
-    ) -> GameResult<MainState> {
-        let state = MainState {
+impl Engine {
+    pub fn new(config: Config, entities: Vec<Box<dyn Entity + Send + Sync>>) -> GameResult<Engine> {
+        let state = Engine {
             config,
             entities,
             frame_i: 0,
@@ -29,7 +26,7 @@ impl MainState {
     }
 }
 
-impl event::EventHandler<ggez::GameError> for MainState {
+impl event::EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while check_update_time(ctx, self.config.target_fps()) {
             self.frame_i += 1;

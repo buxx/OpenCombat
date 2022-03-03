@@ -1,9 +1,9 @@
 use crate::{message::*, types::*};
 use rayon::prelude::*;
 
-use super::MainState;
+use super::Engine;
 
-impl MainState {
+impl Engine {
     pub fn tick(&mut self) {
         // Will collect all tick messages
         let mut messages = vec![];
