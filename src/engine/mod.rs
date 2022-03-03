@@ -29,8 +29,14 @@ impl Engine {
 impl event::EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while check_update_time(ctx, self.config.target_fps()) {
+            // First thing to do is to initialize the state.
+            if self.frame_i == 0 {
+                self.state.initialize();
+            }
+            self.tick();
+
+            // Increment the frame counter
             self.frame_i += 1;
-            self.tick()
         }
 
         Ok(())
@@ -48,7 +54,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
                 2.0,
                 Color::WHITE,
             )?;
-            let draw_to: Vec2 = entity.world_position().into();
+            let draw_to: Vec2 = entity.get_world_position().into();
             graphics::draw(ctx, &circle, (draw_to,))?;
         }
 

@@ -80,4 +80,16 @@ impl Into<Vec2> for WorldPosition {
 }
 
 pub type EntityIndex = usize;
+pub type SquadIndex = usize;
+pub type SquadUuid = usize;
 pub type ThreadSafeEntity = Box<dyn Entity + Send + Sync>;
+
+pub struct SquadComposition(EntityIndex, Vec<EntityIndex>);
+
+impl SquadComposition {
+    pub fn new(leader: EntityIndex, members: Vec<EntityIndex>) -> Self {
+        Self(leader, members)
+    }
+}
+
+pub type Squads = Vec<SquadComposition>;

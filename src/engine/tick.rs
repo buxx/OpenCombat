@@ -25,7 +25,7 @@ impl Engine {
         let mut messages = vec![];
 
         let entity = &self.state.entity(i);
-        let current_position = entity.world_position();
+        let current_position = entity.get_world_position();
         let new_position = WorldPosition::from((
             current_position.x + WorldX::from(1.),
             current_position.y + WorldY::from(1.),

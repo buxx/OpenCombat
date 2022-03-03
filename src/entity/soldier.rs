@@ -3,21 +3,29 @@ use crate::types::*;
 use super::Entity;
 
 pub struct Soldier {
-    pub world_position: WorldPosition,
+    world_position: WorldPosition,
+    squad_uuid: SquadUuid,
 }
 
 impl Soldier {
-    pub fn new(world_position: WorldPosition) -> Self {
-        Self { world_position }
+    pub fn new(world_position: WorldPosition, squad_uuid: SquadUuid) -> Self {
+        Self {
+            world_position,
+            squad_uuid,
+        }
     }
 }
 
 impl Entity for Soldier {
-    fn world_position(&self) -> WorldPosition {
+    fn get_world_position(&self) -> WorldPosition {
         self.world_position
     }
 
-    fn set_world_position(&mut self, new_world_position: WorldPosition) {
-        self.world_position = new_world_position
+    fn set_world_position(&mut self, position: WorldPosition) {
+        self.world_position = position
+    }
+
+    fn squad_uuid(&self) -> SquadUuid {
+        self.squad_uuid
     }
 }

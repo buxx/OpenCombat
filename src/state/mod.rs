@@ -1,12 +1,30 @@
-use crate::{message::EntityMessage, types::*};
+use std::collections::HashMap;
+
+use crate::{message::EntityMessage, order::Order, types::*};
+
+mod squad;
 
 pub struct State {
+    /// The entities in the world (soldiers, vehicles, etc).
     entities: Vec<ThreadSafeEntity>,
+    /// Squad organizations, must be updated when squad leader changes.
+    squads: Squads,
+    /// Players orders. Entities will pick from them theirs behaviors.
+    orders: HashMap<SquadIndex, Vec<Order>>,
 }
 
 impl State {
     pub fn new(entities: Vec<ThreadSafeEntity>) -> Self {
-        Self { entities }
+        Self {
+            entities,
+            squads: vec![],
+            orders: HashMap::new(),
+        }
+    }
+
+    pub fn initialize(&mut self) {
+        // At start point, squads have not been defined. We must initialize it.
+        self.update_squads();
     }
 
     pub fn entities(&self) -> &Vec<ThreadSafeEntity> {
