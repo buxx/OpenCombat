@@ -1,4 +1,3 @@
-use entity::Entity;
 use ggez::event;
 use ggez::GameResult;
 use state::State;
@@ -16,7 +15,7 @@ fn main() -> GameResult {
     let (context, event_loop) = context_builder.build()?;
 
     let config = config::Config::new();
-    let entities: Vec<Box<dyn Entity + Send + Sync>> = vec![
+    let entities: Vec<ThreadSafeEntity> = vec![
         Box::new(entity::soldier::Soldier::new(WorldPosition::from((
             WorldX::from(10.),
             WorldY::from(10.),

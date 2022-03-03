@@ -1,19 +1,19 @@
-use crate::{entity::Entity, message::EntityMessage};
+use crate::{message::EntityMessage, types::*};
 
 pub struct State {
-    entities: Vec<Box<dyn Entity + Send + Sync>>,
+    entities: Vec<ThreadSafeEntity>,
 }
 
 impl State {
-    pub fn new(entities: Vec<Box<dyn Entity + Send + Sync>>) -> Self {
+    pub fn new(entities: Vec<ThreadSafeEntity>) -> Self {
         Self { entities }
     }
 
-    pub fn entities(&self) -> &Vec<Box<dyn Entity + Send + Sync>> {
+    pub fn entities(&self) -> &Vec<ThreadSafeEntity> {
         &self.entities
     }
 
-    pub fn entity(&self, entity_index: usize) -> &Box<dyn Entity + Send + Sync> {
+    pub fn entity(&self, entity_index: usize) -> &ThreadSafeEntity {
         &self.entities[entity_index]
     }
 

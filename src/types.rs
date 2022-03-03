@@ -2,6 +2,8 @@ use std::ops::Add;
 
 use glam::Vec2;
 
+use crate::entity::Entity;
+
 #[derive(Debug, Copy, Clone)]
 pub struct WorldX(f32);
 
@@ -78,3 +80,4 @@ impl Into<Vec2> for WorldPosition {
 }
 
 pub type EntityIndex = usize;
+pub type ThreadSafeEntity = Box<dyn Entity + Send + Sync>;
