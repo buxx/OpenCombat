@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 rayon = "1"
+ggez = "0.7.0"
+glam = { version = "0.20.0", features = ["mint"]}

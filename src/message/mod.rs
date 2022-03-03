@@ -1,4 +1,11 @@
+use crate::types::*;
+
 #[derive(Debug)]
 pub enum Message {
-    Foo,
+    Entity(EntityIndex, EntityMessage),
+}
+
+#[derive(Debug)]
+pub enum EntityMessage {
+    UpdateWorldPosition(WorldPosition),
 }
