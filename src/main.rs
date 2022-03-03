@@ -1,12 +1,14 @@
 use entity::Entity;
 use ggez::event;
 use ggez::GameResult;
+use state::State;
 use types::*;
 
 mod config;
 mod engine;
 mod entity;
 mod message;
+mod state;
 mod types;
 
 fn main() -> GameResult {
@@ -24,6 +26,7 @@ fn main() -> GameResult {
             WorldY::from(20.),
         )))),
     ];
-    let state = engine::Engine::new(config, entities)?;
-    event::run(context, event_loop, state)
+    let state = State::new(entities);
+    let engine = engine::Engine::new(config, state)?;
+    event::run(context, event_loop, engine)
 }

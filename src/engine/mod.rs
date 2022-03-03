@@ -5,24 +5,24 @@ use ggez::{Context, GameResult};
 use glam::*;
 
 use crate::config::Config;
-use crate::entity::Entity;
+use crate::state::State;
 mod react;
 mod tick;
 
 pub struct Engine {
     config: Config,
-    entities: Vec<Box<dyn Entity + Send + Sync>>,
     frame_i: u64,
+    state: State,
 }
 
 impl Engine {
-    pub fn new(config: Config, entities: Vec<Box<dyn Entity + Send + Sync>>) -> GameResult<Engine> {
-        let state = Engine {
+    pub fn new(config: Config, state: State) -> GameResult<Engine> {
+        let engine = Engine {
             config,
-            entities,
             frame_i: 0,
+            state,
         };
-        Ok(state)
+        Ok(engine)
     }
 }
 
@@ -39,7 +39,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
-        for entity in &self.entities {
+        for entity in self.state.entities() {
             let circle = graphics::Mesh::new_circle(
                 ctx,
                 graphics::DrawMode::fill(),
