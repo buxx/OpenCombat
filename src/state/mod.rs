@@ -10,7 +10,7 @@ pub struct State {
     /// Squad organizations, must be updated when squad leader changes.
     squads: Squads,
     /// Players orders. Entities will pick from them theirs behaviors.
-    orders: HashMap<SquadIndex, Vec<Order>>,
+    _orders: HashMap<SquadIndex, Vec<Order>>,
 }
 
 impl State {
@@ -18,7 +18,7 @@ impl State {
         Self {
             entities,
             squads: vec![],
-            orders: HashMap::new(),
+            _orders: HashMap::new(),
         }
     }
 
