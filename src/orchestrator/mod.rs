@@ -2,6 +2,9 @@ use rayon::prelude::*;
 
 use crate::{entity::Entity, message::Message, types::*};
 
+mod react;
+mod tick;
+
 pub struct Orchestrator {
     entities: Vec<Box<dyn Entity + Send + Sync>>,
 }
@@ -18,16 +21,6 @@ impl Orchestrator {
                 .flat_map(|i| self.tick_entity(EntityIndex::from(i)))
                 .collect();
             self.react(results);
-        }
-    }
-
-    fn tick_entity(&self, i: EntityIndex) -> Vec<Message> {
-        vec![]
-    }
-
-    fn react(&mut self, messages: Vec<Message>) {
-        for message in messages {
-            println!("{:?}", message);
         }
     }
 }

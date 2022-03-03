@@ -5,6 +5,6 @@ mod types;
 
 fn main() {
     let entities = vec![];
-    let orchestrator = orchestrator::Orchestrator::new(entities);
+    let mut orchestrator = orchestrator::Orchestrator::new(entities);
     orchestrator.operate();
 }
