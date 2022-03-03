@@ -3,11 +3,14 @@ use ggez::graphics::{self, Color};
 use ggez::timer::check_update_time;
 use ggez::{Context, GameResult};
 use glam::*;
+use rayon::prelude::*;
 
 use crate::config::Config;
+use crate::message::Message;
 use crate::state::State;
+mod animate;
 mod react;
-mod tick;
+mod update;
 
 pub struct Engine {
     config: Config,
@@ -23,6 +26,32 @@ impl Engine {
             state,
         };
         Ok(engine)
+    }
+
+    fn tick(&mut self) {
+        // Will collect all tick messages
+        let mut messages = vec![];
+
+        // Entities animation
+        if self.frame_i % self.config.entity_animate_freq() == 0 {
+            let entity_messages: Vec<Message> = (0..self.state.entities().len())
+                .into_par_iter()
+                .flat_map(|i| self.animate_entity(i))
+                .collect();
+            messages.extend(entity_messages);
+        }
+
+        // Entities updates
+        if self.frame_i % self.config.entity_update_freq() == 0 {
+            let entity_messages: Vec<Message> = (0..self.state.entities().len())
+                .into_par_iter()
+                .flat_map(|i| self.update_entity(i))
+                .collect();
+            messages.extend(entity_messages);
+        }
+
+        // Apply messages
+        self.react(messages);
     }
 }
 
@@ -45,6 +74,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
+        // FIXME demo code
         for entity in self.state.entities() {
             let circle = graphics::Mesh::new_circle(
                 ctx,
