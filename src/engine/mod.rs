@@ -1,29 +1,37 @@
 use ggez::event;
-use ggez::graphics::{self, Color};
+use ggez::graphics::{self};
 use ggez::timer::check_update_time;
 use ggez::{Context, GameResult};
 use glam::*;
-use rayon::prelude::*;
 
 use crate::config::Config;
+use crate::graphics::Graphics;
 use crate::message::Message;
+use crate::network::{self, Network};
 use crate::state::State;
 mod animate;
+mod draw;
+mod entity;
 mod react;
 mod update;
 
 pub struct Engine {
     config: Config,
-    frame_i: u64,
+    network: Network,
+    graphics: Graphics,
     state: State,
+    frame_i: u64,
 }
 
 impl Engine {
-    pub fn new(config: Config, state: State) -> GameResult<Engine> {
+    pub fn new(config: Config, graphics: Graphics, state: State) -> GameResult<Engine> {
+        let network = network::Network::new(config.clone())?;
         let engine = Engine {
             config,
-            frame_i: 0,
+            network,
+            graphics,
             state,
+            frame_i: 0,
         };
         Ok(engine)
     }
@@ -32,23 +40,7 @@ impl Engine {
         // Will collect all tick messages
         let mut messages = vec![];
 
-        // Entities animation
-        if self.frame_i % self.config.entity_animate_freq() == 0 {
-            let entity_messages: Vec<Message> = (0..self.state.entities().len())
-                .into_par_iter()
-                .flat_map(|i| self.animate_entity(i))
-                .collect();
-            messages.extend(entity_messages);
-        }
-
-        // Entities updates
-        if self.frame_i % self.config.entity_update_freq() == 0 {
-            let entity_messages: Vec<Message> = (0..self.state.entities().len())
-                .into_par_iter()
-                .flat_map(|i| self.update_entity(i))
-                .collect();
-            messages.extend(entity_messages);
-        }
+        messages.extend(self.tick_entities());
 
         // Apply messages
         self.react(messages);
@@ -72,21 +64,19 @@ impl event::EventHandler<ggez::GameError> for Engine {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
+        self.graphics.clear(ctx);
 
-        // FIXME demo code
         for entity in self.state.entities() {
-            let circle = graphics::Mesh::new_circle(
-                ctx,
-                graphics::DrawMode::fill(),
-                Vec2::new(0.0, 0.0),
-                5.0,
-                2.0,
-                Color::WHITE,
-            )?;
-            let draw_to: Vec2 = entity.get_world_position().into();
-            graphics::draw(ctx, &circle, (draw_to,))?;
+            self.graphics.extend(self.entity_sprites(entity)?);
         }
+
+        // TODO See in OC1
+        let window_draw_param = graphics::DrawParam::new()
+            .dest(Vec2::new(0., 0.))
+            .scale(Vec2::new(1., 1.));
+
+        // Draw entities
+        self.graphics.draw(ctx, window_draw_param)?;
 
         graphics::present(ctx)?;
         Ok(())

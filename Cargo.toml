@@ -9,3 +9,5 @@ rayon = "1"
 ggez = "0.7.0"
 glam = { version = "0.20.0", features = ["mint"]}
 rand = "0.8.5"
+message-io = "0.14.4"
+structopt = "0.3.21"
