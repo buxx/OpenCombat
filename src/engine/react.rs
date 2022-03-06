@@ -10,13 +10,13 @@ impl Engine {
 
             match message {
                 Message::Entity(entity_i, entity_message) => {
+                    // Apply messages on entities
                     self.state.react_entity_message(entity_i, entity_message);
                 }
-                Message::Foo => {}
-                Message::Network(network_message) => match self.config.network_mode() {
-                    crate::NetWorkMode::Server => self.react_network_message(network_message),
-                    crate::NetWorkMode::Client => {}
-                },
+                Message::Network(network_message) => {
+                    //
+                    self.react_network_message(network_message)
+                }
             }
         }
     }

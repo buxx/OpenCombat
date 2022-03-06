@@ -68,7 +68,7 @@ impl Network {
             loop {
                 let message_bytes = socket.recv_bytes(0).unwrap();
                 let message: Message = bincode::deserialize(&message_bytes).unwrap();
-                println!("Received REQ message: {:?}", message);
+                // println!("Received REQ message: {:?}", message);
                 socket.send(&ok, 0).unwrap();
                 thread_receive_sender.send(message).unwrap();
             }
@@ -92,7 +92,7 @@ impl Network {
                 let message: Message = thread_send_receiver.recv().unwrap();
                 let message_bytes = bincode::serialize(&message).unwrap();
                 socket.send(message_bytes, 0).unwrap();
-                let response = socket.recv_bytes(0).unwrap();
+                let _response = socket.recv_bytes(0).unwrap();
                 // FIXME : check this is OK or Error(error_str)
                 // println!("Client recv : {:?}", response);
             }
@@ -114,7 +114,7 @@ impl Network {
 
             loop {
                 let message = thread_send_receiver.recv().unwrap();
-                println!("Broadcast message: {:?}", message);
+                // println!("Broadcast message: {:?}", message);
                 let message_bytes = bincode::serialize(&message).unwrap();
                 socket.send(&message_bytes, 0).unwrap();
             }
@@ -133,13 +133,15 @@ impl Network {
             socket
                 .connect(&format!("tcp://{}", server_pub_address))
                 .unwrap();
+
+            // FIXME : subscribe with client ID and ALL (to receive all messages except global sync of other clients)
             socket.set_subscribe(b"").unwrap();
 
             loop {
-                println!("Client waiting message");
+                // println!("Client waiting message");
                 let message_bytes = socket.recv_bytes(0).unwrap();
                 let message: Message = bincode::deserialize(&message_bytes).unwrap();
-                println!("Client received message: {:?}", message);
+                // println!("Client received message: {:?}", message);
                 thread_receive_sender.send(message).unwrap();
             }
         });

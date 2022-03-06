@@ -1,7 +1,9 @@
 use crate::types::*;
+use serde::{Deserialize, Serialize};
 
 use super::Entity;
 
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Soldier {
     world_position: WorldPosition,
     squad_uuid: SquadUuid,

@@ -38,7 +38,11 @@ impl Engine {
     }
 
     fn init(&mut self) -> GameResult {
-        self.state.init()?;
+        match self.config.network_mode() {
+            crate::NetWorkMode::Server => self.state.init()?,
+            // Client initialize its state when received from server
+            crate::NetWorkMode::Client => {}
+        };
         self.network.init()?;
         Ok(())
     }
@@ -50,13 +54,16 @@ impl Engine {
         messages.extend(self.tick_entities());
         messages.extend(self.sync());
 
-        // HARD CODED fo test network
+        // FIXME HARD CODED fo test network (TODO  : in update init ?)
         match self.config.network_mode() {
             crate::NetWorkMode::Server => {
                 //
             }
             crate::NetWorkMode::Client => {
-                messages.push(Message::Network(NetworkMessage::RequireCompleteSync));
+                if self.frame_i == 0 {
+                    self.network
+                        .send(Message::Network(NetworkMessage::RequireCompleteSync));
+                }
             }
         }
 

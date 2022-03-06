@@ -13,6 +13,7 @@ mod message;
 mod network;
 mod order;
 mod state;
+mod sync;
 mod types;
 mod utils;
 
@@ -21,7 +22,7 @@ use structopt::StructOpt;
 
 arg_enum! {
     #[derive(Debug, Clone)]
-    enum NetWorkMode {
+    pub enum NetWorkMode {
         Server,
         Client
     }
@@ -49,8 +50,13 @@ fn main() -> GameResult {
     let (mut context, event_loop) = context_builder.build()?;
 
     let graphics = graphics::Graphics::new(&mut context)?;
-    let entities = hardcode::get_entities();
-    let state = State::new(entities);
+    let state = match config.network_mode() {
+        NetWorkMode::Server => {
+            let entities = hardcode::get_entities();
+            State::new(entities)
+        }
+        NetWorkMode::Client => State::new(vec![]),
+    };
     let engine = engine::Engine::new(config, graphics, state)?;
     event::run(context, event_loop, engine)
 }
