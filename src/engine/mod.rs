@@ -51,7 +51,11 @@ impl Engine {
         // Will collect all tick messages
         let mut messages = vec![];
 
-        messages.extend(self.tick_entities());
+        messages.extend(match self.config.network_mode() {
+            crate::NetWorkMode::Server => self.tick_entities(),
+            // Client do not execute entities tick
+            crate::NetWorkMode::Client => vec![],
+        });
         messages.extend(self.sync());
 
         // FIXME HARD CODED fo test network (TODO  : in update init ?)

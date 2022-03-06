@@ -1,4 +1,7 @@
-use crate::message::Message;
+use crate::{
+    message::{Message, NetworkMessage},
+    sync::StateCopy,
+};
 
 use super::Engine;
 
@@ -10,13 +13,21 @@ impl Engine {
 
             match message {
                 Message::Entity(entity_i, entity_message) => {
-                    // Apply messages on entities
                     self.state.react_entity_message(entity_i, entity_message);
                 }
-                Message::Network(network_message) => {
-                    //
-                    self.react_network_message(network_message)
-                }
+                Message::Network(network_message) => match network_message {
+                    NetworkMessage::RequireCompleteSync => {
+                        self.network
+                            .send(Message::Network(NetworkMessage::InitializeStateFrom(
+                                StateCopy::from_state(&self.state),
+                            )));
+                    }
+                    NetworkMessage::InitializeStateFrom(state_copy) => {
+                        println!("{:?} : InitializeStateFrom", self.config.network_mode());
+                        self.state.init_from_copy(state_copy);
+                    }
+                    NetworkMessage::Acknowledge => unreachable!(),
+                },
             }
         }
     }

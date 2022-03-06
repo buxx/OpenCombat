@@ -35,20 +35,4 @@ impl Engine {
             self.network.send(message.clone())
         }
     }
-
-    pub fn react_network_message(&mut self, message: NetworkMessage) {
-        match message {
-            NetworkMessage::RequireCompleteSync => {
-                self.network
-                    .send(Message::Network(NetworkMessage::InitializeStateFrom(
-                        StateCopy::from_state(&self.state),
-                    )));
-            }
-            NetworkMessage::Acknowledge => {}
-            NetworkMessage::InitializeStateFrom(state_copy) => {
-                println!("{:?} : InitializeStateFrom", self.config.network_mode());
-                self.state.init_from_copy(state_copy);
-            }
-        }
-    }
 }
