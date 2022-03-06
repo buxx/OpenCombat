@@ -1,0 +1,75 @@
+{
+    // Utilisez IntelliSense pour en savoir plus sur les attributs possibles.
+    // Pointez pour afficher la description des attributs existants.
+    // Pour plus d'informations, visitez : https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Server",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=opencombat",
+                    "--package=opencombat"
+                ],
+                "filter": {
+                    "name": "opencombat",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "Server",
+                "--server-rep-address",
+                "0.0.0.0:4255",
+                "--server-bind-address",
+                "0.0.0.0:4256"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Client",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=opencombat",
+                    "--package=opencombat"
+                ],
+                "filter": {
+                    "name": "opencombat",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "Client",
+                "--server-rep-address",
+                "127.0.0.1:4255",
+                "--server-bind-address",
+                "127.0.0.1:4256"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'opencombat'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=opencombat",
+                    "--package=opencombat"
+                ],
+                "filter": {
+                    "name": "opencombat",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

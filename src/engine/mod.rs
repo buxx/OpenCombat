@@ -6,12 +6,13 @@ use glam::*;
 
 use crate::config::Config;
 use crate::graphics::Graphics;
-use crate::message::Message;
-use crate::network::{self, Network};
+use crate::message::*;
+use crate::network::Network;
 use crate::state::State;
 mod animate;
 mod draw;
 mod entity;
+mod network;
 mod react;
 mod update;
 
@@ -25,7 +26,7 @@ pub struct Engine {
 
 impl Engine {
     pub fn new(config: Config, graphics: Graphics, state: State) -> GameResult<Engine> {
-        let network = network::Network::new(config.clone())?;
+        let network = Network::new(config.clone())?;
         let engine = Engine {
             config,
             network,
@@ -36,11 +37,28 @@ impl Engine {
         Ok(engine)
     }
 
+    fn init(&mut self) -> GameResult {
+        self.state.init()?;
+        self.network.init()?;
+        Ok(())
+    }
+
     fn tick(&mut self) {
         // Will collect all tick messages
         let mut messages = vec![];
 
         messages.extend(self.tick_entities());
+        messages.extend(self.sync());
+
+        // HARD CODED fo test network
+        match self.config.network_mode() {
+            crate::NetWorkMode::Server => {
+                //
+            }
+            crate::NetWorkMode::Client => {
+                messages.push(Message::Network(NetworkMessage::RequireCompleteSync));
+            }
+        }
 
         // Apply messages
         self.react(messages);
@@ -52,8 +70,10 @@ impl event::EventHandler<ggez::GameError> for Engine {
         while check_update_time(ctx, self.config.target_fps()) {
             // First thing to do is to initialize the state.
             if self.frame_i == 0 {
-                self.state.initialize();
+                self.init()?;
             }
+
+            // Execute "each frame" code
             self.tick();
 
             // Increment the frame counter

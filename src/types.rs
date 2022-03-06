@@ -1,10 +1,11 @@
+use serde::{Deserialize, Serialize};
 use std::ops::Add;
 
 use glam::Vec2;
 
 use crate::entity::Entity;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct WorldX(f32);
 
 impl From<f32> for WorldX {
@@ -27,7 +28,7 @@ impl Add for WorldX {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct WorldY(f32);
 
 impl From<f32> for WorldY {
@@ -50,7 +51,7 @@ impl Add for WorldY {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct WorldPosition {
     pub x: WorldX,
     pub y: WorldY,

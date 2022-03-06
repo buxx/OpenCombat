@@ -33,8 +33,11 @@ pub struct Opt {
     #[structopt(possible_values = &NetWorkMode::variants(), case_insensitive = true)]
     network_mode: NetWorkMode,
 
-    #[structopt(short)]
-    server_address: String,
+    #[structopt(long = "--server-rep-address")]
+    server_rep_address: String,
+
+    #[structopt(long = "--server-bind-address")]
+    server_pub_address: String,
 }
 
 fn main() -> GameResult {

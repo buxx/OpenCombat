@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use ggez::GameResult;
+
 use crate::{message::EntityMessage, order::Order, types::*};
 
 mod squad;
@@ -22,9 +24,10 @@ impl State {
         }
     }
 
-    pub fn initialize(&mut self) {
+    pub fn init(&mut self) -> GameResult {
         // At start point, squads have not been defined. We must initialize it.
         self.update_squads();
+        Ok(())
     }
 
     pub fn entities(&self) -> &Vec<ThreadSafeEntity> {

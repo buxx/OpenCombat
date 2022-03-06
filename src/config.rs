@@ -1,11 +1,12 @@
-use ggez::{GameError, GameResult};
+use ggez::GameResult;
 
 use crate::{NetWorkMode, Opt};
 
 #[derive(Debug, Clone)]
 pub struct Config {
     network_mode: NetWorkMode,
-    server_address: String,
+    server_rep_address: String,
+    server_pub_address: String,
     target_fps: u32,
     entity_update_freq: u64,
     entity_animate_freq: u64,
@@ -13,13 +14,19 @@ pub struct Config {
 
 impl Config {
     pub fn new(opt: &Opt) -> GameResult<Self> {
-        let (network_mode, server_address) = (opt.network_mode.clone(), opt.server_address.clone());
+        let (network_mode, server_rep_address, server_pub_address) = (
+            opt.network_mode.clone(),
+            opt.server_rep_address.clone(),
+            opt.server_pub_address.clone(),
+        );
 
         Ok(Self {
             /// Modify engine behavior as server or client
             network_mode,
-            /// Server address to bind, or connect to
-            server_address,
+            ///
+            server_rep_address,
+            ///
+            server_pub_address,
             /// Target FPS of engine
             target_fps: 60,
             /// Frequency of entity update :
@@ -43,6 +50,18 @@ impl Config {
 
     pub fn entity_animate_freq(&self) -> u64 {
         self.entity_animate_freq
+    }
+
+    pub fn network_mode(&self) -> &NetWorkMode {
+        &self.network_mode
+    }
+
+    pub fn server_rep_address(&self) -> String {
+        self.server_rep_address.clone()
+    }
+
+    pub fn server_pub_address(&self) -> String {
+        self.server_pub_address.clone()
     }
 }
 
