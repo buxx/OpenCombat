@@ -1,5 +1,6 @@
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use ggez::GameResult;
+use serde::{Deserialize, Serialize};
 
 use std::thread;
 
@@ -15,6 +16,12 @@ pub struct Network {
     send_receiver: Receiver<Vec<Message>>,
     receive_sender: Sender<Vec<Message>>,
     receive_receiver: Receiver<Vec<Message>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+struct Envelope {
+    id: u64,
+    messages: Vec<Message>,
 }
 
 impl Network {
@@ -107,14 +114,19 @@ impl Network {
         let server_pub_address = self.config.server_pub_address().clone();
 
         thread::spawn(move || {
+            let mut pub_counter: u64 = 0;
             let zmq_context = zmq::Context::new();
             let socket = zmq_context.socket(zmq::PUB).unwrap(); // TODO unwrap
             socket.bind(&server_pub_address).unwrap();
 
             loop {
+                pub_counter += 1;
                 let messages = thread_send_receiver.recv().unwrap();
-                // println!("Broadcast message: {:?}", message);
-                let messages_bytes = bincode::serialize(&messages).unwrap();
+                let envelope = Envelope {
+                    id: pub_counter,
+                    messages,
+                };
+                let messages_bytes = bincode::serialize(&envelope).unwrap();
                 socket.send(&messages_bytes, 0).unwrap();
             }
         });
@@ -124,9 +136,11 @@ impl Network {
 
     fn start_sub(&self) -> GameResult {
         let thread_receive_sender = self.receive_sender.clone();
+        let thread_send_sender = self.send_sender.clone();
         let server_pub_address = self.config.server_pub_address().clone();
 
         thread::spawn(move || {
+            let mut last_counter: u64 = 0;
             let zmq_context = zmq::Context::new();
             let socket = zmq_context.socket(zmq::SUB).unwrap(); // TODO unwrap
             socket.connect(&server_pub_address).unwrap();
@@ -136,10 +150,19 @@ impl Network {
 
             loop {
                 // println!("Client waiting message");
-                let messages_bytes = socket.recv_bytes(0).unwrap();
-                let messages: Vec<Message> = bincode::deserialize(&messages_bytes).unwrap();
-                // println!("Client received message: {:?}", message);
-                thread_receive_sender.send(messages).unwrap();
+                let envelope_bytes = socket.recv_bytes(0).unwrap();
+                let envelope: Envelope = bincode::deserialize(&envelope_bytes).unwrap();
+                thread_receive_sender.send(envelope.messages).unwrap();
+
+                if last_counter != 0 && last_counter + 1 != envelope.id {
+                    println!("Network : message(s) lost, require global Sync");
+                    thread_send_sender
+                        .send(vec![Message::Network(NetworkMessage::RequireCompleteSync)])
+                        .unwrap();
+                }
+
+                // Update the last counter
+                last_counter = envelope.id;
             }
         });
 
