@@ -1,6 +1,8 @@
 use crate::{behavior::Behavior, sync::StateCopy, types::*};
 use serde::{Deserialize, Serialize};
 
+pub mod result;
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Message {
     State(StateMessage),

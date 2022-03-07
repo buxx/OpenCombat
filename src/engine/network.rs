@@ -36,4 +36,26 @@ impl Engine {
         // Send messages by group to avoid zmq queue overflow
         self.network.send(dispatch_messages);
     }
+
+    pub fn deal_with_errors_as_server(&mut self) -> Vec<Message> {
+        let messages: Vec<Message> = vec![];
+
+        for error in self.network.errors() {
+            // For now, only print errors
+            println!("Network error : {}", error)
+        }
+
+        messages
+    }
+
+    pub fn deal_with_errors_as_client(&mut self) -> Vec<Message> {
+        let messages: Vec<Message> = vec![];
+
+        for error in self.network.errors() {
+            // For now, only print errors
+            println!("Network error : {}", error)
+        }
+
+        messages
+    }
 }

@@ -1,6 +1,6 @@
-use ggez::event;
 use ggez::graphics::{self};
 use ggez::timer::check_update_time;
+use ggez::{event, GameError};
 use ggez::{Context, GameResult};
 use glam::*;
 
@@ -40,11 +40,16 @@ impl Engine {
 
     fn init(&mut self) -> GameResult {
         match self.config.network_mode() {
+            // Server own game state, so init it
             crate::NetWorkMode::Server => self.state.init()?,
             // Client initialize its state when received from server
             crate::NetWorkMode::Client => {}
         };
-        self.network.init()?;
+
+        if let Err(error) = self.network.init() {
+            return Err(GameError::CustomError(error.to_string()));
+        }
+
         Ok(())
     }
 

@@ -11,6 +11,9 @@ impl Engine {
         // Retrieve messages from clients
         messages.extend(self.sync());
 
+        // Check any network errors
+        messages.extend(self.deal_with_errors_as_server());
+
         // Apply messages
         self.react(messages);
     }
