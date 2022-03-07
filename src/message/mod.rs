@@ -3,8 +3,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Message {
-    Entity(EntityIndex, EntityMessage),
+    State(StateMessage),
     Network(NetworkMessage),
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub enum StateMessage {
+    Entity(EntityIndex, EntityMessage),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

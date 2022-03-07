@@ -1,9 +1,7 @@
 use crate::{entity::soldier::Soldier, types::*, utils};
-use rand::Rng;
 
 pub fn get_entities() -> Vec<ThreadSafeEntity> {
     let mut entities: Vec<ThreadSafeEntity> = vec![];
-    let mut rng = rand::thread_rng();
 
     for x in 0..10 {
         for y in 0..10 {

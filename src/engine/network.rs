@@ -1,4 +1,4 @@
-use crate::message::{Message, NetworkMessage};
+use crate::message::Message;
 
 use super::Engine;
 
@@ -8,34 +8,32 @@ impl Engine {
         self.network.incoming_messages()
     }
 
-    pub fn dispatch(&self, messages: &Vec<Message>) {
+    pub fn dispatch_as_server(&self, messages: &Vec<Message>) {
         let mut dispatch_messages: Vec<Message> = vec![];
 
         for message in messages {
-            if match self.config.network_mode() {
-                crate::NetWorkMode::Server => match message {
-                    // Server must broadcast all related entity messages to permit clients to update their states
-                    Message::Entity(_, _) => true,
-                    // Server do not broadcast this message but send state in response
-                    Message::Network(NetworkMessage::RequireCompleteSync) => false,
-                    // These messages are nevers reacted by server
-                    Message::Network(NetworkMessage::InitializeStateFrom(_)) => unreachable!(),
-                    Message::Network(NetworkMessage::Acknowledge) => unreachable!(),
-                },
-                crate::NetWorkMode::Client => match message {
-                    // Client do not dispatch entity messages because only consume them
-                    Message::Entity(_, _) => false,
-                    // Client do not dispatch initialization because only consume them
-                    Message::Network(NetworkMessage::InitializeStateFrom(_)) => false,
-                    // These messages are never reacted by client
-                    Message::Network(NetworkMessage::RequireCompleteSync) => unreachable!(),
-                    Message::Network(NetworkMessage::Acknowledge) => unreachable!(),
-                },
-            } {
-                dispatch_messages.push(message.clone())
+            match message {
+                // State changes must be sent to clients
+                Message::State(_) => dispatch_messages.push(message.clone()),
+                _ => {}
             }
         }
 
+        // Send messages by group to avoid zmq queue overflow
+        self.network.send(dispatch_messages);
+    }
+
+    pub fn dispatch_as_client(&self, messages: &Vec<Message>) {
+        let dispatch_messages: Vec<Message> = vec![];
+
+        for message in messages {
+            match message {
+                // For now, nothing is sent to Server (it will be order, etc)
+                _ => {}
+            }
+        }
+
+        // Send messages by group to avoid zmq queue overflow
         self.network.send(dispatch_messages);
     }
 }

@@ -9,16 +9,16 @@ impl Engine {
         let entity = &self.state.entity(i);
         let mut messages = vec![];
 
-        // FIXME demo code
+        // FIXME demo code, this will be in "update" code
         let current_position = entity.get_world_position();
         let new_position = WorldPosition::from((
             current_position.x + WorldX::from(1.),
             current_position.y + WorldY::from(1.),
         ));
-        messages.push(Message::Entity(
-            i,
-            EntityMessage::UpdateWorldPosition(new_position),
-        ));
+        let entity_message = EntityMessage::UpdateWorldPosition(new_position);
+        let state_message = StateMessage::Entity(i, entity_message);
+        let message = Message::State(state_message);
+        messages.push(message);
 
         messages
     }
