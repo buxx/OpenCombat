@@ -1,7 +1,7 @@
 use crate::types::*;
 use serde::{Deserialize, Serialize};
 
-use super::Entity;
+use super::{Entity, EntityType};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Soldier {
@@ -16,9 +16,17 @@ impl Soldier {
             squad_uuid,
         }
     }
+
+    pub fn from_entity(entity: &ThreadSafeEntity) -> Self {
+        Self::new(entity.get_world_position(), entity.squad_uuid())
+    }
 }
 
 impl Entity for Soldier {
+    fn type_(&self) -> EntityType {
+        EntityType::Soldier
+    }
+
     fn get_world_position(&self) -> WorldPosition {
         self.world_position
     }

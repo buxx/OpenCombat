@@ -6,18 +6,23 @@ use std::thread;
 use crate::config::Config;
 use crate::message::*;
 
+/// Network exchange logic
+/// Important note : zmq PUB socket have a limited buffer size,
+/// so we need to send messages by group instead one by one.
 pub struct Network {
     config: Config,
-    send_sender: Sender<Message>,
-    send_receiver: Receiver<Message>,
-    receive_sender: Sender<Message>,
-    receive_receiver: Receiver<Message>,
+    send_sender: Sender<Vec<Message>>,
+    send_receiver: Receiver<Vec<Message>>,
+    receive_sender: Sender<Vec<Message>>,
+    receive_receiver: Receiver<Vec<Message>>,
 }
 
 impl Network {
     pub fn new(config: Config) -> GameResult<Self> {
-        let (send_sender, send_receiver): (Sender<Message>, Receiver<Message>) = unbounded();
-        let (receive_sender, receive_receiver): (Sender<Message>, Receiver<Message>) = unbounded();
+        let (send_sender, send_receiver): (Sender<Vec<Message>>, Receiver<Vec<Message>>) =
+            unbounded();
+        let (receive_sender, receive_receiver): (Sender<Vec<Message>>, Receiver<Vec<Message>>) =
+            unbounded();
 
         Ok(Self {
             config,
@@ -47,8 +52,8 @@ impl Network {
     ///  - As client : messages from server
     pub fn incoming_messages(&self) -> Vec<Message> {
         let mut messages = vec![];
-        while let Ok(message) = self.receive_receiver.try_recv() {
-            messages.push(message);
+        while let Ok(messages_) = self.receive_receiver.try_recv() {
+            messages.extend(messages_);
         }
         messages
     }
@@ -60,17 +65,15 @@ impl Network {
         thread::spawn(move || {
             let zmq_context = zmq::Context::new();
             let socket = zmq_context.socket(zmq::REP).unwrap(); // TODO unwrap
-            socket
-                .bind(&format!("tcp://{}", server_rep_address))
-                .unwrap();
+            socket.bind(&server_rep_address).unwrap();
 
             let ok = bincode::serialize(&Message::Network(NetworkMessage::Acknowledge)).unwrap();
             loop {
-                let message_bytes = socket.recv_bytes(0).unwrap();
-                let message: Message = bincode::deserialize(&message_bytes).unwrap();
+                let messages_bytes = socket.recv_bytes(0).unwrap();
+                let messages: Vec<Message> = bincode::deserialize(&messages_bytes).unwrap();
                 // println!("Received REQ message: {:?}", message);
                 socket.send(&ok, 0).unwrap();
-                thread_receive_sender.send(message).unwrap();
+                thread_receive_sender.send(messages).unwrap();
             }
         });
 
@@ -84,14 +87,12 @@ impl Network {
         thread::spawn(move || {
             let zmq_context = zmq::Context::new();
             let socket = zmq_context.socket(zmq::REQ).unwrap(); // TODO unwrap
-            socket
-                .connect(&format!("tcp://{}", server_rep_address))
-                .unwrap();
+            socket.connect(&server_rep_address).unwrap();
 
             loop {
-                let message: Message = thread_send_receiver.recv().unwrap();
-                let message_bytes = bincode::serialize(&message).unwrap();
-                socket.send(message_bytes, 0).unwrap();
+                let messages: Vec<Message> = thread_send_receiver.recv().unwrap();
+                let messages_bytes = bincode::serialize(&messages).unwrap();
+                socket.send(messages_bytes, 0).unwrap();
                 let _response = socket.recv_bytes(0).unwrap();
                 // FIXME : check this is OK or Error(error_str)
                 // println!("Client recv : {:?}", response);
@@ -108,15 +109,13 @@ impl Network {
         thread::spawn(move || {
             let zmq_context = zmq::Context::new();
             let socket = zmq_context.socket(zmq::PUB).unwrap(); // TODO unwrap
-            socket
-                .bind(&format!("tcp://{}", server_pub_address))
-                .unwrap();
+            socket.bind(&server_pub_address).unwrap();
 
             loop {
-                let message = thread_send_receiver.recv().unwrap();
+                let messages = thread_send_receiver.recv().unwrap();
                 // println!("Broadcast message: {:?}", message);
-                let message_bytes = bincode::serialize(&message).unwrap();
-                socket.send(&message_bytes, 0).unwrap();
+                let messages_bytes = bincode::serialize(&messages).unwrap();
+                socket.send(&messages_bytes, 0).unwrap();
             }
         });
 
@@ -130,26 +129,24 @@ impl Network {
         thread::spawn(move || {
             let zmq_context = zmq::Context::new();
             let socket = zmq_context.socket(zmq::SUB).unwrap(); // TODO unwrap
-            socket
-                .connect(&format!("tcp://{}", server_pub_address))
-                .unwrap();
+            socket.connect(&server_pub_address).unwrap();
 
             // FIXME : subscribe with client ID and ALL (to receive all messages except global sync of other clients)
             socket.set_subscribe(b"").unwrap();
 
             loop {
                 // println!("Client waiting message");
-                let message_bytes = socket.recv_bytes(0).unwrap();
-                let message: Message = bincode::deserialize(&message_bytes).unwrap();
+                let messages_bytes = socket.recv_bytes(0).unwrap();
+                let messages: Vec<Message> = bincode::deserialize(&messages_bytes).unwrap();
                 // println!("Client received message: {:?}", message);
-                thread_receive_sender.send(message).unwrap();
+                thread_receive_sender.send(messages).unwrap();
             }
         });
 
         Ok(())
     }
 
-    pub fn send(&self, message: Message) {
-        self.send_sender.send(message).unwrap();
+    pub fn send(&self, messages: Vec<Message>) {
+        self.send_sender.send(messages).unwrap();
     }
 }

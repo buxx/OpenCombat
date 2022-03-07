@@ -22,9 +22,9 @@
             "args": [
                 "Server",
                 "--server-rep-address",
-                "0.0.0.0:4255",
+                "tcp://0.0.0.0:4255",
                 "--server-bind-address",
-                "0.0.0.0:4256"
+                "tcp://0.0.0.0:4256"
             ],
             "cwd": "${workspaceFolder}"
         },
@@ -46,9 +46,9 @@
             "args": [
                 "Client",
                 "--server-rep-address",
-                "127.0.0.1:4255",
+                "tcp://127.0.0.1:4255",
                 "--server-bind-address",
-                "127.0.0.1:4256"
+                "tcp://127.0.0.1:4256"
             ],
             "cwd": "${workspaceFolder}"
         },

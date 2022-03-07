@@ -66,7 +66,7 @@ impl Engine {
             crate::NetWorkMode::Client => {
                 if self.frame_i == 0 {
                     self.network
-                        .send(Message::Network(NetworkMessage::RequireCompleteSync));
+                        .send(vec![Message::Network(NetworkMessage::RequireCompleteSync)]);
                 }
             }
         }
