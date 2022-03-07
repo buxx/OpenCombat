@@ -5,8 +5,8 @@ pub fn get_entities() -> Vec<ThreadSafeEntity> {
     let mut entities: Vec<ThreadSafeEntity> = vec![];
     let mut rng = rand::thread_rng();
 
-    for x in 0..70 {
-        for y in 0..70 {
+    for x in 0..10 {
+        for y in 0..10 {
             // TODO: for now, one entity by squad
             let squad = utils::squad_uuid();
             // let x: f32 = rng.gen_range(0.0..800.0);
