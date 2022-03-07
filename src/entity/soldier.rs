@@ -1,4 +1,4 @@
-use crate::types::*;
+use crate::{behavior::Behavior, types::*};
 use serde::{Deserialize, Serialize};
 
 use super::{Entity, EntityType};
@@ -7,6 +7,7 @@ use super::{Entity, EntityType};
 pub struct Soldier {
     world_position: WorldPosition,
     squad_uuid: SquadUuid,
+    behavior: Behavior,
 }
 
 impl Soldier {
@@ -14,6 +15,7 @@ impl Soldier {
         Self {
             world_position,
             squad_uuid,
+            behavior: Behavior::Idle,
         }
     }
 
@@ -23,7 +25,7 @@ impl Soldier {
 }
 
 impl Entity for Soldier {
-    fn type_(&self) -> EntityType {
+    fn get_type(&self) -> EntityType {
         EntityType::Soldier
     }
 
@@ -37,5 +39,13 @@ impl Entity for Soldier {
 
     fn squad_uuid(&self) -> SquadUuid {
         self.squad_uuid
+    }
+
+    fn get_behavior(&self) -> &Behavior {
+        &self.behavior
+    }
+
+    fn set_behavior(&mut self, behavior: Behavior) {
+        self.behavior = behavior
     }
 }

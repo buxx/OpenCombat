@@ -4,6 +4,7 @@ use ggez::event;
 use ggez::GameResult;
 use state::State;
 
+mod behavior;
 mod config;
 mod engine;
 mod entity;

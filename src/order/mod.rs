@@ -1,5 +1,5 @@
-use crate::types::SquadIndex;
+use crate::types::*;
 
-pub struct Order {
-    _squad_i: SquadIndex,
+pub enum Order {
+    WalkTo(WorldPosition),
 }

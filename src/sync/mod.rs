@@ -12,7 +12,7 @@ impl StateCopy {
         let mut soldiers = vec![];
 
         for entity in state.entities() {
-            match entity.type_() {
+            match entity.get_type() {
                 crate::entity::EntityType::Soldier => {
                     soldiers.push(Soldier::from_entity(entity));
                 }

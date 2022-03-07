@@ -6,7 +6,7 @@ pub fn get_entities() -> Vec<ThreadSafeEntity> {
     for x in 0..10 {
         for y in 0..10 {
             // TODO: for now, one entity by squad
-            let squad = utils::squad_uuid();
+            let squad = utils::new_squad_uuid();
             // let x: f32 = rng.gen_range(0.0..800.0);
             // let y: f32 = rng.gen_range(0.0..800.0);
             let entity = Box::new(Soldier::new(
