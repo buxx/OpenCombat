@@ -6,14 +6,15 @@ use glam::*;
 
 use crate::config::Config;
 use crate::graphics::Graphics;
-use crate::message::*;
 use crate::network::Network;
 use crate::state::State;
 mod animate;
+mod client;
 mod draw;
 mod entity;
 mod network;
 mod react;
+mod server;
 mod update;
 
 pub struct Engine {
@@ -48,31 +49,10 @@ impl Engine {
     }
 
     fn tick(&mut self) {
-        // Will collect all tick messages
-        let mut messages = vec![];
-
-        messages.extend(match self.config.network_mode() {
-            crate::NetWorkMode::Server => self.tick_entities(),
-            // Client do not execute entities tick
-            crate::NetWorkMode::Client => vec![],
-        });
-        messages.extend(self.sync());
-
-        // FIXME HARD CODED fo test network (TODO  : in update init ?)
         match self.config.network_mode() {
-            crate::NetWorkMode::Server => {
-                //
-            }
-            crate::NetWorkMode::Client => {
-                if self.frame_i == 0 {
-                    self.network
-                        .send(vec![Message::Network(NetworkMessage::RequireCompleteSync)]);
-                }
-            }
+            crate::NetWorkMode::Server => self.tick_as_server(),
+            crate::NetWorkMode::Client => self.tick_as_client(),
         }
-
-        // Apply messages
-        self.react(messages);
     }
 }
 
