@@ -13,15 +13,13 @@ impl Engine {
         let entity = self.state.entity(i);
         let mut messages = vec![];
 
-        match entity.get_behavior() {
-            Behavior::Idle => {}
-            Behavior::WalkingTo(destination) => {
-                messages.extend(Message::vec_from_entity(
-                    i,
-                    walking::entity_updates(entity, destination),
-                ));
+        let entity_messages = match entity.get_behavior() {
+            Behavior::Idle => {
+                vec![]
             }
-        }
+            Behavior::WalkingTo(path) => walking::entity_updates(entity, path),
+        };
+        messages.extend(Message::vec_from_entity(i, entity_messages));
 
         messages
     }

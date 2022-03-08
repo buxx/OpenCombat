@@ -57,26 +57,35 @@ pub struct WorldPosition {
     pub y: WorldY,
 }
 
+impl WorldPosition {
+    pub fn apply_raw(self, raw: Vec2) -> Self {
+        Self {
+            x: WorldX(self.x.0 + raw.x),
+            y: WorldY(self.y.0 + raw.y),
+        }
+    }
+}
+
 impl From<(WorldX, WorldY)> for WorldPosition {
     fn from(p: (WorldX, WorldY)) -> Self {
         Self { x: p.0, y: p.1 }
     }
 }
 
-impl Add for WorldPosition {
-    type Output = Self;
-
-    fn add(self, other: Self) -> Self::Output {
-        Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
-        }
-    }
-}
-
 impl Into<Vec2> for WorldPosition {
     fn into(self) -> Vec2 {
         Vec2::new(self.x.into(), self.y.into())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct WorldPath {
+    pub points: Vec<WorldPosition>,
+}
+
+impl WorldPath {
+    pub fn new(points: Vec<WorldPosition>) -> Self {
+        Self { points }
     }
 }
 

@@ -1,9 +1,6 @@
 use crate::{message::*, types::*};
 
-pub fn entity_updates(
-    entity: &ThreadSafeEntity,
-    _destination: &WorldPosition,
-) -> Vec<EntityMessage> {
+pub fn entity_updates(entity: &ThreadSafeEntity, _path: &Vec<WorldPath>) -> Vec<EntityMessage> {
     let mut messages = vec![];
 
     // FIXME demo code, this will be in "update" code
