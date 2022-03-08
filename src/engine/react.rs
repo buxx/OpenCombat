@@ -16,6 +16,12 @@ impl Engine {
                     StateMessage::Entity(entity_i, entity_message) => {
                         self.state.react_entity_message(entity_i, entity_message);
                     }
+                    StateMessage::PushOrder(squad_uuid, order) => {
+                        self.state.push_order(squad_uuid, order);
+                    }
+                    StateMessage::RemoveOder(squad_uuid) => {
+                        self.state.remove_order(squad_uuid);
+                    }
                 },
                 Message::Network(network_message) => match network_message {
                     NetworkMessage::RequireCompleteSync => {

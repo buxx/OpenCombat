@@ -89,17 +89,26 @@ impl WorldPath {
     }
 }
 
-pub type EntityIndex = usize;
-pub type SquadIndex = usize;
-pub type SquadUuid = usize;
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct EntityIndex(pub usize);
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct SquadUuid(pub usize);
 pub type ThreadSafeEntity = Box<dyn Entity + Send + Sync>;
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SquadComposition(EntityIndex, Vec<EntityIndex>);
 
 impl SquadComposition {
     pub fn new(leader: EntityIndex, members: Vec<EntityIndex>) -> Self {
         Self(leader, members)
     }
-}
 
-pub type Squads = Vec<SquadComposition>;
+    pub fn leader(&self) -> EntityIndex {
+        self.0
+    }
+
+    pub fn _members(&self) -> &Vec<EntityIndex> {
+        &self.1
+    }
+}

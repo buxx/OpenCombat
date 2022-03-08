@@ -14,6 +14,9 @@ impl Engine {
         // Check any network errors
         messages.extend(self.deal_with_errors_as_server());
 
+        // Retrieve messages from user inputs
+        messages.extend(self.collect_player_inputs());
+
         // Apply messages
         self.react(messages);
     }

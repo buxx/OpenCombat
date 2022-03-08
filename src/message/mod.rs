@@ -1,4 +1,4 @@
-use crate::{behavior::Behavior, sync::StateCopy, types::*};
+use crate::{behavior::Behavior, order::Order, sync::StateCopy, types::*};
 use serde::{Deserialize, Serialize};
 
 pub mod result;
@@ -12,6 +12,8 @@ pub enum Message {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum StateMessage {
     Entity(EntityIndex, EntityMessage),
+    PushOrder(SquadUuid, Order),
+    RemoveOder(SquadUuid),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
