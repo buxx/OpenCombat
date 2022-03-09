@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "bincode",
-        "spritebatch"
+        "gids",
+        "spritebatch",
+        "tilesets"
     ]
 }

@@ -1,4 +1,5 @@
 use std::path;
+use std::path::Path;
 
 use ggez::event;
 use ggez::GameResult;
@@ -10,6 +11,7 @@ mod engine;
 mod entity;
 mod graphics;
 mod hardcode;
+mod map;
 mod message;
 mod network;
 mod order;
@@ -20,6 +22,8 @@ mod utils;
 
 use structopt::clap::arg_enum;
 use structopt::StructOpt;
+
+pub const RESOURCE_PATH: &'static str = "resources";
 
 arg_enum! {
     #[derive(Debug, Clone)]
@@ -47,10 +51,11 @@ fn main() -> GameResult {
     let config = config::Config::new(&opt)?;
 
     let context_builder = ggez::ContextBuilder::new("OpenCombat", "Bastien Sevajol")
-        .add_resource_path(path::PathBuf::from("./resources"));
+        .add_resource_path(path::PathBuf::from(format!("./{}", RESOURCE_PATH)));
     let (mut context, event_loop) = context_builder.build()?;
 
-    let graphics = graphics::Graphics::new(&mut context)?;
+    let map = map::Map::new("map1")?;
+    let graphics = graphics::Graphics::new(&mut context, &map)?;
     let state = match config.network_mode() {
         NetWorkMode::Server => {
             let entities = hardcode::get_entities();

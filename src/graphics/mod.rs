@@ -1,27 +1,38 @@
 use ggez::{
-    graphics::{self, FilterMode},
+    graphics::{self, spritebatch::SpriteBatch, FilterMode, Image},
     Context, GameResult,
 };
 
-use crate::{config, types::*};
+use crate::{config, map::Map, types::*};
+
+mod map;
+
+const SPRITES_FILE_PATH: &'static str = "/sprites.png";
 
 pub struct Graphics {
-    sprites_batch: graphics::spritebatch::SpriteBatch,
+    // Soldier, vehicle, explosions, etc sprite batch
+    sprites_batch: SpriteBatch,
+    // Map background sprite batch
+    map_background_batch: SpriteBatch,
+    // Map decor sprite batches
+    map_decor_batches: Vec<SpriteBatch>,
 }
 
 impl Graphics {
-    pub fn new(ctx: &mut Context) -> GameResult<Graphics> {
-        let mut sprites = graphics::Image::new(ctx, "/sprites.png")?;
-        sprites.set_filter(FilterMode::Nearest); // because pixel art
-        let sprites_batch = graphics::spritebatch::SpriteBatch::new(sprites);
+    pub fn new(ctx: &mut Context, map: &Map) -> GameResult<Graphics> {
+        let sprites_batch = get_sprites_batch(ctx)?;
+        let map_background_batch = map::get_map_background_batch(ctx, map)?;
+        let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
 
-        Ok(Graphics { sprites_batch })
+        Ok(Graphics {
+            sprites_batch,
+            map_background_batch,
+            map_decor_batches,
+        })
     }
 
-    pub fn extend(&mut self, sprites: Vec<graphics::DrawParam>) {
-        for sprite in sprites {
-            self.sprites_batch.add(sprite);
-        }
+    pub fn append_sprites_batch(&mut self, sprite: graphics::DrawParam) {
+        self.sprites_batch.add(sprite);
     }
 
     pub fn entity_sprites(&self, _entity: &ThreadSafeEntity) -> Vec<graphics::DrawParam> {
@@ -41,9 +52,22 @@ impl Graphics {
     pub fn draw(
         &mut self,
         ctx: &mut Context,
+        draw_decor: bool,
         window_draw_param: graphics::DrawParam,
     ) -> GameResult {
+        // Map background sprites
+        graphics::draw(ctx, &self.map_background_batch, window_draw_param)?;
+
+        // Entities, explosions, etc. sprites
         graphics::draw(ctx, &self.sprites_batch, window_draw_param)?;
+
+        // Draw decor like Trees
+        if draw_decor {
+            for decor_batch in self.map_decor_batches.iter() {
+                graphics::draw(ctx, decor_batch, window_draw_param)?;
+            }
+        }
+
         Ok(())
     }
 
@@ -51,4 +75,12 @@ impl Graphics {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
         self.sprites_batch.clear();
     }
+}
+
+pub fn get_sprites_batch(ctx: &mut Context) -> GameResult<SpriteBatch> {
+    let mut sprites_image = Image::new(ctx, SPRITES_FILE_PATH)?;
+    sprites_image.set_filter(FilterMode::Nearest); // because pixel art
+    let sprites_batch = SpriteBatch::new(sprites_image);
+
+    Ok(sprites_batch)
 }

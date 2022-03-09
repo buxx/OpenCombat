@@ -23,8 +23,16 @@ pub struct Engine {
     config: Config,
     network: Network,
     graphics: Graphics,
+    /// The current state of the game. This struct is own by server and replicated on clients
     state: State,
+    /// Printed frames since start of program
     frame_i: u64,
+    /// Offset to apply to battle scene by window relative
+    display_scene_offset: Vec2,
+    /// Scale to apply to battle scene by window relative
+    display_scene_scale: Vec2,
+    // Bellow, some player display configurations
+    draw_decor: bool,
 }
 
 impl Engine {
@@ -36,6 +44,9 @@ impl Engine {
             graphics,
             state,
             frame_i: 0,
+            display_scene_offset: Vec2::new(0., 0.),
+            display_scene_scale: Vec2::new(1., 1.),
+            draw_decor: true,
         };
         Ok(engine)
     }
@@ -84,17 +95,15 @@ impl event::EventHandler<ggez::GameError> for Engine {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         self.graphics.clear(ctx);
 
-        for entity in self.state.entities() {
-            self.graphics.extend(self.entity_sprites(entity)?);
-        }
+        self.generate_map_sprites(self.draw_decor)?;
+        self.generate_entities_sprites()?;
 
-        // TODO See in OC1
+        // Draw entire
         let window_draw_param = graphics::DrawParam::new()
-            .dest(Vec2::new(0., 0.))
-            .scale(Vec2::new(1., 1.));
-
-        // Draw entities
-        self.graphics.draw(ctx, window_draw_param)?;
+            .dest(self.display_scene_offset)
+            .scale(self.display_scene_scale);
+        self.graphics
+            .draw(ctx, self.draw_decor, window_draw_param)?;
 
         graphics::present(ctx)?;
         Ok(())

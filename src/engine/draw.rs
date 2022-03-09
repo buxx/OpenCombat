@@ -1,23 +1,23 @@
-use ggez::{graphics, GameResult};
-use glam::Vec2;
-
-use crate::types::*;
+use ggez::GameResult;
 
 use super::Engine;
 
 impl Engine {
     // TODO : don't generate sprites of non visible entities (hidden enemy, outside screen, etc)
-    pub fn entity_sprites(
-        &self,
-        entity: &ThreadSafeEntity,
-    ) -> GameResult<Vec<graphics::DrawParam>> {
-        let mut sprites = vec![];
-
-        for sprite in self.graphics.entity_sprites(entity) {
-            let draw_to: Vec2 = entity.get_world_point().into();
-            sprites.push(sprite.dest(draw_to));
+    pub fn generate_entities_sprites(&mut self) -> GameResult {
+        for entity in self.state.entities() {
+            for sprite in self.graphics.entity_sprites(entity) {
+                let sprite_ = sprite.dest(entity.get_world_point().to_vec2());
+                self.graphics.append_sprites_batch(sprite_);
+            }
         }
 
-        Ok(sprites)
+        Ok(())
+    }
+
+    pub fn generate_map_sprites(&self, _draw_decor: bool) -> GameResult {
+        // Note : Background sprites have been prepared once for map_background_batch
+        // Note : Decor sprites have been prepared once for map_background_batch
+        Ok(())
     }
 }
