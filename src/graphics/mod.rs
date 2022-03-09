@@ -35,18 +35,21 @@ impl Graphics {
         self.sprites_batch.add(sprite);
     }
 
-    pub fn entity_sprites(&self, _entity: &ThreadSafeEntity) -> Vec<graphics::DrawParam> {
+    pub fn entity_sprites(&self, entity: &ThreadSafeEntity) -> Vec<graphics::DrawParam> {
         // TODO depending of a lot of things like entity type, physical behavior, etc
         let relative_start_x = 0. / config::SCENE_ITEMS_SPRITE_SHEET_WIDTH;
         let relative_start_y = 0. / config::SCENE_ITEMS_SPRITE_SHEET_HEIGHT;
         let relative_tile_width = 12. / config::SCENE_ITEMS_SPRITE_SHEET_WIDTH;
         let relative_tile_height = 12. / config::SCENE_ITEMS_SPRITE_SHEET_HEIGHT;
-        vec![graphics::DrawParam::new().src(graphics::Rect::new(
-            relative_start_x,
-            relative_start_y,
-            relative_tile_width,
-            relative_tile_height,
-        ))]
+        vec![graphics::DrawParam::new()
+            .src(graphics::Rect::new(
+                relative_start_x,
+                relative_start_y,
+                relative_tile_width,
+                relative_tile_height,
+            ))
+            .rotation(entity.get_looking_direction().0)
+            .offset(Offset::new(0.5, 0.5).to_vec2())]
     }
 
     pub fn draw(

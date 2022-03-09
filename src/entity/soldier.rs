@@ -8,6 +8,7 @@ pub struct Soldier {
     world_point: WorldPoint,
     squad_uuid: SquadUuid,
     behavior: Behavior,
+    looking_direction: Angle,
 }
 
 impl Soldier {
@@ -16,6 +17,7 @@ impl Soldier {
             world_point,
             squad_uuid,
             behavior: Behavior::Idle,
+            looking_direction: Angle(0.0),
         }
     }
 
@@ -47,5 +49,13 @@ impl Entity for Soldier {
 
     fn set_behavior(&mut self, behavior: Behavior) {
         self.behavior = behavior
+    }
+
+    fn get_looking_direction(&self) -> Angle {
+        self.looking_direction
+    }
+
+    fn set_looking_direction(&mut self, angle: Angle) {
+        self.looking_direction = angle
     }
 }

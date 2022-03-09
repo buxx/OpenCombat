@@ -66,6 +66,7 @@ impl State {
                 entity.set_world_point(new_world_point)
             }
             EntityMessage::SetBehavior(behavior) => entity.set_behavior(behavior),
+            EntityMessage::SetOrientation(angle) => entity.set_looking_direction(angle),
         }
     }
 

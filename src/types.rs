@@ -42,7 +42,7 @@ pub struct GridPoint {
 }
 
 impl GridPoint {
-    pub fn _new(x: i32, y: i32) -> Self {
+    pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
     }
 }
@@ -174,3 +174,6 @@ impl Offset {
         Vec2::new(self.x, self.y)
     }
 }
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Angle(pub f32);

@@ -26,6 +26,7 @@ pub enum EngineMessage {
 pub enum EntityMessage {
     SetWorldPosition(WorldPoint),
     SetBehavior(Behavior),
+    SetOrientation(Angle),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
