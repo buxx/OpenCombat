@@ -11,7 +11,7 @@ pub struct WorldPoint {
 }
 
 impl WorldPoint {
-    pub fn apply_raw(self, raw: Vec2) -> Self {
+    pub fn apply(self, raw: Vec2) -> Self {
         Self {
             x: self.x + raw.x,
             y: self.y + raw.y,
@@ -19,9 +19,9 @@ impl WorldPoint {
     }
 }
 
-impl From<(f32, f32)> for WorldPoint {
-    fn from(p: (f32, f32)) -> Self {
-        Self { x: p.0, y: p.1 }
+impl From<Vec2> for WorldPoint {
+    fn from(p: Vec2) -> Self {
+        Self { x: p.x, y: p.y }
     }
 }
 

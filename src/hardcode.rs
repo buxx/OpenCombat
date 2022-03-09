@@ -1,3 +1,5 @@
+use glam::Vec2;
+
 use crate::{entity::soldier::Soldier, types::*, utils};
 
 pub fn get_entities() -> Vec<ThreadSafeEntity> {
@@ -9,7 +11,7 @@ pub fn get_entities() -> Vec<ThreadSafeEntity> {
             // let x: f32 = rng.gen_range(0.0..800.0);
             // let y: f32 = rng.gen_range(0.0..800.0);
             let entity = Box::new(Soldier::new(
-                WorldPoint::from((x as f32 * 10., y as f32 * 10.)),
+                WorldPoint::from(Vec2::new(x as f32 * 10., y as f32 * 10.)),
                 SquadUuid(squad),
             ));
             entities.push(entity);
