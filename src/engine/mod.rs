@@ -66,10 +66,10 @@ impl Engine {
         Ok(())
     }
 
-    fn tick(&mut self) {
+    fn tick(&mut self, ctx: &mut Context) {
         match self.config.network_mode() {
-            crate::NetWorkMode::Server => self.tick_as_server(),
-            crate::NetWorkMode::Client => self.tick_as_client(),
+            crate::NetWorkMode::Server => self.tick_as_server(ctx),
+            crate::NetWorkMode::Client => self.tick_as_client(ctx),
         }
     }
 }
@@ -83,7 +83,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
             }
 
             // Execute "each frame" code
-            self.tick();
+            self.tick(ctx);
 
             // Increment the frame counter
             self.frame_i += 1;

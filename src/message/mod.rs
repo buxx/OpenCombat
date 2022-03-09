@@ -6,6 +6,7 @@ pub mod result;
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Message {
     State(StateMessage),
+    Engine(EngineMessage),
     Network(NetworkMessage),
 }
 
@@ -14,6 +15,11 @@ pub enum StateMessage {
     Entity(EntityIndex, EntityMessage),
     PushOrder(SquadUuid, Order),
     RemoveOder(SquadUuid),
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub enum EngineMessage {
+    ApplySceneDisplayOffset(Offset),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

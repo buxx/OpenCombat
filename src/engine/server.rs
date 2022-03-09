@@ -1,7 +1,9 @@
+use ggez::Context;
+
 use super::Engine;
 
 impl Engine {
-    pub fn tick_as_server(&mut self) {
+    pub fn tick_as_server(&mut self, ctx: &mut Context) {
         // Will collect all tick messages
         let mut messages = vec![];
 
@@ -15,7 +17,7 @@ impl Engine {
         messages.extend(self.deal_with_errors_as_server());
 
         // Retrieve messages from user inputs
-        messages.extend(self.collect_player_inputs());
+        messages.extend(self.collect_player_inputs(ctx));
 
         // Apply messages
         self.react(messages);

@@ -1,4 +1,3 @@
-use ggez::mint;
 use serde::{Deserialize, Serialize};
 
 use glam::Vec2;
@@ -150,5 +149,28 @@ impl SquadComposition {
 
     pub fn _members(&self) -> &Vec<EntityIndex> {
         &self.1
+    }
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Offset {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl Offset {
+    pub fn new(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
+    pub fn apply(self, raw: Vec2) -> Self {
+        Self {
+            x: self.x + raw.x,
+            y: self.y + raw.y,
+        }
+    }
+
+    pub fn to_vec2(self) -> Vec2 {
+        Vec2::new(self.x, self.y)
     }
 }
