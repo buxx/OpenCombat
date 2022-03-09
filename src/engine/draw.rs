@@ -14,7 +14,7 @@ impl Engine {
         let mut sprites = vec![];
 
         for sprite in self.graphics.entity_sprites(entity) {
-            let draw_to: Vec2 = entity.get_world_position().into();
+            let draw_to: Vec2 = entity.get_world_point().into();
             sprites.push(sprite.dest(draw_to));
         }
 

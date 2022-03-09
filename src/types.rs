@@ -52,12 +52,12 @@ impl Add for WorldY {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
-pub struct WorldPosition {
+pub struct WorldPoint {
     pub x: WorldX,
     pub y: WorldY,
 }
 
-impl WorldPosition {
+impl WorldPoint {
     pub fn apply_raw(self, raw: Vec2) -> Self {
         Self {
             x: WorldX(self.x.0 + raw.x),
@@ -66,13 +66,13 @@ impl WorldPosition {
     }
 }
 
-impl From<(WorldX, WorldY)> for WorldPosition {
+impl From<(WorldX, WorldY)> for WorldPoint {
     fn from(p: (WorldX, WorldY)) -> Self {
         Self { x: p.0, y: p.1 }
     }
 }
 
-impl Into<Vec2> for WorldPosition {
+impl Into<Vec2> for WorldPoint {
     fn into(self) -> Vec2 {
         Vec2::new(self.x.into(), self.y.into())
     }
@@ -80,11 +80,11 @@ impl Into<Vec2> for WorldPosition {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct WorldPath {
-    pub points: Vec<WorldPosition>,
+    pub points: Vec<WorldPoint>,
 }
 
 impl WorldPath {
-    pub fn new(points: Vec<WorldPosition>) -> Self {
+    pub fn new(points: Vec<WorldPoint>) -> Self {
         Self { points }
     }
 }

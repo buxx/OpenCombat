@@ -62,8 +62,8 @@ impl State {
 
         let entity = &mut self.entities[entity_i.0];
         match entity_message {
-            EntityMessage::SetWorldPosition(new_world_position) => {
-                entity.set_world_position(new_world_position)
+            EntityMessage::SetWorldPosition(new_world_point) => {
+                entity.set_world_point(new_world_point)
             }
             EntityMessage::SetBehavior(behavior) => entity.set_behavior(behavior),
         }

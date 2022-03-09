@@ -18,7 +18,7 @@ pub enum StateMessage {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum EntityMessage {
-    SetWorldPosition(WorldPosition),
+    SetWorldPosition(WorldPoint),
     SetBehavior(Behavior),
 }
 

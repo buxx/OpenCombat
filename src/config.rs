@@ -30,7 +30,7 @@ impl Config {
             /// Target FPS of engine
             target_fps: 60,
             /// Frequency of entity update :
-            ///  - World pixel position according to movement
+            ///  - World pixel point according to movement
             ///  - ...
             entity_update_freq: 1,
             /// Frequency of entity animation :

@@ -7,7 +7,7 @@ use crate::{
 use super::Engine;
 
 impl Engine {
-    ///  - World pixel position according to movement
+    ///  - World pixel point according to movement
     ///  - ...
     pub fn update_entity(&self, i: EntityIndex) -> Vec<Message> {
         let entity = self.state.entity(i);

@@ -5,22 +5,22 @@ use super::{Entity, EntityType};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Soldier {
-    world_position: WorldPosition,
+    world_point: WorldPoint,
     squad_uuid: SquadUuid,
     behavior: Behavior,
 }
 
 impl Soldier {
-    pub fn new(world_position: WorldPosition, squad_uuid: SquadUuid) -> Self {
+    pub fn new(world_point: WorldPoint, squad_uuid: SquadUuid) -> Self {
         Self {
-            world_position,
+            world_point,
             squad_uuid,
             behavior: Behavior::Idle,
         }
     }
 
     pub fn from_entity(entity: &ThreadSafeEntity) -> Self {
-        Self::new(entity.get_world_position(), entity.squad_uuid())
+        Self::new(entity.get_world_point(), entity.squad_uuid())
     }
 }
 
@@ -29,12 +29,12 @@ impl Entity for Soldier {
         EntityType::Soldier
     }
 
-    fn get_world_position(&self) -> WorldPosition {
-        self.world_position
+    fn get_world_point(&self) -> WorldPoint {
+        self.world_point
     }
 
-    fn set_world_position(&mut self, position: WorldPosition) {
-        self.world_position = position
+    fn set_world_point(&mut self, point: WorldPoint) {
+        self.world_point = point
     }
 
     fn squad_uuid(&self) -> SquadUuid {
