@@ -10,7 +10,7 @@ pub fn entity_updates(entity: &ThreadSafeEntity, path: &WorldPaths) -> Vec<Entit
         let velocity = entity
             .get_behavior()
             .velocity()
-            .expect("Entity behavior must have velocity when walking code called");
+            .expect("Entity behavior must have velocity when move code called");
         let vector = (point.to_vec2() - entity.get_world_point().to_vec2()).normalize() * velocity;
         // Point reached
         if (entity.get_world_point().to_vec2() - point.to_vec2()).length() <= vector.length() {

@@ -21,9 +21,9 @@ pub const TARGET_FPS: u32 = 60;
 // Velocity of move vector
 pub const MOVE_VELOCITY: f32 = 5.0 / TARGET_FPS as f32;
 // Velocity of move fast vector
-pub const _MOVE_FAST_VELOCITY: f32 = 10.0 / TARGET_FPS as f32;
+pub const MOVE_FAST_VELOCITY: f32 = 10.0 / TARGET_FPS as f32;
 // Velocity of move hide vector
-pub const _MOVE_HIDE_VELOCITY: f32 = 1.5 / TARGET_FPS as f32;
+pub const MOVE_HIDE_VELOCITY: f32 = 1.5 / TARGET_FPS as f32;
 
 impl Config {
     pub fn new(opt: &Opt) -> GameResult<Self> {

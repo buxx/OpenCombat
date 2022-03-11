@@ -1,5 +1,5 @@
 use crate::{
-    behavior::{walking, Behavior},
+    behavior::{move_, Behavior},
     message::*,
     types::*,
     utils::angle,
@@ -11,18 +11,10 @@ impl Engine {
     ///  - World pixel point according to movement
     ///  - ...
     pub fn update_entity(&self, i: EntityIndex) -> Vec<Message> {
-        let entity = self.state.entity(i);
         let mut messages = vec![];
 
         messages.extend(self.orientation_update(i));
-
-        let entity_messages = match entity.get_behavior() {
-            Behavior::Idle => {
-                vec![]
-            }
-            Behavior::MoveTo(paths) => walking::entity_updates(entity, paths),
-        };
-        messages.extend(Message::vec_from_entity(i, entity_messages));
+        messages.extend(self.behavior_update(i));
 
         messages
     }
@@ -36,6 +28,23 @@ impl Engine {
             let entity_message = EntityMessage::SetOrientation(orientation);
             messages.push(Message::State(StateMessage::Entity(i, entity_message)));
         }
+
+        messages
+    }
+
+    fn behavior_update(&self, i: EntityIndex) -> Vec<Message> {
+        let entity = self.state.entity(i);
+        let mut messages = vec![];
+
+        let entity_messages = match entity.get_behavior() {
+            Behavior::Idle => {
+                vec![]
+            }
+            Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::MoveHideTo(paths) => {
+                move_::entity_updates(entity, paths)
+            }
+        };
+        messages.extend(Message::vec_from_entity(i, entity_messages));
 
         messages
     }

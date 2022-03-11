@@ -1,12 +1,17 @@
-use crate::{config::MOVE_VELOCITY, types::*};
+use crate::{
+    config::{MOVE_FAST_VELOCITY, MOVE_HIDE_VELOCITY, MOVE_VELOCITY},
+    types::*,
+};
 use serde::{Deserialize, Serialize};
 
-pub mod walking;
+pub mod move_;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {
     Idle,
     MoveTo(WorldPaths),
+    MoveFastTo(WorldPaths),
+    MoveHideTo(WorldPaths),
 }
 
 impl Behavior {
@@ -14,6 +19,8 @@ impl Behavior {
         match self {
             Behavior::Idle => None,
             Behavior::MoveTo(paths) => paths.next_point(),
+            Behavior::MoveFastTo(paths) => paths.next_point(),
+            Behavior::MoveHideTo(paths) => paths.next_point(),
         }
     }
 
@@ -21,13 +28,15 @@ impl Behavior {
         match self {
             Behavior::Idle => None,
             Behavior::MoveTo(_) => Some(MOVE_VELOCITY),
+            Behavior::MoveFastTo(_) => Some(MOVE_FAST_VELOCITY),
+            Behavior::MoveHideTo(_) => Some(MOVE_HIDE_VELOCITY),
         }
     }
 
     pub fn reach_step(&mut self) {
         match self {
             Behavior::Idle => unreachable!(),
-            Behavior::MoveTo(paths) => {
+            Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::MoveHideTo(paths) => {
                 paths
                     .remove_next_point()
                     .expect("Reach a move behavior implies containing point");
