@@ -39,7 +39,7 @@ impl Engine {
                             let b = WorldPath::new(vec![b1, b2]);
                             messages.push(Message::State(StateMessage::PushOrder(
                                 entity.squad_uuid(),
-                                Order::WalkTo(vec![a, b]),
+                                Order::MoveTo(WorldPaths::new(vec![a, b])),
                             )));
                         }
                         _ => {}

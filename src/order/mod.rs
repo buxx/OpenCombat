@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Order {
-    WalkTo(Vec<WorldPath>),
+    MoveTo(WorldPaths),
 }
 
 impl Order {
     pub fn to_behavior(&self) -> Behavior {
         match self {
-            Order::WalkTo(paths) => Behavior::WalkingTo(paths.clone()),
+            Order::MoveTo(paths) => Behavior::MoveTo(paths.clone()),
         }
     }
 }

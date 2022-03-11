@@ -67,6 +67,7 @@ impl State {
             }
             EntityMessage::SetBehavior(behavior) => entity.set_behavior(behavior),
             EntityMessage::SetOrientation(angle) => entity.set_looking_direction(angle),
+            EntityMessage::ReachBehaviorStep => entity.get_behavior_mut().reach_step(),
         }
     }
 

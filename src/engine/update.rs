@@ -20,7 +20,7 @@ impl Engine {
             Behavior::Idle => {
                 vec![]
             }
-            Behavior::WalkingTo(path) => walking::entity_updates(entity, path),
+            Behavior::MoveTo(paths) => walking::entity_updates(entity, paths),
         };
         messages.extend(Message::vec_from_entity(i, entity_messages));
 

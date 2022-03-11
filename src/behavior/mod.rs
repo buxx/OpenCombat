@@ -1,4 +1,4 @@
-use crate::types::*;
+use crate::{config::MOVE_VELOCITY, types::*};
 use serde::{Deserialize, Serialize};
 
 pub mod walking;
@@ -6,20 +6,31 @@ pub mod walking;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {
     Idle,
-    WalkingTo(Vec<WorldPath>),
+    MoveTo(WorldPaths),
 }
 
 impl Behavior {
     pub fn looking_point(&self) -> Option<WorldPoint> {
         match self {
             Behavior::Idle => None,
-            Behavior::WalkingTo(paths) => {
-                if paths.is_empty() {
-                    None
-                } else {
-                    // Note : WalkingTo Behavior must exist only if containing at least one path with one point
-                    Some(paths[0].points[0])
-                }
+            Behavior::MoveTo(paths) => paths.next_point(),
+        }
+    }
+
+    pub fn velocity(&self) -> Option<f32> {
+        match self {
+            Behavior::Idle => None,
+            Behavior::MoveTo(_) => Some(MOVE_VELOCITY),
+        }
+    }
+
+    pub fn reach_step(&mut self) {
+        match self {
+            Behavior::Idle => unreachable!(),
+            Behavior::MoveTo(paths) => {
+                paths
+                    .remove_next_point()
+                    .expect("Reach a move behavior implies containing point");
             }
         }
     }

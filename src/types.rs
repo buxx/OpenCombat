@@ -126,6 +126,59 @@ impl WorldPath {
     pub fn new(points: Vec<WorldPoint>) -> Self {
         Self { points }
     }
+
+    pub fn next_point(&self) -> Option<WorldPoint> {
+        if self.points.is_empty() {
+            None
+        } else {
+            Some(self.points[0])
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.points.len()
+    }
+
+    pub fn remove_next_point(&mut self) -> Option<WorldPoint> {
+        if self.points.is_empty() {
+            None
+        } else {
+            Some(self.points.remove(0))
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct WorldPaths {
+    pub paths: Vec<WorldPath>,
+}
+
+impl WorldPaths {
+    pub fn new(paths: Vec<WorldPath>) -> Self {
+        Self { paths }
+    }
+
+    pub fn next_point(&self) -> Option<WorldPoint> {
+        if self.paths.is_empty() {
+            None
+        } else {
+            self.paths[0].next_point()
+        }
+    }
+
+    pub fn remove_next_point(&mut self) -> Option<WorldPoint> {
+        while let Some(path) = self.paths.first_mut() {
+            let point = path
+                .remove_next_point()
+                .expect("We must use WorldPath.remove_next_point() only on feeded paths");
+            if path.len() == 0 {
+                self.paths.remove(0);
+            }
+            return Some(point);
+        }
+
+        None
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]

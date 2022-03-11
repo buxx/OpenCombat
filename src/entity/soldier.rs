@@ -47,6 +47,10 @@ impl Entity for Soldier {
         &self.behavior
     }
 
+    fn get_behavior_mut(&mut self) -> &mut Behavior {
+        &mut self.behavior
+    }
+
     fn set_behavior(&mut self, behavior: Behavior) {
         self.behavior = behavior
     }

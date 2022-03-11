@@ -12,6 +12,19 @@ pub struct Config {
     entity_animate_freq: u64,
 }
 
+// Width of sprite sheet
+pub const SCENE_ITEMS_SPRITE_SHEET_WIDTH: f32 = 800.0;
+// Height of sprite sheet
+pub const SCENE_ITEMS_SPRITE_SHEET_HEIGHT: f32 = 600.0;
+// Target FPS
+pub const TARGET_FPS: u32 = 60;
+// Velocity of move vector
+pub const MOVE_VELOCITY: f32 = 5.0 / TARGET_FPS as f32;
+// Velocity of move fast vector
+pub const _MOVE_FAST_VELOCITY: f32 = 10.0 / TARGET_FPS as f32;
+// Velocity of move hide vector
+pub const _MOVE_HIDE_VELOCITY: f32 = 1.5 / TARGET_FPS as f32;
+
 impl Config {
     pub fn new(opt: &Opt) -> GameResult<Self> {
         let (network_mode, server_rep_address, server_pub_address) = (
@@ -28,7 +41,7 @@ impl Config {
             ///
             server_pub_address,
             /// Target FPS of engine
-            target_fps: 60,
+            target_fps: TARGET_FPS,
             /// Frequency of entity update :
             ///  - World pixel point according to movement
             ///  - ...
@@ -64,8 +77,3 @@ impl Config {
         self.server_pub_address.clone()
     }
 }
-
-// Width of sprite sheet
-pub const SCENE_ITEMS_SPRITE_SHEET_WIDTH: f32 = 800.0;
-// Height of sprite sheet
-pub const SCENE_ITEMS_SPRITE_SHEET_HEIGHT: f32 = 600.0;
