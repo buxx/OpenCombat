@@ -7,7 +7,7 @@ use glam::*;
 use crate::config::Config;
 use crate::graphics::Graphics;
 use crate::network::Network;
-use crate::state::SharedState;
+use crate::state::shared::SharedState;
 mod animate;
 mod client;
 mod draw;

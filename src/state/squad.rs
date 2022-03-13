@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::types::*;
 
-use super::SharedState;
+use super::shared::SharedState;
 
 impl SharedState {
     pub fn update_squads(&mut self) {
@@ -19,12 +19,12 @@ impl SharedState {
             );
         }
 
-        self.squads = new_squads;
+        self.set_squads(new_squads);
     }
 
     fn unique_squad_ids(&self) -> Vec<SquadUuid> {
         let mut all_squad_uuids: Vec<SquadUuid> =
-            self.entities.iter().map(|e| e.squad_uuid()).collect();
+            self.entities().iter().map(|e| e.squad_uuid()).collect();
         let unique_squad_uuids: HashSet<SquadUuid> = all_squad_uuids.drain(..).collect();
         unique_squad_uuids.into_iter().collect()
     }
@@ -45,7 +45,7 @@ impl SharedState {
     }
 
     fn squad_entities(&self, squad_uuid: SquadUuid) -> Vec<EntityIndex> {
-        self.entities
+        self.entities()
             .iter()
             .enumerate()
             .filter(|(_, e)| e.squad_uuid() == squad_uuid)

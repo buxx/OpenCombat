@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::soldier::Soldier, state::SharedState};
+use crate::{entity::soldier::Soldier, state::shared::SharedState};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct StateCopy {

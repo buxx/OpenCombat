@@ -1,9 +1,8 @@
 use std::path;
-use std::path::Path;
 
 use ggez::event;
 use ggez::GameResult;
-use state::SharedState;
+use state::shared::SharedState;
 
 mod behavior;
 mod config;
