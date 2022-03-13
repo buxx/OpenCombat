@@ -14,13 +14,14 @@ impl Engine {
             match message {
                 Message::State(state_message) => match state_message {
                     StateMessage::Entity(entity_i, entity_message) => {
-                        self.state.react_entity_message(entity_i, entity_message);
+                        self.shared_state
+                            .react_entity_message(entity_i, entity_message);
                     }
                     StateMessage::PushOrder(squad_uuid, order) => {
-                        self.state.push_order(squad_uuid, order);
+                        self.shared_state.push_order(squad_uuid, order);
                     }
                     StateMessage::RemoveOder(squad_uuid) => {
-                        self.state.remove_order(squad_uuid);
+                        self.shared_state.remove_order(squad_uuid);
                     }
                 },
                 Message::Network(network_message) => match network_message {
@@ -28,7 +29,7 @@ impl Engine {
                         self.send_complete_sync();
                     }
                     NetworkMessage::InitializeStateFrom(state_copy) => {
-                        self.state.init_from_copy(state_copy);
+                        self.shared_state.init_from_copy(state_copy);
                     }
                     NetworkMessage::Acknowledge => unreachable!(),
                 },
@@ -42,7 +43,7 @@ impl Engine {
     }
 
     fn send_complete_sync(&self) {
-        let state_copy = StateCopy::from_state(&self.state);
+        let state_copy = StateCopy::from_state(&self.shared_state);
         let network_message = NetworkMessage::InitializeStateFrom(state_copy);
         let message = Message::Network(network_message);
         self.network.send(vec![message]);

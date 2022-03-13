@@ -27,7 +27,7 @@ impl Engine {
 
         // TODO : hardcode code for test purposes
         if self.frame_i == 60 {
-            for (i, entity) in self.state.entities().iter().enumerate() {
+            for (i, entity) in self.shared_state.entities().iter().enumerate() {
                 if self.entity_is_squad_leader(EntityIndex(i)) {
                     match entity.get_behavior() {
                         Behavior::Idle => {

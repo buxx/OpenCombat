@@ -2,9 +2,9 @@ use std::collections::{HashMap, HashSet};
 
 use crate::types::*;
 
-use super::State;
+use super::SharedState;
 
-impl State {
+impl SharedState {
     pub fn update_squads(&mut self) {
         let mut new_squads = HashMap::new();
 

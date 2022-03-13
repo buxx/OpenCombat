@@ -5,7 +5,7 @@ use super::Engine;
 impl Engine {
     // TODO : don't generate sprites of non visible entities (hidden enemy, outside screen, etc)
     pub fn generate_entities_sprites(&mut self) -> GameResult {
-        for entity in self.state.entities() {
+        for entity in self.shared_state.entities() {
             for sprite in self.graphics.entity_sprites(entity) {
                 let sprite_ = sprite.dest(entity.get_world_point().to_vec2());
                 self.graphics.append_sprites_batch(sprite_);

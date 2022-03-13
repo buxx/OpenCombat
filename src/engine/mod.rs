@@ -7,7 +7,7 @@ use glam::*;
 use crate::config::Config;
 use crate::graphics::Graphics;
 use crate::network::Network;
-use crate::state::State;
+use crate::state::SharedState;
 mod animate;
 mod client;
 mod draw;
@@ -23,8 +23,8 @@ pub struct Engine {
     config: Config,
     network: Network,
     graphics: Graphics,
-    /// The current state of the game. This struct is own by server and replicated on clients
-    state: State,
+    /// The current shared state of the game. This struct is own by server and replicated on clients
+    shared_state: SharedState,
     /// Printed frames since start of program
     frame_i: u64,
     /// Offset to apply to battle scene by window relative
@@ -36,13 +36,17 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(config: Config, graphics: Graphics, state: State) -> GameResult<Engine> {
+    pub fn new(
+        config: Config,
+        graphics: Graphics,
+        shared_state: SharedState,
+    ) -> GameResult<Engine> {
         let network = Network::new(config.clone())?;
         let engine = Engine {
             config,
             network,
             graphics,
-            state,
+            shared_state,
             frame_i: 0,
             display_scene_offset: Vec2::new(0., 0.),
             display_scene_scale: Vec2::new(1., 1.),
@@ -53,9 +57,9 @@ impl Engine {
 
     fn init(&mut self) -> GameResult {
         match self.config.network_mode() {
-            // Server own game state, so init it
-            crate::NetWorkMode::Server => self.state.init()?,
-            // Client initialize its state when received from server
+            // Server own game shared shared state, so init it
+            crate::NetWorkMode::Server => self.shared_state.init()?,
+            // Client initialize its shared state when received from server
             crate::NetWorkMode::Client => {}
         };
 
@@ -77,7 +81,7 @@ impl Engine {
 impl event::EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while check_update_time(ctx, self.config.target_fps()) {
-            // First thing to do is to initialize the state.
+            // First thing to do is to initialize the shared state.
             if self.frame_i == 0 {
                 self.init()?;
             }

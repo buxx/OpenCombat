@@ -9,7 +9,7 @@ impl Engine {
 
         // Entities animation
         if self.frame_i % self.config.entity_animate_freq() == 0 {
-            let entity_messages: Vec<Message> = (0..self.state.entities().len())
+            let entity_messages: Vec<Message> = (0..self.shared_state.entities().len())
                 .into_par_iter()
                 .flat_map(|i| self.animate_entity(EntityIndex(i)))
                 .collect();
@@ -18,7 +18,7 @@ impl Engine {
 
         // Entities updates
         if self.frame_i % self.config.entity_update_freq() == 0 {
-            let entity_messages: Vec<Message> = (0..self.state.entities().len())
+            let entity_messages: Vec<Message> = (0..self.shared_state.entities().len())
                 .into_par_iter()
                 .flat_map(|i| self.update_entity(EntityIndex(i)))
                 .collect();
@@ -29,9 +29,9 @@ impl Engine {
     }
 
     pub fn entity_is_squad_leader(&self, entity_i: EntityIndex) -> bool {
-        let entity = self.state.entity(entity_i);
+        let entity = self.shared_state.entity(entity_i);
         let squad_uuid = entity.squad_uuid();
-        let squad_composition = self.state.squad(squad_uuid);
+        let squad_composition = self.shared_state.squad(squad_uuid);
         let squad_leader = squad_composition.leader();
         squad_leader == entity_i
     }

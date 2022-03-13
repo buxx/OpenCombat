@@ -20,7 +20,7 @@ impl Engine {
     }
 
     fn orientation_update(&self, i: EntityIndex) -> Vec<Message> {
-        let entity = self.state.entity(i);
+        let entity = self.shared_state.entity(i);
         let mut messages = vec![];
 
         if let Some(point) = entity.get_behavior().looking_point() {
@@ -33,7 +33,7 @@ impl Engine {
     }
 
     fn behavior_update(&self, i: EntityIndex) -> Vec<Message> {
-        let entity = self.state.entity(i);
+        let entity = self.shared_state.entity(i);
         let mut messages = vec![];
 
         let entity_messages = match entity.get_behavior() {

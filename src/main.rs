@@ -3,7 +3,7 @@ use std::path::Path;
 
 use ggez::event;
 use ggez::GameResult;
-use state::State;
+use state::SharedState;
 
 mod behavior;
 mod config;
@@ -56,13 +56,13 @@ fn main() -> GameResult {
 
     let map = map::Map::new("map1")?;
     let graphics = graphics::Graphics::new(&mut context, &map)?;
-    let state = match config.network_mode() {
+    let shared_state = match config.network_mode() {
         NetWorkMode::Server => {
             let entities = hardcode::get_entities();
-            State::new(entities)
+            SharedState::new(entities)
         }
-        NetWorkMode::Client => State::new(vec![]),
+        NetWorkMode::Client => SharedState::new(vec![]),
     };
-    let engine = engine::Engine::new(config, graphics, state)?;
+    let engine = engine::Engine::new(config, graphics, shared_state)?;
     event::run(context, event_loop, engine)
 }

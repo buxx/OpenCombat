@@ -7,8 +7,8 @@ use crate::{message::EntityMessage, order::Order, sync::StateCopy, types::*};
 mod order;
 mod squad;
 
-pub struct State {
-    /// Used to ignore server state modifications since state not received from server
+pub struct SharedState {
+    /// Used to ignore server shared_state modifications since shared state not received from server
     initialized: bool,
     /// The entities in the world (soldiers, vehicles, etc).
     entities: Vec<ThreadSafeEntity>,
@@ -19,7 +19,7 @@ pub struct State {
     orders: HashMap<SquadUuid, Order>,
 }
 
-impl State {
+impl SharedState {
     pub fn new(entities: Vec<ThreadSafeEntity>) -> Self {
         Self {
             initialized: false,
@@ -74,7 +74,7 @@ impl State {
     pub fn squad(&self, squad_uuid: SquadUuid) -> &SquadComposition {
         self.squads
             .get(&squad_uuid)
-            .expect("Game state should never own inconsistent squad index")
+            .expect("Game shared_state should never own inconsistent squad index")
     }
 
     pub fn _squads(&self) -> &HashMap<SquadUuid, SquadComposition> {
@@ -92,6 +92,6 @@ impl State {
     pub fn remove_order(&mut self, squad_uuid: SquadUuid) {
         self.orders
             .remove(&squad_uuid)
-            .expect("Game state should never own inconsistent orders index");
+            .expect("Game shared_state should never own inconsistent orders index");
     }
 }
