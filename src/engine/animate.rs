@@ -14,7 +14,7 @@ impl Engine {
             if let Some(order) = self.shared_state.order_for(entity_index) {
                 if self.entity_can_take_order(entity_index, order) {
                     messages.extend(self.take_order(entity_index, order));
-                    messages.push(Message::State(StateMessage::RemoveOder(
+                    messages.push(Message::SharedState(SharedStateMessage::RemoveOder(
                         entity.squad_uuid(),
                     )));
                 }

@@ -5,13 +5,13 @@ pub mod result;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Message {
-    State(StateMessage),
+    SharedState(SharedStateMessage),
     Engine(EngineMessage),
     Network(NetworkMessage),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-pub enum StateMessage {
+pub enum SharedStateMessage {
     Entity(EntityIndex, EntityMessage),
     PushOrder(SquadUuid, Order),
     RemoveOder(SquadUuid),
@@ -41,7 +41,7 @@ impl Message {
     pub fn vec_from_entity(i: EntityIndex, messages: Vec<EntityMessage>) -> Vec<Message> {
         messages
             .into_iter()
-            .map(|m| Message::State(StateMessage::Entity(i, m)))
+            .map(|m| Message::SharedState(SharedStateMessage::Entity(i, m)))
             .collect()
     }
 }

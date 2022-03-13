@@ -26,7 +26,10 @@ impl Engine {
         if let Some(point) = entity.get_behavior().looking_point() {
             let orientation = angle(&point, &entity.get_world_point());
             let entity_message = EntityMessage::SetOrientation(orientation);
-            messages.push(Message::State(StateMessage::Entity(i, entity_message)));
+            messages.push(Message::SharedState(SharedStateMessage::Entity(
+                i,
+                entity_message,
+            )));
         }
 
         messages

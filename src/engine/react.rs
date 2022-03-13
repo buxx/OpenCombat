@@ -12,15 +12,15 @@ impl Engine {
 
         for message in messages {
             match message {
-                Message::State(state_message) => match state_message {
-                    StateMessage::Entity(entity_i, entity_message) => {
+                Message::SharedState(state_message) => match state_message {
+                    SharedStateMessage::Entity(entity_i, entity_message) => {
                         self.shared_state
                             .react_entity_message(entity_i, entity_message);
                     }
-                    StateMessage::PushOrder(squad_uuid, order) => {
+                    SharedStateMessage::PushOrder(squad_uuid, order) => {
                         self.shared_state.push_order(squad_uuid, order);
                     }
-                    StateMessage::RemoveOder(squad_uuid) => {
+                    SharedStateMessage::RemoveOder(squad_uuid) => {
                         self.shared_state.remove_order(squad_uuid);
                     }
                 },

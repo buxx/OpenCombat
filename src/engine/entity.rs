@@ -45,7 +45,7 @@ impl Engine {
         // TODO : behavior must be given to other squad soldiers !!!! other soldiers must can accept it too (under fire etc)
         let behavior = order.to_behavior();
         let entity_message = EntityMessage::SetBehavior(behavior);
-        vec![Message::State(StateMessage::Entity(
+        vec![Message::SharedState(SharedStateMessage::Entity(
             entity_i,
             entity_message,
         ))]

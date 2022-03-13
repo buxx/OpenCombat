@@ -14,7 +14,7 @@ impl Engine {
         for message in messages {
             match message {
                 // State changes must be sent to clients
-                Message::State(_) => dispatch_messages.push(message.clone()),
+                Message::SharedState(_) => dispatch_messages.push(message.clone()),
                 _ => {}
             }
         }

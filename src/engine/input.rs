@@ -37,7 +37,7 @@ impl Engine {
                             let b2 = entity.get_world_point().apply(Vec2::new(10., 20.));
                             let a = WorldPath::new(vec![a1, a2]);
                             let b = WorldPath::new(vec![b1, b2]);
-                            messages.push(Message::State(StateMessage::PushOrder(
+                            messages.push(Message::SharedState(SharedStateMessage::PushOrder(
                                 entity.squad_uuid(),
                                 Order::MoveTo(WorldPaths::new(vec![a, b])),
                             )));
