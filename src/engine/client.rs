@@ -7,7 +7,7 @@ use super::Engine;
 impl Engine {
     pub fn tick_as_client(&mut self, ctx: &mut Context) {
         // Client require a complete sync as first
-        if self.frame_i == 0 {
+        if self.local_state.frame_i == 0 {
             self.network
                 .send(vec![Message::Network(NetworkMessage::RequireCompleteSync)]);
         }

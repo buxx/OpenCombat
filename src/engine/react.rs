@@ -35,7 +35,7 @@ impl Engine {
                 },
                 Message::Engine(engine_message) => match engine_message {
                     EngineMessage::ApplySceneDisplayOffset(offset) => {
-                        self.display_scene_offset += offset.to_vec2();
+                        self.local_state.display_scene_offset += offset.to_vec2();
                     }
                 },
             }

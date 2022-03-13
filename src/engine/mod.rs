@@ -2,11 +2,11 @@ use ggez::graphics::{self};
 use ggez::timer::check_update_time;
 use ggez::{event, GameError};
 use ggez::{Context, GameResult};
-use glam::*;
 
 use crate::config::Config;
 use crate::graphics::Graphics;
 use crate::network::Network;
+use crate::state::local::LocalState;
 use crate::state::shared::SharedState;
 mod animate;
 mod client;
@@ -25,14 +25,8 @@ pub struct Engine {
     graphics: Graphics,
     /// The current shared state of the game. This struct is own by server and replicated on clients
     shared_state: SharedState,
-    /// Printed frames since start of program
-    frame_i: u64,
-    /// Offset to apply to battle scene by window relative
-    display_scene_offset: Vec2,
-    /// Scale to apply to battle scene by window relative
-    display_scene_scale: Vec2,
-    // Bellow, some player display configurations
-    draw_decor: bool,
+    /// The current local state of the game. This struct is own by client and server and are not related
+    local_state: LocalState,
 }
 
 impl Engine {
@@ -42,15 +36,13 @@ impl Engine {
         shared_state: SharedState,
     ) -> GameResult<Engine> {
         let network = Network::new(config.clone())?;
+        let local_state = LocalState::new();
         let engine = Engine {
             config,
             network,
             graphics,
             shared_state,
-            frame_i: 0,
-            display_scene_offset: Vec2::new(0., 0.),
-            display_scene_scale: Vec2::new(1., 1.),
-            draw_decor: true,
+            local_state,
         };
         Ok(engine)
     }
@@ -82,7 +74,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while check_update_time(ctx, self.config.target_fps()) {
             // First thing to do is to initialize the shared state.
-            if self.frame_i == 0 {
+            if self.local_state.frame_i == 0 {
                 self.init()?;
             }
 
@@ -90,7 +82,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
             self.tick(ctx);
 
             // Increment the frame counter
-            self.frame_i += 1;
+            self.local_state.frame_i += 1;
         }
 
         Ok(())
@@ -99,15 +91,15 @@ impl event::EventHandler<ggez::GameError> for Engine {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         self.graphics.clear(ctx);
 
-        self.generate_map_sprites(self.draw_decor)?;
+        self.generate_map_sprites(self.local_state.draw_decor)?;
         self.generate_entities_sprites()?;
 
         // Draw entire
         let window_draw_param = graphics::DrawParam::new()
-            .dest(self.display_scene_offset)
-            .scale(self.display_scene_scale);
+            .dest(self.local_state.display_scene_offset)
+            .scale(self.local_state.display_scene_scale);
         self.graphics
-            .draw(ctx, self.draw_decor, window_draw_param)?;
+            .draw(ctx, self.local_state.draw_decor, window_draw_param)?;
 
         graphics::present(ctx)?;
         Ok(())
