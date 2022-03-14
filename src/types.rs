@@ -11,6 +11,10 @@ pub struct WorldPoint {
 }
 
 impl WorldPoint {
+    pub fn new(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
     pub fn apply(self, raw: Vec2) -> Self {
         Self {
             x: self.x + raw.x,
@@ -89,18 +93,18 @@ pub struct WindowPoint {
 }
 
 impl WindowPoint {
-    pub fn _new(x: f32, y: f32) -> Self {
+    pub fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
 
-    pub fn _apply(self, raw: Vec2) -> Self {
+    pub fn apply(self, raw: Vec2) -> Self {
         Self {
             x: self.x + raw.x,
             y: self.y + raw.y,
         }
     }
 
-    pub fn _to_vec2(self) -> Vec2 {
+    pub fn to_vec2(self) -> Vec2 {
         Vec2::new(self.x, self.y)
     }
 }

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use ggez::GameResult;
 
-use crate::{order::Order, sync::StateCopy, types::*};
+use crate::{message::*, order::Order, sync::StateCopy, types::*};
 
 pub struct SharedState {
     /// Used to ignore server shared_state modifications since shared state not received from server
@@ -89,5 +89,19 @@ impl SharedState {
         self.orders
             .remove(&squad_uuid)
             .expect("Game shared_state should never own inconsistent orders index");
+    }
+
+    pub fn react(&mut self, state_message: crate::message::SharedStateMessage) {
+        match state_message {
+            SharedStateMessage::Entity(entity_i, entity_message) => {
+                self.react_entity_message(entity_i, entity_message);
+            }
+            SharedStateMessage::PushOrder(squad_uuid, order) => {
+                self.push_order(squad_uuid, order);
+            }
+            SharedStateMessage::RemoveOder(squad_uuid) => {
+                self.remove_order(squad_uuid);
+            }
+        }
     }
 }

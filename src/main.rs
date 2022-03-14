@@ -6,6 +6,7 @@ use state::shared::SharedState;
 
 mod behavior;
 mod config;
+mod debug;
 mod engine;
 mod entity;
 mod graphics;

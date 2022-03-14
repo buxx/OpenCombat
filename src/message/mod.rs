@@ -1,12 +1,12 @@
-use crate::{behavior::Behavior, order::Order, sync::StateCopy, types::*};
+use crate::{behavior::Behavior, debug::DebugLevel, order::Order, sync::StateCopy, types::*};
 use serde::{Deserialize, Serialize};
 
 pub mod result;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Message {
+    LocalState(LocalStateMessage),
     SharedState(SharedStateMessage),
-    Engine(EngineMessage),
     Network(NetworkMessage),
 }
 
@@ -18,8 +18,13 @@ pub enum SharedStateMessage {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-pub enum EngineMessage {
-    ApplySceneDisplayOffset(Offset),
+pub enum LocalStateMessage {
+    SetDebugLevel(DebugLevel),
+    SetCursorPoint(WindowPoint),
+    SetLeftClickDown(Option<WindowPoint>),
+    SetCurrentCursorVector(Option<(WindowPoint, WindowPoint)>),
+    SetSceneDisplayOffset(Offset),
+    PushUIEvent(UIEvent),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -28,6 +33,12 @@ pub enum EntityMessage {
     SetBehavior(Behavior),
     SetOrientation(Angle),
     ReachBehaviorStep,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub enum UIEvent {
+    FinishedCursorVector(WindowPoint, WindowPoint), // From, To
+    FinishedCursorLeftClick(WindowPoint),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

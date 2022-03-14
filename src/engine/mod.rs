@@ -1,4 +1,5 @@
-use ggez::graphics::{self};
+use ggez::event::MouseButton;
+use ggez::graphics::{self, MeshBuilder};
 use ggez::timer::check_update_time;
 use ggez::{event, GameError};
 use ggez::{Context, GameResult};
@@ -10,6 +11,7 @@ use crate::state::local::LocalState;
 use crate::state::shared::SharedState;
 mod animate;
 mod client;
+mod debug;
 mod draw;
 mod entity;
 mod input;
@@ -17,6 +19,7 @@ mod network;
 mod order;
 mod react;
 mod server;
+mod ui;
 mod update;
 
 pub struct Engine {
@@ -90,18 +93,39 @@ impl event::EventHandler<ggez::GameError> for Engine {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         self.graphics.clear(ctx);
+        let mut mesh_builder = MeshBuilder::new();
 
         self.generate_map_sprites(self.local_state.draw_decor)?;
         self.generate_entities_sprites()?;
+        self.generate_debug_meshes(&mut mesh_builder)?;
 
-        // Draw entire
+        // Draw entire scene
         let window_draw_param = graphics::DrawParam::new()
             .dest(self.local_state.display_scene_offset)
             .scale(self.local_state.display_scene_scale);
-        self.graphics
-            .draw(ctx, self.local_state.draw_decor, window_draw_param)?;
+        self.graphics.draw(
+            ctx,
+            self.local_state.draw_decor,
+            window_draw_param,
+            mesh_builder,
+        )?;
 
         graphics::present(ctx)?;
         Ok(())
+    }
+
+    fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, dx: f32, dy: f32) {
+        let messages = self.collect_mouse_motion(ctx, x, y, dx, dy);
+        self.react(messages);
+    }
+
+    fn mouse_button_down_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
+        let messages = self.collect_mouse_down(ctx, button, x, y);
+        self.react(messages);
+    }
+
+    fn mouse_button_up_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
+        let messages = self.collect_mouse_up(ctx, button, x, y);
+        self.react(messages);
     }
 }

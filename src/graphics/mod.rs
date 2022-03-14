@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{self, spritebatch::SpriteBatch, FilterMode, Image},
+    graphics::{self, spritebatch::SpriteBatch, FilterMode, Image, MeshBuilder},
     Context, GameResult,
 };
 
@@ -20,7 +20,7 @@ pub struct Graphics {
 
 impl Graphics {
     pub fn new(ctx: &mut Context, map: &Map) -> GameResult<Graphics> {
-        let sprites_batch = get_sprites_batch(ctx)?;
+        let sprites_batch = create_sprites_batch(ctx)?;
         let map_background_batch = map::get_map_background_batch(ctx, map)?;
         let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
 
@@ -57,6 +57,7 @@ impl Graphics {
         ctx: &mut Context,
         draw_decor: bool,
         window_draw_param: graphics::DrawParam,
+        mesh_builder: MeshBuilder,
     ) -> GameResult {
         // Map background sprites
         graphics::draw(ctx, &self.map_background_batch, window_draw_param)?;
@@ -71,6 +72,11 @@ impl Graphics {
             }
         }
 
+        // Different meshes
+        if let Ok(mesh) = mesh_builder.build(ctx) {
+            graphics::draw(ctx, &mesh, window_draw_param)?;
+        };
+
         Ok(())
     }
 
@@ -80,7 +86,7 @@ impl Graphics {
     }
 }
 
-pub fn get_sprites_batch(ctx: &mut Context) -> GameResult<SpriteBatch> {
+pub fn create_sprites_batch(ctx: &mut Context) -> GameResult<SpriteBatch> {
     let mut sprites_image = Image::new(ctx, SPRITES_FILE_PATH)?;
     sprites_image.set_filter(FilterMode::Nearest); // because pixel art
     let sprites_batch = SpriteBatch::new(sprites_image);
