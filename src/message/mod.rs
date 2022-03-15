@@ -25,7 +25,7 @@ pub enum LocalStateMessage {
     SetCurrentCursorVector(Option<(WindowPoint, WindowPoint)>),
     SetSceneDisplayOffset(Offset),
     SetSelectedSquads(Vec<SquadUuid>),
-    SetSquadMenu(Option<WindowPoint>),
+    SetSquadMenu(Option<(WindowPoint, SquadUuid)>),
     PushUIEvent(UIEvent),
 }
 

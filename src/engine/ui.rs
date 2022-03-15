@@ -56,18 +56,12 @@ impl Engine {
         while let Some(event) = self.local_state.pop_ui_event() {
             match event {
                 UIEvent::FinishedCursorLeftClick(point) => {
-                    // TODO : Do this if no menu etc.
-                    let world_point = self.local_state.world_point_from_window_point(point);
-                    let entity_indexes = self.get_side_entities_at_point(world_point);
-                    if entity_indexes.len() > 0 {
-                        let squad_ids = self.squad_ids_from_entities(vec![entity_indexes[0]]);
-                        messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
-                            squad_ids,
-                        )));
+                    let squad_menu_displayed = self.local_state.get_squad_menu().is_some();
+
+                    if !squad_menu_displayed {
+                        messages.extend(self.digest_scene_select_by_click(point));
                     } else {
-                        messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
-                            vec![],
-                        )));
+                        messages.push(Message::LocalState(LocalStateMessage::SetSquadMenu(None)));
                     }
                 }
                 UIEvent::FinishedCursorVector(start, end) => {
@@ -84,25 +78,31 @@ impl Engine {
                 UIEvent::FinishedCursorRightClick(point) => {
                     let world_point = self.local_state.world_point_from_window_point(point);
                     let entity_indexes = self.get_side_entities_at_point(world_point);
+                    let mut squad_id: Option<SquadUuid> = None;
 
                     // If squad under cursor, select it
                     if entity_indexes.len() > 0 {
-                        let squad_ids = self.squad_ids_from_entities(entity_indexes.clone())[0];
+                        let squad_id_ = self.squad_ids_from_entities(entity_indexes.clone())[0];
+                        squad_id = Some(squad_id_);
                         messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
-                            vec![squad_ids],
+                            vec![squad_id_],
                         )));
 
                     // Else, if squads already selected, keep only one
                     } else if self.local_state.selected_squads().len() > 0 {
+                        squad_id = Some(self.local_state.selected_squads()[0]);
                         messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
                             vec![self.local_state.selected_squads()[0]],
                         )));
                     }
 
                     // Display a squad menu if squad under cursor or selected squad
-                    if entity_indexes.len() > 0 || self.local_state.selected_squads().len() > 0 {
+                    if let Some(squad_id_) = squad_id {
                         messages.push(Message::LocalState(LocalStateMessage::SetSquadMenu(Some(
-                            self.local_state.get_current_cursor_window_point().clone(),
+                            (
+                                self.local_state.get_current_cursor_window_point().clone(),
+                                squad_id_,
+                            ),
                         ))));
                     }
                 }
@@ -110,5 +110,20 @@ impl Engine {
         }
 
         messages
+    }
+
+    fn digest_scene_select_by_click(&self, point: WindowPoint) -> Vec<Message> {
+        let world_point = self.local_state.world_point_from_window_point(point);
+        let entity_indexes = self.get_side_entities_at_point(world_point);
+        if entity_indexes.len() > 0 {
+            let squad_ids = self.squad_ids_from_entities(vec![entity_indexes[0]]);
+            vec![Message::LocalState(LocalStateMessage::SetSelectedSquads(
+                squad_ids,
+            ))]
+        } else {
+            vec![Message::LocalState(LocalStateMessage::SetSelectedSquads(
+                vec![],
+            ))]
+        }
     }
 }

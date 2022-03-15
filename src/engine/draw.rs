@@ -22,15 +22,11 @@ impl Engine {
     }
 
     pub fn generate_menu_sprites(&mut self) -> GameResult {
-        if let Some(point) = self.local_state.get_squad_menu() {
-            let squad_id = self
-                .local_state
-                .get_squad_id_for_squad_menu()
-                .expect("Open a squad menu must match with at least one selected squad");
+        if let Some((to_point, squad_id)) = self.local_state.get_squad_menu() {
             for sprite in self.graphics.squad_menu_sprites(
-                *point,
+                *to_point,
                 *self.local_state.get_current_cursor_window_point(),
-                squad_id,
+                *squad_id,
             ) {
                 self.graphics.append_ui_batch(sprite);
             }

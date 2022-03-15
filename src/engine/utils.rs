@@ -53,7 +53,7 @@ impl Engine {
         filtered_entity_indexes
     }
 
-    pub fn filter_entities_by_visibility(
+    pub fn _filter_entities_by_visibility(
         &self,
         entity_indexes: Vec<EntityIndex>,
     ) -> Vec<EntityIndex> {

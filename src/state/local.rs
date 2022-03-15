@@ -29,7 +29,7 @@ pub struct LocalState {
     /// Selected squad ids
     selected_squads: Vec<SquadUuid>,
     /// Possible currently displayed menu
-    squad_menu: Option<WindowPoint>,
+    squad_menu: Option<(WindowPoint, SquadUuid)>,
 }
 
 impl LocalState {
@@ -124,16 +124,8 @@ impl LocalState {
         &self.selected_squads
     }
 
-    pub fn get_squad_menu(&self) -> &Option<WindowPoint> {
+    pub fn get_squad_menu(&self) -> &Option<(WindowPoint, SquadUuid)> {
         &self.squad_menu
-    }
-
-    pub fn get_squad_id_for_squad_menu(&self) -> Option<SquadUuid> {
-        if self.selected_squads.len() > 0 {
-            Some(self.selected_squads[0])
-        } else {
-            None
-        }
     }
 
     pub fn react(&mut self, local_state_message: LocalStateMessage) {
@@ -166,9 +158,9 @@ impl LocalState {
                 //
                 self.selected_squads = selected_squads
             }
-            LocalStateMessage::SetSquadMenu(point) => {
+            LocalStateMessage::SetSquadMenu(squad_menu) => {
                 //
-                self.squad_menu = point
+                self.squad_menu = squad_menu
             }
         }
     }

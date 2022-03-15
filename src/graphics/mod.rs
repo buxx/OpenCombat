@@ -1,6 +1,5 @@
 use ggez::{
     graphics::{self, spritebatch::SpriteBatch, FilterMode, Image, MeshBuilder},
-    winit::platform::unix::x11::Window,
     Context, GameResult,
 };
 
@@ -113,6 +112,7 @@ impl Graphics {
     pub fn clear(&mut self, ctx: &mut Context) {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
         self.sprites_batch.clear();
+        self.ui_batch.clear();
     }
 }
 
