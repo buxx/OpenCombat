@@ -1,20 +1,21 @@
 use glam::Vec2;
 
+use crate::game::Side;
 use crate::{message::*, types::*};
 
 use crate::debug::DebugLevel;
 
 pub struct LocalState {
     /// Printed frames since start of program
-    pub frame_i: u64,
+    frame_i: u64,
+    /// Side of game instance
+    side: Side,
     /// Offset to apply to battle scene by window relative
     pub display_scene_offset: Vec2,
     /// Scale to apply to battle scene by window relative
     pub display_scene_scale: Vec2,
     /// Display or not decor (trees, etc)
     pub draw_decor: bool,
-    /// List of selected Squads
-    pub selected_squads: Vec<SquadUuid>,
     /// Current debug level to apply
     debug: DebugLevel,
     /// Current WindowPoint of mouse cursor
@@ -25,22 +26,44 @@ pub struct LocalState {
     current_cursor_vector: Option<(WindowPoint, WindowPoint)>,
     /// Vector of UIEvent (will be consumed)
     ui_events: Vec<UIEvent>,
+    /// Selected squad ids
+    selected_squads: Vec<SquadUuid>,
+    /// Possible currently displayed menu
+    squad_menu: Option<WindowPoint>,
 }
 
 impl LocalState {
-    pub fn new() -> Self {
+    pub fn new(side: Side) -> Self {
         Self {
             frame_i: 0,
+            side,
             display_scene_offset: Vec2::new(0., 0.),
             display_scene_scale: Vec2::new(1., 1.),
             draw_decor: true,
-            selected_squads: vec![],
             debug: DebugLevel::Debug0,
             current_cursor_point: WindowPoint::new(0., 0.),
             left_click_down: None,
             current_cursor_vector: None,
             ui_events: vec![],
+            selected_squads: vec![],
+            squad_menu: None,
         }
+    }
+
+    pub fn is_first_frame(&self) -> bool {
+        self.frame_i == 0
+    }
+
+    pub fn get_frame_i(&self) -> u64 {
+        self.frame_i
+    }
+
+    pub fn increment_frame_i(&mut self) {
+        self.frame_i += 1;
+    }
+
+    pub fn side(&self) -> &Side {
+        &self.side
     }
 
     pub fn get_debug(&self) -> &DebugLevel {
@@ -51,25 +74,17 @@ impl LocalState {
         &self.current_cursor_point
     }
 
-    pub fn get_current_cursor_world_point(&self) -> WorldPoint {
-        WorldPoint::from(
-            self.current_cursor_point
-                .apply(-self.display_scene_offset)
-                .to_vec2()
-                / self.display_scene_scale,
-        )
+    pub fn _get_current_cursor_world_point(&self) -> WorldPoint {
+        self.world_point_from_window_point(self.current_cursor_point)
     }
 
     pub fn get_left_click_down_window_point(&self) -> &Option<WindowPoint> {
         &self.left_click_down
     }
 
-    pub fn get_left_click_down_world_point(&self) -> Option<WorldPoint> {
+    pub fn _get_left_click_down_world_point(&self) -> Option<WorldPoint> {
         if let Some(left_click_down) = self.left_click_down {
-            Some(WorldPoint::from(
-                left_click_down.apply(-self.display_scene_offset).to_vec2()
-                    / self.display_scene_scale,
-            ))
+            Some(self.world_point_from_window_point(left_click_down))
         } else {
             None
         }
@@ -79,13 +94,43 @@ impl LocalState {
         &self.current_cursor_vector
     }
 
-    pub fn current_cursor_vector_world_points(&self) -> Option<(WorldPoint, WorldPoint)> {
+    pub fn _current_cursor_vector_world_points(&self) -> Option<(WorldPoint, WorldPoint)> {
         if let Some((start, end)) = self.current_cursor_vector {
-            let start = start.apply(-self.display_scene_offset);
-            let end = end.apply(-self.display_scene_offset);
-            let start = start.to_vec2() / self.display_scene_scale;
-            let end = end.to_vec2() / self.display_scene_scale;
-            Some((WorldPoint::from(start), WorldPoint::from(end)))
+            let world_start = self.world_point_from_window_point(start);
+            let world_end = self.world_point_from_window_point(end);
+            Some((world_start, world_end))
+        } else {
+            None
+        }
+    }
+
+    pub fn pop_ui_event(&mut self) -> Option<UIEvent> {
+        self.ui_events.pop()
+    }
+
+    pub fn world_point_from_window_point(&self, window_point: WindowPoint) -> WorldPoint {
+        WorldPoint::from(
+            window_point.apply(-self.display_scene_offset).to_vec2() / self.display_scene_scale,
+        )
+    }
+
+    pub fn window_point_from_world_point(&self, world_point: WorldPoint) -> WindowPoint {
+        WindowPoint::from(
+            world_point.apply(self.display_scene_offset).to_vec2() * self.display_scene_scale,
+        )
+    }
+
+    pub fn selected_squads(&self) -> &[SquadUuid] {
+        &self.selected_squads
+    }
+
+    pub fn get_squad_menu(&self) -> &Option<WindowPoint> {
+        &self.squad_menu
+    }
+
+    pub fn get_squad_id_for_squad_menu(&self) -> Option<SquadUuid> {
+        if self.selected_squads.len() > 0 {
+            Some(self.selected_squads[0])
         } else {
             None
         }
@@ -116,6 +161,14 @@ impl LocalState {
             LocalStateMessage::PushUIEvent(event) => {
                 //
                 self.ui_events.push(event)
+            }
+            LocalStateMessage::SetSelectedSquads(selected_squads) => {
+                //
+                self.selected_squads = selected_squads
+            }
+            LocalStateMessage::SetSquadMenu(point) => {
+                //
+                self.squad_menu = point
             }
         }
     }

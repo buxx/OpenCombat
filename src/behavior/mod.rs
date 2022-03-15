@@ -11,7 +11,7 @@ pub enum Behavior {
     Idle,
     MoveTo(WorldPaths),
     MoveFastTo(WorldPaths),
-    MoveHideTo(WorldPaths),
+    SneakTo(WorldPaths),
 }
 
 impl Behavior {
@@ -20,7 +20,7 @@ impl Behavior {
             Behavior::Idle => None,
             Behavior::MoveTo(paths) => paths.next_point(),
             Behavior::MoveFastTo(paths) => paths.next_point(),
-            Behavior::MoveHideTo(paths) => paths.next_point(),
+            Behavior::SneakTo(paths) => paths.next_point(),
         }
     }
 
@@ -29,14 +29,14 @@ impl Behavior {
             Behavior::Idle => None,
             Behavior::MoveTo(_) => Some(MOVE_VELOCITY),
             Behavior::MoveFastTo(_) => Some(MOVE_FAST_VELOCITY),
-            Behavior::MoveHideTo(_) => Some(MOVE_HIDE_VELOCITY),
+            Behavior::SneakTo(_) => Some(MOVE_HIDE_VELOCITY),
         }
     }
 
     pub fn reach_step(&mut self) {
         match self {
             Behavior::Idle => unreachable!(),
-            Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::MoveHideTo(paths) => {
+            Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
                 paths
                     .remove_next_point()
                     .expect("Reach a move behavior implies containing point");

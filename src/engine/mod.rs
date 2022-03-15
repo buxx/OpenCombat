@@ -5,6 +5,7 @@ use ggez::{event, GameError};
 use ggez::{Context, GameResult};
 
 use crate::config::Config;
+use crate::game::Side;
 use crate::graphics::Graphics;
 use crate::network::Network;
 use crate::state::local::LocalState;
@@ -21,6 +22,7 @@ mod react;
 mod server;
 mod ui;
 mod update;
+mod utils;
 
 pub struct Engine {
     config: Config,
@@ -37,9 +39,10 @@ impl Engine {
         config: Config,
         graphics: Graphics,
         shared_state: SharedState,
+        side: Side,
     ) -> GameResult<Engine> {
         let network = Network::new(config.clone())?;
-        let local_state = LocalState::new();
+        let local_state = LocalState::new(side);
         let engine = Engine {
             config,
             network,
@@ -77,7 +80,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while check_update_time(ctx, self.config.target_fps()) {
             // First thing to do is to initialize the shared state.
-            if self.local_state.frame_i == 0 {
+            if self.local_state.is_first_frame() {
                 self.init()?;
             }
 
@@ -85,7 +88,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
             self.tick(ctx);
 
             // Increment the frame counter
-            self.local_state.frame_i += 1;
+            self.local_state.increment_frame_i();
         }
 
         Ok(())
@@ -93,22 +96,25 @@ impl event::EventHandler<ggez::GameError> for Engine {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         self.graphics.clear(ctx);
-        let mut mesh_builder = MeshBuilder::new();
-
-        self.generate_map_sprites(self.local_state.draw_decor)?;
-        self.generate_entities_sprites()?;
-        self.generate_debug_meshes(&mut mesh_builder)?;
 
         // Draw entire scene
-        let window_draw_param = graphics::DrawParam::new()
+        self.generate_map_sprites(self.local_state.draw_decor)?;
+        self.generate_entities_sprites()?;
+
+        let scene_draw_param = graphics::DrawParam::new()
             .dest(self.local_state.display_scene_offset)
             .scale(self.local_state.display_scene_scale);
-        self.graphics.draw(
-            ctx,
-            self.local_state.draw_decor,
-            window_draw_param,
-            mesh_builder,
-        )?;
+        self.graphics
+            .draw_scene(ctx, self.local_state.draw_decor, scene_draw_param)?;
+
+        // Draw ui
+        let mut mesh_builder = MeshBuilder::new();
+        self.generate_menu_sprites()?;
+        self.generate_selection_meshes(&mut mesh_builder)?;
+        self.generate_debug_meshes(&mut mesh_builder)?;
+
+        let ui_draw_param = graphics::DrawParam::new();
+        self.graphics.draw_ui(ctx, ui_draw_param, mesh_builder)?;
 
         graphics::present(ctx)?;
         Ok(())

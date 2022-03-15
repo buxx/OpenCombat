@@ -1,10 +1,17 @@
-use crate::{behavior::Behavior, types::*};
+use crate::{
+    behavior::Behavior,
+    config::{SOLDIER_SELECTABLE_SQUARE_SIDE, SOLDIER_SELECTABLE_SQUARE_SIDE_HALF},
+    game::Side,
+    types::*,
+};
+use ggez::graphics::Rect;
 use serde::{Deserialize, Serialize};
 
 use super::{Entity, EntityType};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Soldier {
+    side: Side,
     world_point: WorldPoint,
     squad_uuid: SquadUuid,
     behavior: Behavior,
@@ -12,8 +19,9 @@ pub struct Soldier {
 }
 
 impl Soldier {
-    pub fn new(world_point: WorldPoint, squad_uuid: SquadUuid) -> Self {
+    pub fn new(world_point: WorldPoint, squad_uuid: SquadUuid, side: Side) -> Self {
         Self {
+            side,
             world_point,
             squad_uuid,
             behavior: Behavior::Idle,
@@ -22,11 +30,19 @@ impl Soldier {
     }
 
     pub fn from_entity(entity: &ThreadSafeEntity) -> Self {
-        Self::new(entity.get_world_point(), entity.squad_uuid())
+        Self::new(
+            entity.get_world_point(),
+            entity.squad_uuid(),
+            *entity.get_side(),
+        )
     }
 }
 
 impl Entity for Soldier {
+    fn get_side(&self) -> &Side {
+        &self.side
+    }
+
     fn get_type(&self) -> EntityType {
         EntityType::Soldier
     }
@@ -61,5 +77,14 @@ impl Entity for Soldier {
 
     fn set_looking_direction(&mut self, angle: Angle) {
         self.looking_direction = angle
+    }
+
+    fn get_selection_rect(&self) -> Rect {
+        Rect::new(
+            self.world_point.x - SOLDIER_SELECTABLE_SQUARE_SIDE_HALF,
+            self.world_point.y - SOLDIER_SELECTABLE_SQUARE_SIDE_HALF,
+            SOLDIER_SELECTABLE_SQUARE_SIDE,
+            SOLDIER_SELECTABLE_SQUARE_SIDE,
+        )
     }
 }

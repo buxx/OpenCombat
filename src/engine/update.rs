@@ -43,7 +43,7 @@ impl Engine {
             Behavior::Idle => {
                 vec![]
             }
-            Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::MoveHideTo(paths) => {
+            Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
                 move_::entity_updates(entity, paths)
             }
         };

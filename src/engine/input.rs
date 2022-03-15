@@ -29,7 +29,7 @@ impl Engine {
         messages.extend(self.collect_keyboard_inputs(ctx));
 
         // TODO : hardcode code for test purposes
-        if self.local_state.frame_i == 60 {
+        if self.local_state.get_frame_i() == 60 {
             for (i, entity) in self.shared_state.entities().iter().enumerate() {
                 if self.entity_is_squad_leader(EntityIndex(i)) {
                     match entity.get_behavior() {
@@ -129,40 +129,6 @@ impl Engine {
 
         // Instant information
         let cursor_point = WindowPoint::new(x, y);
-        // let cursor_world_point = WorldPoint::from(
-        //     cursor_window_point
-        //         .apply(self.local_state.display_scene_offset)
-        //         .to_vec2()
-        //         / self.local_state.display_scene_scale,
-        // );
-
-        // let new_current_cursor_position = WindowPoint::new(x, y);
-        // let new_current_grid_cursor_position = grid_point_from_scene_point(
-        //     &scene_point_from_window_point(
-        //         &new_current_cursor_position,
-        //         &self.display_offset,
-        //         self.scale,
-        //     ),
-        //     &self.map,
-        // );
-
-        // if self.current_cursor_point != new_current_cursor_position {
-        //     self.user_events
-        //         .push(UserEvent::CursorMove(new_current_cursor_position));
-        //     self.current_cursor_point = new_current_cursor_position;
-        // };
-
-        // if self.current_cursor_grid_point != new_current_grid_cursor_position {
-        //     self.current_cursor_grid_point = new_current_grid_cursor_position;
-        //     self.current_prepare_move_found_paths = HashMap::new();
-        //     self.cursor_on_same_grid_point_since = Instant::now();
-        // } else {
-        //     self.cursor_on_same_grid_point_since = Instant::now();
-        // }
-
-        // if self.dragging.is_some() {
-        //     self.user_events.push(UserEvent::MoveDrag)
-        // }
 
         // Update cursor position at each frames
         messages.push(Message::LocalState(LocalStateMessage::SetCursorPoint(
@@ -235,6 +201,11 @@ impl Engine {
                         UIEvent::FinishedCursorLeftClick(end_point),
                     )));
                 }
+            }
+            MouseButton::Right => {
+                messages.push(Message::LocalState(LocalStateMessage::PushUIEvent(
+                    UIEvent::FinishedCursorRightClick(WindowPoint::new(x, y)),
+                )));
             }
             _ => {}
         }

@@ -1,17 +1,21 @@
 use ggez::{
     graphics::{self, spritebatch::SpriteBatch, FilterMode, Image, MeshBuilder},
+    winit::platform::unix::x11::Window,
     Context, GameResult,
 };
 
-use crate::{config, map::Map, types::*};
+use crate::{config, map::Map, types::*, ui::menu::squad_menu_sprite_info};
 
 mod map;
 
 const SPRITES_FILE_PATH: &'static str = "/sprites.png";
+const UI_FILE_PATH: &'static str = "/ui.png";
 
 pub struct Graphics {
     // Soldier, vehicle, explosions, etc sprite batch
     sprites_batch: SpriteBatch,
+    // Squad menu, etc
+    ui_batch: SpriteBatch,
     // Map background sprite batch
     map_background_batch: SpriteBatch,
     // Map decor sprite batches
@@ -21,11 +25,13 @@ pub struct Graphics {
 impl Graphics {
     pub fn new(ctx: &mut Context, map: &Map) -> GameResult<Graphics> {
         let sprites_batch = create_sprites_batch(ctx)?;
+        let ui_batch = create_ui_batch(ctx)?;
         let map_background_batch = map::get_map_background_batch(ctx, map)?;
         let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
 
         Ok(Graphics {
             sprites_batch,
+            ui_batch,
             map_background_batch,
             map_decor_batches,
         })
@@ -33,6 +39,10 @@ impl Graphics {
 
     pub fn append_sprites_batch(&mut self, sprite: graphics::DrawParam) {
         self.sprites_batch.add(sprite);
+    }
+
+    pub fn append_ui_batch(&mut self, sprite: graphics::DrawParam) {
+        self.ui_batch.add(sprite);
     }
 
     pub fn entity_sprites(&self, entity: &ThreadSafeEntity) -> Vec<graphics::DrawParam> {
@@ -52,30 +62,50 @@ impl Graphics {
             .offset(Offset::new(0.5, 0.5).to_vec2())]
     }
 
-    pub fn draw(
+    pub fn squad_menu_sprites(
+        &self,
+        to_point: WindowPoint,
+        cursor_point: WindowPoint,
+        _squad_id: SquadUuid,
+    ) -> Vec<graphics::DrawParam> {
+        squad_menu_sprite_info().as_draw_params(&to_point, &cursor_point)
+    }
+
+    pub fn draw_scene(
         &mut self,
         ctx: &mut Context,
         draw_decor: bool,
-        window_draw_param: graphics::DrawParam,
-        mesh_builder: MeshBuilder,
+        draw_param: graphics::DrawParam,
     ) -> GameResult {
         // Map background sprites
-        graphics::draw(ctx, &self.map_background_batch, window_draw_param)?;
+        graphics::draw(ctx, &self.map_background_batch, draw_param)?;
 
         // Entities, explosions, etc. sprites
-        graphics::draw(ctx, &self.sprites_batch, window_draw_param)?;
+        graphics::draw(ctx, &self.sprites_batch, draw_param)?;
 
         // Draw decor like Trees
         if draw_decor {
             for decor_batch in self.map_decor_batches.iter() {
-                graphics::draw(ctx, decor_batch, window_draw_param)?;
+                graphics::draw(ctx, decor_batch, draw_param)?;
             }
         }
 
+        Ok(())
+    }
+
+    pub fn draw_ui(
+        &mut self,
+        ctx: &mut Context,
+        draw_param: graphics::DrawParam,
+        mesh_builder: MeshBuilder,
+    ) -> GameResult {
         // Different meshes
         if let Ok(mesh) = mesh_builder.build(ctx) {
-            graphics::draw(ctx, &mesh, window_draw_param)?;
+            graphics::draw(ctx, &mesh, draw_param)?;
         };
+
+        // Squad menu, etc
+        graphics::draw(ctx, &self.ui_batch, draw_param)?;
 
         Ok(())
     }
@@ -92,4 +122,12 @@ pub fn create_sprites_batch(ctx: &mut Context) -> GameResult<SpriteBatch> {
     let sprites_batch = SpriteBatch::new(sprites_image);
 
     Ok(sprites_batch)
+}
+
+pub fn create_ui_batch(ctx: &mut Context) -> GameResult<SpriteBatch> {
+    let mut ui_image = Image::new(ctx, UI_FILE_PATH)?;
+    ui_image.set_filter(FilterMode::Nearest); // because pixel art
+    let ui_batch = SpriteBatch::new(ui_image);
+
+    Ok(ui_batch)
 }

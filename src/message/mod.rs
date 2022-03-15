@@ -24,6 +24,8 @@ pub enum LocalStateMessage {
     SetLeftClickDown(Option<WindowPoint>),
     SetCurrentCursorVector(Option<(WindowPoint, WindowPoint)>),
     SetSceneDisplayOffset(Offset),
+    SetSelectedSquads(Vec<SquadUuid>),
+    SetSquadMenu(Option<WindowPoint>),
     PushUIEvent(UIEvent),
 }
 
@@ -39,6 +41,7 @@ pub enum EntityMessage {
 pub enum UIEvent {
     FinishedCursorVector(WindowPoint, WindowPoint), // From, To
     FinishedCursorLeftClick(WindowPoint),
+    FinishedCursorRightClick(WindowPoint),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

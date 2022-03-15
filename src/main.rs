@@ -1,5 +1,6 @@
 use std::path;
 
+use game::Side;
 use ggez::event;
 use ggez::GameResult;
 use state::shared::SharedState;
@@ -9,6 +10,7 @@ mod config;
 mod debug;
 mod engine;
 mod entity;
+mod game;
 mod graphics;
 mod hardcode;
 mod map;
@@ -18,6 +20,7 @@ mod order;
 mod state;
 mod sync;
 mod types;
+mod ui;
 mod utils;
 
 use structopt::clap::arg_enum;
@@ -63,6 +66,6 @@ fn main() -> GameResult {
         }
         NetWorkMode::Client => SharedState::new(vec![]),
     };
-    let engine = engine::Engine::new(config, graphics, shared_state)?;
+    let engine = engine::Engine::new(config, graphics, shared_state, Side::A)?;
     event::run(context, event_loop, engine)
 }

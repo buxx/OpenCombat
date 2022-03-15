@@ -11,7 +11,7 @@ pub struct WorldPoint {
 }
 
 impl WorldPoint {
-    pub fn new(x: f32, y: f32) -> Self {
+    pub fn _new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
 
@@ -62,7 +62,7 @@ impl ScenePoint {
         Self { x, y }
     }
 
-    pub fn apply(self, raw: Vec2) -> Self {
+    pub fn _apply(self, raw: Vec2) -> Self {
         Self {
             x: self.x + raw.x,
             y: self.y + raw.y,
@@ -204,7 +204,7 @@ impl SquadComposition {
         self.0
     }
 
-    pub fn _members(&self) -> &Vec<EntityIndex> {
+    pub fn members(&self) -> &Vec<EntityIndex> {
         &self.1
     }
 }

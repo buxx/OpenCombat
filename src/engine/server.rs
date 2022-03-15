@@ -14,10 +14,13 @@ impl Engine {
         messages.extend(self.sync());
 
         // Check any network errors
-        messages.extend(self.deal_with_errors_as_server());
+        messages.extend(self.deal_with_sync_errors_as_server());
 
         // Retrieve messages from user inputs
         messages.extend(self.collect_player_inputs(ctx));
+
+        // Generate messages according to the possible ui events
+        messages.extend(self.ui_events());
 
         // Apply messages
         self.react(messages);

@@ -8,7 +8,7 @@ impl Engine {
         let mut messages = vec![];
 
         // Entities animation
-        if self.local_state.frame_i % self.config.entity_animate_freq() == 0 {
+        if self.local_state.get_frame_i() % self.config.entity_animate_freq() == 0 {
             let entity_messages: Vec<Message> = (0..self.shared_state.entities().len())
                 .into_par_iter()
                 .flat_map(|i| self.animate_entity(EntityIndex(i)))
@@ -17,7 +17,7 @@ impl Engine {
         }
 
         // Entities updates
-        if self.local_state.frame_i % self.config.entity_update_freq() == 0 {
+        if self.local_state.get_frame_i() % self.config.entity_update_freq() == 0 {
             let entity_messages: Vec<Message> = (0..self.shared_state.entities().len())
                 .into_par_iter()
                 .flat_map(|i| self.update_entity(EntityIndex(i)))

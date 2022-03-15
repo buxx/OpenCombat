@@ -21,6 +21,30 @@ impl Engine {
         Ok(())
     }
 
+    pub fn generate_menu_sprites(&mut self) -> GameResult {
+        if let Some(point) = self.local_state.get_squad_menu() {
+            let squad_id = self
+                .local_state
+                .get_squad_id_for_squad_menu()
+                .expect("Open a squad menu must match with at least one selected squad");
+            for sprite in self.graphics.squad_menu_sprites(
+                *point,
+                *self.local_state.get_current_cursor_window_point(),
+                squad_id,
+            ) {
+                self.graphics.append_ui_batch(sprite);
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn generate_selection_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
+        self.generate_selected_entities_meshes(mesh_builder)?;
+
+        Ok(())
+    }
+
     pub fn generate_debug_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
         if self.local_state.get_debug().mouse() {
             self.generate_debug_mouse_meshes(mesh_builder)?;

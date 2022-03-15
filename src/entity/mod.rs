@@ -1,4 +1,6 @@
-use crate::{behavior::Behavior, types::*};
+use ggez::graphics::Rect;
+
+use crate::{behavior::Behavior, game::Side, types::*};
 pub mod soldier;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -7,6 +9,7 @@ pub enum EntityType {
 }
 
 pub trait Entity {
+    fn get_side(&self) -> &Side;
     fn get_world_point(&self) -> WorldPoint;
     fn set_world_point(&mut self, point: WorldPoint);
     fn get_behavior(&self) -> &Behavior;
@@ -16,4 +19,5 @@ pub trait Entity {
     fn set_looking_direction(&mut self, angle: Angle);
     fn squad_uuid(&self) -> SquadUuid;
     fn get_type(&self) -> EntityType;
+    fn get_selection_rect(&self) -> Rect;
 }
