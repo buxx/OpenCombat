@@ -1,6 +1,7 @@
 use glam::Vec2;
 
 use crate::game::Side;
+use crate::order::PendingOrder;
 use crate::{message::*, types::*};
 
 use crate::debug::DebugLevel;
@@ -30,6 +31,8 @@ pub struct LocalState {
     selected_squads: Vec<SquadUuid>,
     /// Possible currently displayed menu
     squad_menu: Option<(WindowPoint, SquadUuid)>,
+    /// Possible current player squad order
+    pending_order: Option<PendingOrder>,
 }
 
 impl LocalState {
@@ -47,6 +50,7 @@ impl LocalState {
             ui_events: vec![],
             selected_squads: vec![],
             squad_menu: None,
+            pending_order: None,
         }
     }
 

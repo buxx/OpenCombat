@@ -2,6 +2,11 @@ use crate::{behavior::Behavior, types::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum PendingOrder {
+    MoveTo,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Order {
     MoveTo(WorldPaths),
 }

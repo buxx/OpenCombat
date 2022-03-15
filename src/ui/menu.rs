@@ -9,7 +9,7 @@ const SCENE_ITEM_MENU_WIDTH: f32 = 71.0;
 const SCENE_ITEM_MENU_HEIGHT: f32 = 90.0;
 const SCENE_ITEM_MENU_ITEM_HEIGHT: f32 = 15.0;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum MenuItem {
     Move,
     MoveFast,

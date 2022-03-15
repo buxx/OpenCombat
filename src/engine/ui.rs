@@ -7,6 +7,7 @@ use crate::{
     config::{DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF},
     message::*,
     types::*,
+    ui::menu::squad_menu_sprite_info,
     utils::GREEN,
 };
 
@@ -61,6 +62,7 @@ impl Engine {
                     if !squad_menu_displayed {
                         messages.extend(self.digest_scene_select_by_click(point));
                     } else {
+                        messages.extend(self.digest_squad_menu_select_by_click(point));
                         messages.push(Message::LocalState(LocalStateMessage::SetSquadMenu(None)));
                     }
                 }
@@ -124,6 +126,20 @@ impl Engine {
             vec![Message::LocalState(LocalStateMessage::SetSelectedSquads(
                 vec![],
             ))]
+        }
+    }
+
+    fn digest_squad_menu_select_by_click(&self, cursor_point: WindowPoint) -> Vec<Message> {
+        let (menu_point, _) = self
+            .local_state
+            .get_squad_menu()
+            .expect("This code should only called when squad menu");
+        let squad_menu_sprite_info = squad_menu_sprite_info();
+        if let Some(menu_item) = squad_menu_sprite_info.item_clicked(&menu_point, &cursor_point) {
+            println!("{:?}", menu_item);
+            vec![]
+        } else {
+            vec![]
         }
     }
 }
