@@ -2,6 +2,7 @@ use ggez::graphics;
 
 use crate::{
     config::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH},
+    order::PendingOrder,
     types::*,
 };
 
@@ -16,6 +17,18 @@ pub enum MenuItem {
     Sneak,
     Defend,
     Hide,
+}
+
+impl MenuItem {
+    pub fn to_pending_order(&self) -> PendingOrder {
+        match self {
+            MenuItem::Move => PendingOrder::MoveTo,
+            MenuItem::MoveFast => PendingOrder::MoveFastTo,
+            MenuItem::Sneak => PendingOrder::SneakTo,
+            MenuItem::Defend => PendingOrder::Defend,
+            MenuItem::Hide => PendingOrder::Hide,
+        }
+    }
 }
 
 pub fn squad_menu_sprite_info() -> VerticalMenuSpriteInfo {

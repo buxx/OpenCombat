@@ -41,6 +41,14 @@ impl Engine {
         Ok(())
     }
 
+    pub fn generate_display_paths_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
+        for display_path in self.local_state.get_display_paths() {
+            self.generate_display_path_meshes(display_path, mesh_builder)?
+        }
+
+        Ok(())
+    }
+
     pub fn generate_debug_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
         if self.local_state.get_debug().mouse() {
             self.generate_debug_mouse_meshes(mesh_builder)?;

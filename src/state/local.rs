@@ -21,6 +21,8 @@ pub struct LocalState {
     debug: DebugLevel,
     /// Current WindowPoint of mouse cursor
     current_cursor_point: WindowPoint,
+    /// Last instant since cursor don't move
+    last_cursor_move_frame: u64,
     /// WindowPoint where left click was down, if left click currently down
     left_click_down: Option<WindowPoint>,
     /// Vector representing current cursor drag
@@ -32,7 +34,9 @@ pub struct LocalState {
     /// Possible currently displayed menu
     squad_menu: Option<(WindowPoint, SquadUuid)>,
     /// Possible current player squad order
-    pending_order: Option<PendingOrder>,
+    pending_order: Option<(PendingOrder, SquadUuid)>,
+    /// Paths to display
+    display_paths: Vec<WorldPaths>,
 }
 
 impl LocalState {
@@ -45,12 +49,14 @@ impl LocalState {
             draw_decor: true,
             debug: DebugLevel::Debug0,
             current_cursor_point: WindowPoint::new(0., 0.),
+            last_cursor_move_frame: 0,
             left_click_down: None,
             current_cursor_vector: None,
             ui_events: vec![],
             selected_squads: vec![],
             squad_menu: None,
             pending_order: None,
+            display_paths: vec![],
         }
     }
 
@@ -78,7 +84,7 @@ impl LocalState {
         &self.current_cursor_point
     }
 
-    pub fn _get_current_cursor_world_point(&self) -> WorldPoint {
+    pub fn get_current_cursor_world_point(&self) -> WorldPoint {
         self.world_point_from_window_point(self.current_cursor_point)
     }
 
@@ -132,11 +138,24 @@ impl LocalState {
         &self.squad_menu
     }
 
+    pub fn get_last_cursor_move_frame(&self) -> u64 {
+        self.last_cursor_move_frame
+    }
+
+    pub fn get_pending_order(&self) -> &Option<(PendingOrder, SquadUuid)> {
+        &self.pending_order
+    }
+
+    pub fn get_display_paths(&self) -> &[WorldPaths] {
+        &self.display_paths
+    }
+
     pub fn react(&mut self, local_state_message: LocalStateMessage) {
         match local_state_message {
             LocalStateMessage::SetCursorPoint(point) => {
                 //
                 self.current_cursor_point = point;
+                self.last_cursor_move_frame = self.frame_i;
             }
             LocalStateMessage::SetSceneDisplayOffset(offset) => {
                 //
@@ -165,6 +184,14 @@ impl LocalState {
             LocalStateMessage::SetSquadMenu(squad_menu) => {
                 //
                 self.squad_menu = squad_menu
+            }
+            LocalStateMessage::SetPendingOrder(pending_order) => {
+                //
+                self.pending_order = pending_order
+            }
+            LocalStateMessage::SetDisplayPaths(display_paths) => {
+                //
+                self.display_paths = display_paths
             }
         }
     }

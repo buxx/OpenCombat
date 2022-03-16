@@ -1,7 +1,10 @@
 {
     "cSpell.words": [
+        "absdiff",
+        "astar",
         "bincode",
         "gids",
+        "pathfinding",
         "spritebatch",
         "tilesets"
     ]

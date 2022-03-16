@@ -46,6 +46,8 @@ impl Engine {
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
                 move_::entity_updates(entity, paths)
             }
+            Behavior::Defend(_) => todo!(),
+            Behavior::Hide(_) => todo!(),
         };
         messages.extend(Message::vec_from_entity(i, entity_messages));
 

@@ -1,4 +1,10 @@
-use crate::{behavior::Behavior, debug::DebugLevel, order::Order, sync::StateCopy, types::*};
+use crate::{
+    behavior::Behavior,
+    debug::DebugLevel,
+    order::{Order, PendingOrder},
+    sync::StateCopy,
+    types::*,
+};
 use serde::{Deserialize, Serialize};
 
 pub mod result;
@@ -26,6 +32,8 @@ pub enum LocalStateMessage {
     SetSceneDisplayOffset(Offset),
     SetSelectedSquads(Vec<SquadUuid>),
     SetSquadMenu(Option<(WindowPoint, SquadUuid)>),
+    SetPendingOrder(Option<(PendingOrder, SquadUuid)>),
+    SetDisplayPaths(Vec<WorldPaths>),
     PushUIEvent(UIEvent),
 }
 
@@ -42,6 +50,9 @@ pub enum UIEvent {
     FinishedCursorVector(WindowPoint, WindowPoint), // From, To
     FinishedCursorLeftClick(WindowPoint),
     FinishedCursorRightClick(WindowPoint),
+    CursorMove(WindowPoint),
+    ImmobileCursorSince(u64),
+    DrawPathFinding(SquadUuid),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

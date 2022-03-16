@@ -11,7 +11,7 @@ pub struct WorldPoint {
 }
 
 impl WorldPoint {
-    pub fn _new(x: f32, y: f32) -> Self {
+    pub fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
 
@@ -39,7 +39,7 @@ impl Into<Vec2> for WorldPoint {
     }
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct GridPoint {
     pub x: i32,
     pub y: i32,

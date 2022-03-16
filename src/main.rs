@@ -17,6 +17,7 @@ mod map;
 mod message;
 mod network;
 mod order;
+mod physics;
 mod state;
 mod sync;
 mod types;
@@ -66,6 +67,6 @@ fn main() -> GameResult {
         }
         NetWorkMode::Client => SharedState::new(vec![]),
     };
-    let engine = engine::Engine::new(config, graphics, shared_state, Side::A)?;
+    let engine = engine::Engine::new(config, graphics, shared_state, Side::A, map)?;
     event::run(context, event_loop, engine)
 }

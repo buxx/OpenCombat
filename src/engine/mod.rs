@@ -7,6 +7,7 @@ use ggez::{Context, GameResult};
 use crate::config::Config;
 use crate::game::Side;
 use crate::graphics::Graphics;
+use crate::map::Map;
 use crate::network::Network;
 use crate::state::local::LocalState;
 use crate::state::shared::SharedState;
@@ -28,6 +29,7 @@ pub struct Engine {
     config: Config,
     network: Network,
     graphics: Graphics,
+    map: Map,
     /// The current shared state of the game. This struct is own by server and replicated on clients
     shared_state: SharedState,
     /// The current local state of the game. This struct is own by client and server and are not related
@@ -40,6 +42,7 @@ impl Engine {
         graphics: Graphics,
         shared_state: SharedState,
         side: Side,
+        map: Map,
     ) -> GameResult<Engine> {
         let network = Network::new(config.clone())?;
         let local_state = LocalState::new(side);
@@ -47,6 +50,7 @@ impl Engine {
             config,
             network,
             graphics,
+            map,
             shared_state,
             local_state,
         };
@@ -111,6 +115,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
         let mut mesh_builder = MeshBuilder::new();
         self.generate_menu_sprites()?;
         self.generate_selection_meshes(&mut mesh_builder)?;
+        self.generate_display_paths_meshes(&mut mesh_builder)?;
         self.generate_debug_meshes(&mut mesh_builder)?;
 
         let ui_draw_param = graphics::DrawParam::new();

@@ -1,11 +1,16 @@
 use ggez::{
-    graphics::{DrawMode, MeshBuilder, Rect, StrokeOptions},
+    graphics::{Color, DrawMode, MeshBuilder, Rect, StrokeOptions},
     GameResult,
 };
+use glam::Vec2;
 
 use crate::{
-    config::{DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF},
+    config::{
+        DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+        PENDING_ORDER_PATH_FINDING_DRAW_FRAMES,
+    },
     message::*,
+    physics::path::find_path,
     types::*,
     ui::menu::squad_menu_sprite_info,
     utils::GREEN,
@@ -59,12 +64,21 @@ impl Engine {
                 UIEvent::FinishedCursorLeftClick(point) => {
                     let squad_menu_displayed = self.local_state.get_squad_menu().is_some();
 
+                    // If this is a map selection click
                     if !squad_menu_displayed {
                         messages.extend(self.digest_scene_select_by_click(point));
-                    } else {
+                    }
+
+                    // If this is a squad menu click
+                    if squad_menu_displayed {
                         messages.extend(self.digest_squad_menu_select_by_click(point));
                         messages.push(Message::LocalState(LocalStateMessage::SetSquadMenu(None)));
                     }
+
+                    // In all cases, clean some things
+                    messages.push(Message::LocalState(LocalStateMessage::SetDisplayPaths(
+                        vec![],
+                    )));
                 }
                 UIEvent::FinishedCursorVector(start, end) => {
                     // TODO : Do this if not currently dragging
@@ -108,6 +122,46 @@ impl Engine {
                         ))));
                     }
                 }
+                UIEvent::ImmobileCursorSince(since) => {
+                    // Paths to draw if pending order
+                    if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {
+                        if since == PENDING_ORDER_PATH_FINDING_DRAW_FRAMES {
+                            if pending_order.expect_path_finding() {
+                                messages.push(Message::LocalState(LocalStateMessage::PushUIEvent(
+                                    UIEvent::DrawPathFinding(*squad_id),
+                                )));
+                            }
+                        }
+                    }
+                }
+                UIEvent::DrawPathFinding(quad_id) => {
+                    let squad = self.shared_state.squad(quad_id);
+                    let entity = self.shared_state.entity(squad.leader());
+                    let entity_world_point = entity.get_world_point();
+                    let entity_grid_point = self.grid_point_from_world_point(entity_world_point);
+                    let cursor_world_point = self.local_state.get_current_cursor_world_point();
+                    let cursor_grid_point = self.grid_point_from_world_point(cursor_world_point);
+
+                    let grid_point_path =
+                        find_path(&self.map, &entity_grid_point, &cursor_grid_point)
+                            .unwrap_or(vec![]);
+                    if grid_point_path.len() > 0 {
+                        let world_point_path = grid_point_path
+                            .iter()
+                            .map(|p| self.world_point_from_grid_point(GridPoint::from(*p)))
+                            .collect();
+                        let world_path = WorldPath::new(world_point_path);
+                        let world_paths = WorldPaths::new(vec![world_path]);
+                        messages.push(Message::LocalState(LocalStateMessage::SetDisplayPaths(
+                            vec![world_paths],
+                        )));
+                    }
+                }
+                UIEvent::CursorMove(_point) => {
+                    messages.push(Message::LocalState(LocalStateMessage::SetDisplayPaths(
+                        vec![],
+                    )));
+                }
             }
         }
 
@@ -119,27 +173,63 @@ impl Engine {
         let entity_indexes = self.get_side_entities_at_point(world_point);
         if entity_indexes.len() > 0 {
             let squad_ids = self.squad_ids_from_entities(vec![entity_indexes[0]]);
-            vec![Message::LocalState(LocalStateMessage::SetSelectedSquads(
+            return vec![Message::LocalState(LocalStateMessage::SetSelectedSquads(
                 squad_ids,
-            ))]
-        } else {
-            vec![Message::LocalState(LocalStateMessage::SetSelectedSquads(
-                vec![],
-            ))]
-        }
+            ))];
+        };
+
+        vec![Message::LocalState(LocalStateMessage::SetSelectedSquads(
+            vec![],
+        ))]
     }
 
     fn digest_squad_menu_select_by_click(&self, cursor_point: WindowPoint) -> Vec<Message> {
-        let (menu_point, _) = self
+        let (menu_point, squad_id) = self
             .local_state
             .get_squad_menu()
             .expect("This code should only called when squad menu");
         let squad_menu_sprite_info = squad_menu_sprite_info();
         if let Some(menu_item) = squad_menu_sprite_info.item_clicked(&menu_point, &cursor_point) {
-            println!("{:?}", menu_item);
-            vec![]
-        } else {
-            vec![]
+            return vec![Message::LocalState(LocalStateMessage::SetPendingOrder(
+                Some((menu_item.to_pending_order(), squad_id)),
+            ))];
+        };
+
+        vec![]
+    }
+
+    pub fn generate_display_path_meshes(
+        &self,
+        display_path: &WorldPaths,
+        mesh_builder: &mut MeshBuilder,
+    ) -> GameResult {
+        let mut points: Vec<Vec2> = vec![];
+        let mut last_world_point = display_path
+            .next_point()
+            .expect("Path must contains at least one point");
+        for path in &display_path.paths {
+            let last_window_point = self
+                .local_state
+                .window_point_from_world_point(last_world_point);
+            points.push(last_window_point.to_vec2());
+            for world_point in &path.points {
+                last_world_point = world_point.clone();
+                let window_point = self.local_state.window_point_from_world_point(*world_point);
+                points.push(window_point.to_vec2())
+            }
         }
+
+        mesh_builder.line(
+            &points,
+            2.0,
+            Color {
+                r: 1.0,
+                g: 1.0,
+                b: 1.0,
+                a: 0.2,
+            },
+        )?;
+
+        Ok(())
     }
 }

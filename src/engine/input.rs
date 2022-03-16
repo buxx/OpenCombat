@@ -51,6 +51,13 @@ impl Engine {
             }
         }
 
+        // Useful for actions expecting cursor immobilization
+        let cursor_immobile_since =
+            self.local_state.get_frame_i() - self.local_state.get_last_cursor_move_frame();
+        messages.push(Message::LocalState(LocalStateMessage::PushUIEvent(
+            UIEvent::ImmobileCursorSince(cursor_immobile_since),
+        )));
+
         messages
     }
 
@@ -131,9 +138,12 @@ impl Engine {
         let cursor_point = WindowPoint::new(x, y);
 
         // Update cursor position at each frames
-        messages.push(Message::LocalState(LocalStateMessage::SetCursorPoint(
-            cursor_point,
-        )));
+        messages.extend(vec![
+            Message::LocalState(LocalStateMessage::SetCursorPoint(cursor_point)),
+            Message::LocalState(LocalStateMessage::PushUIEvent(UIEvent::CursorMove(
+                cursor_point,
+            ))),
+        ]);
 
         if let Some(left_click_down) = self.local_state.get_left_click_down_window_point() {
             if left_click_down != &cursor_point {

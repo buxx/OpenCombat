@@ -36,6 +36,8 @@ pub const DEFAULT_SELECTED_SQUARE_SIDE_HALF: f32 = DEFAULT_SELECTED_SQUARE_SIDE 
 pub const SOLDIER_SELECTABLE_SQUARE_SIDE: f32 = 14.0;
 // Half selection square size of selectable zone (click)
 pub const SOLDIER_SELECTABLE_SQUARE_SIDE_HALF: f32 = SOLDIER_SELECTABLE_SQUARE_SIDE / 2.0;
+// Frames to wait to draw the pending order path finding
+pub const PENDING_ORDER_PATH_FINDING_DRAW_FRAMES: u64 = (TARGET_FPS / 3) as u64;
 
 impl Config {
     pub fn new(opt: &Opt) -> GameResult<Self> {

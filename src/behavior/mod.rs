@@ -12,6 +12,8 @@ pub enum Behavior {
     MoveTo(WorldPaths),
     MoveFastTo(WorldPaths),
     SneakTo(WorldPaths),
+    Defend(Angle),
+    Hide(Angle),
 }
 
 impl Behavior {
@@ -21,6 +23,8 @@ impl Behavior {
             Behavior::MoveTo(paths) => paths.next_point(),
             Behavior::MoveFastTo(paths) => paths.next_point(),
             Behavior::SneakTo(paths) => paths.next_point(),
+            Behavior::Defend(angle) => todo!(), // Generate random point ?
+            Behavior::Hide(angle) => todo!(),   // Generate random point ?
         }
     }
 
@@ -30,6 +34,8 @@ impl Behavior {
             Behavior::MoveTo(_) => Some(MOVE_VELOCITY),
             Behavior::MoveFastTo(_) => Some(MOVE_FAST_VELOCITY),
             Behavior::SneakTo(_) => Some(MOVE_HIDE_VELOCITY),
+            Behavior::Defend(_) => None,
+            Behavior::Hide(_) => None,
         }
     }
 
@@ -41,6 +47,8 @@ impl Behavior {
                     .remove_next_point()
                     .expect("Reach a move behavior implies containing point");
             }
+            Behavior::Defend(_) => unreachable!(),
+            Behavior::Hide(_) => unreachable!(),
         }
     }
 }
