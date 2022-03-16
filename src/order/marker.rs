@@ -54,18 +54,17 @@ impl OrderMarker {
     //     }
     // }
 
-    // pub fn get_order_marker_offset(&self) -> Option<Offset> {
-    //     match &self {
-    //         OrderMarker::MoveTo(_, _)
-    //         | OrderMarker::MoveFastTo(_, _)
-    //         | OrderMarker::HideTo(_, _)
-    //         | OrderMarker::FireTo(_, _) => None,
-    //         OrderMarker::Defend(_, _) | OrderMarker::Hide(_, _) => Some(Offset::new(
-    //             DISPLAY_DEFEND_X_OFFSET,
-    //             DISPLAY_DEFEND_Y_OFFSET,
-    //         )),
-    //     }
-    // }
+    pub fn offset(&self) -> Offset {
+        match &self {
+            OrderMarker::MoveTo
+            | OrderMarker::MoveFastTo
+            | OrderMarker::SneakTo
+            | OrderMarker::FireTo => Offset::new(0., 0.),
+            OrderMarker::Defend | OrderMarker::Hide => {
+                Offset::new(DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET)
+            }
+        }
+    }
 
     // pub fn get_scene_item_id(&self) -> SceneItemId {
     //     match self {
@@ -203,7 +202,7 @@ impl OrderMarkerSpriteInfo {
         &self,
         draw_to: WindowPoint,
         angle: Angle,
-        offset: Option<Offset>,
+        offset: Offset,
     ) -> graphics::DrawParam {
         graphics::DrawParam::new()
             .src(graphics::Rect::new(
@@ -214,7 +213,7 @@ impl OrderMarkerSpriteInfo {
             ))
             .dest(draw_to.to_vec2())
             .rotation(angle.0)
-            .offset(offset.unwrap_or(Offset::new(0.5, 0.5)).to_vec2())
+            .offset(offset.to_vec2())
     }
 
     pub fn rectangle(&self, from_scene_point: &WindowPoint) -> graphics::Rect {

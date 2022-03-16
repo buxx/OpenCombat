@@ -67,11 +67,23 @@ impl Engine {
     pub fn generate_pending_order_sprites(
         &self,
         pending_order: &PendingOrder,
-        _squad_id: SquadUuid,
+        squad_id: SquadUuid,
     ) -> Vec<DrawParam> {
+        let squad = self.shared_state.squad(squad_id);
+        let squad_leader = self.shared_state.entity(squad.leader());
         let order_marker = pending_order.marker();
         let sprite_infos = order_marker.sprite_info();
         let draw_to = self.local_state.get_current_cursor_window_point();
-        vec![sprite_infos.as_draw_params(*draw_to, Angle(0.), None)]
+        let angle = match pending_order {
+            PendingOrder::MoveTo | PendingOrder::MoveFastTo | PendingOrder::SneakTo => Angle(0.),
+            PendingOrder::Defend | PendingOrder::Hide => {
+                let to_point = self.local_state.get_current_cursor_world_point().to_vec2();
+                let from_point = squad_leader.get_world_point().to_vec2();
+                Angle::from_points(&to_point, &from_point)
+            }
+        };
+        let offset = order_marker.offset();
+
+        vec![sprite_infos.as_draw_params(*draw_to, angle, offset)]
     }
 }

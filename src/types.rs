@@ -1,3 +1,5 @@
+use std::f32::consts::FRAC_PI_2;
+
 use serde::{Deserialize, Serialize};
 
 use glam::Vec2;
@@ -234,3 +236,9 @@ impl Offset {
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Angle(pub f32);
+
+impl Angle {
+    pub fn from_points(to_point: &Vec2, from_point: &Vec2) -> Self {
+        Self(f32::atan2(to_point.y - from_point.y, to_point.x - from_point.x) + FRAC_PI_2)
+    }
+}
