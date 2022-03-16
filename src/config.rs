@@ -39,6 +39,10 @@ pub const SOLDIER_SELECTABLE_SQUARE_SIDE_HALF: f32 = SOLDIER_SELECTABLE_SQUARE_S
 // Frames to wait to draw the pending order path finding
 pub const PENDING_ORDER_PATH_FINDING_DRAW_FRAMES: u64 = (TARGET_FPS / 3) as u64;
 
+// Offset of defend/hide sprite from leader position
+pub const DISPLAY_DEFEND_X_OFFSET: f32 = 0.5;
+pub const DISPLAY_DEFEND_Y_OFFSET: f32 = 1.5;
+
 impl Config {
     pub fn new(opt: &Opt) -> GameResult<Self> {
         let (network_mode, server_rep_address, server_pub_address) = (

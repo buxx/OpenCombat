@@ -44,6 +44,12 @@ impl Graphics {
         self.ui_batch.add(sprite);
     }
 
+    pub fn extend_ui_batch(&mut self, sprites: Vec<graphics::DrawParam>) {
+        for sprite in sprites {
+            self.append_ui_batch(sprite)
+        }
+    }
+
     pub fn entity_sprites(&self, entity: &ThreadSafeEntity) -> Vec<graphics::DrawParam> {
         // TODO depending of a lot of things like entity type, physical behavior, etc
         let relative_start_x = 0. / config::SCENE_ITEMS_SPRITE_SHEET_WIDTH;

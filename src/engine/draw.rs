@@ -1,4 +1,9 @@
-use ggez::{graphics::MeshBuilder, GameResult};
+use ggez::{
+    graphics::{DrawParam, MeshBuilder},
+    GameResult,
+};
+
+use crate::{order::PendingOrder, types::*};
 
 use super::Engine;
 
@@ -57,5 +62,16 @@ impl Engine {
         self.generate_select_rectangle_meshes(mesh_builder)?;
 
         Ok(())
+    }
+
+    pub fn generate_pending_order_sprites(
+        &self,
+        pending_order: &PendingOrder,
+        _squad_id: SquadUuid,
+    ) -> Vec<DrawParam> {
+        let order_marker = pending_order.marker();
+        let sprite_infos = order_marker.sprite_info();
+        let draw_to = self.local_state.get_current_cursor_window_point();
+        vec![sprite_infos.as_draw_params(*draw_to, Angle(0.), None)]
     }
 }

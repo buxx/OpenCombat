@@ -1,6 +1,10 @@
 use crate::{behavior::Behavior, types::*};
 use serde::{Deserialize, Serialize};
 
+use self::marker::OrderMarker;
+
+pub mod marker;
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PendingOrder {
     MoveTo,
@@ -15,6 +19,16 @@ impl PendingOrder {
         match self {
             PendingOrder::MoveTo | PendingOrder::MoveFastTo | PendingOrder::SneakTo => true,
             _ => false,
+        }
+    }
+
+    pub fn marker(&self) -> OrderMarker {
+        match self {
+            PendingOrder::MoveTo => OrderMarker::MoveTo,
+            PendingOrder::MoveFastTo => OrderMarker::MoveFastTo,
+            PendingOrder::SneakTo => OrderMarker::SneakTo,
+            PendingOrder::Defend => OrderMarker::Defend,
+            PendingOrder::Hide => OrderMarker::Hide,
         }
     }
 }
