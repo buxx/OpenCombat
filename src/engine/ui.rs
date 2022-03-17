@@ -151,16 +151,25 @@ impl Engine {
                     if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {
                         let order = match pending_order {
                             crate::order::PendingOrder::MoveTo => {
+                                //
                                 self.create_move_to_order(*squad_id)
                             }
                             crate::order::PendingOrder::MoveFastTo => {
+                                //
                                 self.create_move_fast_to_order(*squad_id)
                             }
                             crate::order::PendingOrder::SneakTo => {
+                                //
                                 self.create_sneak_to_order(*squad_id)
                             }
-                            crate::order::PendingOrder::Defend => todo!(),
-                            crate::order::PendingOrder::Hide => todo!(),
+                            crate::order::PendingOrder::Defend => {
+                                //
+                                self.create_defend_order(*squad_id)
+                            }
+                            crate::order::PendingOrder::Hide => {
+                                //
+                                self.create_hide_order(*squad_id)
+                            }
                         };
 
                         // If order produced, push it on shared state

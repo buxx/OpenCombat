@@ -146,4 +146,12 @@ impl Engine {
 
         return self.create_path_finding(squad_id);
     }
+
+    pub fn angle_from_cursor_and_squad(&self, squad_id: SquadUuid) -> Angle {
+        let squad = self.shared_state.squad(squad_id);
+        let squad_leader = self.shared_state.entity(squad.leader());
+        let to_point = self.local_state.get_current_cursor_world_point().to_vec2();
+        let from_point = squad_leader.get_world_point().to_vec2();
+        Angle::from_points(&to_point, &from_point)
+    }
 }

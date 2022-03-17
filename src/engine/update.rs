@@ -23,9 +23,8 @@ impl Engine {
         let entity = self.shared_state.entity(i);
         let mut messages = vec![];
 
-        if let Some(point) = entity.get_behavior().looking_point() {
-            let orientation = angle(&point, &entity.get_world_point());
-            let entity_message = EntityMessage::SetOrientation(orientation);
+        if let Some(angle_) = entity.get_behavior().angle(entity.get_world_point()) {
+            let entity_message = EntityMessage::SetOrientation(angle_);
             messages.push(Message::SharedState(SharedStateMessage::Entity(
                 i,
                 entity_message,
@@ -46,8 +45,12 @@ impl Engine {
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
                 move_::entity_updates(entity, paths)
             }
-            Behavior::Defend(_) => todo!(),
-            Behavior::Hide(_) => todo!(),
+            Behavior::Defend(_) => {
+                vec![]
+            }
+            Behavior::Hide(_) => {
+                vec![]
+            }
         };
         messages.extend(Message::vec_from_entity(i, entity_messages));
 

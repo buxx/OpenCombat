@@ -1,6 +1,7 @@
 use crate::{
     config::{MOVE_FAST_VELOCITY, MOVE_HIDE_VELOCITY, MOVE_VELOCITY},
     types::*,
+    utils::angle,
 };
 use serde::{Deserialize, Serialize};
 
@@ -17,14 +18,23 @@ pub enum Behavior {
 }
 
 impl Behavior {
-    pub fn looking_point(&self) -> Option<WorldPoint> {
+    pub fn angle(&self, reference_point: WorldPoint) -> Option<Angle> {
         match self {
             Behavior::Idle => None,
-            Behavior::MoveTo(paths) => paths.next_point(),
-            Behavior::MoveFastTo(paths) => paths.next_point(),
-            Behavior::SneakTo(paths) => paths.next_point(),
-            Behavior::Defend(angle) => todo!(), // Generate random point ?
-            Behavior::Hide(angle) => todo!(),   // Generate random point ?
+            Behavior::MoveTo(paths) => Some(angle(
+                &paths.next_point().expect("Must contains point"),
+                &reference_point,
+            )),
+            Behavior::MoveFastTo(paths) => Some(angle(
+                &paths.next_point().expect("Must contains point"),
+                &reference_point,
+            )),
+            Behavior::SneakTo(paths) => Some(angle(
+                &paths.next_point().expect("Must contains point"),
+                &reference_point,
+            )),
+            Behavior::Defend(angle) => Some(*angle),
+            Behavior::Hide(angle) => Some(*angle),
         }
     }
 
