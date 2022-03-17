@@ -10,7 +10,6 @@ use crate::{
         PENDING_ORDER_PATH_FINDING_DRAW_FRAMES,
     },
     message::*,
-    physics::path::find_path,
     types::*,
     ui::menu::squad_menu_sprite_info,
     utils::GREEN,
@@ -148,14 +147,34 @@ impl Engine {
                         messages.push(Message::LocalState(LocalStateMessage::SetSquadMenu(None)));
                     }
 
+                    // This is a order click
                     if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {
-                        // FIXME
-                        // messages.extend(self.apply_pending_order(pending_order, squad_id))
+                        let order = match pending_order {
+                            crate::order::PendingOrder::MoveTo => {
+                                self.create_move_to_order(*squad_id)
+                            }
+                            crate::order::PendingOrder::MoveFastTo => {
+                                self.create_move_fast_to_order(*squad_id)
+                            }
+                            crate::order::PendingOrder::SneakTo => {
+                                self.create_sneak_to_order(*squad_id)
+                            }
+                            crate::order::PendingOrder::Defend => todo!(),
+                            crate::order::PendingOrder::Hide => todo!(),
+                        };
 
+                        // If order produced, push it on shared state
+                        if let Some(order_) = order {
+                            messages.push(Message::SharedState(SharedStateMessage::PushOrder(
+                                *squad_id, order_,
+                            )))
+                        }
+
+                        // In all cases, remove pending order
                         messages.extend(vec![Message::LocalState(
                             LocalStateMessage::SetPendingOrder(None),
                         )]);
-                    }
+                    };
 
                     // In all cases, clean some things
                     messages.extend(vec![Message::LocalState(
@@ -216,26 +235,10 @@ impl Engine {
                         }
                     }
                 }
-                UIEvent::DrawPathFinding(quad_id) => {
-                    let squad = self.shared_state.squad(quad_id);
-                    let entity = self.shared_state.entity(squad.leader());
-                    let entity_world_point = entity.get_world_point();
-                    let entity_grid_point = self.grid_point_from_world_point(entity_world_point);
-                    let cursor_world_point = self.local_state.get_current_cursor_world_point();
-                    let cursor_grid_point = self.grid_point_from_world_point(cursor_world_point);
-
-                    let grid_point_path =
-                        find_path(&self.map, &entity_grid_point, &cursor_grid_point)
-                            .unwrap_or(vec![]);
-                    if grid_point_path.len() > 0 {
-                        let world_point_path = grid_point_path
-                            .iter()
-                            .map(|p| self.world_point_from_grid_point(GridPoint::from(*p)))
-                            .collect();
-                        let world_path = WorldPath::new(world_point_path);
-                        let world_paths = WorldPaths::new(vec![world_path]);
+                UIEvent::DrawPathFinding(squad_id) => {
+                    if let Some(world_paths) = self.create_path_finding(squad_id) {
                         messages.push(Message::LocalState(LocalStateMessage::SetDisplayPaths(
-                            vec![world_paths],
+                            vec![(world_paths, squad_id)],
                         )));
                     }
                 }

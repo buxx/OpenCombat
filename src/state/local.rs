@@ -36,7 +36,7 @@ pub struct LocalState {
     /// Possible current player squad order
     pending_order: Option<(PendingOrder, SquadUuid)>,
     /// Paths to display
-    display_paths: Vec<WorldPaths>,
+    display_paths: Vec<(WorldPaths, SquadUuid)>,
 }
 
 impl LocalState {
@@ -146,7 +146,7 @@ impl LocalState {
         &self.pending_order
     }
 
-    pub fn get_display_paths(&self) -> &[WorldPaths] {
+    pub fn get_display_paths(&self) -> &[(WorldPaths, SquadUuid)] {
         &self.display_paths
     }
 

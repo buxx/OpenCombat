@@ -33,7 +33,7 @@ pub enum LocalStateMessage {
     SetSelectedSquads(Vec<SquadUuid>),
     SetSquadMenu(Option<(WindowPoint, SquadUuid)>),
     SetPendingOrder(Option<(PendingOrder, SquadUuid)>),
-    SetDisplayPaths(Vec<WorldPaths>),
+    SetDisplayPaths(Vec<(WorldPaths, SquadUuid)>),
     PushUIEvent(UIEvent),
 }
 

@@ -1,8 +1,8 @@
-use std::collections::HashSet;
+use std::{cmp, collections::HashSet};
 
 use ggez::graphics::Rect;
 
-use crate::types::*;
+use crate::{order::PendingOrder, physics::path::find_path, types::*};
 
 use super::Engine;
 
@@ -10,12 +10,15 @@ impl Engine {
     pub fn get_entities_in_area(&self, start: WorldPoint, end: WorldPoint) -> Vec<EntityIndex> {
         let mut entity_indexes = vec![];
 
-        let (start, end) = if start.x > end.x {
-            (end, start)
-        } else {
-            (start, end)
-        };
-        let area = Rect::new(start.x, start.y, end.x - start.x, end.y - start.y);
+        let from = WindowPoint::new(
+            cmp::min(start.x as i32, end.x as i32) as f32,
+            cmp::min(start.y as i32, end.y as i32) as f32,
+        );
+        let to = WindowPoint::new(
+            cmp::max(start.x as i32, end.x as i32) as f32,
+            cmp::max(start.y as i32, end.y as i32) as f32,
+        );
+        let area = Rect::new(from.x, from.y, to.x - from.x, to.y - from.y);
 
         for (i, scene_item) in self.shared_state.entities().iter().enumerate() {
             let entity_point = scene_item.get_world_point();
@@ -82,5 +85,65 @@ impl Engine {
         let y = (grid_point.y * self.map.terrain.tileset.tile_height as i32)
             + (self.map.terrain.tileset.tile_height as i32 / 2);
         WorldPoint::new(x as f32, y as f32)
+    }
+
+    pub fn get_pending_order_params(
+        &self,
+        pending_order: &PendingOrder,
+        squad_id: SquadUuid,
+    ) -> (WindowPoint, Angle, Offset) {
+        let squad = self.shared_state.squad(squad_id);
+        let squad_leader = self.shared_state.entity(squad.leader());
+        let order_marker = pending_order.marker();
+        let (draw_to, angle) = match pending_order {
+            PendingOrder::MoveTo | PendingOrder::MoveFastTo | PendingOrder::SneakTo => (
+                *self.local_state.get_current_cursor_window_point(),
+                Angle(0.),
+            ),
+            PendingOrder::Defend | PendingOrder::Hide => {
+                let to_point = self.local_state.get_current_cursor_world_point().to_vec2();
+                let from_point = squad_leader.get_world_point().to_vec2();
+                (
+                    self.local_state
+                        .window_point_from_world_point(squad_leader.get_world_point()),
+                    Angle::from_points(&to_point, &from_point),
+                )
+            }
+        };
+        let offset = order_marker.offset();
+
+        (draw_to, angle, offset)
+    }
+
+    pub fn create_path_finding(&self, squad_id: SquadUuid) -> Option<WorldPaths> {
+        let squad = self.shared_state.squad(squad_id);
+        let entity = self.shared_state.entity(squad.leader());
+        let entity_world_point = entity.get_world_point();
+        let entity_grid_point = self.grid_point_from_world_point(entity_world_point);
+        let cursor_world_point = self.local_state.get_current_cursor_world_point();
+        let cursor_grid_point = self.grid_point_from_world_point(cursor_world_point);
+
+        let grid_point_path =
+            find_path(&self.map, &entity_grid_point, &cursor_grid_point).unwrap_or(vec![]);
+        if grid_point_path.len() > 0 {
+            let world_point_path = grid_point_path
+                .iter()
+                .map(|p| self.world_point_from_grid_point(GridPoint::from(*p)))
+                .collect();
+            let world_path = WorldPath::new(world_point_path);
+            return Some(WorldPaths::new(vec![world_path]));
+        }
+
+        None
+    }
+
+    pub fn create_world_paths_from_context(&self, squad_id: SquadUuid) -> Option<WorldPaths> {
+        for (display_paths, path_squad_id) in self.local_state.get_display_paths() {
+            if *path_squad_id == squad_id {
+                return Some(display_paths.clone());
+            }
+        }
+
+        return self.create_path_finding(squad_id);
     }
 }

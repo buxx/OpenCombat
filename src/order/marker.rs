@@ -59,7 +59,7 @@ impl OrderMarker {
             OrderMarker::MoveTo
             | OrderMarker::MoveFastTo
             | OrderMarker::SneakTo
-            | OrderMarker::FireTo => Offset::new(0., 0.),
+            | OrderMarker::FireTo => Offset::new(0.5, 0.5),
             OrderMarker::Defend | OrderMarker::Hide => {
                 Offset::new(DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET)
             }
