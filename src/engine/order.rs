@@ -13,7 +13,7 @@ impl Engine {
 
     pub fn create_move_fast_to_order(&self, squad_id: SquadUuid) -> Option<Order> {
         if let Some(world_paths) = self.create_world_paths_from_context(squad_id) {
-            return Some(Order::MoveTo(world_paths));
+            return Some(Order::MoveFastTo(world_paths));
         }
 
         None
@@ -21,7 +21,7 @@ impl Engine {
 
     pub fn create_sneak_to_order(&self, squad_id: SquadUuid) -> Option<Order> {
         if let Some(world_paths) = self.create_world_paths_from_context(squad_id) {
-            return Some(Order::MoveTo(world_paths));
+            return Some(Order::SneakTo(world_paths));
         }
 
         None

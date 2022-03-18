@@ -55,15 +55,8 @@ impl OrderMarker {
     // }
 
     pub fn offset(&self) -> Offset {
-        match &self {
-            OrderMarker::MoveTo
-            | OrderMarker::MoveFastTo
-            | OrderMarker::SneakTo
-            | OrderMarker::FireTo => Offset::new(0.5, 0.5),
-            OrderMarker::Defend | OrderMarker::Hide => {
-                Offset::new(DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET)
-            }
-        }
+        // For unknown reason, (0.5, 0.5) produce a pixel display error
+        Offset::new(0.51, 0.51)
     }
 
     // pub fn get_scene_item_id(&self) -> SceneItemId {
@@ -186,6 +179,7 @@ impl OrderMarker {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct OrderMarkerSpriteInfo {
     pub relative_start_x: f32,
     pub relative_start_y: f32,
@@ -216,10 +210,10 @@ impl OrderMarkerSpriteInfo {
             .offset(offset.to_vec2())
     }
 
-    pub fn rectangle(&self, from_scene_point: &WindowPoint) -> graphics::Rect {
+    pub fn rectangle(&self, from_point: &WindowPoint) -> graphics::Rect {
         graphics::Rect::new(
-            from_scene_point.x - self.half_width,
-            from_scene_point.y - self.half_height,
+            from_point.x - self.half_width,
+            from_point.y - self.half_height,
             self.width,
             self.height,
         )
@@ -259,8 +253,7 @@ impl OrderMarkerSpriteInfo {
         }
     }
 
-    pub fn contains(&self, draw_to_scene_point: &WindowPoint, point: &WindowPoint) -> bool {
-        self.rectangle(draw_to_scene_point)
-            .contains(Point2::from([point.x, point.y]))
+    pub fn contains(&self, draw_to: &WindowPoint, cursor: &WindowPoint) -> bool {
+        self.rectangle(draw_to).contains(cursor.to_vec2())
     }
 }

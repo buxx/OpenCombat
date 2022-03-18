@@ -40,10 +40,12 @@ impl Engine {
                             let b2 = entity.get_world_point().apply(Vec2::new(10., 20.));
                             let a = WorldPath::new(vec![a1, a2]);
                             let b = WorldPath::new(vec![b1, b2]);
-                            messages.push(Message::SharedState(SharedStateMessage::PushOrder(
-                                entity.squad_uuid(),
-                                Order::MoveTo(WorldPaths::new(vec![a, b])),
-                            )));
+                            messages.push(Message::SharedState(
+                                SharedStateMessage::PushGivenOrder(
+                                    entity.squad_uuid(),
+                                    Order::MoveTo(WorldPaths::new(vec![a, b])),
+                                ),
+                            ));
                         }
                         _ => {}
                     }
@@ -169,9 +171,27 @@ impl Engine {
         let mut messages = vec![];
 
         match button {
-            MouseButton::Left => messages.push(Message::LocalState(
-                LocalStateMessage::SetLeftClickDown(Some(WindowPoint::new(x, y))),
-            )),
+            MouseButton::Left => {
+                // Update cursor down position
+                messages.push(Message::LocalState(LocalStateMessage::SetLeftClickDown(
+                    Some(WindowPoint::new(x, y)),
+                )));
+
+                // Check if any order under the cursor
+                for (order_marker, squad_id, world_point, order_marker_i) in
+                    self.shared_state.order_markers()
+                {
+                    let window_point = self.local_state.window_point_from_world_point(world_point);
+                    if order_marker
+                        .sprite_info()
+                        .contains(&window_point, &WindowPoint::new(x, y))
+                    {
+                        messages.push(Message::LocalState(LocalStateMessage::SetDraggedOrder(
+                            Some((squad_id, order_marker_i)),
+                        )));
+                    }
+                }
+            }
             _ => {}
         }
 

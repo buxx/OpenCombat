@@ -52,4 +52,14 @@ impl Order {
             Order::Hide(angle) => Behavior::Hide(angle.clone()),
         }
     }
+
+    pub fn marker(&self) -> OrderMarker {
+        match self {
+            Order::MoveTo(_) => OrderMarker::MoveTo,
+            Order::MoveFastTo(_) => OrderMarker::MoveFastTo,
+            Order::SneakTo(_) => OrderMarker::SneakTo,
+            Order::Defend(_) => OrderMarker::Defend,
+            Order::Hide(_) => OrderMarker::Hide,
+        }
+    }
 }

@@ -152,6 +152,14 @@ impl WorldPath {
             Some(self.points.remove(0))
         }
     }
+
+    pub fn last_point(&self) -> Option<WorldPoint> {
+        if self.points.is_empty() {
+            None
+        } else {
+            Some(self.points[self.points.len() - 1])
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -185,10 +193,23 @@ impl WorldPaths {
 
         None
     }
+
+    pub fn is_last_point(&self) -> Option<bool> {
+        if self.paths.is_empty() {
+            None
+        } else if self.paths.len() > 1 {
+            Some(false)
+        } else {
+            Some(self.paths[0].points.len() == 1)
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct EntityIndex(pub usize);
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct OrderMarkerIndex(pub usize);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct SquadUuid(pub usize);

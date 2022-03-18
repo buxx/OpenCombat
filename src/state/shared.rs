@@ -13,7 +13,7 @@ pub struct SharedState {
     squads: HashMap<SquadUuid, SquadComposition>,
     /// Players orders. Entities will pick from them theirs behaviors.
     /// // FIXME : This should be in Engine instead State ? (because Sate shared to clients) Maybe yes, in state
-    orders: HashMap<SquadUuid, Order>,
+    given_orders: HashMap<SquadUuid, Order>,
 }
 
 impl SharedState {
@@ -22,7 +22,7 @@ impl SharedState {
             initialized: false,
             entities,
             squads: HashMap::new(),
-            orders: HashMap::new(),
+            given_orders: HashMap::new(),
         }
     }
 
@@ -60,7 +60,7 @@ impl SharedState {
         &mut self.entities[entity_index.0]
     }
 
-    pub fn _squads(&self) -> &HashMap<SquadUuid, SquadComposition> {
+    pub fn squads(&self) -> &HashMap<SquadUuid, SquadComposition> {
         &self.squads
     }
 
@@ -68,8 +68,25 @@ impl SharedState {
         self.squads = squads;
     }
 
-    pub fn orders(&self) -> &HashMap<SquadUuid, Order> {
-        &self.orders
+    pub fn given_orders(&self) -> &HashMap<SquadUuid, Order> {
+        &self.given_orders
+    }
+
+    pub fn all_orders(&self) -> Vec<(SquadUuid, Order)> {
+        let mut orders: Vec<(SquadUuid, Order)> = vec![];
+
+        for (squad_id, squad_composition) in &self.squads {
+            let squad_leader = self.entity(squad_composition.leader());
+            if let Some(order) = squad_leader.get_behavior().as_order() {
+                orders.push((*squad_id, order));
+            }
+        }
+
+        for (squad_id, order) in &self.given_orders {
+            orders.push((*squad_id, order.clone()));
+        }
+
+        orders
     }
 
     pub fn squad(&self, squad_uuid: SquadUuid) -> &SquadComposition {
@@ -77,30 +94,19 @@ impl SharedState {
             .get(&squad_uuid)
             .expect("Game shared_state should never own inconsistent squad index")
     }
-    pub fn _orders(&self) -> &HashMap<SquadUuid, Order> {
-        &self.orders
-    }
-
-    pub fn push_order(&mut self, squad_uuid: SquadUuid, order: Order) {
-        self.orders.insert(squad_uuid, order);
-    }
-
-    pub fn remove_order(&mut self, squad_uuid: SquadUuid) {
-        self.orders
-            .remove(&squad_uuid)
-            .expect("Game shared_state should never own inconsistent orders index");
-    }
 
     pub fn react(&mut self, state_message: crate::message::SharedStateMessage) {
         match state_message {
             SharedStateMessage::Entity(entity_i, entity_message) => {
                 self.react_entity_message(entity_i, entity_message);
             }
-            SharedStateMessage::PushOrder(squad_uuid, order) => {
-                self.push_order(squad_uuid, order);
+            SharedStateMessage::PushGivenOrder(squad_uuid, order) => {
+                self.given_orders.insert(squad_uuid, order);
             }
             SharedStateMessage::RemoveOder(squad_uuid) => {
-                self.remove_order(squad_uuid);
+                self.given_orders
+                    .remove(&squad_uuid)
+                    .expect("Game shared_state should never own inconsistent orders index");
             }
         }
     }

@@ -19,7 +19,7 @@ pub enum Message {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum SharedStateMessage {
     Entity(EntityIndex, EntityMessage),
-    PushOrder(SquadUuid, Order),
+    PushGivenOrder(SquadUuid, Order),
     RemoveOder(SquadUuid),
 }
 
@@ -34,6 +34,7 @@ pub enum LocalStateMessage {
     SetSquadMenu(Option<(WindowPoint, SquadUuid)>),
     SetPendingOrder(Option<(PendingOrder, SquadUuid)>),
     SetDisplayPaths(Vec<(WorldPaths, SquadUuid)>),
+    SetDraggedOrder(Option<(SquadUuid, OrderMarkerIndex)>),
     PushUIEvent(UIEvent),
 }
 

@@ -2,6 +2,7 @@ use crate::{
     behavior::Behavior,
     config::{SOLDIER_SELECTABLE_SQUARE_SIDE, SOLDIER_SELECTABLE_SQUARE_SIDE_HALF},
     game::Side,
+    order::Order,
     types::*,
 };
 use ggez::graphics::Rect;

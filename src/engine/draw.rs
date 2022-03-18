@@ -3,7 +3,10 @@ use ggez::{
     GameResult,
 };
 
-use crate::{order::PendingOrder, types::*};
+use crate::{
+    order::{marker::OrderMarker, PendingOrder},
+    types::*,
+};
 
 use super::Engine;
 
@@ -73,5 +76,15 @@ impl Engine {
         let sprite_infos = order_marker.sprite_info();
         let (draw_to, angle, offset) = self.get_pending_order_params(pending_order, squad_id);
         vec![sprite_infos.as_draw_params(draw_to, angle, offset)]
+    }
+
+    pub fn generate_order_marker_sprites(
+        &self,
+        order_marker: &OrderMarker,
+        point: WindowPoint,
+    ) -> Vec<DrawParam> {
+        let sprite_infos = order_marker.sprite_info();
+        let offset = order_marker.offset();
+        vec![sprite_infos.as_draw_params(point, Angle(0.), offset)]
     }
 }

@@ -125,6 +125,12 @@ impl Engine {
             self.graphics.extend_ui_batch(sprites);
         }
 
+        for (order_marker, _, point, _) in self.shared_state.order_markers() {
+            let window_point = self.local_state.window_point_from_world_point(point);
+            let sprites = self.generate_order_marker_sprites(&order_marker, window_point);
+            self.graphics.extend_ui_batch(sprites);
+        }
+
         Ok(())
     }
 
@@ -147,7 +153,7 @@ impl Engine {
                         messages.push(Message::LocalState(LocalStateMessage::SetSquadMenu(None)));
                     }
 
-                    // This is a order click
+                    // This is a pending order click
                     if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {
                         let order = match pending_order {
                             crate::order::PendingOrder::MoveTo => {
@@ -174,7 +180,7 @@ impl Engine {
 
                         // If order produced, push it on shared state
                         if let Some(order_) = order {
-                            messages.push(Message::SharedState(SharedStateMessage::PushOrder(
+                            messages.push(Message::SharedState(SharedStateMessage::PushGivenOrder(
                                 *squad_id, order_,
                             )))
                         }

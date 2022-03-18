@@ -123,8 +123,8 @@ impl Graphics {
 }
 
 pub fn create_sprites_batch(ctx: &mut Context) -> GameResult<SpriteBatch> {
-    let mut sprites_image = Image::new(ctx, SPRITES_FILE_PATH)?;
-    sprites_image.set_filter(FilterMode::Nearest); // because pixel art
+    let sprites_image = Image::new(ctx, SPRITES_FILE_PATH)?;
+    // sprites_image.set_filter(FilterMode::Nearest); // because pixel art
     let sprites_batch = SpriteBatch::new(sprites_image);
 
     Ok(sprites_batch)

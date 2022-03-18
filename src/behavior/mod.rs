@@ -1,5 +1,6 @@
 use crate::{
     config::{MOVE_FAST_VELOCITY, MOVE_HIDE_VELOCITY, MOVE_VELOCITY},
+    order::Order,
     types::*,
     utils::angle,
 };
@@ -59,6 +60,17 @@ impl Behavior {
             }
             Behavior::Defend(_) => unreachable!(),
             Behavior::Hide(_) => unreachable!(),
+        }
+    }
+
+    pub fn as_order(&self) -> Option<Order> {
+        match self {
+            Behavior::Idle => None,
+            Behavior::MoveTo(paths) => Some(Order::MoveTo(paths.clone())),
+            Behavior::MoveFastTo(paths) => Some(Order::MoveFastTo(paths.clone())),
+            Behavior::SneakTo(paths) => Some(Order::SneakTo(paths.clone())),
+            Behavior::Defend(angle) => Some(Order::Defend(*angle)),
+            Behavior::Hide(angle) => Some(Order::Hide(*angle)),
         }
     }
 }
