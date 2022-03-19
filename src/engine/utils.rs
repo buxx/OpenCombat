@@ -2,7 +2,7 @@ use std::{cmp, collections::HashSet};
 
 use ggez::graphics::Rect;
 
-use crate::{order::PendingOrder, physics::path::find_path, types::*};
+use crate::{behavior::Behavior, order::PendingOrder, physics::path::find_path, types::*};
 
 use super::Engine;
 
@@ -91,31 +91,48 @@ impl Engine {
         &self,
         pending_order: &PendingOrder,
         squad_id: SquadUuid,
-    ) -> (WindowPoint, Angle, Offset) {
+        cached_points: &Vec<WorldPoint>,
+    ) -> Vec<(WindowPoint, Angle, Offset)> {
         let squad = self.shared_state.squad(squad_id);
         let squad_leader = self.shared_state.entity(squad.leader());
         let order_marker = pending_order.marker();
-        let (draw_to, angle) = match pending_order {
-            PendingOrder::MoveTo | PendingOrder::MoveFastTo | PendingOrder::SneakTo => (
-                *self.local_state.get_current_cursor_window_point(),
-                Angle(0.),
-            ),
+        match pending_order {
+            PendingOrder::MoveTo | PendingOrder::MoveFastTo | PendingOrder::SneakTo => {
+                let mut params = vec![];
+                for cached_point in cached_points {
+                    params.push((
+                        self.local_state
+                            .window_point_from_world_point(*cached_point),
+                        Angle(0.),
+                        order_marker.offset(),
+                    ));
+                }
+                params.push((
+                    *self.local_state.get_current_cursor_window_point(),
+                    Angle(0.),
+                    order_marker.offset(),
+                ));
+                params
+            }
             PendingOrder::Defend | PendingOrder::Hide => {
                 let to_point = self.local_state.get_current_cursor_world_point().to_vec2();
                 let from_point = squad_leader.get_world_point().to_vec2();
-                (
+                vec![(
                     self.local_state
                         .window_point_from_world_point(squad_leader.get_world_point()),
                     Angle::from_points(&to_point, &from_point),
-                )
+                    order_marker.offset(),
+                )]
             }
-        };
-        let offset = order_marker.offset();
-
-        (draw_to, angle, offset)
+        }
     }
 
-    pub fn create_path_finding(&self, squad_id: SquadUuid) -> Option<WorldPaths> {
+    pub fn create_path_finding(
+        &self,
+        squad_id: SquadUuid,
+        order_marker_index: Option<OrderMarkerIndex>,
+        cached_points: &Vec<WorldPoint>,
+    ) -> Option<WorldPaths> {
         let squad = self.shared_state.squad(squad_id);
         let entity = self.shared_state.entity(squad.leader());
         let entity_world_point = entity.get_world_point();
@@ -123,28 +140,96 @@ impl Engine {
         let cursor_world_point = self.local_state.get_current_cursor_world_point();
         let cursor_grid_point = self.grid_point_from_world_point(cursor_world_point);
 
-        let grid_point_path =
-            find_path(&self.map, &entity_grid_point, &cursor_grid_point).unwrap_or(vec![]);
-        if grid_point_path.len() > 0 {
-            let world_point_path = grid_point_path
-                .iter()
-                .map(|p| self.world_point_from_grid_point(GridPoint::from(*p)))
-                .collect();
-            let world_path = WorldPath::new(world_point_path);
-            return Some(WorldPaths::new(vec![world_path]));
+        // Determine different path "part" to find:
+        // Editing existing case
+        let bounds = if let Some(order_marker_index_) = order_marker_index {
+            // Create path finding with order_marker_index expect squad currently following world paths. But if not, squad maybe finished its.
+            if let Some(current_squad_world_paths) = self.current_squad_world_paths(squad_id) {
+                let mut bounds_ = vec![];
+                for (squad_order_marker_index, world_path) in
+                    current_squad_world_paths.paths.iter().enumerate()
+                {
+                    let world_start_point = world_path.next_point().expect("Must have points here");
+                    // If we are editing this order marker index, cursor is the end point
+                    let world_end_point = if order_marker_index_.0 == squad_order_marker_index {
+                        cursor_world_point
+                    } else {
+                        world_path.last_point().expect("Must have points here")
+                    };
+                    let start_grid_point = self.grid_point_from_world_point(world_start_point);
+                    let end_grid_point = self.grid_point_from_world_point(world_end_point);
+
+                    bounds_.push((start_grid_point, end_grid_point));
+                }
+                bounds_
+            } else {
+                vec![(entity_grid_point, cursor_grid_point)]
+            }
+        // Some points already cached (append)
+        } else if cached_points.len() > 1 {
+            let mut last = entity_grid_point;
+            let mut bounds_ = vec![];
+            for cached_point in cached_points {
+                let grid_cached_point = self.grid_point_from_world_point(*cached_point);
+                bounds_.push((last, grid_cached_point));
+                last = grid_cached_point;
+            }
+            bounds_.push((last, cursor_grid_point));
+            bounds_
+        // First point
+        } else {
+            vec![(entity_grid_point, cursor_grid_point)]
+        };
+
+        // Build path finding on each parts
+        let mut world_paths = vec![];
+        for (bound_start, bound_end) in bounds {
+            if let Some(grid_points_path) = find_path(&self.map, &bound_start, &bound_end) {
+                if grid_points_path.len() > 0 {
+                    let world_point_path = grid_points_path
+                        .iter()
+                        .map(|p| self.world_point_from_grid_point(GridPoint::from(*p)))
+                        .collect();
+                    let world_path = WorldPath::new(world_point_path);
+                    world_paths.push(world_path);
+                }
+            }
+        }
+
+        if world_paths.len() > 0 {
+            return Some(WorldPaths::new(world_paths));
         }
 
         None
     }
 
-    pub fn create_world_paths_from_context(&self, squad_id: SquadUuid) -> Option<WorldPaths> {
+    pub fn current_squad_world_paths(&self, squad_id: SquadUuid) -> Option<&WorldPaths> {
+        let squad = self.shared_state.squad(squad_id);
+        let squad_leader = self.shared_state.entity(squad.leader());
+        match squad_leader.get_behavior() {
+            Behavior::MoveTo(world_paths)
+            | Behavior::MoveFastTo(world_paths)
+            | Behavior::SneakTo(world_paths) => Some(world_paths),
+            _ => None,
+        }
+    }
+
+    pub fn create_world_paths_from_context(
+        &self,
+        squad_id: SquadUuid,
+        order_marker_index: Option<OrderMarkerIndex>,
+        cached_points: &Vec<WorldPoint>,
+    ) -> Option<WorldPaths> {
+        // FIXME BS NOW : order_marker_index : Il faudra remplacer le morceau que l'on deplace
+        // FIXME dans get_display_paths ?
+
         for (display_paths, path_squad_id) in self.local_state.get_display_paths() {
             if *path_squad_id == squad_id {
                 return Some(display_paths.clone());
             }
         }
 
-        return self.create_path_finding(squad_id);
+        return self.create_path_finding(squad_id, order_marker_index, cached_points);
     }
 
     pub fn angle_from_cursor_and_squad(&self, squad_id: SquadUuid) -> Angle {

@@ -32,7 +32,15 @@ pub enum LocalStateMessage {
     SetSceneDisplayOffset(Offset),
     SetSelectedSquads(Vec<SquadUuid>),
     SetSquadMenu(Option<(WindowPoint, SquadUuid)>),
-    SetPendingOrder(Option<(PendingOrder, SquadUuid)>),
+    SetPendingOrder(
+        Option<(
+            PendingOrder,
+            SquadUuid,
+            Option<OrderMarkerIndex>,
+            Vec<WorldPoint>,
+        )>,
+    ),
+    AddCachePointToPendingOrder(WorldPoint),
     SetDisplayPaths(Vec<(WorldPaths, SquadUuid)>),
     PushUIEvent(UIEvent),
 }
@@ -52,7 +60,7 @@ pub enum UIEvent {
     FinishedCursorRightClick(WindowPoint),
     CursorMove(WindowPoint),
     ImmobileCursorSince(u64),
-    DrawPathFinding(SquadUuid),
+    DrawPathFinding(SquadUuid, Option<OrderMarkerIndex>, Vec<WorldPoint>),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

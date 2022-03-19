@@ -1,4 +1,4 @@
-use ggez::event::MouseButton;
+use ggez::event::{KeyCode, KeyMods, MouseButton};
 use ggez::graphics::{self, MeshBuilder};
 use ggez::timer::check_update_time;
 use ggez::{event, GameError};
@@ -138,6 +138,11 @@ impl event::EventHandler<ggez::GameError> for Engine {
 
     fn mouse_button_up_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
         let messages = self.collect_mouse_up(ctx, button, x, y);
+        self.react(messages);
+    }
+
+    fn key_up_event(&mut self, ctx: &mut Context, keycode: KeyCode, _keymod: KeyMods) {
+        let messages = self.key_released(ctx, keycode);
         self.react(messages);
     }
 }

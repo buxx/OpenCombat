@@ -20,7 +20,7 @@ impl Engine {
         messages.extend(self.collect_player_inputs(ctx));
 
         // Generate messages according to the possible ui events
-        messages.extend(self.ui_events());
+        messages.extend(self.ui_events(ctx));
 
         // Apply messages
         self.react(messages);

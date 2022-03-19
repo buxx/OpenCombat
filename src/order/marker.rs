@@ -4,7 +4,6 @@ use crate::config::{
 use crate::types::*;
 use crate::utils::{apply_angle_on_point, Rectangle};
 use ggez::graphics;
-use ggez::mint::Point2;
 
 use super::PendingOrder;
 

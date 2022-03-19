@@ -4,6 +4,7 @@
         "astar",
         "bincode",
         "gids",
+        "keymod",
         "pathfinding",
         "spritebatch",
         "tilesets"

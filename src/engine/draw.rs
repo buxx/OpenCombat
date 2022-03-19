@@ -62,8 +62,13 @@ impl Engine {
             self.generate_debug_mouse_meshes(mesh_builder)?;
         }
 
+        // TODO : It is not the right place
         if self.local_state.get_pending_order().is_none() {
             self.generate_select_rectangle_meshes(mesh_builder)?;
+        }
+
+        if self.local_state.get_debug().move_paths() {
+            self.generate_move_paths_meshes(mesh_builder)?
         }
 
         Ok(())
@@ -73,11 +78,17 @@ impl Engine {
         &self,
         pending_order: &PendingOrder,
         squad_id: SquadUuid,
+        cached_points: &Vec<WorldPoint>,
     ) -> Vec<DrawParam> {
+        let mut draw_params = vec![];
         let order_marker = pending_order.marker();
         let sprite_infos = order_marker.sprite_info();
-        let (draw_to, angle, offset) = self.get_pending_order_params(pending_order, squad_id);
-        vec![sprite_infos.as_draw_params(draw_to, angle, offset)]
+        for (draw_to, angle, offset) in
+            self.get_pending_order_params(pending_order, squad_id, cached_points)
+        {
+            draw_params.push(sprite_infos.as_draw_params(draw_to, angle, offset))
+        }
+        draw_params
     }
 
     pub fn generate_order_marker_sprites(

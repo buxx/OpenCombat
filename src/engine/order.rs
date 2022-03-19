@@ -3,24 +3,45 @@ use crate::{order::Order, types::*};
 use super::Engine;
 
 impl Engine {
-    pub fn create_move_to_order(&self, squad_id: SquadUuid) -> Option<Order> {
-        if let Some(world_paths) = self.create_world_paths_from_context(squad_id) {
+    pub fn create_move_to_order(
+        &self,
+        squad_id: SquadUuid,
+        order_marker_index: Option<OrderMarkerIndex>,
+        cached_points: &Vec<WorldPoint>,
+    ) -> Option<Order> {
+        if let Some(world_paths) =
+            self.create_world_paths_from_context(squad_id, order_marker_index, cached_points)
+        {
             return Some(Order::MoveTo(world_paths));
         }
 
         None
     }
 
-    pub fn create_move_fast_to_order(&self, squad_id: SquadUuid) -> Option<Order> {
-        if let Some(world_paths) = self.create_world_paths_from_context(squad_id) {
+    pub fn create_move_fast_to_order(
+        &self,
+        squad_id: SquadUuid,
+        order_marker_index: Option<OrderMarkerIndex>,
+        cached_points: &Vec<WorldPoint>,
+    ) -> Option<Order> {
+        if let Some(world_paths) =
+            self.create_world_paths_from_context(squad_id, order_marker_index, cached_points)
+        {
             return Some(Order::MoveFastTo(world_paths));
         }
 
         None
     }
 
-    pub fn create_sneak_to_order(&self, squad_id: SquadUuid) -> Option<Order> {
-        if let Some(world_paths) = self.create_world_paths_from_context(squad_id) {
+    pub fn create_sneak_to_order(
+        &self,
+        squad_id: SquadUuid,
+        order_marker_index: Option<OrderMarkerIndex>,
+        cached_points: &Vec<WorldPoint>,
+    ) -> Option<Order> {
+        if let Some(world_paths) =
+            self.create_world_paths_from_context(squad_id, order_marker_index, cached_points)
+        {
             return Some(Order::SneakTo(world_paths));
         }
 

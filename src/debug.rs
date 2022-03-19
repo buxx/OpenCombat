@@ -72,4 +72,12 @@ impl DebugLevel {
             DebugLevel::Debug3 => true,
         }
     }
+    pub fn move_paths(&self) -> bool {
+        match self {
+            DebugLevel::Debug0 => false,
+            DebugLevel::Debug1 => false,
+            DebugLevel::Debug2 => false,
+            DebugLevel::Debug3 => true,
+        }
+    }
 }

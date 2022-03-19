@@ -1,6 +1,7 @@
 use ggez::{
+    event::KeyCode,
     graphics::{Color, DrawMode, MeshBuilder, Rect, StrokeOptions},
-    GameResult,
+    input, Context, GameResult,
 };
 use glam::Vec2;
 
@@ -78,7 +79,7 @@ impl Engine {
         let squad_menu_sprite_info = squad_menu_sprite_info();
         if let Some(menu_item) = squad_menu_sprite_info.item_clicked(&menu_point, &cursor_point) {
             return vec![Message::LocalState(LocalStateMessage::SetPendingOrder(
-                Some((menu_item.to_pending_order(), squad_id)),
+                Some((menu_item.to_pending_order(), squad_id, None, vec![])),
             ))];
         };
 
@@ -121,8 +122,11 @@ impl Engine {
     }
 
     pub fn generate_orders_sprites(&mut self) -> GameResult {
-        if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {
-            let sprites = self.generate_pending_order_sprites(pending_order, *squad_id);
+        if let Some((pending_order, squad_id, _, cached_points)) =
+            self.local_state.get_pending_order()
+        {
+            let sprites =
+                self.generate_pending_order_sprites(pending_order, *squad_id, cached_points);
             self.graphics.extend_ui_batch(sprites);
         }
 
@@ -139,19 +143,21 @@ impl Engine {
         &self,
         pending_order: &PendingOrder,
         squad_id: SquadUuid,
+        order_marker_index: Option<OrderMarkerIndex>,
+        cached_points: &Vec<WorldPoint>,
     ) -> Option<Order> {
         match pending_order {
             crate::order::PendingOrder::MoveTo => {
                 //
-                self.create_move_to_order(squad_id)
+                self.create_move_to_order(squad_id, order_marker_index, cached_points)
             }
             crate::order::PendingOrder::MoveFastTo => {
                 //
-                self.create_move_fast_to_order(squad_id)
+                self.create_move_fast_to_order(squad_id, order_marker_index, cached_points)
             }
             crate::order::PendingOrder::SneakTo => {
                 //
-                self.create_sneak_to_order(squad_id)
+                self.create_sneak_to_order(squad_id, order_marker_index, cached_points)
             }
             crate::order::PendingOrder::Defend => {
                 //
@@ -164,7 +170,7 @@ impl Engine {
         }
     }
 
-    pub fn ui_events(&mut self) -> Vec<Message> {
+    pub fn ui_events(&mut self, ctx: &Context) -> Vec<Message> {
         let mut messages = vec![];
 
         while let Some(event) = self.local_state.pop_ui_event() {
@@ -184,20 +190,36 @@ impl Engine {
                     }
 
                     // This is a pending order click
-                    if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {
-                        // If order produced, push it on shared state
-                        if let Some(order_) =
-                            self.order_from_pending_order(pending_order, *squad_id)
-                        {
-                            messages.push(Message::SharedState(SharedStateMessage::PushGivenOrder(
-                                *squad_id, order_,
-                            )))
-                        }
+                    if let Some((pending_order, squad_id, _, cached_points)) =
+                        self.local_state.get_pending_order()
+                    {
+                        let is_appending = input::keyboard::is_key_pressed(ctx, KeyCode::LShift)
+                            || input::keyboard::is_key_pressed(ctx, KeyCode::RShift);
 
-                        // In all cases, remove pending order
-                        messages.extend(vec![Message::LocalState(
-                            LocalStateMessage::SetPendingOrder(None),
-                        )]);
+                        if is_appending {
+                            messages.extend(vec![Message::LocalState(
+                                LocalStateMessage::AddCachePointToPendingOrder(
+                                    self.local_state.get_current_cursor_world_point(),
+                                ),
+                            )]);
+                        } else {
+                            // If order produced, push it on shared state
+                            if let Some(order_) = self.order_from_pending_order(
+                                pending_order,
+                                *squad_id,
+                                None,
+                                cached_points,
+                            ) {
+                                messages.push(Message::SharedState(
+                                    SharedStateMessage::PushGivenOrder(*squad_id, order_),
+                                ))
+                            }
+
+                            // In all cases, remove pending order
+                            messages.extend(vec![Message::LocalState(
+                                LocalStateMessage::SetPendingOrder(None),
+                            )]);
+                        }
                     };
 
                     // In all cases, clean some things
@@ -206,17 +228,23 @@ impl Engine {
                     )]);
                 }
                 UIEvent::FinishedCursorVector(start, end) => {
-                    if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {
-                        if let Some(order_) =
-                            self.order_from_pending_order(pending_order, *squad_id)
-                        {
+                    if let Some((pending_order, squad_id, order_marker_index, _)) =
+                        self.local_state.get_pending_order()
+                    {
+                        if let Some(order_) = self.order_from_pending_order(
+                            pending_order,
+                            *squad_id,
+                            *order_marker_index,
+                            &vec![],
+                        ) {
                             messages.push(Message::SharedState(SharedStateMessage::PushGivenOrder(
                                 *squad_id, order_,
                             )))
                         }
-                        messages.push(Message::LocalState(LocalStateMessage::SetPendingOrder(
-                            None,
-                        )));
+                        messages.extend(vec![
+                            Message::LocalState(LocalStateMessage::SetPendingOrder(None)),
+                            Message::LocalState(LocalStateMessage::SetDisplayPaths(vec![])),
+                        ]);
                     } else {
                         let world_start = self.local_state.world_point_from_window_point(start);
                         let world_end = self.local_state.world_point_from_window_point(end);
@@ -261,29 +289,32 @@ impl Engine {
                 }
                 UIEvent::ImmobileCursorSince(since) => {
                     // Paths to draw if pending order
-                    if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {
+                    if let Some((pending_order, squad_id, order_marker_index, cached_points)) =
+                        self.local_state.get_pending_order()
+                    {
                         if since == PENDING_ORDER_PATH_FINDING_DRAW_FRAMES {
                             if pending_order.expect_path_finding() {
                                 messages.push(Message::LocalState(LocalStateMessage::PushUIEvent(
-                                    UIEvent::DrawPathFinding(*squad_id),
+                                    UIEvent::DrawPathFinding(
+                                        *squad_id,
+                                        *order_marker_index,
+                                        cached_points.clone(),
+                                    ),
                                 )));
                             }
                         }
                     }
                 }
-                UIEvent::DrawPathFinding(squad_id) => {
-                    if let Some(world_paths) = self.create_path_finding(squad_id) {
+                UIEvent::DrawPathFinding(squad_id, order_marker_index, cached_points) => {
+                    if let Some(world_paths) =
+                        self.create_path_finding(squad_id, order_marker_index, &cached_points)
+                    {
                         messages.push(Message::LocalState(LocalStateMessage::SetDisplayPaths(
                             vec![(world_paths, squad_id)],
                         )));
                     }
                 }
                 UIEvent::CursorMove(_point) => {
-                    // If dragging an order marker, it is a pending order
-                    // if let Some(order) = self.local_state.get_dragged_order() {
-                    //     //
-                    // }
-
                     messages.push(Message::LocalState(LocalStateMessage::SetDisplayPaths(
                         vec![],
                     )));

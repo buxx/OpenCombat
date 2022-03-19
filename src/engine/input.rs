@@ -34,10 +34,10 @@ impl Engine {
                 if self.entity_is_squad_leader(EntityIndex(i)) {
                     match entity.get_behavior() {
                         Behavior::Idle => {
-                            let a1 = entity.get_world_point().apply(Vec2::new(10., 0.));
-                            let a2 = entity.get_world_point().apply(Vec2::new(0., 10.));
-                            let b1 = entity.get_world_point().apply(Vec2::new(20., 10.));
-                            let b2 = entity.get_world_point().apply(Vec2::new(10., 20.));
+                            let a1 = entity.get_world_point().apply(Vec2::new(100., 0.));
+                            let a2 = entity.get_world_point().apply(Vec2::new(0., 100.));
+                            let b1 = entity.get_world_point().apply(Vec2::new(200., 100.));
+                            let b2 = entity.get_world_point().apply(Vec2::new(100., 200.));
                             let a = WorldPath::new(vec![a1, a2]);
                             let b = WorldPath::new(vec![b1, b2]);
                             messages.push(Message::SharedState(
@@ -108,22 +108,24 @@ impl Engine {
             ));
         }
 
-        // Debug
-        if input::keyboard::is_key_pressed(ctx, KeyCode::F12)
-            && !input::keyboard::is_key_repeated(ctx)
-        {
-            let new_debug_level = match self.local_state.get_debug() {
-                DebugLevel::Debug0 => DebugLevel::Debug1,
-                DebugLevel::Debug1 => DebugLevel::Debug2,
-                DebugLevel::Debug2 => DebugLevel::Debug3,
-                DebugLevel::Debug3 => DebugLevel::Debug0,
-            };
-            messages.push(Message::LocalState(LocalStateMessage::SetDebugLevel(
-                new_debug_level,
-            )));
-        }
-
         messages
+    }
+
+    pub fn key_released(&self, _ctx: &mut Context, keycode: KeyCode) -> Vec<Message> {
+        match keycode {
+            KeyCode::F12 => {
+                let new_debug_level = match self.local_state.get_debug() {
+                    DebugLevel::Debug0 => DebugLevel::Debug1,
+                    DebugLevel::Debug1 => DebugLevel::Debug2,
+                    DebugLevel::Debug2 => DebugLevel::Debug3,
+                    DebugLevel::Debug3 => DebugLevel::Debug0,
+                };
+                vec![Message::LocalState(LocalStateMessage::SetDebugLevel(
+                    new_debug_level,
+                ))]
+            }
+            _ => vec![],
+        }
     }
 
     pub fn collect_mouse_motion(
@@ -187,7 +189,12 @@ impl Engine {
                         .contains(&window_point, &WindowPoint::new(x, y))
                     {
                         messages.push(Message::LocalState(LocalStateMessage::SetPendingOrder(
-                            Some((order_marker.to_pending_order(), squad_id)),
+                            Some((
+                                order_marker.to_pending_order(),
+                                squad_id,
+                                Some(order_marker_i),
+                                vec![],
+                            )),
                         )));
                     }
                 }
