@@ -62,7 +62,9 @@ impl Engine {
             self.generate_debug_mouse_meshes(mesh_builder)?;
         }
 
-        self.generate_select_rectangle_meshes(mesh_builder)?;
+        if self.local_state.get_pending_order().is_none() {
+            self.generate_select_rectangle_meshes(mesh_builder)?;
+        }
 
         Ok(())
     }

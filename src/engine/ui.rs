@@ -10,6 +10,7 @@ use crate::{
         PENDING_ORDER_PATH_FINDING_DRAW_FRAMES,
     },
     message::*,
+    order::{Order, PendingOrder},
     types::*,
     ui::menu::squad_menu_sprite_info,
     utils::GREEN,
@@ -134,6 +135,35 @@ impl Engine {
         Ok(())
     }
 
+    pub fn order_from_pending_order(
+        &self,
+        pending_order: &PendingOrder,
+        squad_id: SquadUuid,
+    ) -> Option<Order> {
+        match pending_order {
+            crate::order::PendingOrder::MoveTo => {
+                //
+                self.create_move_to_order(squad_id)
+            }
+            crate::order::PendingOrder::MoveFastTo => {
+                //
+                self.create_move_fast_to_order(squad_id)
+            }
+            crate::order::PendingOrder::SneakTo => {
+                //
+                self.create_sneak_to_order(squad_id)
+            }
+            crate::order::PendingOrder::Defend => {
+                //
+                self.create_defend_order(squad_id)
+            }
+            crate::order::PendingOrder::Hide => {
+                //
+                self.create_hide_order(squad_id)
+            }
+        }
+    }
+
     pub fn ui_events(&mut self) -> Vec<Message> {
         let mut messages = vec![];
 
@@ -155,31 +185,10 @@ impl Engine {
 
                     // This is a pending order click
                     if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {
-                        let order = match pending_order {
-                            crate::order::PendingOrder::MoveTo => {
-                                //
-                                self.create_move_to_order(*squad_id)
-                            }
-                            crate::order::PendingOrder::MoveFastTo => {
-                                //
-                                self.create_move_fast_to_order(*squad_id)
-                            }
-                            crate::order::PendingOrder::SneakTo => {
-                                //
-                                self.create_sneak_to_order(*squad_id)
-                            }
-                            crate::order::PendingOrder::Defend => {
-                                //
-                                self.create_defend_order(*squad_id)
-                            }
-                            crate::order::PendingOrder::Hide => {
-                                //
-                                self.create_hide_order(*squad_id)
-                            }
-                        };
-
                         // If order produced, push it on shared state
-                        if let Some(order_) = order {
+                        if let Some(order_) =
+                            self.order_from_pending_order(pending_order, *squad_id)
+                        {
                             messages.push(Message::SharedState(SharedStateMessage::PushGivenOrder(
                                 *squad_id, order_,
                             )))
@@ -192,20 +201,33 @@ impl Engine {
                     };
 
                     // In all cases, clean some things
-                    messages.extend(vec![Message::LocalState(
-                        LocalStateMessage::SetDisplayPaths(vec![]),
-                    )]);
+                    messages.extend(vec![
+                        Message::LocalState(LocalStateMessage::SetDisplayPaths(vec![])),
+                        Message::LocalState(LocalStateMessage::SetDraggedOrder(None)),
+                    ]);
                 }
                 UIEvent::FinishedCursorVector(start, end) => {
-                    // TODO : Do this if not currently dragging
-                    let world_start = self.local_state.world_point_from_window_point(start);
-                    let world_end = self.local_state.world_point_from_window_point(end);
-                    let entity_indexes = self.get_entities_in_area(world_start, world_end);
-                    let entity_indexes = self.filter_entities_by_side(entity_indexes);
-                    let squad_ids = self.squad_ids_from_entities(entity_indexes);
-                    messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
-                        squad_ids,
-                    )));
+                    if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {
+                        if let Some(order_) =
+                            self.order_from_pending_order(pending_order, *squad_id)
+                        {
+                            messages.push(Message::SharedState(SharedStateMessage::PushGivenOrder(
+                                *squad_id, order_,
+                            )))
+                        }
+                        messages.push(Message::LocalState(LocalStateMessage::SetPendingOrder(
+                            None,
+                        )));
+                    } else {
+                        let world_start = self.local_state.world_point_from_window_point(start);
+                        let world_end = self.local_state.world_point_from_window_point(end);
+                        let entity_indexes = self.get_entities_in_area(world_start, world_end);
+                        let entity_indexes = self.filter_entities_by_side(entity_indexes);
+                        let squad_ids = self.squad_ids_from_entities(entity_indexes);
+                        messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
+                            squad_ids,
+                        )));
+                    }
                 }
                 UIEvent::FinishedCursorRightClick(point) => {
                     let world_point = self.local_state.world_point_from_window_point(point);
@@ -258,6 +280,11 @@ impl Engine {
                     }
                 }
                 UIEvent::CursorMove(_point) => {
+                    // If dragging an order marker, it is a pending order
+                    // if let Some(order) = self.local_state.get_dragged_order() {
+                    //     //
+                    // }
+
                     messages.push(Message::LocalState(LocalStateMessage::SetDisplayPaths(
                         vec![],
                     )));

@@ -153,7 +153,7 @@ impl LocalState {
         &self.display_paths
     }
 
-    pub fn dragged_order(&self) -> Option<(SquadUuid, OrderMarkerIndex)> {
+    pub fn get_dragged_order(&self) -> Option<(SquadUuid, OrderMarkerIndex)> {
         self.dragged_order
     }
 

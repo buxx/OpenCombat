@@ -6,6 +6,8 @@ use crate::utils::{apply_angle_on_point, Rectangle};
 use ggez::graphics;
 use ggez::mint::Point2;
 
+use super::PendingOrder;
+
 const ORDER_MARKER_START_X: f32 = 0.0;
 const ORDER_MARKER_START_Y: f32 = 100.0;
 const ORDER_MARKER_WIDTH: f32 = 11.0;
@@ -175,6 +177,17 @@ impl OrderMarker {
                 half_width: ORDER_MARKER_HIDE_WIDTH / 2.0,
                 half_height: ORDER_MARKER_HIDE_HEIGHT / 2.0,
             },
+        }
+    }
+
+    pub fn to_pending_order(&self) -> PendingOrder {
+        match self {
+            OrderMarker::MoveTo => PendingOrder::MoveTo,
+            OrderMarker::MoveFastTo => PendingOrder::MoveFastTo,
+            OrderMarker::SneakTo => PendingOrder::SneakTo,
+            OrderMarker::FireTo => todo!(),
+            OrderMarker::Defend => PendingOrder::Defend,
+            OrderMarker::Hide => PendingOrder::Hide,
         }
     }
 }

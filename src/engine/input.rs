@@ -186,8 +186,13 @@ impl Engine {
                         .sprite_info()
                         .contains(&window_point, &WindowPoint::new(x, y))
                     {
+                        // FIXME BS NOW : en fait c'est la mise en place d'un pending order nan ? virer DraggedOrder ?
+                        // Mais il faut deal avec quel morceau du move
                         messages.push(Message::LocalState(LocalStateMessage::SetDraggedOrder(
                             Some((squad_id, order_marker_i)),
+                        )));
+                        messages.push(Message::LocalState(LocalStateMessage::SetPendingOrder(
+                            Some((order_marker.to_pending_order(), squad_id)),
                         )));
                     }
                 }
