@@ -201,10 +201,9 @@ impl Engine {
                     };
 
                     // In all cases, clean some things
-                    messages.extend(vec![
-                        Message::LocalState(LocalStateMessage::SetDisplayPaths(vec![])),
-                        Message::LocalState(LocalStateMessage::SetDraggedOrder(None)),
-                    ]);
+                    messages.extend(vec![Message::LocalState(
+                        LocalStateMessage::SetDisplayPaths(vec![]),
+                    )]);
                 }
                 UIEvent::FinishedCursorVector(start, end) => {
                     if let Some((pending_order, squad_id)) = self.local_state.get_pending_order() {

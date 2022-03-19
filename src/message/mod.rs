@@ -34,7 +34,6 @@ pub enum LocalStateMessage {
     SetSquadMenu(Option<(WindowPoint, SquadUuid)>),
     SetPendingOrder(Option<(PendingOrder, SquadUuid)>),
     SetDisplayPaths(Vec<(WorldPaths, SquadUuid)>),
-    SetDraggedOrder(Option<(SquadUuid, OrderMarkerIndex)>),
     PushUIEvent(UIEvent),
 }
 

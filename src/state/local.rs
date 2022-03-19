@@ -37,8 +37,6 @@ pub struct LocalState {
     pending_order: Option<(PendingOrder, SquadUuid)>,
     /// Paths to display
     display_paths: Vec<(WorldPaths, SquadUuid)>,
-    /// Currently dragged order squad id
-    dragged_order: Option<(SquadUuid, OrderMarkerIndex)>,
 }
 
 impl LocalState {
@@ -59,7 +57,6 @@ impl LocalState {
             squad_menu: None,
             pending_order: None,
             display_paths: vec![],
-            dragged_order: None,
         }
     }
 
@@ -153,10 +150,6 @@ impl LocalState {
         &self.display_paths
     }
 
-    pub fn get_dragged_order(&self) -> Option<(SquadUuid, OrderMarkerIndex)> {
-        self.dragged_order
-    }
-
     pub fn react(&mut self, local_state_message: LocalStateMessage) {
         match local_state_message {
             LocalStateMessage::SetCursorPoint(point) => {
@@ -199,10 +192,6 @@ impl LocalState {
             LocalStateMessage::SetDisplayPaths(display_paths) => {
                 //
                 self.display_paths = display_paths
-            }
-            LocalStateMessage::SetDraggedOrder(dragged_order) => {
-                //
-                self.dragged_order = dragged_order
             }
         }
     }
