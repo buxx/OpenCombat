@@ -149,7 +149,14 @@ impl Engine {
                 for (squad_order_marker_index, world_path) in
                     current_squad_world_paths.paths.iter().enumerate()
                 {
-                    let world_start_point = world_path.next_point().expect("Must have points here");
+                    // This part first point is the current cursor if this part is following edited part
+                    let world_start_point = if squad_order_marker_index > 0
+                        && order_marker_index_.0 == squad_order_marker_index - 1
+                    {
+                        cursor_world_point
+                    } else {
+                        world_path.next_point().expect("Must have points here")
+                    };
                     // If we are editing this order marker index, cursor is the end point
                     let world_end_point = if order_marker_index_.0 == squad_order_marker_index {
                         cursor_world_point

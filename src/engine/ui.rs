@@ -130,7 +130,21 @@ impl Engine {
             self.graphics.extend_ui_batch(sprites);
         }
 
-        for (order_marker, _, point, _) in self.shared_state.order_markers() {
+        for (order_marker, squad_id, point, order_marker_index) in self.shared_state.order_markers()
+        {
+            // Special case : If we are dragging this order_marker_index, don't draw it (because we only want draw the
+            // dragged order marker index)
+            if let Some((_, pending_squad_id, pending_order_marker_index, _)) =
+                self.local_state.get_pending_order()
+            {
+                if let Some(pending_order_marker_index_) = pending_order_marker_index {
+                    if *pending_squad_id == squad_id
+                        && *pending_order_marker_index_ == order_marker_index
+                    {
+                        continue;
+                    }
+                }
+            }
             let window_point = self.local_state.window_point_from_world_point(point);
             let sprites = self.generate_order_marker_sprites(&order_marker, window_point);
             self.graphics.extend_ui_batch(sprites);
