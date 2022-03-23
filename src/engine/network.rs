@@ -1,4 +1,4 @@
-use crate::message::Message;
+use crate::message::{Message, SharedStateMessage};
 
 use super::Engine;
 
@@ -24,11 +24,17 @@ impl Engine {
     }
 
     pub fn dispatch_as_client(&self, messages: &Vec<Message>) {
-        let dispatch_messages: Vec<Message> = vec![];
+        let mut dispatch_messages: Vec<Message> = vec![];
 
         for message in messages {
             match message {
-                // For now, nothing is sent to Server (it will be order, etc)
+                // State changes must be sent to clients
+                Message::SharedState(SharedStateMessage::PushCommandOrder(_, _)) => {
+                    dispatch_messages.push(message.clone())
+                }
+                Message::SharedState(SharedStateMessage::PushSquadOrder(_, _)) => {
+                    dispatch_messages.push(message.clone())
+                }
                 _ => {}
             }
         }
@@ -37,7 +43,7 @@ impl Engine {
         self.network.send(dispatch_messages);
     }
 
-    pub fn deal_with_sync_errors_as_server(&mut self) -> Vec<Message> {
+    pub fn deal_with_sync_errors_as_server(&self) -> Vec<Message> {
         let messages: Vec<Message> = vec![];
 
         for error in self.network.errors() {
@@ -48,7 +54,7 @@ impl Engine {
         messages
     }
 
-    pub fn deal_with_sync_errors_as_client(&mut self) -> Vec<Message> {
+    pub fn deal_with_sync_errors_as_client(&self) -> Vec<Message> {
         let messages: Vec<Message> = vec![];
 
         for error in self.network.errors() {

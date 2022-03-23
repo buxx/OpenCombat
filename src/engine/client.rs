@@ -12,22 +12,15 @@ impl Engine {
                 .send(vec![Message::Network(NetworkMessage::RequireCompleteSync)]);
         }
 
-        // Will collect all tick messages
-        let mut messages = vec![];
+        // Grab and apply messages from server
+        self.react(self.sync());
+        self.react(self.deal_with_sync_errors_as_client());
 
-        // Retrieve server messages
-        messages.extend(self.sync());
-
-        // Check any network errors
-        messages.extend(self.deal_with_sync_errors_as_client());
-
-        // Retrieve messages from user inputs
-        messages.extend(self.collect_player_inputs(ctx));
-
-        // Generate messages according to the possible ui events
-        messages.extend(self.ui_events(ctx));
-
-        // Apply messages
-        self.react(messages);
+        // Collect player activity and react according to
+        let mut player_activity_messages = vec![];
+        player_activity_messages.extend(self.collect_player_inputs(ctx));
+        player_activity_messages.extend(self.ui_events(ctx));
+        self.dispatch_as_client(&player_activity_messages);
+        self.react(player_activity_messages);
     }
 }
