@@ -225,7 +225,7 @@ impl Engine {
                                 cached_points,
                             ) {
                                 messages.push(Message::SharedState(
-                                    SharedStateMessage::PushGivenOrder(*squad_id, order_),
+                                    SharedStateMessage::PushCommandOrder(*squad_id, order_),
                                 ))
                             }
 
@@ -251,9 +251,9 @@ impl Engine {
                             *order_marker_index,
                             &vec![],
                         ) {
-                            messages.push(Message::SharedState(SharedStateMessage::PushGivenOrder(
-                                *squad_id, order_,
-                            )))
+                            messages.push(Message::SharedState(
+                                SharedStateMessage::PushCommandOrder(*squad_id, order_),
+                            ))
                         }
                         messages.extend(vec![
                             Message::LocalState(LocalStateMessage::SetPendingOrder(None)),

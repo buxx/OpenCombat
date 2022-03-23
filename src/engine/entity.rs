@@ -43,9 +43,18 @@ impl Engine {
 
     pub fn take_order(&self, entity_i: EntityIndex, order: &Order) -> Vec<Message> {
         // TODO : behavior must be given to other squad soldiers !!!! other soldiers must can accept it too (under fire etc)
-        vec![Message::SharedState(SharedStateMessage::Entity(
+        let mut messages = vec![];
+        let entity = self.shared_state.entity(entity_i);
+
+        messages.push(Message::SharedState(SharedStateMessage::Entity(
             entity_i,
             EntityMessage::SetBehavior(order.to_behavior()),
-        ))]
+        )));
+
+        if self.entity_is_squad_leader(entity_i) {
+            // Send order to other squad members
+        };
+
+        messages
     }
 }

@@ -19,8 +19,10 @@ pub enum Message {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum SharedStateMessage {
     Entity(EntityIndex, EntityMessage),
-    PushGivenOrder(SquadUuid, Order),
-    RemoveOder(SquadUuid),
+    PushCommandOrder(SquadUuid, Order),
+    PushSquadOrder(EntityIndex, Order),
+    RemoveCommandOder(SquadUuid),
+    RemoveSquadOder(EntityIndex),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

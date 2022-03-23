@@ -11,9 +11,10 @@ pub struct SharedState {
     entities: Vec<ThreadSafeEntity>,
     /// Squad organizations, must be updated when squad leader changes.
     squads: HashMap<SquadUuid, SquadComposition>,
-    /// Players orders. Entities will pick from them theirs behaviors.
-    /// // FIXME : This should be in Engine instead State ? (because Sate shared to clients) Maybe yes, in state
-    given_orders: HashMap<SquadUuid, Order>,
+    /// Players orders. Squad leaders will pick from them theirs behaviors.
+    command_orders: HashMap<SquadUuid, Order>,
+    /// Squad leader orders. Squad members will pick from them theirs behaviors.
+    squad_orders: HashMap<EntityIndex, Order>,
 }
 
 impl SharedState {
@@ -22,7 +23,8 @@ impl SharedState {
             initialized: false,
             entities,
             squads: HashMap::new(),
-            given_orders: HashMap::new(),
+            command_orders: HashMap::new(),
+            squad_orders: HashMap::new(),
         }
     }
 
@@ -68,8 +70,12 @@ impl SharedState {
         self.squads = squads;
     }
 
-    pub fn given_orders(&self) -> &HashMap<SquadUuid, Order> {
-        &self.given_orders
+    pub fn command_orders(&self) -> &HashMap<SquadUuid, Order> {
+        &self.command_orders
+    }
+
+    pub fn squad_orders(&self) -> &HashMap<EntityIndex, Order> {
+        &self.squad_orders
     }
 
     pub fn all_orders(&self) -> Vec<(SquadUuid, Order)> {
@@ -82,7 +88,7 @@ impl SharedState {
             }
         }
 
-        for (squad_id, order) in &self.given_orders {
+        for (squad_id, order) in &self.command_orders {
             orders.push((*squad_id, order.clone()));
         }
 
@@ -100,12 +106,20 @@ impl SharedState {
             SharedStateMessage::Entity(entity_i, entity_message) => {
                 self.react_entity_message(entity_i, entity_message);
             }
-            SharedStateMessage::PushGivenOrder(squad_uuid, order) => {
-                self.given_orders.insert(squad_uuid, order);
+            SharedStateMessage::PushCommandOrder(squad_uuid, order) => {
+                self.command_orders.insert(squad_uuid, order);
             }
-            SharedStateMessage::RemoveOder(squad_uuid) => {
-                self.given_orders
+            SharedStateMessage::PushSquadOrder(entity_index, order) => {
+                self.squad_orders.insert(entity_index, order);
+            }
+            SharedStateMessage::RemoveCommandOder(squad_uuid) => {
+                self.command_orders
                     .remove(&squad_uuid)
+                    .expect("Game shared_state should never own inconsistent orders index");
+            }
+            SharedStateMessage::RemoveSquadOder(entity_index) => {
+                self.squad_orders
+                    .remove(&entity_index)
                     .expect("Game shared_state should never own inconsistent orders index");
             }
         }

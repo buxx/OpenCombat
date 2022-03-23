@@ -41,7 +41,7 @@ impl Engine {
                             let a = WorldPath::new(vec![a1, a2]);
                             let b = WorldPath::new(vec![b1, b2]);
                             messages.push(Message::SharedState(
-                                SharedStateMessage::PushGivenOrder(
+                                SharedStateMessage::PushCommandOrder(
                                     entity.squad_uuid(),
                                     Order::MoveTo(WorldPaths::new(vec![a, b])),
                                 ),

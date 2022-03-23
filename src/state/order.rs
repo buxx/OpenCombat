@@ -6,9 +6,13 @@ use crate::{
 use super::shared::SharedState;
 
 impl SharedState {
-    pub fn order_for(&self, entity_index: EntityIndex) -> Option<&Order> {
+    pub fn order_for_squad_leader(&self, entity_index: EntityIndex) -> Option<&Order> {
         let entity = self.entity(entity_index);
-        self.given_orders().get(&entity.squad_uuid())
+        self.command_orders().get(&entity.squad_uuid())
+    }
+
+    pub fn order_for_squad_member(&self, entity_index: EntityIndex) -> Option<&Order> {
+        self.squad_orders().get(&entity_index)
     }
 
     pub fn order_markers(&self) -> Vec<(OrderMarker, SquadUuid, WorldPoint, OrderMarkerIndex)> {
