@@ -1,5 +1,5 @@
 use crate::{
-    behavior::{move_, Behavior},
+    behavior::{movement, Behavior},
     message::*,
     types::*,
     utils::angle,
@@ -43,7 +43,7 @@ impl Engine {
                 vec![]
             }
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
-                move_::entity_updates(entity, paths)
+                movement::entity_updates(entity, paths)
             }
             Behavior::Defend(_) => {
                 vec![]
