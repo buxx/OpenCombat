@@ -6,6 +6,12 @@ use glam::Vec2;
 
 use crate::entity::Entity;
 
+pub trait Xy {
+    fn from_xy(x: f32, y: f32) -> Self;
+    fn x(&self) -> f32;
+    fn y(&self) -> f32;
+}
+
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct WorldPoint {
     pub x: f32,
@@ -38,6 +44,20 @@ impl From<Vec2> for WorldPoint {
 impl Into<Vec2> for WorldPoint {
     fn into(self) -> Vec2 {
         Vec2::new(self.x.into(), self.y.into())
+    }
+}
+
+impl Xy for WorldPoint {
+    fn from_xy(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
+    fn x(&self) -> f32 {
+        self.x
+    }
+
+    fn y(&self) -> f32 {
+        self.y
     }
 }
 
@@ -120,6 +140,20 @@ impl From<Vec2> for WindowPoint {
 impl Into<Vec2> for WindowPoint {
     fn into(self) -> Vec2 {
         Vec2::new(self.x.into(), self.y.into())
+    }
+}
+
+impl Xy for WindowPoint {
+    fn from_xy(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
+    fn x(&self) -> f32 {
+        self.x
+    }
+
+    fn y(&self) -> f32 {
+        self.y
     }
 }
 

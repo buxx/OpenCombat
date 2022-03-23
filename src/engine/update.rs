@@ -1,9 +1,4 @@
-use crate::{
-    behavior::{movement, Behavior},
-    message::*,
-    types::*,
-    utils::angle,
-};
+use crate::{behavior::Behavior, message::*, types::*};
 
 use super::Engine;
 
@@ -34,16 +29,16 @@ impl Engine {
         messages
     }
 
-    fn behavior_update(&self, i: EntityIndex) -> Vec<Message> {
-        let entity = self.shared_state.entity(i);
+    fn behavior_update(&self, entity_index: EntityIndex) -> Vec<Message> {
+        let entity = self.shared_state.entity(entity_index);
         let mut messages = vec![];
 
-        let entity_messages = match entity.get_behavior() {
+        messages.extend(match entity.get_behavior() {
             Behavior::Idle => {
                 vec![]
             }
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
-                movement::entity_updates(entity, paths)
+                self.movement_updates(entity_index, paths)
             }
             Behavior::Defend(_) => {
                 vec![]
@@ -51,8 +46,7 @@ impl Engine {
             Behavior::Hide(_) => {
                 vec![]
             }
-        };
-        messages.extend(Message::vec_from_entity(i, entity_messages));
+        });
 
         messages
     }

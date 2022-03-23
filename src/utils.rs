@@ -40,11 +40,11 @@ pub const MAGENTA: Color = Color {
     a: 1.0,
 };
 
-pub struct Rectangle {
-    pub top_left: ScenePoint,
-    pub top_right: ScenePoint,
-    pub bottom_left: ScenePoint,
-    pub bottom_right: ScenePoint,
+pub struct Rectangle<T> {
+    pub top_left: T,
+    pub top_right: T,
+    pub bottom_left: T,
+    pub bottom_right: T,
 }
 
 pub fn new_squad_uuid() -> usize {
@@ -57,20 +57,16 @@ pub fn angle(to_point: &WorldPoint, from_point: &WorldPoint) -> Angle {
     Angle(f32::atan2(to_point.y - from_point.y, to_point.x - from_point.x) + FRAC_PI_2)
 }
 
-pub fn apply_angle_on_point(
-    point_to_rotate: &Vec2,
-    reference_point: &Vec2,
-    angle: &Angle,
-) -> ScenePoint {
+pub fn apply_angle_on_point<T: Xy>(point_to_rotate: &T, reference_point: &T, angle: &Angle) -> T {
     let sin = f32::sin(angle.0);
     let cos = f32::cos(angle.0);
     let pt = (
-        point_to_rotate.x - reference_point.x,
-        point_to_rotate.y - reference_point.y,
+        point_to_rotate.x() - reference_point.x(),
+        point_to_rotate.y() - reference_point.y(),
     );
     let rotated = (
-        reference_point.x + pt.0 * cos - pt.1 * sin,
-        reference_point.y + pt.0 * sin + pt.1 * cos,
+        reference_point.x() + pt.0 * cos - pt.1 * sin,
+        reference_point.y() + pt.0 * sin + pt.1 * cos,
     );
-    ScenePoint::new(rotated.0, rotated.1)
+    T::from_xy(rotated.0, rotated.1)
 }

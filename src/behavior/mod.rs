@@ -6,8 +6,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-pub mod movement;
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {
     Idle,
@@ -52,6 +50,7 @@ impl Behavior {
 
     pub fn reach_step(&mut self) {
         match self {
+            // FIXME BS NOW : Look like client reach it when client started before server
             Behavior::Idle => unreachable!(),
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
                 paths
@@ -63,7 +62,7 @@ impl Behavior {
         }
     }
 
-    pub fn as_order(&self) -> Option<Order> {
+    pub fn to_order(&self) -> Option<Order> {
         match self {
             Behavior::Idle => None,
             Behavior::MoveTo(paths) => Some(Order::MoveTo(paths.clone())),

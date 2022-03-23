@@ -19,10 +19,9 @@ impl Engine {
                     )));
                 }
             }
-        }
 
-        // Take new order for squad leader
-        if !self.entity_is_squad_leader(entity_index) {
+        // Take new order for squad member
+        } else {
             if let Some(order) = self.shared_state.order_for_squad_member(entity_index) {
                 if self.entity_can_take_order(entity_index, order) {
                     messages.extend(self.take_order(entity_index, order));

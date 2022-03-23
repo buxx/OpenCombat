@@ -17,6 +17,7 @@ mod debug;
 mod draw;
 mod entity;
 mod input;
+mod movement;
 mod network;
 mod order;
 mod react;

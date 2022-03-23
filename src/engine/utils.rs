@@ -191,7 +191,7 @@ impl Engine {
         // Build path finding on each parts
         let mut world_paths = vec![];
         for (bound_start, bound_end) in bounds {
-            if let Some(grid_points_path) = find_path(&self.map, &bound_start, &bound_end) {
+            if let Some(grid_points_path) = find_path(&self.map, &bound_start, &bound_end, true) {
                 if grid_points_path.len() > 0 {
                     let world_point_path = grid_points_path
                         .iter()

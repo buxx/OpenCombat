@@ -231,12 +231,12 @@ impl OrderMarkerSpriteInfo {
         )
     }
 
-    pub fn rotated_rectangle(
+    pub fn _rotated_rectangle(
         &self,
         from_scene_point: &WindowPoint,
         rotate_from_point: &WindowPoint,
         angle: Angle,
-    ) -> Rectangle {
+    ) -> Rectangle<WindowPoint> {
         let top_left = WindowPoint::new(
             from_scene_point.x - self.half_width,
             from_scene_point.y - self.half_height,
@@ -245,17 +245,10 @@ impl OrderMarkerSpriteInfo {
         let bottom_left = WindowPoint::new(top_left.x, top_left.y + self.height);
         let bottom_right = WindowPoint::new(top_left.x + self.width, top_left.y + self.height);
 
-        let top_left =
-            apply_angle_on_point(&top_left.to_vec2(), &rotate_from_point.to_vec2(), &angle);
-        let top_right =
-            apply_angle_on_point(&top_right.to_vec2(), &rotate_from_point.to_vec2(), &angle);
-        let bottom_left =
-            apply_angle_on_point(&bottom_left.to_vec2(), &rotate_from_point.to_vec2(), &angle);
-        let bottom_right = apply_angle_on_point(
-            &bottom_right.to_vec2(),
-            &rotate_from_point.to_vec2(),
-            &angle,
-        );
+        let top_left = apply_angle_on_point(&top_left, &rotate_from_point, &angle);
+        let top_right = apply_angle_on_point(&top_right, &rotate_from_point, &angle);
+        let bottom_left = apply_angle_on_point(&bottom_left, &rotate_from_point, &angle);
+        let bottom_right = apply_angle_on_point(&bottom_right, &rotate_from_point, &angle);
 
         Rectangle {
             top_left,

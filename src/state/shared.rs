@@ -83,7 +83,7 @@ impl SharedState {
 
         for (squad_id, squad_composition) in &self.squads {
             let squad_leader = self.entity(squad_composition.leader());
-            if let Some(order) = squad_leader.get_behavior().as_order() {
+            if let Some(order) = squad_leader.get_behavior().to_order() {
                 orders.push((*squad_id, order));
             }
         }
