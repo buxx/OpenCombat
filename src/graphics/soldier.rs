@@ -1,5 +1,6 @@
 use super::animation::Sprite;
 
+#[derive(Debug)]
 pub enum SoldierAnimationType {
     Idle,
     Walking,
@@ -34,7 +35,7 @@ impl Sprite for SoldierAnimationType {
 
     fn frame_count(&self) -> usize {
         match self {
-            SoldierAnimationType::Idle => 1,
+            SoldierAnimationType::Idle => 2,
             SoldierAnimationType::Walking => 8,
             SoldierAnimationType::Running => 8,
         }

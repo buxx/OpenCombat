@@ -2,6 +2,7 @@ use crate::{
     behavior::Behavior,
     config::{SOLDIER_SELECTABLE_SQUARE_SIDE, SOLDIER_SELECTABLE_SQUARE_SIDE_HALF},
     game::Side,
+    graphics::{animation::Sprite, soldier::SoldierAnimationType},
     order::Order,
     types::*,
 };
@@ -87,5 +88,17 @@ impl Entity for Soldier {
             SOLDIER_SELECTABLE_SQUARE_SIDE,
             SOLDIER_SELECTABLE_SQUARE_SIDE,
         )
+    }
+
+    fn get_animation_type(&self) -> Box<dyn Sprite> {
+        let animation_type = match self.get_behavior() {
+            Behavior::Idle => SoldierAnimationType::Idle,
+            Behavior::MoveTo(_) => SoldierAnimationType::Walking,
+            Behavior::MoveFastTo(_) => SoldierAnimationType::Walking,
+            Behavior::SneakTo(_) => todo!(),
+            Behavior::Defend(_) => todo!(),
+            Behavior::Hide(_) => todo!(),
+        };
+        Box::new(animation_type)
     }
 }

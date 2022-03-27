@@ -4,6 +4,8 @@ use ggez::GameResult;
 
 use crate::{message::*, order::Order, sync::StateCopy, types::*};
 
+use super::SideEffect;
+
 pub struct SharedState {
     /// Used to ignore server shared_state modifications since shared state not received from server
     initialized: bool,
@@ -101,10 +103,10 @@ impl SharedState {
             .expect("Game shared_state should never own inconsistent squad index")
     }
 
-    pub fn react(&mut self, state_message: crate::message::SharedStateMessage) {
+    pub fn react(&mut self, state_message: crate::message::SharedStateMessage) -> Vec<SideEffect> {
         match state_message {
             SharedStateMessage::Entity(entity_i, entity_message) => {
-                self.react_entity_message(entity_i, entity_message);
+                return self.react_entity_message(entity_i, entity_message);
             }
             SharedStateMessage::PushCommandOrder(squad_uuid, order) => {
                 self.command_orders.insert(squad_uuid, order);
@@ -122,6 +124,8 @@ impl SharedState {
                     .remove(&entity_index)
                     .expect("Game shared_state should never own inconsistent orders index");
             }
-        }
+        };
+
+        vec![]
     }
 }

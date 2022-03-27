@@ -1,13 +1,15 @@
-use crate::{message::*, sync::StateCopy};
+use crate::{message::*, state::SideEffect, sync::StateCopy};
 
 use super::Engine;
 
 impl Engine {
-    pub fn react(&mut self, messages: Vec<Message>) {
+    pub fn react(&mut self, messages: Vec<Message>) -> Vec<SideEffect> {
+        let mut side_effects = vec![];
+
         for message in messages {
             match message {
                 Message::SharedState(shared_state_message) => {
-                    self.shared_state.react(shared_state_message)
+                    side_effects.extend(self.shared_state.react(shared_state_message));
                 }
                 Message::LocalState(local_state_message) => {
                     self.local_state.react(local_state_message)
@@ -24,6 +26,8 @@ impl Engine {
                 },
             }
         }
+
+        side_effects
     }
 
     fn send_complete_sync(&self) {

@@ -3,10 +3,7 @@ use std::collections::HashMap;
 use ggez::Context;
 use keyframe::{functions::Linear, keyframes, AnimationSequence};
 
-use crate::{
-    graphics::{soldier::SoldierAnimationType, AnimationFloor},
-    types::*,
-};
+use crate::{graphics::AnimationFloor, types::*};
 
 use super::{Graphics, TweenableRect};
 
@@ -22,10 +19,8 @@ pub trait Sprite {
     fn duration(&self) -> f32;
 }
 
-pub fn entity_animation(_entity: &ThreadSafeEntity) -> AnimationSequence<TweenableRect> {
-    // FIXME BS NOW : hardcoded walk, must depend behavior
-
-    let animation_type = SoldierAnimationType::Walking;
+pub fn entity_animation(entity: &ThreadSafeEntity) -> AnimationSequence<TweenableRect> {
+    let animation_type = entity.get_animation_type();
 
     let src_rect_start = TweenableRect::new(
         animation_type.src_x_start(),
@@ -54,10 +49,18 @@ impl Graphics {
         self.entity_animation_sequences = HashMap::new();
 
         for (i, entity) in entities.iter().enumerate() {
-            let animation = entity_animation(entity);
-            self.entity_animation_sequences
-                .insert(EntityIndex(i), animation);
+            self.refresh_entity_animation(EntityIndex(i), entity)
         }
+    }
+
+    pub fn refresh_entity_animation(
+        &mut self,
+        entity_index: EntityIndex,
+        entity: &ThreadSafeEntity,
+    ) {
+        let animation = entity_animation(entity);
+        self.entity_animation_sequences
+            .insert(entity_index, animation);
     }
 
     pub fn update(&mut self, ctx: &Context) {

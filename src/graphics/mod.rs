@@ -7,16 +7,11 @@ use ggez::{
 use keyframe::{AnimationSequence, EasingFunction};
 use keyframe_derive::CanTween;
 
-use crate::{
-    config::{self, Config},
-    map::Map,
-    types::*,
-    ui::menu::squad_menu_sprite_info,
-};
+use crate::{map::Map, types::*, ui::menu::squad_menu_sprite_info};
 
-mod animation;
+pub mod animation;
 mod map;
-mod soldier;
+pub mod soldier;
 
 const SPRITES_FILE_PATH: &'static str = "/sprites.png";
 const UI_FILE_PATH: &'static str = "/ui.png";
@@ -163,7 +158,7 @@ pub fn create_ui_batch(ctx: &mut Context) -> GameResult<SpriteBatch> {
     Ok(ui_batch)
 }
 
-#[derive(CanTween, Clone, Copy)]
+#[derive(CanTween, Clone, Copy, Debug)]
 /// necessary because we can't implement CanTween for graphics::Rect directly, as it's a foreign type
 pub struct TweenableRect {
     x: f32,

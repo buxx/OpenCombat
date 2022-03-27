@@ -1,6 +1,6 @@
 use ggez::graphics::Rect;
 
-use crate::{behavior::Behavior, game::Side, types::*};
+use crate::{behavior::Behavior, game::Side, graphics::animation::Sprite, types::*};
 pub mod soldier;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -20,4 +20,5 @@ pub trait Entity {
     fn squad_uuid(&self) -> SquadUuid;
     fn get_type(&self) -> EntityType;
     fn get_selection_rect(&self) -> Rect;
+    fn get_animation_type(&self) -> Box<dyn Sprite>;
 }
