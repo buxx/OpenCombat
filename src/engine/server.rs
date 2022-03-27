@@ -14,5 +14,7 @@ impl Engine {
         messages.extend(self.ui_events(ctx));
         self.dispatch_as_server(&messages);
         self.react(messages);
+
+        self.graphics.tick(ctx);
     }
 }

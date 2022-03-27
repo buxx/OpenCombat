@@ -1261,6 +1261,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyframe"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a3c02b74c96768920b2c0d7fc723963dcbc2fc165c9db9eb64889635496c4a0b"
+dependencies = [
+ "mint",
+ "num-traits",
+]
+
+[[package]]
+name = "keyframe_derive"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "377d191d4db9904c659a7336fc943feb17bc737e18e8d7dbf4c3cfc86698f610"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "khronos_api"
 version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1875,6 +1895,8 @@ dependencies = [
  "crossbeam-channel",
  "ggez",
  "glam",
+ "keyframe",
+ "keyframe_derive",
  "pathfinding",
  "rand",
  "rayon",

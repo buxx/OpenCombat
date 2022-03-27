@@ -22,5 +22,7 @@ impl Engine {
         player_activity_messages.extend(self.ui_events(ctx));
         self.dispatch_as_client(&player_activity_messages);
         self.react(player_activity_messages);
+
+        self.graphics.tick(ctx);
     }
 }

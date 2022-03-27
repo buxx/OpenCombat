@@ -61,7 +61,10 @@ impl Engine {
     fn init(&mut self) -> GameResult {
         match self.config.network_mode() {
             // Server own game shared shared state, so init it
-            crate::NetWorkMode::Server => self.shared_state.init()?,
+            crate::NetWorkMode::Server => {
+                self.shared_state.init()?;
+                self.graphics.initialize(self.shared_state.entities());
+            }
             // Client initialize its shared state when received from server
             crate::NetWorkMode::Client => {}
         };
