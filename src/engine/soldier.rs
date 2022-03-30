@@ -50,7 +50,6 @@ impl Engine {
     pub fn take_order(&self, soldier_index: SoldierIndex, order: &Order) -> Vec<Message> {
         // TODO : behavior must be given to other squad soldiers !!!! other soldiers must can accept it too (under fire etc)
         let mut messages = vec![];
-        let soldier = self.shared_state.soldier(soldier_index);
 
         messages.push(Message::SharedState(SharedStateMessage::Entity(
             soldier_index,
