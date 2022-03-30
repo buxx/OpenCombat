@@ -7,7 +7,7 @@ use ggez::{
 use keyframe::{AnimationSequence, EasingFunction};
 use keyframe_derive::CanTween;
 
-use crate::{map::Map, types::*, ui::menu::squad_menu_sprite_info};
+use crate::{entity::soldier::Soldier, map::Map, types::*, ui::menu::squad_menu_sprite_info};
 
 pub mod animation;
 mod map;
@@ -26,7 +26,7 @@ pub struct Graphics {
     // Map decor sprite batches
     map_decor_batches: Vec<SpriteBatch>,
     // Entity animation
-    entity_animation_sequences: HashMap<EntityIndex, AnimationSequence<TweenableRect>>,
+    soldier_animation_sequences: HashMap<SoldierIndex, AnimationSequence<TweenableRect>>,
 }
 
 impl Graphics {
@@ -41,7 +41,7 @@ impl Graphics {
             ui_batch,
             map_background_batch,
             map_decor_batches,
-            entity_animation_sequences: HashMap::new(),
+            soldier_animation_sequences: HashMap::new(),
         })
     }
 
@@ -59,27 +59,27 @@ impl Graphics {
         }
     }
 
-    pub fn entity_sprites(
+    pub fn soldier_sprites(
         &self,
-        entity_index: EntityIndex,
-        entity: &ThreadSafeEntity,
+        soldier_index: SoldierIndex,
+        soldier: &Soldier,
     ) -> Vec<graphics::DrawParam> {
         let current_frame_src: Rect = self
-            .entity_animation_sequences
-            .get(&entity_index)
+            .soldier_animation_sequences
+            .get(&soldier_index)
             .expect("Shared state must be consistent")
             .now_strict()
             .unwrap()
             .into();
 
-        // TODO depending of a lot of things like entity type, physical behavior, etc
+        // TODO depending of a lot of things like soldier type, physical behavior, etc
         // let relative_start_x = 0. / config::SCENE_ITEMS_SPRITE_SHEET_WIDTH;
         // let relative_start_y = 0. / config::SCENE_ITEMS_SPRITE_SHEET_HEIGHT;
         // let relative_tile_width = 12. / config::SCENE_ITEMS_SPRITE_SHEET_WIDTH;
         // let relative_tile_height = 12. / config::SCENE_ITEMS_SPRITE_SHEET_HEIGHT;
         vec![graphics::DrawParam::new()
             .src(current_frame_src)
-            .rotation(entity.get_looking_direction().0)
+            .rotation(soldier.get_looking_direction().0)
             .offset(Offset::new(0.5, 0.5).to_vec2())]
     }
 

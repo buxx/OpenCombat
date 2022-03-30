@@ -11,7 +11,7 @@ impl SharedState {
         for squad_uuid in self.unique_squad_ids() {
             let new_squad_leader = self
                 .elect_squad_leader(squad_uuid)
-                .expect("At this point, there must be at least one entity in the squad");
+                .expect("At this point, there must be at least one soldier in the squad");
             let squad_entities = self.squad_entities(squad_uuid);
             new_squads.insert(
                 squad_uuid,
@@ -24,12 +24,12 @@ impl SharedState {
 
     fn unique_squad_ids(&self) -> Vec<SquadUuid> {
         let mut all_squad_uuids: Vec<SquadUuid> =
-            self.entities().iter().map(|e| e.squad_uuid()).collect();
+            self.soldiers().iter().map(|e| e.squad_uuid()).collect();
         let unique_squad_uuids: HashSet<SquadUuid> = all_squad_uuids.drain(..).collect();
         unique_squad_uuids.into_iter().collect()
     }
 
-    fn elect_squad_leader(&self, squad_uuid: SquadUuid) -> Option<EntityIndex> {
+    fn elect_squad_leader(&self, squad_uuid: SquadUuid) -> Option<SoldierIndex> {
         let squad_entities = self.squad_entities(squad_uuid);
 
         if squad_entities.len() == 0 {
@@ -40,16 +40,16 @@ impl SharedState {
         Some(
             *squad_entities
                 .first()
-                .expect("At this point, there must be at least one entity"),
+                .expect("At this point, there must be at least one soldier"),
         )
     }
 
-    fn squad_entities(&self, squad_uuid: SquadUuid) -> Vec<EntityIndex> {
-        self.entities()
+    fn squad_entities(&self, squad_uuid: SquadUuid) -> Vec<SoldierIndex> {
+        self.soldiers()
             .iter()
             .enumerate()
             .filter(|(_, e)| e.squad_uuid() == squad_uuid)
-            .map(|(i, _)| EntityIndex(i))
+            .map(|(i, _)| SoldierIndex(i))
             .collect()
     }
 }

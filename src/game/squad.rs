@@ -10,9 +10,9 @@ pub fn squad_positions(
     squad: &SquadComposition,
     formation: Formation,
     state: &SharedState,
-) -> HashMap<EntityIndex, WorldPoint> {
+) -> HashMap<SoldierIndex, WorldPoint> {
     let mut positions = HashMap::new();
-    let squad_leader = state.entity(squad.leader());
+    let squad_leader = state.soldier(squad.leader());
     let ref_point = squad_leader.get_world_point();
     let ref_angle = squad_leader.get_looking_direction();
 
@@ -22,9 +22,9 @@ pub fn squad_positions(
             let mut y_offset: f32 = 0.0;
             let mut counter: u8 = 0;
 
-            for (i, entity_i) in squad.members().iter().enumerate() {
+            for (i, soldier_index) in squad.members().iter().enumerate() {
                 // Don't return position for leader
-                if *entity_i == squad.leader() {
+                if *soldier_index == squad.leader() {
                     continue;
                 }
 
@@ -44,7 +44,7 @@ pub fn squad_positions(
                     WorldPoint::new(ref_point.x + x_offset_, ref_point.y + y_offset_);
                 let member_scene_point =
                     apply_angle_on_point(&member_scene_point, &ref_point, &ref_angle);
-                positions.insert(*entity_i, member_scene_point);
+                positions.insert(*soldier_index, member_scene_point);
             }
         }
     }

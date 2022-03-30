@@ -18,11 +18,11 @@ pub enum Message {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum SharedStateMessage {
-    Entity(EntityIndex, EntityMessage),
+    Entity(SoldierIndex, EntityMessage),
     PushCommandOrder(SquadUuid, Order),
-    PushSquadOrder(EntityIndex, Order),
+    PushSquadOrder(SoldierIndex, Order),
     RemoveCommandOder(SquadUuid),
-    RemoveSquadOder(EntityIndex),
+    RemoveSquadOder(SoldierIndex),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -73,7 +73,7 @@ pub enum NetworkMessage {
 }
 
 impl Message {
-    pub fn vec_from_entity(i: EntityIndex, messages: Vec<EntityMessage>) -> Vec<Message> {
+    pub fn vec_from_soldier(i: SoldierIndex, messages: Vec<EntityMessage>) -> Vec<Message> {
         messages
             .into_iter()
             .map(|m| Message::SharedState(SharedStateMessage::Entity(i, m)))

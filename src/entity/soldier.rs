@@ -3,13 +3,10 @@ use crate::{
     config::{SOLDIER_SELECTABLE_SQUARE_SIDE, SOLDIER_SELECTABLE_SQUARE_SIDE_HALF},
     game::Side,
     graphics::{animation::Sprite, soldier::SoldierAnimationType},
-    order::Order,
     types::*,
 };
 use ggez::graphics::Rect;
 use serde::{Deserialize, Serialize};
-
-use super::{Entity, EntityType};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Soldier {
@@ -31,57 +28,51 @@ impl Soldier {
         }
     }
 
-    pub fn from_entity(entity: &ThreadSafeEntity) -> Self {
+    pub fn from_soldier(soldier: &Soldier) -> Self {
         Self::new(
-            entity.get_world_point(),
-            entity.squad_uuid(),
-            *entity.get_side(),
+            soldier.get_world_point(),
+            soldier.squad_uuid(),
+            *soldier.get_side(),
         )
     }
-}
 
-impl Entity for Soldier {
-    fn get_side(&self) -> &Side {
+    pub fn get_side(&self) -> &Side {
         &self.side
     }
 
-    fn get_type(&self) -> EntityType {
-        EntityType::Soldier
-    }
-
-    fn get_world_point(&self) -> WorldPoint {
+    pub fn get_world_point(&self) -> WorldPoint {
         self.world_point
     }
 
-    fn set_world_point(&mut self, point: WorldPoint) {
+    pub fn set_world_point(&mut self, point: WorldPoint) {
         self.world_point = point
     }
 
-    fn squad_uuid(&self) -> SquadUuid {
+    pub fn squad_uuid(&self) -> SquadUuid {
         self.squad_uuid
     }
 
-    fn get_behavior(&self) -> &Behavior {
+    pub fn get_behavior(&self) -> &Behavior {
         &self.behavior
     }
 
-    fn get_behavior_mut(&mut self) -> &mut Behavior {
+    pub fn get_behavior_mut(&mut self) -> &mut Behavior {
         &mut self.behavior
     }
 
-    fn set_behavior(&mut self, behavior: Behavior) {
+    pub fn set_behavior(&mut self, behavior: Behavior) {
         self.behavior = behavior
     }
 
-    fn get_looking_direction(&self) -> Angle {
+    pub fn get_looking_direction(&self) -> Angle {
         self.looking_direction
     }
 
-    fn set_looking_direction(&mut self, angle: Angle) {
+    pub fn set_looking_direction(&mut self, angle: Angle) {
         self.looking_direction = angle
     }
 
-    fn get_selection_rect(&self) -> Rect {
+    pub fn get_selection_rect(&self) -> Rect {
         Rect::new(
             self.world_point.x - SOLDIER_SELECTABLE_SQUARE_SIDE_HALF,
             self.world_point.y - SOLDIER_SELECTABLE_SQUARE_SIDE_HALF,
@@ -90,7 +81,7 @@ impl Entity for Soldier {
         )
     }
 
-    fn get_animation_type(&self) -> Box<dyn Sprite> {
+    pub fn get_animation_type(&self) -> Box<dyn Sprite> {
         let animation_type = match self.get_behavior() {
             Behavior::Idle => SoldierAnimationType::Idle,
             Behavior::MoveTo(_) => SoldierAnimationType::Walking,

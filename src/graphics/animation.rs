@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ggez::Context;
 use keyframe::{functions::Linear, keyframes, AnimationSequence};
 
-use crate::{graphics::AnimationFloor, types::*};
+use crate::{entity::soldier::Soldier, graphics::AnimationFloor, types::*};
 
 use super::{Graphics, TweenableRect};
 
@@ -19,8 +19,8 @@ pub trait Sprite {
     fn duration(&self) -> f32;
 }
 
-pub fn entity_animation(entity: &ThreadSafeEntity) -> AnimationSequence<TweenableRect> {
-    let animation_type = entity.get_animation_type();
+pub fn soldier_animation(soldier: &Soldier) -> AnimationSequence<TweenableRect> {
+    let animation_type = soldier.get_animation_type();
 
     let src_rect_start = TweenableRect::new(
         animation_type.src_x_start(),
@@ -45,27 +45,23 @@ pub fn entity_animation(entity: &ThreadSafeEntity) -> AnimationSequence<Tweenabl
 }
 
 impl Graphics {
-    pub fn initialize(&mut self, entities: &Vec<ThreadSafeEntity>) {
-        self.entity_animation_sequences = HashMap::new();
+    pub fn initialize(&mut self, soldiers: &Vec<Soldier>) {
+        self.soldier_animation_sequences = HashMap::new();
 
-        for (i, entity) in entities.iter().enumerate() {
-            self.refresh_entity_animation(EntityIndex(i), entity)
+        for (i, soldier) in soldiers.iter().enumerate() {
+            self.refresh_soldier_animation(SoldierIndex(i), soldier)
         }
     }
 
-    pub fn refresh_entity_animation(
-        &mut self,
-        entity_index: EntityIndex,
-        entity: &ThreadSafeEntity,
-    ) {
-        let animation = entity_animation(entity);
-        self.entity_animation_sequences
-            .insert(entity_index, animation);
+    pub fn refresh_soldier_animation(&mut self, soldier_index: SoldierIndex, soldier: &Soldier) {
+        let animation = soldier_animation(soldier);
+        self.soldier_animation_sequences
+            .insert(soldier_index, animation);
     }
 
     pub fn update(&mut self, ctx: &Context) {
         let secs = ggez::timer::delta(ctx).as_secs_f64();
-        for (_, animation) in self.entity_animation_sequences.iter_mut() {
+        for (_, animation) in self.soldier_animation_sequences.iter_mut() {
             animation.advance_and_maybe_wrap(secs);
         }
     }

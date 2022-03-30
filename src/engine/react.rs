@@ -20,7 +20,7 @@ impl Engine {
                     }
                     NetworkMessage::InitializeStateFrom(state_copy) => {
                         self.shared_state.init_from_copy(state_copy);
-                        self.graphics.initialize(self.shared_state.entities());
+                        self.graphics.initialize(self.shared_state.soldiers());
                     }
                     NetworkMessage::Acknowledge => unreachable!(),
                 },

@@ -4,8 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use glam::Vec2;
 
-use crate::entity::Entity;
-
 pub trait Xy {
     fn from_xy(x: f32, y: f32) -> Self;
     fn x(&self) -> f32;
@@ -240,28 +238,27 @@ impl WorldPaths {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct EntityIndex(pub usize);
+pub struct SoldierIndex(pub usize);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct OrderMarkerIndex(pub usize);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct SquadUuid(pub usize);
-pub type ThreadSafeEntity = Box<dyn Entity + Send + Sync>;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct SquadComposition(EntityIndex, Vec<EntityIndex>);
+pub struct SquadComposition(SoldierIndex, Vec<SoldierIndex>);
 
 impl SquadComposition {
-    pub fn new(leader: EntityIndex, members: Vec<EntityIndex>) -> Self {
+    pub fn new(leader: SoldierIndex, members: Vec<SoldierIndex>) -> Self {
         Self(leader, members)
     }
 
-    pub fn leader(&self) -> EntityIndex {
+    pub fn leader(&self) -> SoldierIndex {
         self.0
     }
 
-    pub fn members(&self) -> &Vec<EntityIndex> {
+    pub fn members(&self) -> &Vec<SoldierIndex> {
         &self.1
     }
 }

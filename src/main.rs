@@ -62,8 +62,8 @@ fn main() -> GameResult {
     let graphics = graphics::Graphics::new(&mut context, &map)?;
     let shared_state = match config.network_mode() {
         NetWorkMode::Server => {
-            let entities = hardcode::get_entities();
-            SharedState::new(entities)
+            let soldiers = hardcode::get_soldiers();
+            SharedState::new(soldiers)
         }
         NetWorkMode::Client => SharedState::new(vec![]),
     };

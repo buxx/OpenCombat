@@ -8,8 +8,8 @@ pub struct Config {
     server_rep_address: String,
     server_pub_address: String,
     target_fps: u32,
-    entity_update_freq: u64,
-    entity_animate_freq: u64,
+    soldier_update_freq: u64,
+    soldier_animate_freq: u64,
 }
 
 // Width of sprite sheet
@@ -28,9 +28,9 @@ pub const MOVE_VELOCITY: f32 = 5.0 / TARGET_FPS as f32;
 pub const MOVE_FAST_VELOCITY: f32 = 10.0 / TARGET_FPS as f32;
 // Velocity of move hide vector
 pub const MOVE_HIDE_VELOCITY: f32 = 1.5 / TARGET_FPS as f32;
-// Selection square size of selected entity
+// Selection square size of selected soldier
 pub const DEFAULT_SELECTED_SQUARE_SIDE: f32 = 14.0;
-// Half selection square size of selected entity
+// Half selection square size of selected soldier
 pub const DEFAULT_SELECTED_SQUARE_SIDE_HALF: f32 = DEFAULT_SELECTED_SQUARE_SIDE / 2.0;
 // Selection square size of selectable zone (click)
 pub const SOLDIER_SELECTABLE_SQUARE_SIDE: f32 = 14.0;
@@ -60,14 +60,14 @@ impl Config {
             server_pub_address,
             /// Target FPS of engine
             target_fps: TARGET_FPS,
-            /// Frequency of entity update :
+            /// Frequency of soldier update :
             ///  - World pixel point according to movement
             ///  - ...
-            entity_update_freq: 1,
-            /// Frequency of entity animation :
-            ///  - Compute visibility with other entities
+            soldier_update_freq: 1,
+            /// Frequency of soldier animation :
+            ///  - Compute visibility with other soldiers
             ///  - Compute behavior against physics (explosions, gunfires, ...)
-            entity_animate_freq: 20,
+            soldier_animate_freq: 20,
         })
     }
 
@@ -75,12 +75,12 @@ impl Config {
         self.target_fps
     }
 
-    pub fn entity_update_freq(&self) -> u64 {
-        self.entity_update_freq
+    pub fn soldier_update_freq(&self) -> u64 {
+        self.soldier_update_freq
     }
 
-    pub fn entity_animate_freq(&self) -> u64 {
-        self.entity_animate_freq
+    pub fn soldier_animate_freq(&self) -> u64 {
+        self.soldier_animate_freq
     }
 
     pub fn network_mode(&self) -> &NetWorkMode {

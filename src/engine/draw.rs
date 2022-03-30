@@ -11,11 +11,11 @@ use crate::{
 use super::Engine;
 
 impl Engine {
-    // TODO : don't generate sprites of non visible entities (hidden enemy, outside screen, etc)
+    // TODO : don't generate sprites of non visible soldiers (hidden enemy, outside screen, etc)
     pub fn generate_entities_sprites(&mut self) -> GameResult {
-        for (i, entity) in self.shared_state.entities().iter().enumerate() {
-            for sprite in self.graphics.entity_sprites(EntityIndex(i), entity) {
-                let sprite_ = sprite.dest(entity.get_world_point().to_vec2());
+        for (i, soldier) in self.shared_state.soldiers().iter().enumerate() {
+            for sprite in self.graphics.soldier_sprites(SoldierIndex(i), soldier) {
+                let sprite_ = sprite.dest(soldier.get_world_point().to_vec2());
                 self.graphics.append_sprites_batch(sprite_);
             }
         }

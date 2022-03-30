@@ -7,8 +7,8 @@ use crate::{behavior::Behavior, order::PendingOrder, physics::path::find_path, t
 use super::Engine;
 
 impl Engine {
-    pub fn get_entities_in_area(&self, start: WorldPoint, end: WorldPoint) -> Vec<EntityIndex> {
-        let mut entity_indexes = vec![];
+    pub fn get_entities_in_area(&self, start: WorldPoint, end: WorldPoint) -> Vec<SoldierIndex> {
+        let mut soldier_indexes = vec![];
 
         let from = WindowPoint::new(
             cmp::min(start.x as i32, end.x as i32) as f32,
@@ -20,54 +20,54 @@ impl Engine {
         );
         let area = Rect::new(from.x, from.y, to.x - from.x, to.y - from.y);
 
-        for (i, scene_item) in self.shared_state.entities().iter().enumerate() {
-            let entity_point = scene_item.get_world_point();
-            if area.contains(entity_point.to_vec2()) {
-                entity_indexes.push(EntityIndex(i));
+        for (i, scene_item) in self.shared_state.soldiers().iter().enumerate() {
+            let soldier_point = scene_item.get_world_point();
+            if area.contains(soldier_point.to_vec2()) {
+                soldier_indexes.push(SoldierIndex(i));
             }
         }
 
-        entity_indexes
+        soldier_indexes
     }
 
-    pub fn get_entities_at_point(&self, point: WorldPoint) -> Vec<EntityIndex> {
-        let mut entity_indexes = vec![];
+    pub fn get_entities_at_point(&self, point: WorldPoint) -> Vec<SoldierIndex> {
+        let mut soldier_indexes = vec![];
 
-        for (i, scene_item) in self.shared_state.entities().iter().enumerate() {
+        for (i, scene_item) in self.shared_state.soldiers().iter().enumerate() {
             let rect = scene_item.get_selection_rect();
             if rect.contains(point.to_vec2()) {
-                entity_indexes.push(EntityIndex(i));
+                soldier_indexes.push(SoldierIndex(i));
             }
         }
 
-        entity_indexes
+        soldier_indexes
     }
 
-    pub fn filter_entities_by_side(&self, entity_indexes: Vec<EntityIndex>) -> Vec<EntityIndex> {
-        let mut filtered_entity_indexes = vec![];
+    pub fn filter_entities_by_side(&self, soldier_indexes: Vec<SoldierIndex>) -> Vec<SoldierIndex> {
+        let mut filtered_soldier_indexes = vec![];
 
-        for entity_index in entity_indexes {
-            let entity = self.shared_state.entity(entity_index);
-            if entity.get_side() == self.local_state.side() {
-                filtered_entity_indexes.push(entity_index);
+        for soldier_index in soldier_indexes {
+            let soldier = self.shared_state.soldier(soldier_index);
+            if soldier.get_side() == self.local_state.side() {
+                filtered_soldier_indexes.push(soldier_index);
             }
         }
 
-        filtered_entity_indexes
+        filtered_soldier_indexes
     }
 
     pub fn _filter_entities_by_visibility(
         &self,
-        entity_indexes: Vec<EntityIndex>,
-    ) -> Vec<EntityIndex> {
+        soldier_indexes: Vec<SoldierIndex>,
+    ) -> Vec<SoldierIndex> {
         // TODO
-        entity_indexes
+        soldier_indexes
     }
 
-    pub fn squad_ids_from_entities(&self, entity_indexes: Vec<EntityIndex>) -> Vec<SquadUuid> {
-        let mut all_squad_uuids: Vec<SquadUuid> = entity_indexes
+    pub fn squad_ids_from_entities(&self, soldier_indexes: Vec<SoldierIndex>) -> Vec<SquadUuid> {
+        let mut all_squad_uuids: Vec<SquadUuid> = soldier_indexes
             .iter()
-            .map(|i| self.shared_state.entity(*i))
+            .map(|i| self.shared_state.soldier(*i))
             .map(|e| e.squad_uuid())
             .collect();
         let unique_squad_uuids: HashSet<SquadUuid> = all_squad_uuids.drain(..).collect();
@@ -94,7 +94,7 @@ impl Engine {
         cached_points: &Vec<WorldPoint>,
     ) -> Vec<(WindowPoint, Angle, Offset)> {
         let squad = self.shared_state.squad(squad_id);
-        let squad_leader = self.shared_state.entity(squad.leader());
+        let squad_leader = self.shared_state.soldier(squad.leader());
         let order_marker = pending_order.marker();
         match pending_order {
             PendingOrder::MoveTo | PendingOrder::MoveFastTo | PendingOrder::SneakTo => {
@@ -134,9 +134,9 @@ impl Engine {
         cached_points: &Vec<WorldPoint>,
     ) -> Option<WorldPaths> {
         let squad = self.shared_state.squad(squad_id);
-        let entity = self.shared_state.entity(squad.leader());
-        let entity_world_point = entity.get_world_point();
-        let entity_grid_point = self.grid_point_from_world_point(entity_world_point);
+        let soldier = self.shared_state.soldier(squad.leader());
+        let soldier_world_point = soldier.get_world_point();
+        let soldier_grid_point = self.grid_point_from_world_point(soldier_world_point);
         let cursor_world_point = self.local_state.get_current_cursor_world_point();
         let cursor_grid_point = self.grid_point_from_world_point(cursor_world_point);
 
@@ -170,11 +170,11 @@ impl Engine {
                 }
                 bounds_
             } else {
-                vec![(entity_grid_point, cursor_grid_point)]
+                vec![(soldier_grid_point, cursor_grid_point)]
             }
         // Some points already cached (append)
         } else if cached_points.len() > 1 {
-            let mut last = entity_grid_point;
+            let mut last = soldier_grid_point;
             let mut bounds_ = vec![];
             for cached_point in cached_points {
                 let grid_cached_point = self.grid_point_from_world_point(*cached_point);
@@ -185,7 +185,7 @@ impl Engine {
             bounds_
         // First point
         } else {
-            vec![(entity_grid_point, cursor_grid_point)]
+            vec![(soldier_grid_point, cursor_grid_point)]
         };
 
         // Build path finding on each parts
@@ -212,7 +212,7 @@ impl Engine {
 
     pub fn current_squad_world_paths(&self, squad_id: SquadUuid) -> Option<&WorldPaths> {
         let squad = self.shared_state.squad(squad_id);
-        let squad_leader = self.shared_state.entity(squad.leader());
+        let squad_leader = self.shared_state.soldier(squad.leader());
         match squad_leader.get_behavior() {
             Behavior::MoveTo(world_paths)
             | Behavior::MoveFastTo(world_paths)
@@ -241,7 +241,7 @@ impl Engine {
 
     pub fn angle_from_cursor_and_squad(&self, squad_id: SquadUuid) -> Angle {
         let squad = self.shared_state.squad(squad_id);
-        let squad_leader = self.shared_state.entity(squad.leader());
+        let squad_leader = self.shared_state.soldier(squad.leader());
         let to_point = self.local_state.get_current_cursor_world_point().to_vec2();
         let from_point = squad_leader.get_world_point().to_vec2();
         Angle::from_points(&to_point, &from_point)

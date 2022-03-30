@@ -15,13 +15,13 @@ mod animate;
 mod client;
 mod debug;
 mod draw;
-mod entity;
 mod input;
 mod movement;
 mod network;
 mod order;
 mod react;
 mod server;
+mod soldier;
 mod ui;
 mod update;
 mod utils;
@@ -63,7 +63,7 @@ impl Engine {
             // Server own game shared shared state, so init it
             crate::NetWorkMode::Server => {
                 self.shared_state.init()?;
-                self.graphics.initialize(self.shared_state.entities());
+                self.graphics.initialize(self.shared_state.soldiers());
             }
             // Client initialize its shared state when received from server
             crate::NetWorkMode::Client => {}

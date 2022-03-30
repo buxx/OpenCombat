@@ -22,11 +22,11 @@ use super::Engine;
 impl Engine {
     pub fn generate_selected_entities_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
         for squad_uuid in self.local_state.selected_squads() {
-            for entity_index in self.shared_state.squad(*squad_uuid).members() {
-                let entity = self.shared_state.entity(*entity_index);
+            for soldier_index in self.shared_state.squad(*squad_uuid).members() {
+                let soldier = self.shared_state.soldier(*soldier_index);
                 let point = self
                     .local_state
-                    .window_point_from_world_point(entity.get_world_point());
+                    .window_point_from_world_point(soldier.get_world_point());
                 let rect = Rect::new(
                     point.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
                     point.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
@@ -52,15 +52,15 @@ impl Engine {
         Ok(())
     }
 
-    pub fn get_side_entities_at_point(&self, point: WorldPoint) -> Vec<EntityIndex> {
-        let entity_indexes = self.get_entities_at_point(point);
-        self.filter_entities_by_side(entity_indexes)
+    pub fn get_side_entities_at_point(&self, point: WorldPoint) -> Vec<SoldierIndex> {
+        let soldier_indexes = self.get_entities_at_point(point);
+        self.filter_entities_by_side(soldier_indexes)
     }
     fn digest_scene_select_by_click(&self, point: WindowPoint) -> Vec<Message> {
         let world_point = self.local_state.world_point_from_window_point(point);
-        let entity_indexes = self.get_side_entities_at_point(world_point);
-        if entity_indexes.len() > 0 {
-            let squad_ids = self.squad_ids_from_entities(vec![entity_indexes[0]]);
+        let soldier_indexes = self.get_side_entities_at_point(world_point);
+        if soldier_indexes.len() > 0 {
+            let squad_ids = self.squad_ids_from_entities(vec![soldier_indexes[0]]);
             return vec![Message::LocalState(LocalStateMessage::SetSelectedSquads(
                 squad_ids,
             ))];
@@ -262,9 +262,9 @@ impl Engine {
                     } else {
                         let world_start = self.local_state.world_point_from_window_point(start);
                         let world_end = self.local_state.world_point_from_window_point(end);
-                        let entity_indexes = self.get_entities_in_area(world_start, world_end);
-                        let entity_indexes = self.filter_entities_by_side(entity_indexes);
-                        let squad_ids = self.squad_ids_from_entities(entity_indexes);
+                        let soldier_indexes = self.get_entities_in_area(world_start, world_end);
+                        let soldier_indexes = self.filter_entities_by_side(soldier_indexes);
+                        let squad_ids = self.squad_ids_from_entities(soldier_indexes);
                         messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
                             squad_ids,
                         )));
@@ -272,12 +272,12 @@ impl Engine {
                 }
                 UIEvent::FinishedCursorRightClick(point) => {
                     let world_point = self.local_state.world_point_from_window_point(point);
-                    let entity_indexes = self.get_side_entities_at_point(world_point);
+                    let soldier_indexes = self.get_side_entities_at_point(world_point);
                     let mut squad_id: Option<SquadUuid> = None;
 
                     // If squad under cursor, select it
-                    if entity_indexes.len() > 0 {
-                        let squad_id_ = self.squad_ids_from_entities(entity_indexes.clone())[0];
+                    if soldier_indexes.len() > 0 {
+                        let squad_id_ = self.squad_ids_from_entities(soldier_indexes.clone())[0];
                         squad_id = Some(squad_id_);
                         messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
                             vec![squad_id_],

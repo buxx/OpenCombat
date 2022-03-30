@@ -5,7 +5,7 @@ use super::Engine;
 impl Engine {
     ///  - World pixel point according to movement
     ///  - ...
-    pub fn update_entity(&self, i: EntityIndex) -> Vec<Message> {
+    pub fn update_soldier(&self, i: SoldierIndex) -> Vec<Message> {
         let mut messages = vec![];
 
         messages.extend(self.orientation_update(i));
@@ -14,31 +14,31 @@ impl Engine {
         messages
     }
 
-    fn orientation_update(&self, i: EntityIndex) -> Vec<Message> {
-        let entity = self.shared_state.entity(i);
+    fn orientation_update(&self, i: SoldierIndex) -> Vec<Message> {
+        let soldier = self.shared_state.soldier(i);
         let mut messages = vec![];
 
-        if let Some(angle_) = entity.get_behavior().angle(entity.get_world_point()) {
-            let entity_message = EntityMessage::SetOrientation(angle_);
+        if let Some(angle_) = soldier.get_behavior().angle(soldier.get_world_point()) {
+            let soldier_message = EntityMessage::SetOrientation(angle_);
             messages.push(Message::SharedState(SharedStateMessage::Entity(
                 i,
-                entity_message,
+                soldier_message,
             )));
         }
 
         messages
     }
 
-    fn behavior_update(&self, entity_index: EntityIndex) -> Vec<Message> {
-        let entity = self.shared_state.entity(entity_index);
+    fn behavior_update(&self, soldier_index: SoldierIndex) -> Vec<Message> {
+        let soldier = self.shared_state.soldier(soldier_index);
         let mut messages = vec![];
 
-        messages.extend(match entity.get_behavior() {
+        messages.extend(match soldier.get_behavior() {
             Behavior::Idle => {
                 vec![]
             }
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
-                self.movement_updates(entity_index, paths)
+                self.movement_updates(soldier_index, paths)
             }
             Behavior::Defend(_) => {
                 vec![]

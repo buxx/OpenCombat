@@ -11,12 +11,8 @@ impl StateCopy {
     pub fn from_state(shared_state: &SharedState) -> StateCopy {
         let mut soldiers = vec![];
 
-        for entity in shared_state.entities() {
-            match entity.get_type() {
-                crate::entity::EntityType::Soldier => {
-                    soldiers.push(Soldier::from_entity(entity));
-                }
-            }
+        for soldier in shared_state.soldiers() {
+            soldiers.push(Soldier::from_soldier(soldier));
         }
 
         Self { soldiers }
