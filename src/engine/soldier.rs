@@ -10,6 +10,7 @@ use rayon::prelude::*;
 use super::Engine;
 
 impl Engine {
+    // FIXME BS NOW : Soldiers in vehicles must be managed differently than ground soldiers
     pub fn tick_entities(&self) -> Vec<Message> {
         let mut messages = vec![];
 
@@ -51,9 +52,9 @@ impl Engine {
         // TODO : behavior must be given to other squad soldiers !!!! other soldiers must can accept it too (under fire etc)
         let mut messages = vec![];
 
-        messages.push(Message::SharedState(SharedStateMessage::Entity(
+        messages.push(Message::SharedState(SharedStateMessage::Soldier(
             soldier_index,
-            EntityMessage::SetBehavior(order.to_behavior()),
+            SoldierMessage::SetBehavior(order.to_behavior()),
         )));
 
         messages

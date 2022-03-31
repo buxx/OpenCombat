@@ -19,14 +19,14 @@ impl Engine {
         if (soldier.get_world_point().to_vec2() - point.to_vec2()).length() <= vector.length() {
             // If it is the last point, move is finished
             if path.is_last_point().expect("Must contain points") {
-                messages.push(Message::SharedState(SharedStateMessage::Entity(
+                messages.push(Message::SharedState(SharedStateMessage::Soldier(
                     soldier_index,
-                    EntityMessage::SetBehavior(Behavior::Idle),
+                    SoldierMessage::SetBehavior(Behavior::Idle),
                 )));
             } else {
-                messages.push(Message::SharedState(SharedStateMessage::Entity(
+                messages.push(Message::SharedState(SharedStateMessage::Soldier(
                     soldier_index,
-                    EntityMessage::ReachBehaviorStep,
+                    SoldierMessage::ReachBehaviorStep,
                 )));
             }
 
@@ -43,9 +43,9 @@ impl Engine {
             // Movement required
         } else {
             let new_point = soldier.get_world_point().apply(vector);
-            messages.push(Message::SharedState(SharedStateMessage::Entity(
+            messages.push(Message::SharedState(SharedStateMessage::Soldier(
                 soldier_index,
-                EntityMessage::SetWorldPosition(new_point),
+                SoldierMessage::SetWorldPosition(new_point),
             )));
         }
 

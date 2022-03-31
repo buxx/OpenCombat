@@ -21,6 +21,7 @@ mod network;
 mod order;
 mod react;
 mod server;
+mod side;
 mod soldier;
 mod ui;
 mod update;

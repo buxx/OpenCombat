@@ -28,31 +28,6 @@ impl Engine {
 
         messages.extend(self.collect_keyboard_inputs(ctx));
 
-        // TODO : hardcode code for test purposes
-        if self.local_state.get_frame_i() == 60 {
-            for (i, soldier) in self.shared_state.soldiers().iter().enumerate() {
-                if self.soldier_is_squad_leader(SoldierIndex(i)) {
-                    match soldier.get_behavior() {
-                        Behavior::Idle => {
-                            let a1 = soldier.get_world_point().apply(Vec2::new(100., 0.));
-                            let a2 = soldier.get_world_point().apply(Vec2::new(0., 100.));
-                            let b1 = soldier.get_world_point().apply(Vec2::new(200., 100.));
-                            let b2 = soldier.get_world_point().apply(Vec2::new(100., 200.));
-                            let a = WorldPath::new(vec![a1, a2]);
-                            let b = WorldPath::new(vec![b1, b2]);
-                            messages.push(Message::SharedState(
-                                SharedStateMessage::PushCommandOrder(
-                                    soldier.squad_uuid(),
-                                    Order::MoveTo(WorldPaths::new(vec![a, b])),
-                                ),
-                            ));
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
-
         // Useful for actions expecting cursor immobilization
         let cursor_immobile_since =
             self.local_state.get_frame_i() - self.local_state.get_last_cursor_move_frame();

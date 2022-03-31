@@ -53,7 +53,8 @@ impl SharedState {
     pub fn init(&mut self) -> GameResult {
         // At start point, squads have not been defined. We must initialize it.
         self.update_squads();
-        self.check_board_integrity();
+        self.check_board_integrity()?;
+        self.initialize_vehicle_positions();
         self.initialized = true;
         Ok(())
     }
@@ -93,7 +94,7 @@ impl SharedState {
         &self.vehicles
     }
 
-    pub fn vehicle_mut(&mut self, vehicle_index: VehicleIndex) -> &Vehicle {
+    pub fn vehicle_mut(&mut self, vehicle_index: VehicleIndex) -> &mut Vehicle {
         &mut self.vehicles[vehicle_index.0]
     }
 
@@ -150,8 +151,11 @@ impl SharedState {
 
     pub fn react(&mut self, state_message: crate::message::SharedStateMessage) -> Vec<SideEffect> {
         match state_message {
-            SharedStateMessage::Entity(soldier_index, soldier_message) => {
+            SharedStateMessage::Soldier(soldier_index, soldier_message) => {
                 return self.react_soldier_message(soldier_index, soldier_message);
+            }
+            SharedStateMessage::Vehicle(vehicle_index, vehicle_message) => {
+                return self.react_vehicle_message(vehicle_index, vehicle_message);
             }
             SharedStateMessage::PushCommandOrder(squad_uuid, order) => {
                 self.command_orders.insert(squad_uuid, order);

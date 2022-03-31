@@ -1,6 +1,8 @@
 use ggez::GameResult;
 
-use super::shared::SharedState;
+use crate::{message::VehicleMessage, types::*};
+
+use super::{shared::SharedState, SideEffect};
 
 impl SharedState {
     pub fn check_board_integrity(&self) -> GameResult {
@@ -20,5 +22,54 @@ impl SharedState {
         }
 
         Ok(())
+    }
+
+    pub fn react_vehicle_message(
+        &mut self,
+        vehicle_index: VehicleIndex,
+        vehicle_message: VehicleMessage,
+    ) -> Vec<SideEffect> {
+        if !self.initialized() {
+            return vec![];
+        }
+
+        let vehicle = &mut self.vehicle_mut(vehicle_index);
+        match vehicle_message {
+            VehicleMessage::SetWorldPosition(new_world_point) => {
+                vehicle.set_world_point(new_world_point);
+                self.propagate_vehicle_position(vehicle_index);
+            }
+            VehicleMessage::SetOrientation(angle) => vehicle.set_orientation(angle),
+        }
+
+        vec![]
+    }
+
+    pub fn propagate_vehicle_position(&mut self, vehicle_index: VehicleIndex) {
+        let vehicle = &mut self.vehicle_mut(vehicle_index);
+        let vehicle_point = vehicle.get_world_point();
+        let sprite_infos = vehicle.get_type().sprites_infos();
+        let places = sprite_infos.places();
+        let mut new_positions: Vec<(SoldierIndex, WorldPoint)> = vec![];
+        for (place, soldier_index) in self.vehicle_board().get(&vehicle_index).unwrap_or(&vec![]) {
+            let place_offset = places
+                .get(place)
+                .expect("Vehicle place position coherence must be check at startup");
+            let place_point =
+                WorldPoint::from_vec2(vehicle_point.to_vec2() + place_offset.to_vec2());
+
+            new_positions.push((*soldier_index, place_point));
+        }
+
+        for (soldier_index, world_point) in new_positions {
+            let soldier = self.soldier_mut(soldier_index);
+            soldier.set_world_point(world_point)
+        }
+    }
+
+    pub fn initialize_vehicle_positions(&mut self) {
+        for i in 0..self.vehicles().len() {
+            self.propagate_vehicle_position(VehicleIndex(i))
+        }
     }
 }

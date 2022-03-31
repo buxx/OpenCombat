@@ -23,6 +23,10 @@ impl WorldPoint {
         Self { x, y }
     }
 
+    pub fn from_vec2(vec: Vec2) -> Self {
+        Self { x: vec.x, y: vec.y }
+    }
+
     pub fn apply(self, raw: Vec2) -> Self {
         Self {
             x: self.x + raw.x,

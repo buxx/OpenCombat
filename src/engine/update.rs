@@ -19,8 +19,8 @@ impl Engine {
         let mut messages = vec![];
 
         if let Some(angle_) = soldier.get_behavior().angle(soldier.get_world_point()) {
-            let soldier_message = EntityMessage::SetOrientation(angle_);
-            messages.push(Message::SharedState(SharedStateMessage::Entity(
+            let soldier_message = SoldierMessage::SetOrientation(angle_);
+            messages.push(Message::SharedState(SharedStateMessage::Soldier(
                 i,
                 soldier_message,
             )));

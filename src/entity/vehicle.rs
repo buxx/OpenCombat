@@ -21,9 +21,10 @@ impl VehicleType {
             VehicleType::T26 => VehicleGraphicInfos::tank(
                 SpriteInfo::new(0., 192., 64., 96.),
                 (Offset::new(-3., 0.), SpriteInfo::new(128., 192., 64., 96.)),
+                // FIXME BS NOW : These positions must strictly match with board_composition (check it at startup ?)
                 vec![
-                    (OnBoardPlace::Driver, Offset::new(0., 0.)),
-                    (OnBoardPlace::MainTurretGunner, Offset::new(64., 0.)),
+                    (OnBoardPlace::Driver, Offset::new(8., -16.)),
+                    (OnBoardPlace::MainTurretGunner, Offset::new(-3., 0.)),
                 ],
             ),
         }
@@ -67,5 +68,9 @@ impl Vehicle {
 
     pub fn get_orientation(&self) -> &Angle {
         &self.orientation
+    }
+
+    pub fn set_orientation(&mut self, orientation: Angle) {
+        self.orientation = orientation
     }
 }
