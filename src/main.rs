@@ -26,6 +26,7 @@ mod utils;
 
 use structopt::clap::arg_enum;
 use structopt::StructOpt;
+use types::*;
 
 pub const RESOURCE_PATH: &'static str = "resources";
 
@@ -62,10 +63,10 @@ fn main() -> GameResult {
     let graphics = graphics::Graphics::new(&mut context, &map)?;
     let shared_state = match config.network_mode() {
         NetWorkMode::Server => {
-            let soldiers = hardcode::get_soldiers();
-            SharedState::new(soldiers)
+            let (soldiers, vehicles, boards) = hardcode::shared_state_fixtures();
+            SharedState::new(soldiers, vehicles, boards)
         }
-        NetWorkMode::Client => SharedState::new(vec![]),
+        NetWorkMode::Client => SharedState::new(vec![], vec![], SoldiersOnBoard::new()),
     };
     let engine = engine::Engine::new(config, graphics, shared_state, Side::A, map)?;
     event::run(context, event_loop, engine)

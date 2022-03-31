@@ -108,6 +108,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
         // Draw entire scene
         self.generate_map_sprites(self.local_state.draw_decor)?;
         self.generate_entities_sprites()?;
+        self.generate_vehicles_sprites()?;
 
         let scene_draw_param = graphics::DrawParam::new()
             .dest(self.local_state.display_scene_offset)

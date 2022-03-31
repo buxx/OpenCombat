@@ -2,15 +2,27 @@ use std::collections::HashMap;
 
 use ggez::GameResult;
 
-use crate::{entity::soldier::Soldier, message::*, order::Order, sync::StateCopy, types::*};
+use crate::{
+    entity::{soldier::Soldier, vehicle::Vehicle},
+    message::*,
+    order::Order,
+    sync::StateCopy,
+    types::*,
+    utils::vehicle_board_from_soldiers_on_board,
+};
 
 use super::SideEffect;
 
 pub struct SharedState {
     /// Used to ignore server shared_state modifications since shared state not received from server
     initialized: bool,
-    /// The soldiers in the world (soldiers, vehicles, etc).
+    /// The soldiers in the world
     soldiers: Vec<Soldier>,
+    /// The vehicles in the world
+    vehicles: Vec<Vehicle>,
+    /// Vehicle on board information
+    soldier_on_board: SoldiersOnBoard,
+    vehicle_board: VehicleBoard,
     /// Squad organizations, must be updated when squad leader changes.
     squads: HashMap<SquadUuid, SquadComposition>,
     /// Players orders. Squad leaders will pick from them theirs behaviors.
@@ -20,10 +32,18 @@ pub struct SharedState {
 }
 
 impl SharedState {
-    pub fn new(soldiers: Vec<Soldier>) -> Self {
+    pub fn new(
+        soldiers: Vec<Soldier>,
+        vehicles: Vec<Vehicle>,
+        soldier_on_board: SoldiersOnBoard,
+    ) -> Self {
+        let vehicle_board = vehicle_board_from_soldiers_on_board(&soldier_on_board);
         Self {
             initialized: false,
-            soldiers: soldiers,
+            soldiers,
+            vehicles,
+            soldier_on_board: soldier_on_board,
+            vehicle_board,
             squads: HashMap::new(),
             command_orders: HashMap::new(),
             squad_orders: HashMap::new(),
@@ -33,6 +53,7 @@ impl SharedState {
     pub fn init(&mut self) -> GameResult {
         // At start point, squads have not been defined. We must initialize it.
         self.update_squads();
+        self.check_board_integrity();
         self.initialized = true;
         Ok(())
     }
@@ -62,6 +83,18 @@ impl SharedState {
 
     pub fn soldier_mut(&mut self, soldier_index: SoldierIndex) -> &mut Soldier {
         &mut self.soldiers[soldier_index.0]
+    }
+
+    pub fn vehicle(&self, vehicle_index: VehicleIndex) -> &Vehicle {
+        &self.vehicles[vehicle_index.0]
+    }
+
+    pub fn vehicles(&self) -> &Vec<Vehicle> {
+        &self.vehicles
+    }
+
+    pub fn vehicle_mut(&mut self, vehicle_index: VehicleIndex) -> &Vehicle {
+        &mut self.vehicles[vehicle_index.0]
     }
 
     pub fn squads(&self) -> &HashMap<SquadUuid, SquadComposition> {
@@ -101,6 +134,18 @@ impl SharedState {
         self.squads
             .get(&squad_uuid)
             .expect("Game shared_state should never own inconsistent squad index")
+    }
+
+    pub fn soldier_on_board(&self) -> &SoldiersOnBoard {
+        &self.soldier_on_board
+    }
+
+    pub fn soldier_board(&self, soldier_index: SoldierIndex) -> Option<&SoldierBoard> {
+        self.soldier_on_board.get(&soldier_index)
+    }
+
+    pub fn vehicle_board(&self) -> &VehicleBoard {
+        &self.vehicle_board
     }
 
     pub fn react(&mut self, state_message: crate::message::SharedStateMessage) -> Vec<SideEffect> {

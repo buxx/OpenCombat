@@ -14,9 +14,30 @@ impl Engine {
     // TODO : don't generate sprites of non visible soldiers (hidden enemy, outside screen, etc)
     pub fn generate_entities_sprites(&mut self) -> GameResult {
         for (i, soldier) in self.shared_state.soldiers().iter().enumerate() {
+            if !self.is_soldier_drawable(SoldierIndex(i)) {
+                continue;
+            }
+
             for sprite in self.graphics.soldier_sprites(SoldierIndex(i), soldier) {
-                let sprite_ = sprite.dest(soldier.get_world_point().to_vec2());
-                self.graphics.append_sprites_batch(sprite_);
+                self.graphics.append_sprites_batch(sprite);
+            }
+        }
+
+        Ok(())
+    }
+
+    fn is_soldier_drawable(&self, soldier_index: SoldierIndex) -> bool {
+        if self.shared_state.soldier_board(soldier_index).is_some() {
+            return false;
+        }
+
+        return true;
+    }
+
+    pub fn generate_vehicles_sprites(&mut self) -> GameResult {
+        for (i, vehicle) in self.shared_state.vehicles().iter().enumerate() {
+            for sprite in self.graphics.vehicle_sprites(VehicleIndex(i), vehicle) {
+                self.graphics.append_sprites_batch(sprite);
             }
         }
 

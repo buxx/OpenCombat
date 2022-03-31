@@ -1,17 +1,24 @@
 use std::collections::HashMap;
 
 use ggez::{
-    graphics::{self, spritebatch::SpriteBatch, FilterMode, Image, MeshBuilder, Rect},
+    graphics::{self, spritebatch::SpriteBatch, DrawParam, FilterMode, Image, MeshBuilder, Rect},
     Context, GameResult,
 };
 use keyframe::{AnimationSequence, EasingFunction};
 use keyframe_derive::CanTween;
 
-use crate::{entity::soldier::Soldier, map::Map, types::*, ui::menu::squad_menu_sprite_info};
+use crate::{
+    config::{SPRITE_SHEET_HEIGHT, SPRITE_SHEET_WIDTH},
+    entity::{soldier::Soldier, vehicle::Vehicle},
+    map::Map,
+    types::*,
+    ui::menu::squad_menu_sprite_info,
+};
 
 pub mod animation;
 mod map;
 pub mod soldier;
+pub mod vehicle;
 
 const SPRITES_FILE_PATH: &'static str = "/sprites.png";
 const UI_FILE_PATH: &'static str = "/ui.png";
@@ -80,7 +87,57 @@ impl Graphics {
         vec![graphics::DrawParam::new()
             .src(current_frame_src)
             .rotation(soldier.get_looking_direction().0)
-            .offset(Offset::new(0.5, 0.5).to_vec2())]
+            .offset(Offset::new(0.5, 0.5).to_vec2())
+            .dest(soldier.get_world_point().to_vec2())]
+    }
+
+    pub fn vehicle_sprites(
+        &self,
+        _vehicle_index: VehicleIndex,
+        vehicle: &Vehicle,
+    ) -> Vec<graphics::DrawParam> {
+        let sprite_infos = vehicle.get_type().sprites_infos();
+        let shadow_offset = Offset::new(5., 5.).to_vec2();
+        let mut sprites = vec![];
+
+        // Vehicle body shadow
+        let body_sprite = DrawParam::new()
+            .src(sprite_infos.body().shadow_version().to_rect())
+            .offset(Offset::new(0.5, 0.5).to_vec2())
+            .rotation(Angle(0.).0)
+            .dest(vehicle.get_world_point().to_vec2() + shadow_offset);
+        sprites.push(body_sprite);
+
+        // Vehicle body
+        let body_sprite = DrawParam::new()
+            .src(sprite_infos.body().to_rect())
+            .offset(Offset::new(0.5, 0.5).to_vec2())
+            .rotation(Angle(0.).0)
+            .dest(vehicle.get_world_point().to_vec2());
+        sprites.push(body_sprite);
+
+        // Main turret
+        if let Some((turret_offset, turret_sprite_info)) = sprite_infos.main_turret() {
+            let turret_shadow_sprite = DrawParam::new()
+                .dest(turret_offset.to_vec2())
+                .src(turret_sprite_info.shadow_version().to_rect())
+                .offset(Offset::new(0.5, 0.5).to_vec2())
+                .rotation(Angle(45.).0)
+                .dest(
+                    vehicle.get_world_point().to_vec2() + turret_offset.to_vec2() + shadow_offset,
+                );
+            sprites.push(turret_shadow_sprite);
+
+            let turret_sprite = DrawParam::new()
+                .dest(turret_offset.to_vec2())
+                .src(turret_sprite_info.to_rect())
+                .offset(Offset::new(0.5, 0.5).to_vec2())
+                .rotation(Angle(45.).0)
+                .dest(vehicle.get_world_point().to_vec2() + turret_offset.to_vec2());
+            sprites.push(turret_sprite);
+        }
+
+        sprites
     }
 
     pub fn squad_menu_sprites(
@@ -194,5 +251,42 @@ impl EasingFunction for AnimationFloor {
     #[inline]
     fn y(&self, x: f64) -> f64 {
         (self.pre_easing.y(x) * (self.frames) as f64).floor() / (self.frames - 1) as f64
+    }
+}
+
+pub struct SpriteInfo {
+    relative_start_x: f32,
+    relative_start_y: f32,
+    relative_tile_width: f32,
+    relative_tile_height: f32,
+}
+
+impl SpriteInfo {
+    pub fn new(start_x: f32, start_y: f32, width: f32, height: f32) -> Self {
+        Self {
+            relative_start_x: start_x / SPRITE_SHEET_WIDTH,
+            relative_start_y: start_y / SPRITE_SHEET_HEIGHT,
+            relative_tile_width: width / SPRITE_SHEET_WIDTH,
+            relative_tile_height: height / SPRITE_SHEET_HEIGHT,
+        }
+    }
+
+    pub fn to_rect(&self) -> Rect {
+        Rect::new(
+            self.relative_start_x,
+            self.relative_start_y,
+            self.relative_tile_width,
+            self.relative_tile_height,
+        )
+    }
+
+    pub fn shadow_version(&self) -> Self {
+        // Convention is shadow sprite is at right of regular sprite
+        Self {
+            relative_start_x: self.relative_start_x + self.relative_tile_width,
+            relative_start_y: self.relative_start_y,
+            relative_tile_width: self.relative_tile_width,
+            relative_tile_height: self.relative_tile_height,
+        }
     }
 }

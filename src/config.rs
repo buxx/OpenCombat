@@ -13,9 +13,15 @@ pub struct Config {
 }
 
 // Width of sprite sheet
-pub const SCENE_ITEMS_SPRITE_SHEET_WIDTH: f32 = 800.0;
+pub const SPRITE_SHEET_WIDTH: f32 = 640.0;
 // Height of sprite sheet
-pub const SCENE_ITEMS_SPRITE_SHEET_HEIGHT: f32 = 600.0;
+pub const SPRITE_SHEET_HEIGHT: f32 = 960.0;
+pub const SOLDIER_SPRITE_HEIGHT: f32 = 12.0;
+pub const SOLDIER_SPRITE_WIDTH: f32 = 12.0;
+pub const SPRITE_SHEET_SOLDIER_COLUMN_COUNT: usize =
+    (SPRITE_SHEET_WIDTH / SOLDIER_SPRITE_WIDTH) as usize;
+pub const SPRITE_SHEET_SOLDIER_ROW_COUNT: usize =
+    (SPRITE_SHEET_HEIGHT / SOLDIER_SPRITE_HEIGHT) as usize;
 // Width of sprite sheet
 pub const UI_SPRITE_SHEET_WIDTH: f32 = 800.0;
 // Height of sprite sheet

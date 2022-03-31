@@ -1,4 +1,4 @@
-use std::{f32::consts::FRAC_PI_2, sync::atomic::AtomicUsize};
+use std::{collections::HashMap, f32::consts::FRAC_PI_2, sync::atomic::AtomicUsize};
 
 use ggez::graphics::Color;
 use glam::Vec2;
@@ -69,4 +69,15 @@ pub fn apply_angle_on_point<T: Xy>(point_to_rotate: &T, reference_point: &T, ang
         reference_point.y() + pt.0 * sin + pt.1 * cos,
     );
     T::from_xy(rotated.0, rotated.1)
+}
+
+pub fn vehicle_board_from_soldiers_on_board(soldier_on_board: &SoldiersOnBoard) -> VehicleBoard {
+    let mut vehicle_board = VehicleBoard::new();
+    for (soldier_index, (vehicle_index, place)) in soldier_on_board {
+        vehicle_board
+            .entry(*vehicle_index)
+            .or_insert(vec![])
+            .push((place.clone(), *soldier_index));
+    }
+    vehicle_board
 }

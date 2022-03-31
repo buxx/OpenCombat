@@ -1,8 +1,10 @@
-use std::f32::consts::FRAC_PI_2;
+use std::{collections::HashMap, f32::consts::FRAC_PI_2};
 
 use serde::{Deserialize, Serialize};
 
 use glam::Vec2;
+
+use crate::entity::vehicle::OnBoardPlace;
 
 pub trait Xy {
     fn from_xy(x: f32, y: f32) -> Self;
@@ -241,6 +243,9 @@ impl WorldPaths {
 pub struct SoldierIndex(pub usize);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct VehicleIndex(pub usize);
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct OrderMarkerIndex(pub usize);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -294,3 +299,9 @@ impl Angle {
         Self(f32::atan2(to_point.y - from_point.y, to_point.x - from_point.x) + FRAC_PI_2)
     }
 }
+
+pub type SoldierBoard = (VehicleIndex, OnBoardPlace);
+pub type SoldiersOnBoard = HashMap<SoldierIndex, SoldierBoard>;
+pub type VehicleBoard = HashMap<VehicleIndex, Vec<(OnBoardPlace, SoldierIndex)>>;
+pub type BoardComposition = Vec<OnBoardPlace>;
+pub type VehicleGraphicPlaces = HashMap<OnBoardPlace, Offset>;

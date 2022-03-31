@@ -1,3 +1,5 @@
+use crate::config::{SPRITE_SHEET_SOLDIER_COLUMN_COUNT, SPRITE_SHEET_SOLDIER_ROW_COUNT};
+
 use super::animation::Sprite;
 
 #[derive(Debug)]
@@ -9,10 +11,10 @@ pub enum SoldierAnimationType {
 
 impl Sprite for SoldierAnimationType {
     fn sprite_sheet_column_count(&self) -> usize {
-        8
+        SPRITE_SHEET_SOLDIER_COLUMN_COUNT
     }
     fn sprite_sheet_row_count(&self) -> usize {
-        2
+        SPRITE_SHEET_SOLDIER_ROW_COUNT
     }
 
     fn src_x_start(&self) -> f32 {
