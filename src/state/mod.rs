@@ -9,5 +9,4 @@ mod vehicle;
 
 pub enum SideEffect {
     RefreshEntityAnimation(SoldierIndex),
-    // PropagateVehiclePosition(VehicleIndex),
 }

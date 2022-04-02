@@ -116,6 +116,8 @@ impl Graphics {
             .dest(vehicle.get_world_point().to_vec2());
         sprites.push(body_sprite);
 
+        // FIXME BS NOW : There is a bug, T26 : turret should move when body is rotating (because turret is not in exact center.)
+        // Note: probably use a modified offset instead modify dest
         // Main turret
         if let Some((turret_offset, turret_sprite_info)) = sprite_infos.main_turret() {
             let turret_shadow_sprite = DrawParam::new()

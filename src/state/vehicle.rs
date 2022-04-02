@@ -1,6 +1,6 @@
 use ggez::GameResult;
 
-use crate::{message::VehicleMessage, types::*};
+use crate::{message::VehicleMessage, types::*, utils::apply_angle_on_point};
 
 use super::{shared::SharedState, SideEffect};
 
@@ -39,7 +39,10 @@ impl SharedState {
                 vehicle.set_world_point(new_world_point);
                 self.propagate_vehicle_position(vehicle_index);
             }
-            VehicleMessage::SetOrientation(angle) => vehicle.set_orientation(angle),
+            VehicleMessage::SetOrientation(angle) => {
+                vehicle.set_orientation(angle);
+                self.propagate_vehicle_position(vehicle_index);
+            }
         }
 
         vec![]
@@ -48,6 +51,7 @@ impl SharedState {
     pub fn propagate_vehicle_position(&mut self, vehicle_index: VehicleIndex) {
         let vehicle = &mut self.vehicle_mut(vehicle_index);
         let vehicle_point = vehicle.get_world_point();
+        let vehicle_orientation = vehicle.get_orientation().clone();
         let sprite_infos = vehicle.get_type().sprites_infos();
         let places = sprite_infos.places();
         let mut new_positions: Vec<(SoldierIndex, WorldPoint)> = vec![];
@@ -57,6 +61,9 @@ impl SharedState {
                 .expect("Vehicle place position coherence must be check at startup");
             let place_point =
                 WorldPoint::from_vec2(vehicle_point.to_vec2() + place_offset.to_vec2());
+            // Modify according to vehicle orientation
+            let place_point =
+                apply_angle_on_point(&place_point, &vehicle_point, &vehicle_orientation);
 
             new_positions.push((*soldier_index, place_point));
         }
