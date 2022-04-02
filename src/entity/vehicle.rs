@@ -35,6 +35,7 @@ impl VehicleType {
 pub enum OnBoardPlace {
     Driver,
     MainTurretGunner,
+    MainCommandment,
     Passenger1,
 }
 

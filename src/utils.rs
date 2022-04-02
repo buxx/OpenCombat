@@ -1,7 +1,6 @@
-use std::{collections::HashMap, f32::consts::FRAC_PI_2, sync::atomic::AtomicUsize};
+use std::{f32::consts::FRAC_PI_2, sync::atomic::AtomicUsize};
 
 use ggez::graphics::Color;
-use glam::Vec2;
 
 use crate::types::*;
 

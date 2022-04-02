@@ -12,6 +12,7 @@ use crate::network::Network;
 use crate::state::local::LocalState;
 use crate::state::shared::SharedState;
 mod animate;
+mod behavior;
 mod client;
 mod debug;
 mod draw;
@@ -26,6 +27,7 @@ mod soldier;
 mod ui;
 mod update;
 mod utils;
+mod vehicle;
 
 pub struct Engine {
     config: Config,

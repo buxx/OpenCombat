@@ -161,6 +161,41 @@ impl Xy for WindowPoint {
     }
 }
 
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Velocity {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl Velocity {
+    pub fn new(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
+    pub fn apply(self, raw: Vec2) -> Self {
+        Self {
+            x: self.x + raw.x,
+            y: self.y + raw.y,
+        }
+    }
+
+    pub fn to_vec2(self) -> Vec2 {
+        Vec2::new(self.x, self.y)
+    }
+}
+
+impl From<Vec2> for Velocity {
+    fn from(p: Vec2) -> Self {
+        Self { x: p.x, y: p.y }
+    }
+}
+
+impl Into<Vec2> for Velocity {
+    fn into(self) -> Vec2 {
+        Vec2::new(self.x.into(), self.y.into())
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct WorldPath {
     pub points: Vec<WorldPoint>,
@@ -198,6 +233,14 @@ impl WorldPath {
             Some(self.points[self.points.len() - 1])
         }
     }
+
+    pub fn first_point(&self) -> Option<WorldPoint> {
+        if self.points.is_empty() {
+            None
+        } else {
+            Some(self.points[0])
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -215,6 +258,14 @@ impl WorldPaths {
             None
         } else {
             self.paths[0].next_point()
+        }
+    }
+
+    pub fn next_path_last_point(&self) -> Option<WorldPoint> {
+        if self.paths.is_empty() {
+            None
+        } else {
+            self.paths[0].last_point()
         }
     }
 
@@ -292,6 +343,10 @@ impl Offset {
 
     pub fn to_vec2(self) -> Vec2 {
         Vec2::new(self.x, self.y)
+    }
+
+    pub fn from_vec2(vec: Vec2) -> Self {
+        Self::new(vec.x, vec.y)
     }
 }
 

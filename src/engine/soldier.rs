@@ -51,10 +51,18 @@ impl Engine {
     pub fn take_order(&self, soldier_index: SoldierIndex, order: &Order) -> Vec<Message> {
         // TODO : behavior must be given to other squad soldiers !!!! other soldiers must can accept it too (under fire etc)
         let mut messages = vec![];
+        let behavior_mode = self.soldier_behavior_mode(soldier_index);
+        let vehicle_place = self.soldier_vehicle_place(soldier_index);
+        let new_behavior = match behavior_mode {
+            crate::behavior::BehaviorMode::Ground => order.to_ground_behavior(),
+            crate::behavior::BehaviorMode::Vehicle => order.to_vehicle_behavior(
+                vehicle_place.expect("must have vehicle place if vehicle behavior mode"),
+            ),
+        };
 
         messages.push(Message::SharedState(SharedStateMessage::Soldier(
             soldier_index,
-            SoldierMessage::SetBehavior(order.to_behavior()),
+            SoldierMessage::SetBehavior(new_behavior),
         )));
 
         messages

@@ -8,32 +8,43 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {
-    Idle,
+    // Ground specific orders
     MoveTo(WorldPaths),
     MoveFastTo(WorldPaths),
     SneakTo(WorldPaths),
+    // Vehicle specific orders
+    CommandDriveTo(WorldPaths),
+    CommandRotateTo(Angle),
+    DriveTo(WorldPaths),
+    RotateTo(Angle),
+    // Common orders
+    Idle,
     Defend(Angle),
     Hide(Angle),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BehaviorMode {
+    Ground,
+    Vehicle,
 }
 
 impl Behavior {
     pub fn angle(&self, reference_point: WorldPoint) -> Option<Angle> {
         match self {
             Behavior::Idle => None,
-            Behavior::MoveTo(paths) => Some(angle(
-                &paths.next_point().expect("Must contains point"),
-                &reference_point,
-            )),
-            Behavior::MoveFastTo(paths) => Some(angle(
-                &paths.next_point().expect("Must contains point"),
-                &reference_point,
-            )),
-            Behavior::SneakTo(paths) => Some(angle(
-                &paths.next_point().expect("Must contains point"),
-                &reference_point,
-            )),
+            Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
+                Some(angle(
+                    &paths.next_point().expect("Must contains point"),
+                    &reference_point,
+                ))
+            }
             Behavior::Defend(angle) => Some(*angle),
             Behavior::Hide(angle) => Some(*angle),
+            Behavior::CommandDriveTo(_) => None,
+            Behavior::CommandRotateTo(_) => None,
+            Behavior::DriveTo(_) => None,
+            Behavior::RotateTo(_) => None,
         }
     }
 
@@ -43,8 +54,12 @@ impl Behavior {
             Behavior::MoveTo(_) => Some(MOVE_VELOCITY),
             Behavior::MoveFastTo(_) => Some(MOVE_FAST_VELOCITY),
             Behavior::SneakTo(_) => Some(MOVE_HIDE_VELOCITY),
+            Behavior::CommandDriveTo(_) => None,
             Behavior::Defend(_) => None,
             Behavior::Hide(_) => None,
+            Behavior::CommandRotateTo(_) => None,
+            Behavior::DriveTo(_) => None,
+            Behavior::RotateTo(_) => None,
         }
     }
 
@@ -52,13 +67,19 @@ impl Behavior {
         match self {
             // FIXME BS NOW : Look like client reach it when client started before server
             Behavior::Idle => unreachable!(),
-            Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
+            Behavior::MoveTo(paths)
+            | Behavior::MoveFastTo(paths)
+            | Behavior::SneakTo(paths)
+            | Behavior::DriveTo(paths)
+            | Behavior::CommandDriveTo(paths) => {
                 paths
                     .remove_next_point()
                     .expect("Reach a move behavior implies containing point");
             }
             Behavior::Defend(_) => unreachable!(),
             Behavior::Hide(_) => unreachable!(),
+            Behavior::CommandRotateTo(_) => unreachable!(),
+            Behavior::RotateTo(_) => unreachable!(),
         }
     }
 
@@ -70,6 +91,10 @@ impl Behavior {
             Behavior::SneakTo(paths) => Some(Order::SneakTo(paths.clone())),
             Behavior::Defend(angle) => Some(Order::Defend(*angle)),
             Behavior::Hide(angle) => Some(Order::Hide(*angle)),
+            Behavior::CommandDriveTo(paths) => Some(Order::MoveTo(paths.clone())),
+            Behavior::CommandRotateTo(angle) => None,
+            Behavior::DriveTo(paths) => Some(Order::MoveTo(paths.clone())),
+            Behavior::RotateTo(angle) => None,
         }
     }
 }

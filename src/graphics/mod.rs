@@ -104,7 +104,7 @@ impl Graphics {
         let body_sprite = DrawParam::new()
             .src(sprite_infos.body().shadow_version().to_rect())
             .offset(Offset::new(0.5, 0.5).to_vec2())
-            .rotation(Angle(0.).0)
+            .rotation(vehicle.get_orientation().0)
             .dest(vehicle.get_world_point().to_vec2() + shadow_offset);
         sprites.push(body_sprite);
 
@@ -112,7 +112,7 @@ impl Graphics {
         let body_sprite = DrawParam::new()
             .src(sprite_infos.body().to_rect())
             .offset(Offset::new(0.5, 0.5).to_vec2())
-            .rotation(Angle(0.).0)
+            .rotation(vehicle.get_orientation().0)
             .dest(vehicle.get_world_point().to_vec2());
         sprites.push(body_sprite);
 

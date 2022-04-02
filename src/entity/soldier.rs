@@ -89,6 +89,10 @@ impl Soldier {
             Behavior::SneakTo(_) => todo!(),
             Behavior::Defend(_) => todo!(),
             Behavior::Hide(_) => todo!(),
+            Behavior::CommandDriveTo(_) => SoldierAnimationType::Idle,
+            Behavior::CommandRotateTo(_) => SoldierAnimationType::Idle,
+            Behavior::DriveTo(_) => SoldierAnimationType::Idle,
+            Behavior::RotateTo(_) => SoldierAnimationType::Idle,
         };
         Box::new(animation_type)
     }

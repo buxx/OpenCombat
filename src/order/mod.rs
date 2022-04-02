@@ -1,4 +1,4 @@
-use crate::{behavior::Behavior, types::*};
+use crate::{behavior::Behavior, entity::vehicle::OnBoardPlace, types::*};
 use serde::{Deserialize, Serialize};
 
 use self::marker::OrderMarker;
@@ -43,13 +43,32 @@ pub enum Order {
 }
 
 impl Order {
-    pub fn to_behavior(&self) -> Behavior {
+    pub fn to_ground_behavior(&self) -> Behavior {
         match self {
             Order::MoveTo(paths) => Behavior::MoveTo(paths.clone()),
             Order::MoveFastTo(paths) => Behavior::MoveFastTo(paths.clone()),
             Order::SneakTo(paths) => Behavior::SneakTo(paths.clone()),
             Order::Defend(angle) => Behavior::Defend(angle.clone()),
             Order::Hide(angle) => Behavior::Hide(angle.clone()),
+        }
+    }
+    pub fn to_vehicle_behavior(&self, place: &OnBoardPlace) -> Behavior {
+        match place {
+            OnBoardPlace::Driver => match self {
+                Order::MoveTo(paths) => Behavior::DriveTo(paths.clone()),
+                Order::MoveFastTo(paths) => Behavior::DriveTo(paths.clone()),
+                Order::SneakTo(paths) => Behavior::DriveTo(paths.clone()),
+                Order::Defend(angle) => Behavior::RotateTo(angle.clone()),
+                Order::Hide(angle) => Behavior::RotateTo(angle.clone()),
+            },
+            OnBoardPlace::MainCommandment => match self {
+                Order::MoveTo(paths) => Behavior::CommandDriveTo(paths.clone()),
+                Order::MoveFastTo(paths) => Behavior::CommandDriveTo(paths.clone()),
+                Order::SneakTo(paths) => Behavior::CommandDriveTo(paths.clone()),
+                Order::Defend(angle) => Behavior::CommandRotateTo(angle.clone()),
+                Order::Hide(angle) => Behavior::CommandRotateTo(angle.clone()),
+            },
+            _ => unreachable!("This code should never been called on other place"),
         }
     }
 
