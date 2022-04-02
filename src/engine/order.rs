@@ -12,7 +12,6 @@ impl Engine {
         if let Some(world_paths) =
             self.create_world_paths_from_context(squad_id, order_marker_index, cached_points)
         {
-            dbg!(&world_paths);
             return Some(Order::MoveTo(world_paths));
         }
 

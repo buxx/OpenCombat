@@ -1,4 +1,9 @@
-use crate::{entity::vehicle::OnBoardPlace, message::*, types::*, utils::angle};
+use crate::{
+    entity::vehicle::OnBoardPlace,
+    message::*,
+    types::*,
+    utils::{angle, short_angle_way},
+};
 
 use super::Engine;
 
@@ -23,13 +28,27 @@ impl Engine {
             .expect("Execute drive update imply move path is filled");
         let angle = angle(&move_target_point, &position);
 
-        let position = vehicle.get_world_point();
-        dbg!((position, move_target_point, angle));
-
-        // FIXME : fake, it must be progressive ...
-        vec![Message::SharedState(SharedStateMessage::Vehicle(
-            vehicle_index,
-            VehicleMessage::SetOrientation(angle),
-        ))]
+        // Vehicle match with next point direction ?
+        dbg!(
+            angle,
+            (vehicle.get_orientation().0 * 100.0).round().abs(),
+            (angle.0 * 100.).round().abs()
+        );
+        if (vehicle.get_orientation().0 * 100.0).round().abs() == (angle.0 * 100.).round().abs() {
+            vec![]
+        } else {
+            let new_orientation = match short_angle_way(vehicle.get_orientation(), &angle) {
+                crate::utils::AngleWay::ClockWise => {
+                    *vehicle.get_orientation() + vehicle.get_type().rotation_speed()
+                }
+                crate::utils::AngleWay::CounterClockWise => {
+                    *vehicle.get_orientation() + (-vehicle.get_type().rotation_speed())
+                }
+            };
+            vec![Message::SharedState(SharedStateMessage::Vehicle(
+                vehicle_index,
+                VehicleMessage::SetOrientation(new_orientation),
+            ))]
+        }
     }
 }

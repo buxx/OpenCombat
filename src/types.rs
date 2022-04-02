@@ -1,4 +1,8 @@
-use std::{collections::HashMap, f32::consts::FRAC_PI_2};
+use std::{
+    collections::HashMap,
+    f32::consts::FRAC_PI_2,
+    ops::{Add, Neg},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -356,6 +360,22 @@ pub struct Angle(pub f32);
 impl Angle {
     pub fn from_points(to_point: &Vec2, from_point: &Vec2) -> Self {
         Self(f32::atan2(to_point.y - from_point.y, to_point.x - from_point.x) + FRAC_PI_2)
+    }
+}
+
+impl Add for Angle {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self(self.0 + other.0)
+    }
+}
+
+impl Neg for Angle {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Self(-self.0)
     }
 }
 

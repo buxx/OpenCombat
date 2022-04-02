@@ -80,3 +80,34 @@ pub fn vehicle_board_from_soldiers_on_board(soldier_on_board: &SoldiersOnBoard) 
     }
     vehicle_board
 }
+
+pub enum AngleWay {
+    ClockWise,
+    CounterClockWise,
+}
+
+pub fn short_angle_way(current: &Angle, target: &Angle) -> AngleWay {
+    let a = target.0 - current.0;
+    let b = a + 360.;
+    let c = a - 360.;
+
+    if a.abs() < b.abs() && a.abs() < c.abs() {
+        if a < 0. {
+            AngleWay::CounterClockWise
+        } else {
+            AngleWay::ClockWise
+        }
+    } else if b.abs() < a.abs() && b.abs() < c.abs() {
+        if b < 0. {
+            AngleWay::CounterClockWise
+        } else {
+            AngleWay::ClockWise
+        }
+    } else {
+        if c < 0. {
+            AngleWay::CounterClockWise
+        } else {
+            AngleWay::ClockWise
+        }
+    }
+}

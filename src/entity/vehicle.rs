@@ -16,6 +16,12 @@ impl VehicleType {
         }
     }
 
+    pub fn rotation_speed(&self) -> Angle {
+        match self {
+            VehicleType::T26 => Angle(0.00125),
+        }
+    }
+
     pub fn sprites_infos(&self) -> VehicleGraphicInfos {
         match self {
             VehicleType::T26 => VehicleGraphicInfos::tank(
