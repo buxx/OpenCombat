@@ -1,4 +1,5 @@
 use crate::{
+    config::TARGET_FPS,
     graphics::{vehicle::VehicleGraphicInfos, SpriteInfo},
     types::*,
 };
@@ -19,6 +20,12 @@ impl VehicleType {
     pub fn rotation_speed(&self) -> Angle {
         match self {
             VehicleType::T26 => Angle(0.00125),
+        }
+    }
+
+    pub fn drive_speed(&self) -> f32 {
+        match self {
+            VehicleType::T26 => 5.0 / TARGET_FPS as f32,
         }
     }
 

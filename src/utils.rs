@@ -111,3 +111,17 @@ pub fn short_angle_way(current: &Angle, target: &Angle) -> AngleWay {
         }
     }
 }
+
+pub fn short_angle(current: &Angle, target: &Angle) -> Angle {
+    let a = target.0 - current.0;
+    let b = a + 360.;
+    let c = a - 360.;
+
+    if a.abs() < b.abs() && a.abs() < c.abs() {
+        Angle(a)
+    } else if b.abs() < a.abs() && b.abs() < c.abs() {
+        Angle(b)
+    } else {
+        Angle(c)
+    }
+}
