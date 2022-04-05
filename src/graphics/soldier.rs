@@ -1,4 +1,7 @@
-use crate::config::{SPRITE_SHEET_SOLDIER_COLUMN_COUNT, SPRITE_SHEET_SOLDIER_ROW_COUNT};
+use crate::config::{
+    SPRITE_SHEET_SOLDIER_LYING_COLUMN_COUNT, SPRITE_SHEET_SOLDIER_LYING_ROW_COUNT,
+    SPRITE_SHEET_SOLDIER_STAND_COLUMN_COUNT, SPRITE_SHEET_SOLDIER_STAND_ROW_COUNT,
+};
 
 use super::animation::Sprite;
 
@@ -7,14 +10,30 @@ pub enum SoldierAnimationType {
     Idle,
     Walking,
     Running,
+    Crawling,
+    LyingDown,
 }
 
 impl Sprite for SoldierAnimationType {
     fn sprite_sheet_column_count(&self) -> usize {
-        SPRITE_SHEET_SOLDIER_COLUMN_COUNT
+        match self {
+            SoldierAnimationType::Idle
+            | SoldierAnimationType::Walking
+            | SoldierAnimationType::Running => SPRITE_SHEET_SOLDIER_STAND_COLUMN_COUNT,
+            SoldierAnimationType::Crawling | SoldierAnimationType::LyingDown => {
+                SPRITE_SHEET_SOLDIER_LYING_COLUMN_COUNT
+            }
+        }
     }
     fn sprite_sheet_row_count(&self) -> usize {
-        SPRITE_SHEET_SOLDIER_ROW_COUNT
+        match self {
+            SoldierAnimationType::Idle
+            | SoldierAnimationType::Walking
+            | SoldierAnimationType::Running => SPRITE_SHEET_SOLDIER_STAND_ROW_COUNT,
+            SoldierAnimationType::Crawling | SoldierAnimationType::LyingDown => {
+                SPRITE_SHEET_SOLDIER_LYING_ROW_COUNT
+            }
+        }
     }
 
     fn src_x_start(&self) -> f32 {
@@ -30,6 +49,8 @@ impl Sprite for SoldierAnimationType {
             SoldierAnimationType::Idle => 0,
             SoldierAnimationType::Walking => 1,
             SoldierAnimationType::Running => 1,
+            SoldierAnimationType::Crawling => 1,
+            SoldierAnimationType::LyingDown => 2,
         };
 
         row as f32 / self.sprite_sheet_row_count() as f32
@@ -40,6 +61,8 @@ impl Sprite for SoldierAnimationType {
             SoldierAnimationType::Idle => 2,
             SoldierAnimationType::Walking => 8,
             SoldierAnimationType::Running => 8,
+            SoldierAnimationType::Crawling => 5,
+            SoldierAnimationType::LyingDown => 2,
         }
     }
 
@@ -56,6 +79,8 @@ impl Sprite for SoldierAnimationType {
             SoldierAnimationType::Idle => 1.,
             SoldierAnimationType::Walking => 4.,
             SoldierAnimationType::Running => 2.,
+            SoldierAnimationType::Crawling => 4.,
+            SoldierAnimationType::LyingDown => 1.,
         }
     }
 }
