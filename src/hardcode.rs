@@ -15,7 +15,7 @@ pub fn shared_state_fixtures() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) 
     let mut vehicles = vec![];
     let mut boards = SoldiersOnBoard::new();
 
-    for x in 0..1 {
+    for x in 0..2 {
         let squad = utils::new_squad_uuid();
         for y in 0..10 {
             // let x: f32 = rng.gen_range(0.0..800.0);
