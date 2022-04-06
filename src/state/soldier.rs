@@ -21,7 +21,11 @@ impl SharedState {
                 return vec![SideEffect::RefreshEntityAnimation(soldier_index)];
             }
             SoldierMessage::SetOrientation(angle) => soldier.set_looking_direction(angle),
-            SoldierMessage::ReachBehaviorStep => soldier.get_behavior_mut().reach_step(),
+            SoldierMessage::ReachBehaviorStep => {
+                if soldier.get_behavior_mut().reach_step() {
+                    return vec![SideEffect::SoldierFinishHisBehavior(soldier_index)];
+                }
+            }
         }
 
         vec![]

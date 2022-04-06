@@ -2,6 +2,10 @@ use core::option::Option::{None, Some};
 use ggez::error::{GameError, GameResult};
 use tiled::{Image as TiledImage, Layer, LayerData, Map as TiledMap, ObjectGroup, Tileset};
 
+use crate::{config::COVER_DISTANCE, types::*, utils::grid_points_for_square};
+
+use super::{terrain::TerrainTile, Map};
+
 pub fn extract_image_from_image_layer(
     tiled_map: &TiledMap,
     layer_name: &str,
@@ -157,4 +161,43 @@ pub fn extract_tileset_images(tilesets: &Vec<Tileset>) -> GameResult<Vec<TiledIm
     }
 
     GameResult::Ok(images)
+}
+
+pub fn find_cover_grid_point(
+    from_grid_point: &GridPoint,
+    map: &Map,
+    exclude_grid_points: &Vec<GridPoint>,
+) -> Option<(GridPoint, Vec<GridPoint>)> {
+    let mut tiles: Vec<(GridPoint, &TerrainTile)> = vec![];
+    if let Some(tile) = map
+        .terrain
+        .tiles
+        .get(&(from_grid_point.x as u32, from_grid_point.y as u32))
+    {
+        tiles.push((from_grid_point.clone(), tile))
+    }
+    let grid_points_for_square =
+        grid_points_for_square(&from_grid_point, COVER_DISTANCE, COVER_DISTANCE);
+    for grid_point in grid_points_for_square {
+        if let Some(tile) = map
+            .terrain
+            .tiles
+            .get(&(grid_point.x as u32, grid_point.y as u32))
+        {
+            tiles.push((grid_point, tile))
+        }
+    }
+    tiles.sort_by(|(_, tile_a), (_, tile_b)| tile_a.opacity.partial_cmp(&tile_b.opacity).unwrap());
+
+    for (grid_point, _) in tiles.iter().rev() {
+        if !exclude_grid_points.contains(grid_point) {
+            let grid_points = tiles
+                .iter()
+                .map(|(p, _)| p.clone())
+                .collect::<Vec<GridPoint>>();
+            return Some((grid_point.clone(), grid_points));
+        }
+    }
+
+    None
 }

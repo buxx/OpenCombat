@@ -15,37 +15,47 @@ impl SharedState {
         self.squad_orders().get(&soldier_index)
     }
 
-    pub fn order_markers(&self) -> Vec<(OrderMarker, SquadUuid, WorldPoint, OrderMarkerIndex)> {
+    // TODO : this func must clone things, this is not optimal
+    pub fn order_markers(
+        &self,
+    ) -> Vec<(Order, OrderMarker, SquadUuid, WorldPoint, OrderMarkerIndex)> {
         let mut marker_data = vec![];
 
         for (squad_id, order) in self.all_orders() {
             let marker = order.marker();
             let squad = self.squad(squad_id);
-            match order {
+            match &order {
                 Order::MoveTo(world_paths)
                 | Order::MoveFastTo(world_paths)
                 | Order::SneakTo(world_paths) => {
                     // Return one couple by move path (because can have multiple move paths))
-                    marker_data
-                        .extend::<Vec<(OrderMarker, SquadUuid, WorldPoint, OrderMarkerIndex)>>(
-                            world_paths
-                                .paths
-                                .iter()
-                                .enumerate()
-                                .map(|(i, wp)| {
-                                    (
-                                        marker.clone(),
-                                        squad_id,
-                                        wp.last_point().expect("Must have point here"),
-                                        OrderMarkerIndex(i),
-                                    )
-                                })
-                                .collect(),
-                        );
+                    marker_data.extend::<Vec<(
+                        Order,
+                        OrderMarker,
+                        SquadUuid,
+                        WorldPoint,
+                        OrderMarkerIndex,
+                    )>>(
+                        world_paths
+                            .paths
+                            .iter()
+                            .enumerate()
+                            .map(|(i, wp)| {
+                                (
+                                    order.clone(),
+                                    marker.clone(),
+                                    squad_id,
+                                    wp.last_point().expect("Must have point here"),
+                                    OrderMarkerIndex(i),
+                                )
+                            })
+                            .collect(),
+                    );
                 }
                 Order::Defend(_) | Order::Hide(_) => {
                     let squad_leader = self.soldier(squad.leader());
                     marker_data.push((
+                        order.clone(),
                         marker.clone(),
                         squad_id,
                         squad_leader.get_world_point(),

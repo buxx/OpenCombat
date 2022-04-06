@@ -15,8 +15,11 @@ impl Engine {
             .velocity()
             .expect("Entity behavior must have velocity when move code called");
         let vector = (point.to_vec2() - soldier.get_world_point().to_vec2()).normalize() * velocity;
+
         // Point reached
-        if (soldier.get_world_point().to_vec2() - point.to_vec2()).length() <= vector.length() {
+        if vector.is_nan()
+            || (soldier.get_world_point().to_vec2() - point.to_vec2()).length() <= vector.length()
+        {
             // If it is the last point, move is finished
             if path.is_last_point().expect("Must contain points") {
                 messages.push(Message::SharedState(SharedStateMessage::Soldier(

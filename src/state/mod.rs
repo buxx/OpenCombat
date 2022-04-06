@@ -9,4 +9,5 @@ mod vehicle;
 
 pub enum SideEffect {
     RefreshEntityAnimation(SoldierIndex),
+    SoldierFinishHisBehavior(SoldierIndex),
 }

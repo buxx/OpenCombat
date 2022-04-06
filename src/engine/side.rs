@@ -1,4 +1,4 @@
-use crate::state::SideEffect;
+use crate::{behavior::Behavior, state::SideEffect};
 
 use super::Engine;
 
@@ -10,6 +10,10 @@ impl Engine {
                     let soldier = self.shared_state.soldier(soldier_index);
                     self.graphics
                         .refresh_soldier_animation(soldier_index, soldier);
+                }
+                SideEffect::SoldierFinishHisBehavior(soldier_index) => {
+                    let soldier = self.shared_state.soldier_mut(soldier_index);
+                    soldier.set_behavior(Behavior::Idle)
                 }
             }
         }

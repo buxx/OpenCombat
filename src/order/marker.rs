@@ -29,87 +29,20 @@ pub enum OrderMarker {
 }
 
 impl OrderMarker {
-    // pub fn new(scene_item_id: SceneItemId, order: &Order) -> Self {
-    //     match order {
-    //         Order::MoveTo(move_to_scene_point) => {
-    //             OrderMarker::MoveTo(scene_item_id, *move_to_scene_point)
-    //         }
-    //         Order::MoveFastTo(move_to_scene_point) => {
-    //             OrderMarker::MoveFastTo(scene_item_id, *move_to_scene_point)
-    //         }
-    //         Order::HideTo(move_to_scene_point) => {
-    //             OrderMarker::HideTo(scene_item_id, *move_to_scene_point)
-    //         }
-    //         Order::Defend(angle) => OrderMarker::Defend(scene_item_id, *angle),
-    //         Order::Hide(angle) => OrderMarker::Hide(scene_item_id, *angle),
-    //     }
-    // }
-
-    // pub fn get_order_marker_angle(&self) -> Angle {
-    //     match &self {
-    //         OrderMarker::MoveTo(_, _)
-    //         | OrderMarker::MoveFastTo(_, _)
-    //         | OrderMarker::HideTo(_, _)
-    //         | OrderMarker::FireTo(_, _) => 0.0,
-    //         OrderMarker::Defend(_, angle) | OrderMarker::Hide(_, angle) => *angle,
-    //     }
-    // }
-
     pub fn offset(&self) -> Offset {
-        // For unknown reason, (0.5, 0.5) produce a pixel display error
-        Offset::new(0.51, 0.51)
+        match self {
+            OrderMarker::MoveTo
+            | OrderMarker::MoveFastTo
+            | OrderMarker::SneakTo
+            | OrderMarker::FireTo => {
+                // For unknown reason, (0.5, 0.5) produce a pixel display error
+                Offset::new(0.51, 0.51)
+            }
+            OrderMarker::Defend | OrderMarker::Hide => {
+                Offset::new(DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET)
+            }
+        }
     }
-
-    // pub fn get_scene_item_id(&self) -> SceneItemId {
-    //     match self {
-    //         OrderMarker::MoveTo(scene_item_id, _)
-    //         | OrderMarker::MoveFastTo(scene_item_id, _)
-    //         | OrderMarker::HideTo(scene_item_id, _)
-    //         | OrderMarker::FireTo(scene_item_id, _)
-    //         | OrderMarker::Defend(scene_item_id, _)
-    //         | OrderMarker::Hide(scene_item_id, _) => *scene_item_id,
-    //     }
-    // }
-
-    // pub fn set_angle(&mut self, new_angle: Angle) {
-    //     match self {
-    //         OrderMarker::MoveTo(_, _)
-    //         | OrderMarker::MoveFastTo(_, _)
-    //         | OrderMarker::HideTo(_, _)
-    //         | OrderMarker::FireTo(_, _) => {
-    //             panic!("Should not be called !")
-    //         }
-    //         OrderMarker::Defend(_, angle) | OrderMarker::Hide(_, angle) => *angle = new_angle,
-    //     }
-    // }
-
-    // pub fn set_scene_point(&mut self, new_scene_point: ScenePoint) {
-    //     match self {
-    //         OrderMarker::MoveTo(_, scene_point)
-    //         | OrderMarker::MoveFastTo(_, scene_point)
-    //         | OrderMarker::HideTo(_, scene_point)
-    //         | OrderMarker::FireTo(_, scene_point) => {
-    //             // FIXME: When fire, re compute "on scene item" ?
-    //             scene_point.x = new_scene_point.x;
-    //             scene_point.y = new_scene_point.y
-    //         }
-    //         OrderMarker::Defend(_, _) | OrderMarker::Hide(_, _) => {
-    //             panic!("Should not be called !")
-    //         }
-    //     }
-    // }
-
-    // pub fn get_scene_point(&self) -> &ScenePoint {
-    //     match self {
-    //         OrderMarker::MoveTo(_, scene_point)
-    //         | OrderMarker::MoveFastTo(_, scene_point)
-    //         | OrderMarker::HideTo(_, scene_point)
-    //         | OrderMarker::FireTo(_, scene_point) => scene_point,
-    //         OrderMarker::Defend(_, _) | OrderMarker::Hide(_, _) => {
-    //             panic!("Should not be called !")
-    //         }
-    //     }
-    // }
 
     pub fn sprite_info(&self) -> OrderMarkerSpriteInfo {
         match self {

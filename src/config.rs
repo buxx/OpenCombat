@@ -59,6 +59,9 @@ pub const VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_DIFF: f32 = 50.;
 pub const DISPLAY_DEFEND_X_OFFSET: f32 = 0.5;
 pub const DISPLAY_DEFEND_Y_OFFSET: f32 = 1.5;
 
+// Grid distance to search cover point
+pub const COVER_DISTANCE: i32 = 5;
+
 impl Config {
     pub fn new(opt: &Opt) -> GameResult<Self> {
         let (network_mode, server_rep_address, server_pub_address) = (

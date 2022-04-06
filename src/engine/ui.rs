@@ -131,7 +131,8 @@ impl Engine {
             self.graphics.extend_ui_batch(sprites);
         }
 
-        for (order_marker, squad_id, point, order_marker_index) in self.shared_state.order_markers()
+        for (order, order_marker, squad_id, point, order_marker_index) in
+            self.shared_state.order_markers()
         {
             // Special case : If we are dragging this order_marker_index, don't draw it (because we only want draw the
             // dragged order marker index)
@@ -147,7 +148,7 @@ impl Engine {
                 }
             }
             let window_point = self.local_state.window_point_from_world_point(point);
-            let sprites = self.generate_order_marker_sprites(&order_marker, window_point);
+            let sprites = self.generate_order_marker_sprites(&order, &order_marker, window_point);
             self.graphics.extend_ui_batch(sprites);
         }
 

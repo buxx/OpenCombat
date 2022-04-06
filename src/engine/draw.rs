@@ -4,7 +4,7 @@ use ggez::{
 };
 
 use crate::{
-    order::{marker::OrderMarker, PendingOrder},
+    order::{marker::OrderMarker, Order, PendingOrder},
     types::*,
 };
 
@@ -114,11 +114,13 @@ impl Engine {
 
     pub fn generate_order_marker_sprites(
         &self,
+        order: &Order,
         order_marker: &OrderMarker,
         point: WindowPoint,
     ) -> Vec<DrawParam> {
         let sprite_infos = order_marker.sprite_info();
         let offset = order_marker.offset();
-        vec![sprite_infos.as_draw_params(point, Angle(0.), offset)]
+        let angle = order.angle().unwrap_or(Angle(0.));
+        vec![sprite_infos.as_draw_params(point, angle, offset)]
     }
 }

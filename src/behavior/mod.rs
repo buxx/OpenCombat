@@ -1,6 +1,7 @@
 use crate::{
     config::{MOVE_FAST_VELOCITY, MOVE_HIDE_VELOCITY, MOVE_VELOCITY},
     order::Order,
+    state::SideEffect,
     types::*,
     utils::angle,
 };
@@ -34,10 +35,11 @@ impl Behavior {
         match self {
             Behavior::Idle => None,
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
-                Some(angle(
-                    &paths.next_point().expect("Must contains point"),
-                    &reference_point,
-                ))
+                if let Some(next_point) = paths.next_point() {
+                    Some(angle(&next_point, &reference_point))
+                } else {
+                    None
+                }
             }
             Behavior::Defend(angle) => Some(*angle),
             Behavior::Hide(angle) => Some(*angle),
@@ -63,7 +65,7 @@ impl Behavior {
         }
     }
 
-    pub fn reach_step(&mut self) {
+    pub fn reach_step(&mut self) -> bool {
         match self {
             // FIXME BS NOW : Look like client reach it when client started before server
             Behavior::Idle => unreachable!(),
@@ -75,12 +77,18 @@ impl Behavior {
                 paths
                     .remove_next_point()
                     .expect("Reach a move behavior implies containing point");
+
+                if paths.next_point().is_none() {
+                    return true;
+                }
             }
             Behavior::Defend(_) => unreachable!(),
             Behavior::Hide(_) => unreachable!(),
             Behavior::CommandRotateTo(_) => unreachable!(),
             Behavior::RotateTo(_) => unreachable!(),
         }
+
+        false
     }
 
     pub fn to_order(&self) -> Option<Order> {

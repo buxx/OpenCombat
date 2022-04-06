@@ -125,3 +125,20 @@ pub fn short_angle(current: &Angle, target: &Angle) -> Angle {
         Angle(c)
     }
 }
+
+pub fn grid_points_for_square(center_point: &GridPoint, width: i32, height: i32) -> Vec<GridPoint> {
+    let mut points = vec![];
+
+    let start_x = center_point.x - (height / 2);
+    let end_x = start_x + height;
+    let start_y = center_point.y - (width / 2);
+    let end_y = start_y + width;
+
+    for x in start_x..end_x {
+        for y in start_y..end_y {
+            points.push(GridPoint::new(x, y))
+        }
+    }
+
+    points
+}

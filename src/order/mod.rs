@@ -1,4 +1,4 @@
-use crate::{behavior::Behavior, entity::vehicle::OnBoardPlace, types::*};
+use crate::{behavior::Behavior, entity::vehicle::OnBoardPlace, types::*, utils::angle};
 use serde::{Deserialize, Serialize};
 
 use self::marker::OrderMarker;
@@ -79,6 +79,14 @@ impl Order {
             Order::SneakTo(_) => OrderMarker::SneakTo,
             Order::Defend(_) => OrderMarker::Defend,
             Order::Hide(_) => OrderMarker::Hide,
+        }
+    }
+
+    pub fn angle(&self) -> Option<Angle> {
+        match self {
+            Order::MoveTo(paths) | Order::MoveFastTo(paths) | Order::SneakTo(paths) => None,
+            Order::Defend(angle) => Some(*angle),
+            Order::Hide(angle) => Some(*angle),
         }
     }
 }

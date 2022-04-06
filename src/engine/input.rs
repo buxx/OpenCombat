@@ -155,7 +155,7 @@ impl Engine {
                 )));
 
                 // Check if any order under the cursor
-                for (order_marker, squad_id, world_point, order_marker_i) in
+                for (_, order_marker, squad_id, world_point, order_marker_i) in
                     self.shared_state.order_markers()
                 {
                     let window_point = self.local_state.window_point_from_world_point(world_point);
