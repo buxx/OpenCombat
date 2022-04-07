@@ -2,6 +2,7 @@ use glam::Vec2;
 
 use crate::game::Side;
 use crate::order::PendingOrder;
+use crate::utils::DebugPoint;
 use crate::{message::*, types::*};
 
 use crate::debug::DebugLevel;
@@ -42,6 +43,8 @@ pub struct LocalState {
     )>, // ..., ..., editing move index, cached points
     /// Paths to display
     display_paths: Vec<(WorldPaths, SquadUuid)>,
+    /// Debug points to display if debug mode
+    debug_points: Vec<DebugPoint>,
 }
 
 impl LocalState {
@@ -62,6 +65,7 @@ impl LocalState {
             squad_menu: None,
             pending_order: None,
             display_paths: vec![],
+            debug_points: vec![],
         }
     }
 
@@ -162,6 +166,14 @@ impl LocalState {
         &self.display_paths
     }
 
+    pub fn debug_points_mut(&mut self) -> &mut Vec<DebugPoint> {
+        &mut self.debug_points
+    }
+
+    pub fn set_debug_points(&mut self, debug_points: Vec<DebugPoint>) {
+        self.debug_points = debug_points
+    }
+
     pub fn react(&mut self, local_state_message: LocalStateMessage) {
         match local_state_message {
             LocalStateMessage::SetCursorPoint(point) => {
@@ -211,6 +223,10 @@ impl LocalState {
                     .as_mut()
                     .expect("Add cache point imply existing pending order");
                 cached_points.push(new_point)
+            }
+            LocalStateMessage::PushDebugPoint(debug_point) => {
+                //
+                self.debug_points.push(debug_point)
             }
         }
     }

@@ -78,7 +78,7 @@ impl Engine {
         Ok(())
     }
 
-    pub fn generate_debug_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
+    pub fn generate_debug_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
         if self.local_state.get_debug().mouse() {
             self.generate_debug_mouse_meshes(mesh_builder)?;
         }
@@ -90,6 +90,10 @@ impl Engine {
 
         if self.local_state.get_debug().move_paths() {
             self.generate_move_paths_meshes(mesh_builder)?
+        }
+
+        if self.local_state.get_debug().formation_positions() {
+            self.generate_formation_positions_meshes(mesh_builder)?
         }
 
         Ok(())

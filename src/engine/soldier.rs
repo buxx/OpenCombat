@@ -5,6 +5,7 @@ use crate::{
     order::Order,
     physics::path::find_path,
     types::*,
+    utils::DebugPoint,
 };
 use rayon::prelude::*;
 
@@ -155,13 +156,12 @@ impl Engine {
                 find_cover_grid_point(&grid_point, &self.map, &already_used_cover_grid_points)
             {
                 for debug_grid_point in debug_grid_points.iter() {
-                    // FIXME BS NOW : re implement debug point
-                    // messages.push(Message::MainStateMessage(MainStateModifier::NewDebugPoint(
-                    //     DebugPoint {
-                    //         frame_i: frame_i + 120,
-                    //         scene_point: scene_point_from_grid_point(debug_grid_point, map),
-                    //     },
-                    // )))
+                    messages.push(Message::LocalState(LocalStateMessage::PushDebugPoint(
+                        DebugPoint {
+                            frame_i: self.local_state.get_frame_i() + 120,
+                            point: self.world_point_from_grid_point(*debug_grid_point),
+                        },
+                    )))
                 }
 
                 let from_world_point = soldier.get_world_point();

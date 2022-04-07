@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::{f32::consts::FRAC_PI_2, sync::atomic::AtomicUsize};
 
 use ggez::graphics::Color;
@@ -141,4 +142,10 @@ pub fn grid_points_for_square(center_point: &GridPoint, width: i32, height: i32)
     }
 
     points
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct DebugPoint {
+    pub frame_i: u64,
+    pub point: WorldPoint,
 }

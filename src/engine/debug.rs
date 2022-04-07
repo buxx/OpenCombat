@@ -5,6 +5,7 @@ use ggez::{
 
 use crate::{
     behavior::Behavior,
+    game::squad::{squad_positions, Formation},
     utils::{BLUE, YELLOW},
 };
 
@@ -64,6 +65,37 @@ impl Engine {
                 }
             }
         }
+
+        Ok(())
+    }
+
+    pub fn generate_formation_positions_meshes(
+        &mut self,
+        mesh_builder: &mut MeshBuilder,
+    ) -> GameResult {
+        // Display selected squad formation positions
+        for squad_id in self.local_state.selected_squads() {
+            let squad = self.shared_state.squad(*squad_id);
+            let leader = self.shared_state.soldier(squad.leader());
+            for (_, point) in squad_positions(squad, Formation::Line, &self.shared_state) {
+                mesh_builder.circle(DrawMode::fill(), point.to_vec2(), 2.0, 2.0, YELLOW)?;
+            }
+        }
+
+        let mut debug_points_left = vec![];
+        while let Some(debug_point) = self.local_state.debug_points_mut().pop() {
+            if debug_point.frame_i >= self.local_state.get_frame_i() {
+                mesh_builder.circle(
+                    DrawMode::fill(),
+                    debug_point.point.to_vec2(),
+                    2.0,
+                    2.0,
+                    BLUE,
+                )?;
+                debug_points_left.push(debug_point);
+            }
+        }
+        self.local_state.set_debug_points(debug_points_left);
 
         Ok(())
     }

@@ -4,6 +4,7 @@ use crate::{
     order::{Order, PendingOrder},
     sync::StateCopy,
     types::*,
+    utils::DebugPoint,
 };
 use serde::{Deserialize, Serialize};
 
@@ -46,6 +47,7 @@ pub enum LocalStateMessage {
     AddCachePointToPendingOrder(WorldPoint),
     SetDisplayPaths(Vec<(WorldPaths, SquadUuid)>),
     PushUIEvent(UIEvent),
+    PushDebugPoint(DebugPoint),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
