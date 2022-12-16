@@ -1,7 +1,5 @@
 use ggez::Context;
 
-use crate::state::SideEffect;
-
 use super::Engine;
 
 impl Engine {

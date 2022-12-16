@@ -4,6 +4,7 @@ use ggez::{
     graphics::{self, spritebatch::SpriteBatch, DrawParam, FilterMode, Image, MeshBuilder, Rect},
     Context, GameResult,
 };
+use glam::Vec2;
 use keyframe::{AnimationSequence, EasingFunction};
 use keyframe_derive::CanTween;
 
@@ -97,7 +98,7 @@ impl Graphics {
         vehicle: &Vehicle,
     ) -> Vec<graphics::DrawParam> {
         let sprite_infos = vehicle.get_type().sprites_infos();
-        let shadow_offset = Offset::new(5., 5.).to_vec2();
+        let shadow_offset = RelativeOffset::new(0.05, 0.05).to_vec2();
         let mut sprites = vec![];
 
         // Vehicle body shadow
@@ -116,26 +117,20 @@ impl Graphics {
             .dest(vehicle.get_world_point().to_vec2());
         sprites.push(body_sprite);
 
-        // FIXME BS NOW : There is a bug, T26 : turret should move when body is rotating (because turret is not in exact center.)
-        // Note: probably use a modified offset instead modify dest
         // Main turret
         if let Some((turret_offset, turret_sprite_info)) = sprite_infos.main_turret() {
             let turret_shadow_sprite = DrawParam::new()
-                .dest(turret_offset.to_vec2())
                 .src(turret_sprite_info.shadow_version().to_rect())
-                .offset(Offset::new(0.5, 0.5).to_vec2())
-                .rotation(Angle(45.).0)
-                .dest(
-                    vehicle.get_world_point().to_vec2() + turret_offset.to_vec2() + shadow_offset,
-                );
+                .dest(vehicle.get_world_point().to_vec2())
+                .rotation(vehicle.get_orientation().0)
+                .offset(Offset::new(0.5, 0.5).to_vec2() + turret_offset.to_vec2() + shadow_offset);
             sprites.push(turret_shadow_sprite);
 
             let turret_sprite = DrawParam::new()
-                .dest(turret_offset.to_vec2())
                 .src(turret_sprite_info.to_rect())
-                .offset(Offset::new(0.5, 0.5).to_vec2())
-                .rotation(Angle(45.).0)
-                .dest(vehicle.get_world_point().to_vec2() + turret_offset.to_vec2());
+                .dest(vehicle.get_world_point().to_vec2())
+                .rotation(vehicle.get_orientation().0)
+                .offset(Offset::new(0.5, 0.5).to_vec2() + turret_offset.to_vec2());
             sprites.push(turret_sprite);
         }
 

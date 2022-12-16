@@ -31,15 +31,20 @@ impl VehicleType {
 
     pub fn sprites_infos(&self) -> VehicleGraphicInfos {
         match self {
-            VehicleType::T26 => VehicleGraphicInfos::tank(
-                SpriteInfo::new(0., 192., 64., 96.),
-                (Offset::new(-3., 0.), SpriteInfo::new(128., 192., 64., 96.)),
-                // FIXME BS NOW : These positions must strictly match with board_composition (check it at startup ?)
-                vec![
-                    (OnBoardPlace::Driver, Offset::new(8., -16.)),
-                    (OnBoardPlace::MainTurretGunner, Offset::new(-3., 0.)),
-                ],
-            ),
+            VehicleType::T26 => {
+                VehicleGraphicInfos::tank(
+                    SpriteInfo::new(0., 192., 64., 96.),
+                    (
+                        RelativeOffset::new(0.05, 0.),
+                        SpriteInfo::new(128., 192., 64., 96.),
+                    ),
+                    // FIXME BS NOW : These positions must strictly match with board_composition (check it at startup ?)
+                    vec![
+                        (OnBoardPlace::Driver, Offset::new(8., -16.)),
+                        (OnBoardPlace::MainTurretGunner, Offset::new(-3., 0.)),
+                    ],
+                )
+            }
         }
     }
 }

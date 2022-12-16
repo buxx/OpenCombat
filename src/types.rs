@@ -355,6 +355,29 @@ impl Offset {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+pub struct RelativeOffset {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl RelativeOffset {
+    pub fn new(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
+    pub fn relative(self, dimensions: Vec2) -> Self {
+        Self {
+            x: self.x / dimensions.x,
+            y: self.y / dimensions.y,
+        }
+    }
+
+    pub fn to_vec2(self) -> Vec2 {
+        Vec2::new(self.x, self.y)
+    }
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Angle(pub f32);
 
 impl Angle {

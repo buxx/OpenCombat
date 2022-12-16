@@ -3,7 +3,7 @@ use crate::{entity::vehicle::OnBoardPlace, graphics::SpriteInfo, types::*};
 pub struct VehicleGraphicInfos {
     body: SpriteInfo,
     // Offset is the turret rotation center decal from tank sprite center
-    main_turret: Option<(Offset, SpriteInfo)>,
+    main_turret: Option<(RelativeOffset, SpriteInfo)>,
     // Offset is the place decal from tank sprite center
     places: VehicleGraphicPlaces,
 }
@@ -11,7 +11,7 @@ pub struct VehicleGraphicInfos {
 impl VehicleGraphicInfos {
     pub fn tank(
         body: SpriteInfo,
-        main_turret: (Offset, SpriteInfo),
+        main_turret: (RelativeOffset, SpriteInfo),
         places: Vec<(OnBoardPlace, Offset)>,
     ) -> Self {
         let places = places.into_iter().collect();
@@ -26,7 +26,7 @@ impl VehicleGraphicInfos {
         &self.body
     }
 
-    pub fn main_turret(&self) -> &Option<(Offset, SpriteInfo)> {
+    pub fn main_turret(&self) -> &Option<(RelativeOffset, SpriteInfo)> {
         &self.main_turret
     }
 
