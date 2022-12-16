@@ -1,4 +1,4 @@
-use crate::{behavior::Behavior, entity::vehicle::OnBoardPlace, types::*, utils::angle};
+use crate::{behavior::Behavior, entity::vehicle::OnBoardPlace, types::*};
 use serde::{Deserialize, Serialize};
 
 use self::marker::OrderMarker;
@@ -68,7 +68,20 @@ impl Order {
                 Order::Defend(angle) => Behavior::CommandRotateTo(angle.clone()),
                 Order::Hide(angle) => Behavior::CommandRotateTo(angle.clone()),
             },
-            _ => unreachable!("This code should never been called on other place"),
+            OnBoardPlace::MainTurretGunner => match self {
+                Order::MoveTo(_) => Behavior::Idle,
+                Order::MoveFastTo(_) => Behavior::Idle,
+                Order::SneakTo(_) => Behavior::Idle,
+                Order::Defend(_) => Behavior::Idle,
+                Order::Hide(_) => Behavior::Idle,
+            },
+            OnBoardPlace::Passenger1 => match self {
+                Order::MoveTo(_) => Behavior::Idle,
+                Order::MoveFastTo(_) => Behavior::Idle,
+                Order::SneakTo(_) => Behavior::Idle,
+                Order::Defend(_) => Behavior::Idle,
+                Order::Hide(_) => Behavior::Idle,
+            },
         }
     }
 
@@ -84,7 +97,7 @@ impl Order {
 
     pub fn angle(&self) -> Option<Angle> {
         match self {
-            Order::MoveTo(paths) | Order::MoveFastTo(paths) | Order::SneakTo(paths) => None,
+            Order::MoveTo(_) | Order::MoveFastTo(_) | Order::SneakTo(_) => None,
             Order::Defend(angle) => Some(*angle),
             Order::Hide(angle) => Some(*angle),
         }
