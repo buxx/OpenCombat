@@ -6,7 +6,7 @@ use ggez::{
 use crate::{
     behavior::Behavior,
     game::squad::{squad_positions, Formation},
-    utils::{BLUE, YELLOW},
+    utils::{BLUE, GREEN, RED, YELLOW},
 };
 
 use super::Engine;
@@ -76,7 +76,6 @@ impl Engine {
         // Display selected squad formation positions
         for squad_id in self.local_state.selected_squads() {
             let squad = self.shared_state.squad(*squad_id);
-            let leader = self.shared_state.soldier(squad.leader());
             for (_, point) in squad_positions(squad, Formation::Line, &self.shared_state) {
                 mesh_builder.circle(DrawMode::fill(), point.to_vec2(), 2.0, 2.0, YELLOW)?;
             }
@@ -96,6 +95,30 @@ impl Engine {
             }
         }
         self.local_state.set_debug_points(debug_points_left);
+
+        Ok(())
+    }
+
+    /// Draw circle on each soldier position
+    pub fn generate_scene_item_circles_meshes(
+        &mut self,
+        mesh_builder: &mut MeshBuilder,
+    ) -> GameResult {
+        for soldier in self.shared_state.soldiers() {
+            let color = if soldier.get_side() == self.local_state.side() {
+                GREEN
+            } else {
+                RED
+            };
+
+            mesh_builder.circle(
+                DrawMode::fill(),
+                soldier.get_world_point().to_vec2(),
+                2.0,
+                2.0,
+                color,
+            )?;
+        }
 
         Ok(())
     }

@@ -78,14 +78,17 @@ impl Engine {
         Ok(())
     }
 
+    pub fn generate_game_play_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
+        if self.local_state.get_pending_order().is_none() {
+            self.generate_select_rectangle_meshes(mesh_builder)?;
+        }
+
+        Ok(())
+    }
+
     pub fn generate_debug_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
         if self.local_state.get_debug().mouse() {
             self.generate_debug_mouse_meshes(mesh_builder)?;
-        }
-
-        // TODO : It is not the right place
-        if self.local_state.get_pending_order().is_none() {
-            self.generate_select_rectangle_meshes(mesh_builder)?;
         }
 
         if self.local_state.get_debug().move_paths() {
@@ -94,6 +97,10 @@ impl Engine {
 
         if self.local_state.get_debug().formation_positions() {
             self.generate_formation_positions_meshes(mesh_builder)?
+        }
+
+        if self.local_state.get_debug().scene_item_circles() {
+            self.generate_scene_item_circles_meshes(mesh_builder)?
         }
 
         Ok(())

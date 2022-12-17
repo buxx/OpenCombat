@@ -124,6 +124,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.generate_menu_sprites()?;
         self.generate_selection_meshes(&mut mesh_builder)?;
         self.generate_display_paths_meshes(&mut mesh_builder)?;
+        self.generate_game_play_meshes(&mut mesh_builder)?;
         self.generate_debug_meshes(&mut mesh_builder)?;
         self.generate_orders_sprites()?;
 

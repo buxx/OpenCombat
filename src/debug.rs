@@ -16,14 +16,6 @@ pub enum DebugLevel {
 }
 
 impl DebugLevel {
-    pub fn enabled(&self) -> bool {
-        match self {
-            DebugLevel::Debug0 => false,
-            DebugLevel::Debug1 => true,
-            DebugLevel::Debug2 => true,
-            DebugLevel::Debug3 => true,
-        }
-    }
     pub fn scene_item_circles(&self) -> bool {
         match self {
             DebugLevel::Debug0 => false,
