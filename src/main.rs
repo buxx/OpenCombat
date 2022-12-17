@@ -59,7 +59,7 @@ fn main() -> GameResult {
         .add_resource_path(path::PathBuf::from(format!("./{}", RESOURCE_PATH)));
     let (mut context, event_loop) = context_builder.build()?;
 
-    let map = map::Map::new("map1")?;
+    let map = map::Map::new(&mut context, "map1")?;
     let graphics = graphics::Graphics::new(&mut context, &map)?;
     let shared_state = match config.network_mode() {
         NetWorkMode::Server => {

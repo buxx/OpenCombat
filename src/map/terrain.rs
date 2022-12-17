@@ -125,6 +125,7 @@ impl TerrainTile {
     }
 }
 
+#[derive(Clone)]
 pub struct Terrain {
     pub tileset: Tileset,
     pub layer: Layer,

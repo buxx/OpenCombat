@@ -3,6 +3,10 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
+use ggez::graphics::spritebatch::SpriteBatch;
+use ggez::graphics::Image;
+use ggez::graphics::MeshBuilder;
+use ggez::Context;
 use ggez::GameError;
 use ggez::GameResult;
 use tiled::{
@@ -21,6 +25,9 @@ use crate::types::*;
 use crate::RESOURCE_PATH;
 use core::cmp;
 
+use self::util::create_debug_terrain_opacity_mesh_builder;
+use self::util::update_terrain_batch;
+
 pub mod decor;
 pub mod terrain;
 pub mod util;
@@ -35,10 +42,12 @@ pub struct Map {
     pub decor: Decor,
     pub terrain_grid_width: u32,
     pub terrain_grid_height: u32,
+    pub debug_terrain_batch: Option<SpriteBatch>,
+    pub debug_terrain_opacity_mesh_builder: Option<MeshBuilder>,
 }
 
 impl Map {
-    pub fn new(id: &str) -> GameResult<Self> {
+    pub fn new(ctx: &mut Context, id: &str) -> GameResult<Self> {
         let map_file_path_string = format!("{}/maps/{}/{}.tmx", RESOURCE_PATH, id, id);
         let map_file_path = &Path::new(&map_file_path_string);
         let map_file = File::open(map_file_path)?;
@@ -96,8 +105,6 @@ impl Map {
             }
         }
 
-        let terrain = Terrain::new(terrain_tileset, terrain_layer, terrain_image, terrain_tiles);
-
         // Decor
         let mut decor_tiles: HashMap<(u32, u32), DecorTile> = HashMap::new();
         let decor_layer: Layer = extract_layer(&tiled_map, "decor")?;
@@ -150,19 +157,38 @@ impl Map {
             }
         }
 
+        let terrain = Terrain::new(
+            terrain_tileset,
+            terrain_layer,
+            terrain_image.clone(),
+            terrain_tiles,
+        );
         let decor = Decor::new(decor_layer, decor_tilesets, decor_images, decor_tiles);
 
-        GameResult::Ok(Map {
+        let mut map = Map {
             id: id.to_string(),
             tiled_map: tiled_map.clone(),
             background_image: background_image.clone(),
             interiors_objects,
             interiors_image,
-            terrain,
+            terrain: terrain.clone(),
             decor,
             terrain_grid_width,
             terrain_grid_height,
-        })
+            debug_terrain_batch: None,
+            debug_terrain_opacity_mesh_builder: None,
+        };
+
+        let mut debug_terrain_batch = SpriteBatch::new(Image::new(
+            ctx,
+            format!("/maps/map1/{}", terrain_image.source),
+        )?);
+        debug_terrain_batch = update_terrain_batch(debug_terrain_batch, &map);
+        map.debug_terrain_batch = Some(debug_terrain_batch);
+        let debug_terrain_opacity_mesh_builder = create_debug_terrain_opacity_mesh_builder(&map)?;
+        map.debug_terrain_opacity_mesh_builder = Some(debug_terrain_opacity_mesh_builder);
+
+        GameResult::Ok(map)
     }
 
     pub fn successors(&self, from: &GridPoint) -> Vec<(GridPoint, i32)> {

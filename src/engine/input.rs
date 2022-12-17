@@ -4,7 +4,13 @@ use ggez::{
 };
 use glam::Vec2;
 
-use crate::{behavior::Behavior, debug::DebugLevel, message::*, order::Order, types::*};
+use crate::{
+    behavior::Behavior,
+    debug::{DebugLevel, DebugTerrain},
+    message::*,
+    order::Order,
+    types::*,
+};
 
 use super::Engine;
 
@@ -89,7 +95,7 @@ impl Engine {
     pub fn key_released(&self, _ctx: &mut Context, keycode: KeyCode) -> Vec<Message> {
         match keycode {
             KeyCode::F12 => {
-                let new_debug_level = match self.local_state.get_debug() {
+                let new_debug_level = match self.local_state.get_debug_level() {
                     DebugLevel::Debug0 => DebugLevel::Debug1,
                     DebugLevel::Debug1 => DebugLevel::Debug2,
                     DebugLevel::Debug2 => DebugLevel::Debug3,
@@ -97,6 +103,16 @@ impl Engine {
                 };
                 vec![Message::LocalState(LocalStateMessage::SetDebugLevel(
                     new_debug_level,
+                ))]
+            }
+            KeyCode::F11 => {
+                let new_debug_terrain = match self.local_state.get_debug_terrain() {
+                    DebugTerrain::None => DebugTerrain::Opacity,
+                    DebugTerrain::Opacity => DebugTerrain::Tiles,
+                    DebugTerrain::Tiles => DebugTerrain::None,
+                };
+                vec![Message::LocalState(LocalStateMessage::SetDebugTerrain(
+                    new_debug_terrain,
                 ))]
             }
             _ => vec![],

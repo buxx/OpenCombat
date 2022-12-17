@@ -1,6 +1,6 @@
 use crate::{
     behavior::Behavior,
-    debug::DebugLevel,
+    debug::{DebugLevel, DebugTerrain},
     order::{Order, PendingOrder},
     sync::StateCopy,
     types::*,
@@ -30,6 +30,7 @@ pub enum SharedStateMessage {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum LocalStateMessage {
     SetDebugLevel(DebugLevel),
+    SetDebugTerrain(DebugTerrain),
     SetCursorPoint(WindowPoint),
     SetLeftClickDown(Option<WindowPoint>),
     SetCurrentCursorVector(Option<(WindowPoint, WindowPoint)>),

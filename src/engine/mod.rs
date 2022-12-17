@@ -5,6 +5,7 @@ use ggez::{event, GameError};
 use ggez::{Context, GameResult};
 
 use crate::config::Config;
+use crate::debug::DebugTerrain;
 use crate::game::Side;
 use crate::graphics::Graphics;
 use crate::map::Map;
@@ -122,6 +123,8 @@ impl event::EventHandler<ggez::GameError> for Engine {
         // Draw ui
         let mut mesh_builder = MeshBuilder::new();
         self.generate_menu_sprites()?;
+
+        self.draw_debug_terrain(ctx, scene_draw_param)?;
         self.generate_debug_meshes(&mut mesh_builder)?;
         self.generate_selection_meshes(&mut mesh_builder)?;
         self.generate_display_paths_meshes(&mut mesh_builder)?;

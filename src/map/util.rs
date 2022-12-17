@@ -1,5 +1,8 @@
 use core::option::Option::{None, Some};
-use ggez::error::{GameError, GameResult};
+use ggez::{
+    error::{GameError, GameResult},
+    graphics::{spritebatch::SpriteBatch, Color, DrawMode, DrawParam, MeshBuilder, Rect},
+};
 use tiled::{Image as TiledImage, Layer, LayerData, Map as TiledMap, ObjectGroup, Tileset};
 
 use crate::{config::COVER_DISTANCE, types::*, utils::grid_points_for_square};
@@ -200,4 +203,51 @@ pub fn find_cover_grid_point(
     }
 
     None
+}
+
+pub fn update_terrain_batch(mut terrain_batch: SpriteBatch, map: &Map) -> SpriteBatch {
+    terrain_batch.clear();
+    for ((grid_x, grid_y), tile) in map.terrain.tiles.iter() {
+        let src_x = tile.tile_x as f32 * tile.relative_tile_width;
+        let src_y = tile.tile_y as f32 * tile.relative_tile_height;
+        let dest_x = *grid_x as f32 * tile.tile_width as f32;
+        let dest_y = *grid_y as f32 * tile.tile_height as f32;
+        terrain_batch.add(
+            DrawParam::new()
+                .src(Rect::new(
+                    src_x,
+                    src_y,
+                    tile.relative_tile_width,
+                    tile.relative_tile_height,
+                ))
+                .dest(WorldPoint::new(dest_x, dest_y).to_vec2()),
+        );
+    }
+
+    terrain_batch
+}
+
+pub fn create_debug_terrain_opacity_mesh_builder(map: &Map) -> GameResult<MeshBuilder> {
+    let mut debug_terrain_opacity_mesh = MeshBuilder::new();
+    for ((grid_x, grid_y), tile) in map.terrain.tiles.iter() {
+        let dest_x = *grid_x as f32 * tile.tile_width as f32;
+        let dest_y = *grid_y as f32 * tile.tile_height as f32;
+        let color_modifier = 0.6 * tile.opacity * 3.0;
+        debug_terrain_opacity_mesh.rectangle(
+            DrawMode::fill(),
+            Rect::new(
+                dest_x,
+                dest_y,
+                tile.tile_width as f32,
+                tile.tile_height as f32,
+            ),
+            Color {
+                r: 0.4 - color_modifier,
+                g: 0.4 - color_modifier,
+                b: 0.4 - color_modifier,
+                a: 1.0,
+            },
+        )?;
+    }
+    Ok(debug_terrain_opacity_mesh)
 }

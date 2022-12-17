@@ -5,7 +5,7 @@ use crate::order::PendingOrder;
 use crate::utils::DebugPoint;
 use crate::{message::*, types::*};
 
-use crate::debug::DebugLevel;
+use crate::debug::{DebugLevel, DebugTerrain};
 
 pub struct LocalState {
     /// Printed frames since start of program
@@ -19,7 +19,9 @@ pub struct LocalState {
     /// Display or not decor (trees, etc)
     pub draw_decor: bool,
     /// Current debug level to apply
-    debug: DebugLevel,
+    debug_level: DebugLevel,
+    /// Current debug level to apply
+    debug_terrain: DebugTerrain,
     /// Current WindowPoint of mouse cursor
     current_cursor_point: WindowPoint,
     /// Last instant since cursor don't move
@@ -53,9 +55,11 @@ impl LocalState {
             frame_i: 0,
             side,
             display_scene_offset: Vec2::new(0., 0.),
+            // TODO : Zoom is not correctly managed yet
             display_scene_scale: Vec2::new(1., 1.),
             draw_decor: true,
-            debug: DebugLevel::Debug0,
+            debug_level: DebugLevel::Debug0,
+            debug_terrain: DebugTerrain::None,
             current_cursor_point: WindowPoint::new(0., 0.),
             last_cursor_move_frame: 0,
             left_click_down: None,
@@ -85,8 +89,12 @@ impl LocalState {
         &self.side
     }
 
-    pub fn get_debug(&self) -> &DebugLevel {
-        &self.debug
+    pub fn get_debug_level(&self) -> &DebugLevel {
+        &self.debug_level
+    }
+
+    pub fn get_debug_terrain(&self) -> &DebugTerrain {
+        &self.debug_terrain
     }
 
     pub fn get_current_cursor_window_point(&self) -> &WindowPoint {
@@ -187,7 +195,11 @@ impl LocalState {
             }
             LocalStateMessage::SetDebugLevel(level) => {
                 //
-                self.debug = level;
+                self.debug_level = level;
+            }
+            LocalStateMessage::SetDebugTerrain(value) => {
+                //
+                self.debug_terrain = value;
             }
             LocalStateMessage::SetLeftClickDown(point) => {
                 //

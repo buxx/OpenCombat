@@ -1,9 +1,10 @@
 use ggez::{
-    graphics::{DrawParam, MeshBuilder},
-    GameResult,
+    graphics::{self, DrawParam, MeshBuilder},
+    Context, GameResult,
 };
 
 use crate::{
+    debug::DebugTerrain,
     order::{marker::OrderMarker, Order, PendingOrder},
     types::*,
 };
@@ -87,23 +88,23 @@ impl Engine {
     }
 
     pub fn generate_debug_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        if self.local_state.get_debug().mouse() {
+        if self.local_state.get_debug_level().mouse() {
             self.generate_debug_mouse_meshes(mesh_builder)?;
         }
 
-        if self.local_state.get_debug().move_paths() {
+        if self.local_state.get_debug_level().move_paths() {
             self.generate_move_paths_meshes(mesh_builder)?
         }
 
-        if self.local_state.get_debug().formation_positions() {
+        if self.local_state.get_debug_level().formation_positions() {
             self.generate_formation_positions_meshes(mesh_builder)?
         }
 
-        if self.local_state.get_debug().scene_item_circles() {
+        if self.local_state.get_debug_level().scene_item_circles() {
             self.generate_scene_item_circles_meshes(mesh_builder)?
         }
 
-        if self.local_state.get_debug().areas() {
+        if self.local_state.get_debug_level().areas() {
             self.generate_areas_meshes(mesh_builder)?
         }
 
@@ -137,5 +138,31 @@ impl Engine {
         let offset = order_marker.offset();
         let angle = order.angle().unwrap_or(Angle(0.));
         vec![sprite_infos.as_draw_params(point, angle, offset)]
+    }
+
+    pub fn draw_debug_terrain(
+        &self,
+        ctx: &mut Context,
+        draw_param: graphics::DrawParam,
+    ) -> GameResult {
+        match self.local_state.get_debug_terrain() {
+            DebugTerrain::Tiles => {
+                if let Some(debug_terrain_batch) = &self.map.debug_terrain_batch {
+                    graphics::draw(ctx, debug_terrain_batch, draw_param)?;
+                }
+            }
+            DebugTerrain::Opacity => {
+                if let Some(debug_terrain_opacity_mesh_builder) =
+                    &self.map.debug_terrain_opacity_mesh_builder
+                {
+                    let debug_terrain_opacity_mesh =
+                        debug_terrain_opacity_mesh_builder.build(ctx)?;
+                    graphics::draw(ctx, &debug_terrain_opacity_mesh, draw_param)?;
+                }
+            }
+            DebugTerrain::None => {}
+        };
+
+        Ok(())
     }
 }

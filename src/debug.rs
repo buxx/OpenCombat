@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum DebugTerrain {
     None,
     Tiles,
@@ -48,22 +48,24 @@ impl DebugLevel {
             DebugLevel::Debug3 => true,
         }
     }
-    pub fn visibilities(&self) -> bool {
-        match self {
-            DebugLevel::Debug0 => false,
-            DebugLevel::Debug1 => false,
-            DebugLevel::Debug2 => true,
-            DebugLevel::Debug3 => true,
-        }
-    }
-    pub fn scene_items_text_infos(&self) -> bool {
-        match self {
-            DebugLevel::Debug0 => false,
-            DebugLevel::Debug1 => false,
-            DebugLevel::Debug2 => false,
-            DebugLevel::Debug3 => true,
-        }
-    }
+    // TODO : import code from v1
+    // pub fn visibilities(&self) -> bool {
+    //     match self {
+    //         DebugLevel::Debug0 => false,
+    //         DebugLevel::Debug1 => false,
+    //         DebugLevel::Debug2 => true,
+    //         DebugLevel::Debug3 => true,
+    //     }
+    // }
+    // TODO : import code from v1
+    // pub fn scene_items_text_infos(&self) -> bool {
+    //     match self {
+    //         DebugLevel::Debug0 => false,
+    //         DebugLevel::Debug1 => false,
+    //         DebugLevel::Debug2 => false,
+    //         DebugLevel::Debug3 => true,
+    //     }
+    // }
     pub fn move_paths(&self) -> bool {
         match self {
             DebugLevel::Debug0 => false,
