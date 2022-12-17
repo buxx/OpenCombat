@@ -10,6 +10,7 @@ impl Engine {
 
         let mut messages = vec![];
         messages.extend(self.tick_soldiers());
+        messages.extend(self.tick_interiors());
         messages.extend(self.collect_player_inputs(ctx));
         messages.extend(self.ui_events(ctx));
         self.dispatch_as_server(&messages);

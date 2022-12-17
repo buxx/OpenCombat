@@ -96,4 +96,9 @@ impl Soldier {
         };
         Box::new(animation_type)
     }
+
+    pub fn can_see_interior(&self) -> bool {
+        // FIXME : implement alive / incapacited
+        true
+    }
 }

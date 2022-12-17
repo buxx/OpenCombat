@@ -4,7 +4,6 @@ use ggez::{
     graphics::{self, spritebatch::SpriteBatch, DrawParam, FilterMode, Image, MeshBuilder, Rect},
     Context, GameResult,
 };
-use glam::Vec2;
 use keyframe::{AnimationSequence, EasingFunction};
 use keyframe_derive::CanTween;
 
@@ -31,6 +30,8 @@ pub struct Graphics {
     ui_batch: SpriteBatch,
     // Map background sprite batch
     map_background_batch: SpriteBatch,
+    // Map interiors sprite batch
+    map_interiors_batch: SpriteBatch,
     // Map decor sprite batches
     map_decor_batches: Vec<SpriteBatch>,
     // Entity animation
@@ -42,12 +43,14 @@ impl Graphics {
         let sprites_batch = create_sprites_batch(ctx)?;
         let ui_batch = create_ui_batch(ctx)?;
         let map_background_batch = map::get_map_background_batch(ctx, map)?;
+        let map_interiors_batch = map::get_map_interiors_batch(ctx, map)?;
         let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
 
         Ok(Graphics {
             sprites_batch,
             ui_batch,
             map_background_batch,
+            map_interiors_batch,
             map_decor_batches,
             soldier_animation_sequences: HashMap::new(),
         })
@@ -55,6 +58,10 @@ impl Graphics {
 
     pub fn append_sprites_batch(&mut self, sprite: graphics::DrawParam) {
         self.sprites_batch.add(sprite);
+    }
+
+    pub fn append_interior(&mut self, sprite: graphics::DrawParam) {
+        self.map_interiors_batch.add(sprite);
     }
 
     pub fn append_ui_batch(&mut self, sprite: graphics::DrawParam) {
@@ -155,6 +162,9 @@ impl Graphics {
         // Map background sprites
         graphics::draw(ctx, &self.map_background_batch, draw_param)?;
 
+        // Map interior sprites
+        graphics::draw(ctx, &self.map_interiors_batch, draw_param)?;
+
         // Entities, explosions, etc. sprites
         graphics::draw(ctx, &self.sprites_batch, draw_param)?;
 
@@ -189,6 +199,10 @@ impl Graphics {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
         self.sprites_batch.clear();
         self.ui_batch.clear();
+    }
+
+    pub fn clear_map_interiors_batch(&mut self) {
+        self.map_interiors_batch.clear();
     }
 
     pub fn tick(&mut self, ctx: &Context) {

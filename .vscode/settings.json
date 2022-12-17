@@ -4,6 +4,7 @@
         "astar",
         "bincode",
         "gids",
+        "incapacited",
         "keymod",
         "pathfinding",
         "spritebatch",

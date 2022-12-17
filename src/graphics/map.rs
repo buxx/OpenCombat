@@ -29,6 +29,25 @@ pub fn get_map_background_batch(ctx: &mut Context, map: &Map) -> GameResult<Spri
     Ok(map_background_batch)
 }
 
+pub fn get_map_interiors_batch(ctx: &mut Context, map: &Map) -> GameResult<SpriteBatch> {
+    let map_interiors_image = Image::new(
+        ctx,
+        &Path::new(&format!(
+            "/maps/{}/{}",
+            &map.id, &map.interiors_image.source
+        )),
+    )?;
+    let mut map_interiors_batch = SpriteBatch::new(map_interiors_image);
+    // This batch will never change, add draw param once
+    map_interiors_batch.add(
+        DrawParam::new()
+            .src(Rect::new(0.0, 0.0, 1.0, 1.0))
+            .dest(ScenePoint::new(0.0, 0.0).to_vec2()),
+    );
+
+    Ok(map_interiors_batch)
+}
+
 pub fn get_map_decor_batch(ctx: &mut Context, map: &Map) -> GameResult<Vec<SpriteBatch>> {
     let mut map_decor_batches = vec![];
     for decor_tileset in map.decor.tilesets.iter() {

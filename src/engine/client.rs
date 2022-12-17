@@ -20,6 +20,7 @@ impl Engine {
         let mut messages = vec![];
         messages.extend(self.collect_player_inputs(ctx));
         messages.extend(self.ui_events(ctx));
+        messages.extend(self.tick_interiors());
         self.dispatch_as_client(&messages);
         self.react(messages);
 

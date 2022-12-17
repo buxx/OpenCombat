@@ -17,6 +17,7 @@ mod client;
 mod debug;
 mod draw;
 mod input;
+mod interior;
 mod movement;
 mod network;
 mod order;
