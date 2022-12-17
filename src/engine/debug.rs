@@ -6,7 +6,7 @@ use ggez::{
 use crate::{
     behavior::Behavior,
     game::squad::{squad_positions, Formation},
-    utils::{BLUE, GREEN, RED, YELLOW},
+    utils::{BLUE, DARK_MAGENTA, GREEN, MAGENTA, RED, YELLOW},
 };
 
 use super::Engine;
@@ -118,6 +118,39 @@ impl Engine {
                 2.0,
                 color,
             )?;
+        }
+
+        Ok(())
+    }
+
+    /// Draw selection areas
+    pub fn generate_areas_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
+        let cursor_world_point = self.local_state.get_current_cursor_world_point();
+        let cursor_window_point = self.local_state.get_current_cursor_window_point();
+
+        // Draw soldiers selection areas
+        for soldier in self.shared_state.soldiers() {
+            let selection_rect = soldier.get_selection_rect();
+            mesh_builder.rectangle(DrawMode::stroke(1.0), selection_rect, MAGENTA)?;
+        }
+
+        // Draw selection area on cursor hover scene items
+        for soldier_index in self.get_soldiers_at_point(cursor_world_point) {
+            let soldier = self.shared_state.soldier(soldier_index);
+            let selection_rect = soldier.get_selection_rect();
+            mesh_builder.rectangle(DrawMode::stroke(1.0), selection_rect, DARK_MAGENTA)?;
+        }
+
+        // Draw selection area on all order marker and hover
+        for (_, order_marker, _, world_point, _) in self.shared_state.order_markers() {
+            let selection_rect = order_marker.sprite_info().get_selection_rect(world_point);
+            mesh_builder.rectangle(DrawMode::stroke(1.0), selection_rect, MAGENTA)?;
+            if order_marker.sprite_info().contains(
+                &self.local_state.window_point_from_world_point(world_point),
+                &cursor_window_point,
+            ) {
+                mesh_builder.rectangle(DrawMode::stroke(1.0), selection_rect, DARK_MAGENTA)?;
+            }
         }
 
         Ok(())

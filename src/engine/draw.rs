@@ -12,7 +12,7 @@ use super::Engine;
 
 impl Engine {
     // TODO : don't generate sprites of non visible soldiers (hidden enemy, outside screen, etc)
-    pub fn generate_entities_sprites(&mut self) -> GameResult {
+    pub fn generate_soldiers_sprites(&mut self) -> GameResult {
         for (i, soldier) in self.shared_state.soldiers().iter().enumerate() {
             if !self.is_soldier_drawable(SoldierIndex(i)) {
                 continue;
@@ -101,6 +101,10 @@ impl Engine {
 
         if self.local_state.get_debug().scene_item_circles() {
             self.generate_scene_item_circles_meshes(mesh_builder)?
+        }
+
+        if self.local_state.get_debug().areas() {
+            self.generate_areas_meshes(mesh_builder)?
         }
 
         Ok(())

@@ -159,6 +159,7 @@ impl Engine {
                     self.shared_state.order_markers()
                 {
                     let window_point = self.local_state.window_point_from_world_point(world_point);
+                    // FIXME : Must take angle (see v1)
                     if order_marker
                         .sprite_info()
                         .contains(&window_point, &WindowPoint::new(x, y))

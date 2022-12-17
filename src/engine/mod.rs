@@ -110,7 +110,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
 
         // Draw entire scene
         self.generate_map_sprites(self.local_state.draw_decor)?;
-        self.generate_entities_sprites()?;
+        self.generate_soldiers_sprites()?;
         self.generate_vehicles_sprites()?;
 
         let scene_draw_param = graphics::DrawParam::new()
@@ -122,10 +122,10 @@ impl event::EventHandler<ggez::GameError> for Engine {
         // Draw ui
         let mut mesh_builder = MeshBuilder::new();
         self.generate_menu_sprites()?;
+        self.generate_debug_meshes(&mut mesh_builder)?;
         self.generate_selection_meshes(&mut mesh_builder)?;
         self.generate_display_paths_meshes(&mut mesh_builder)?;
         self.generate_game_play_meshes(&mut mesh_builder)?;
-        self.generate_debug_meshes(&mut mesh_builder)?;
         self.generate_orders_sprites()?;
 
         let ui_draw_param = graphics::DrawParam::new();

@@ -3,7 +3,7 @@ use crate::config::{
 };
 use crate::types::*;
 use crate::utils::{apply_angle_on_point, Rectangle};
-use ggez::graphics;
+use ggez::graphics::{self, Rect};
 
 use super::PendingOrder;
 
@@ -159,6 +159,15 @@ impl OrderMarkerSpriteInfo {
         graphics::Rect::new(
             from_point.x - self.half_width,
             from_point.y - self.half_height,
+            self.width,
+            self.height,
+        )
+    }
+
+    pub fn get_selection_rect(&self, from: WorldPoint) -> Rect {
+        Rect::new(
+            from.x - self.half_width,
+            from.y - self.half_height,
             self.width,
             self.height,
         )

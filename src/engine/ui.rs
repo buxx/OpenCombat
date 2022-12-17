@@ -54,9 +54,10 @@ impl Engine {
     }
 
     pub fn get_side_entities_at_point(&self, point: WorldPoint) -> Vec<SoldierIndex> {
-        let soldier_indexes = self.get_entities_at_point(point);
+        let soldier_indexes = self.get_soldiers_at_point(point);
         self.filter_entities_by_side(soldier_indexes)
     }
+
     fn digest_scene_select_by_click(&self, point: WindowPoint) -> Vec<Message> {
         let world_point = self.local_state.world_point_from_window_point(point);
         let soldier_indexes = self.get_side_entities_at_point(world_point);

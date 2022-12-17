@@ -35,11 +35,11 @@ impl Engine {
         soldier_indexes
     }
 
-    pub fn get_entities_at_point(&self, point: WorldPoint) -> Vec<SoldierIndex> {
+    pub fn get_soldiers_at_point(&self, point: WorldPoint) -> Vec<SoldierIndex> {
         let mut soldier_indexes = vec![];
 
-        for (i, scene_item) in self.shared_state.soldiers().iter().enumerate() {
-            let rect = scene_item.get_selection_rect();
+        for (i, soldier) in self.shared_state.soldiers().iter().enumerate() {
+            let rect = soldier.get_selection_rect();
             if rect.contains(point.to_vec2()) {
                 soldier_indexes.push(SoldierIndex(i));
             }

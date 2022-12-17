@@ -16,6 +16,7 @@ impl SharedState {
     }
 
     // TODO : this func must clone things, this is not optimal
+    // TODO : return type is too much complex
     pub fn order_markers(
         &self,
     ) -> Vec<(Order, OrderMarker, SquadUuid, WorldPoint, OrderMarkerIndex)> {
