@@ -5,7 +5,6 @@ use ggez::{event, GameError};
 use ggez::{Context, GameResult};
 
 use crate::config::Config;
-use crate::debug::DebugTerrain;
 use crate::game::Side;
 use crate::graphics::Graphics;
 use crate::map::Map;

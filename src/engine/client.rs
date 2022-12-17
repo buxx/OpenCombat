@@ -17,11 +17,11 @@ impl Engine {
         self.react(self.deal_with_sync_errors_as_client());
 
         // Collect player activity and react according to
-        let mut player_activity_messages = vec![];
-        player_activity_messages.extend(self.collect_player_inputs(ctx));
-        player_activity_messages.extend(self.ui_events(ctx));
-        self.dispatch_as_client(&player_activity_messages);
-        self.react(player_activity_messages);
+        let mut messages = vec![];
+        messages.extend(self.collect_player_inputs(ctx));
+        messages.extend(self.ui_events(ctx));
+        self.dispatch_as_client(&messages);
+        self.react(messages);
 
         self.graphics.tick(ctx);
     }
