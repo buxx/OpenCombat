@@ -115,6 +115,9 @@ impl Engine {
                     new_debug_terrain,
                 ))]
             }
+            KeyCode::F9 => {
+                vec![Message::LocalState(LocalStateMessage::ChangeSide)]
+            }
             _ => vec![],
         }
     }

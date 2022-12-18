@@ -28,7 +28,16 @@ impl Engine {
     }
 
     fn is_soldier_drawable(&self, soldier_index: SoldierIndex) -> bool {
+        let soldier = self.shared_state.soldier(soldier_index);
+
+        // Don't draw soldier which inside vehicle
         if self.shared_state.soldier_board(soldier_index).is_some() {
+            return false;
+        }
+
+        // Don't draw soldier in opposite side and not visible
+        // FIXME : except visibles
+        if soldier.get_side() != self.local_state.side() {
             return false;
         }
 

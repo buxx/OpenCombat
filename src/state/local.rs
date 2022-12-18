@@ -240,6 +240,10 @@ impl LocalState {
                 //
                 self.debug_points.push(debug_point)
             }
+            LocalStateMessage::ChangeSide => match self.side {
+                Side::A => self.side = Side::B,
+                Side::B => self.side = Side::A,
+            },
         }
     }
 }

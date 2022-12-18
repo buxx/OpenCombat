@@ -49,6 +49,7 @@ pub enum LocalStateMessage {
     SetDisplayPaths(Vec<(WorldPaths, SquadUuid)>),
     PushUIEvent(UIEvent),
     PushDebugPoint(DebugPoint),
+    ChangeSide,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
