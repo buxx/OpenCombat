@@ -8,7 +8,7 @@ Open source close combat inspired game. Presentation here: http://www.closecomba
 
 To be able to compile, please install (Debian packages example)
 
-    libudev-dev
+    libudev-dev libzmq3-dev
 
 To run:
 
