@@ -1,6 +1,7 @@
 use ggez::graphics::Rect;
 use glam::Vec2;
 
+use crate::engine::input::Control;
 use crate::game::Side;
 use crate::order::PendingOrder;
 use crate::utils::DebugPoint;
@@ -48,6 +49,8 @@ pub struct LocalState {
     display_paths: Vec<(WorldPaths, SquadUuid)>,
     /// Debug points to display if debug mode
     debug_points: Vec<DebugPoint>,
+    /// Contains currently pressed keys
+    controls: Vec<Control>,
 }
 
 impl LocalState {
@@ -71,6 +74,7 @@ impl LocalState {
             pending_order: None,
             display_paths: vec![],
             debug_points: vec![],
+            controls: vec![],
         }
     }
 
@@ -207,7 +211,7 @@ impl LocalState {
                 self.current_cursor_point = point;
                 self.last_cursor_move_frame = self.frame_i;
             }
-            LocalStateMessage::SetSceneDisplayOffset(offset) => {
+            LocalStateMessage::ApplyOnSceneDisplayOffset(offset) => {
                 //
                 self.display_scene_offset =
                     Offset::from_vec2(self.display_scene_offset.to_vec2() + offset.to_vec2());
@@ -263,6 +267,24 @@ impl LocalState {
                 //
                 self.display_scene_scale.apply(Vec2::new(factor, factor))
             }
+            LocalStateMessage::AddControl(control) => {
+                //
+                self.controls.push(control)
+            }
+            LocalStateMessage::RemoveControl(control) => {
+                // TODO : Shorter way to do the following
+                let mut new_controls = vec![];
+                for control_ in &self.controls {
+                    if control_ != &control {
+                        new_controls.push(control_.clone())
+                    }
+                }
+                self.controls = new_controls;
+            }
         }
+    }
+
+    pub fn controlling(&self, control: &Control) -> bool {
+        self.controls.contains(control)
     }
 }

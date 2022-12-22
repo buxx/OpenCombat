@@ -16,7 +16,7 @@ mod behavior;
 mod client;
 mod debug;
 mod draw;
-mod input;
+pub mod input;
 mod interior;
 mod movement;
 mod network;
@@ -158,8 +158,19 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.react(messages);
     }
 
+    fn key_down_event(
+        &mut self,
+        ctx: &mut Context,
+        keycode: KeyCode,
+        keymods: KeyMods,
+        repeat: bool,
+    ) {
+        let messages = self.collect_key_pressed(ctx, keycode, keymods, repeat);
+        self.react(messages);
+    }
+
     fn key_up_event(&mut self, ctx: &mut Context, keycode: KeyCode, _keymod: KeyMods) {
-        let messages = self.key_released(ctx, keycode);
+        let messages = self.collect_key_released(ctx, keycode);
         self.react(messages);
     }
 }

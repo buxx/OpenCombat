@@ -9,7 +9,7 @@ use crate::{
     types::*,
 };
 
-use super::Engine;
+use super::{input::Control, Engine};
 
 impl Engine {
     // TODO : don't generate sprites of non visible soldiers (hidden enemy, outside screen, etc)
@@ -80,7 +80,9 @@ impl Engine {
     }
 
     pub fn generate_game_play_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        if self.local_state.get_pending_order().is_none() {
+        if self.local_state.get_pending_order().is_none()
+            && !self.local_state.controlling(&Control::Map)
+        {
             self.generate_select_rectangle_meshes(mesh_builder)?;
         }
 

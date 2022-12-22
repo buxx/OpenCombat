@@ -1,6 +1,7 @@
 use crate::{
     behavior::Behavior,
     debug::{DebugLevel, DebugTerrain},
+    engine::input::Control,
     order::{Order, PendingOrder},
     sync::StateCopy,
     types::*,
@@ -34,7 +35,7 @@ pub enum LocalStateMessage {
     SetCursorPoint(WindowPoint),
     SetLeftClickDown(Option<WindowPoint>),
     SetCurrentCursorVector(Option<(WindowPoint, WindowPoint)>),
-    SetSceneDisplayOffset(Offset),
+    ApplyOnSceneDisplayOffset(Offset),
     SetSelectedSquads(Vec<SquadUuid>),
     SetSquadMenu(Option<(WindowPoint, SquadUuid)>),
     SetPendingOrder(
@@ -50,6 +51,8 @@ pub enum LocalStateMessage {
     PushUIEvent(UIEvent),
     PushDebugPoint(DebugPoint),
     ScaleUpdate(f32),
+    AddControl(Control),
+    RemoveControl(Control),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -81,13 +84,4 @@ pub enum NetworkMessage {
     Acknowledge,
     RequireCompleteSync,
     InitializeStateFrom(StateCopy),
-}
-
-impl Message {
-    pub fn vec_from_soldier(i: SoldierIndex, messages: Vec<SoldierMessage>) -> Vec<Message> {
-        messages
-            .into_iter()
-            .map(|m| Message::SharedState(SharedStateMessage::Soldier(i, m)))
-            .collect()
-    }
 }

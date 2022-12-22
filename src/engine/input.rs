@@ -1,18 +1,21 @@
 use ggez::{
-    event::{KeyCode, MouseButton},
+    event::{KeyCode, KeyMods, MouseButton},
     input, Context,
 };
-use glam::Vec2;
 
 use crate::{
-    behavior::Behavior,
     debug::{DebugLevel, DebugTerrain},
     message::*,
-    order::Order,
     types::*,
 };
+use serde::{Deserialize, Serialize};
 
 use super::Engine;
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+pub enum Control {
+    Map,
+}
 
 enum MoveScreenMode {
     Normal,
@@ -58,7 +61,7 @@ impl Engine {
         // Move battle scene on the window according to user keys
         if input::keyboard::is_key_pressed(ctx, KeyCode::Left) {
             messages.push(Message::LocalState(
-                LocalStateMessage::SetSceneDisplayOffset(Offset::new(
+                LocalStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
                     move_mode.to_pixels_offset(),
                     0.,
                 )),
@@ -66,7 +69,7 @@ impl Engine {
         }
         if input::keyboard::is_key_pressed(ctx, KeyCode::Right) {
             messages.push(Message::LocalState(
-                LocalStateMessage::SetSceneDisplayOffset(Offset::new(
+                LocalStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
                     -move_mode.to_pixels_offset(),
                     0.,
                 )),
@@ -74,7 +77,7 @@ impl Engine {
         }
         if input::keyboard::is_key_pressed(ctx, KeyCode::Up) {
             messages.push(Message::LocalState(
-                LocalStateMessage::SetSceneDisplayOffset(Offset::new(
+                LocalStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
                     0.,
                     move_mode.to_pixels_offset(),
                 )),
@@ -82,7 +85,7 @@ impl Engine {
         }
         if input::keyboard::is_key_pressed(ctx, KeyCode::Down) {
             messages.push(Message::LocalState(
-                LocalStateMessage::SetSceneDisplayOffset(Offset::new(
+                LocalStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
                     0.,
                     -move_mode.to_pixels_offset(),
                 )),
@@ -92,7 +95,27 @@ impl Engine {
         messages
     }
 
-    pub fn key_released(&self, _ctx: &mut Context, keycode: KeyCode) -> Vec<Message> {
+    pub fn collect_key_pressed(
+        &self,
+        _ctx: &mut Context,
+        keycode: KeyCode,
+        _keymods: KeyMods,
+        _repeat: bool,
+    ) -> Vec<Message> {
+        let mut messages = vec![];
+
+        if keycode == KeyCode::LControl || keycode == KeyCode::RControl {
+            messages.push(Message::LocalState(LocalStateMessage::AddControl(
+                Control::Map,
+            )))
+        }
+
+        messages
+    }
+
+    pub fn collect_key_released(&self, _ctx: &mut Context, keycode: KeyCode) -> Vec<Message> {
+        let mut messages = vec![];
+
         match keycode {
             KeyCode::F12 => {
                 let new_debug_level = match self.local_state.get_debug_level() {
@@ -101,9 +124,9 @@ impl Engine {
                     DebugLevel::Debug2 => DebugLevel::Debug3,
                     DebugLevel::Debug3 => DebugLevel::Debug0,
                 };
-                vec![Message::LocalState(LocalStateMessage::SetDebugLevel(
+                messages.push(Message::LocalState(LocalStateMessage::SetDebugLevel(
                     new_debug_level,
-                ))]
+                )));
             }
             KeyCode::F11 => {
                 let new_debug_terrain = match self.local_state.get_debug_terrain() {
@@ -111,12 +134,17 @@ impl Engine {
                     DebugTerrain::Opacity => DebugTerrain::Tiles,
                     DebugTerrain::Tiles => DebugTerrain::None,
                 };
-                vec![Message::LocalState(LocalStateMessage::SetDebugTerrain(
+                messages.push(Message::LocalState(LocalStateMessage::SetDebugTerrain(
                     new_debug_terrain,
-                ))]
+                )));
             }
-            _ => vec![],
-        }
+            KeyCode::LControl | KeyCode::RControl => messages.push(Message::LocalState(
+                LocalStateMessage::RemoveControl(Control::Map),
+            )),
+            _ => {}
+        };
+
+        messages
     }
 
     pub fn collect_mouse_motion(
@@ -148,6 +176,14 @@ impl Engine {
                         cursor_point,
                     ))),
                 ));
+                if self.local_state.controlling(&Control::Map) {
+                    let last_cursor_point = self.local_state.get_current_cursor_window_point();
+                    messages.push(Message::LocalState(
+                        LocalStateMessage::ApplyOnSceneDisplayOffset(Offset::from_vec2(
+                            cursor_point.to_vec2() - last_cursor_point.to_vec2(),
+                        )),
+                    ))
+                }
             }
         }
 
@@ -171,23 +207,26 @@ impl Engine {
                 )));
 
                 // Check if any order under the cursor
-                for (_, order_marker, squad_id, world_point, order_marker_i) in
-                    self.shared_state.order_markers()
-                {
-                    let window_point = self.local_state.window_point_from_world_point(world_point);
-                    // FIXME : Must take angle (see v1)
-                    if order_marker
-                        .sprite_info()
-                        .contains(&window_point, &WindowPoint::new(x, y))
+                if !self.local_state.controlling(&Control::Map) {
+                    for (_, order_marker, squad_id, world_point, order_marker_i) in
+                        self.shared_state.order_markers()
                     {
-                        messages.push(Message::LocalState(LocalStateMessage::SetPendingOrder(
-                            Some((
-                                order_marker.to_pending_order(),
-                                squad_id,
-                                Some(order_marker_i),
-                                vec![],
-                            )),
-                        )));
+                        let window_point =
+                            self.local_state.window_point_from_world_point(world_point);
+                        // FIXME : Must take angle (see v1)
+                        if order_marker
+                            .sprite_info()
+                            .contains(&window_point, &WindowPoint::new(x, y))
+                        {
+                            messages.push(Message::LocalState(LocalStateMessage::SetPendingOrder(
+                                Some((
+                                    order_marker.to_pending_order(),
+                                    squad_id,
+                                    Some(order_marker_i),
+                                    vec![],
+                                )),
+                            )));
+                        }
                     }
                 }
             }
@@ -242,7 +281,7 @@ impl Engine {
         messages
     }
 
-    pub fn collect_mouse_wheel(&self, _ctx: &mut Context, x: f32, y: f32) -> Vec<Message> {
+    pub fn collect_mouse_wheel(&self, _ctx: &mut Context, _x: f32, y: f32) -> Vec<Message> {
         let mut messages = vec![];
 
         messages.push(Message::LocalState(LocalStateMessage::ScaleUpdate(
