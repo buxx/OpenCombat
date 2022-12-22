@@ -115,8 +115,8 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.generate_vehicles_sprites()?;
 
         let scene_draw_param = graphics::DrawParam::new()
-            .dest(self.local_state.display_scene_offset)
-            .scale(self.local_state.display_scene_scale);
+            .dest(self.local_state.display_scene_offset.to_vec2())
+            .scale(self.local_state.display_scene_scale.to_vec2());
         self.graphics
             .draw_scene(ctx, self.local_state.draw_decor, scene_draw_param)?;
 
