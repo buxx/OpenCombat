@@ -61,9 +61,14 @@ impl SharedState {
 
     pub fn init_from_copy(&mut self, state_copy: StateCopy) {
         self.soldiers = vec![];
+        self.vehicles = vec![];
 
         for soldier in state_copy.soldiers() {
             self.soldiers.push(soldier.clone());
+        }
+
+        for vehicle in state_copy.vehicles() {
+            self.vehicles.push(vehicle.clone());
         }
 
         // TODO
