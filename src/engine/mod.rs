@@ -46,11 +46,10 @@ impl Engine {
         config: Config,
         graphics: Graphics,
         shared_state: SharedState,
-        side: Side,
+        local_state: LocalState,
         map: Map,
     ) -> GameResult<Engine> {
         let network = Network::new(config.clone())?;
-        let local_state = LocalState::new(side);
         let engine = Engine {
             config,
             network,
