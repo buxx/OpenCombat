@@ -338,11 +338,9 @@ impl Scale {
         Self { x, y }
     }
 
-    pub fn _apply(self, raw: Vec2) -> Self {
-        Self {
-            x: self.x + raw.x,
-            y: self.y + raw.y,
-        }
+    pub fn apply(&mut self, raw: Vec2) {
+        self.x += raw.x;
+        self.y += raw.y;
     }
 
     pub fn to_vec2(self) -> Vec2 {

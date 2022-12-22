@@ -241,4 +241,14 @@ impl Engine {
 
         messages
     }
+
+    pub fn collect_mouse_wheel(&self, _ctx: &mut Context, x: f32, y: f32) -> Vec<Message> {
+        let mut messages = vec![];
+
+        messages.push(Message::LocalState(LocalStateMessage::ScaleUpdate(
+            y / 10.0,
+        )));
+
+        messages
+    }
 }

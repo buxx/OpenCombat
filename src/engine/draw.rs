@@ -108,6 +108,8 @@ impl Engine {
             self.generate_areas_meshes(mesh_builder)?
         }
 
+        self.generate_debug_point_meshes(mesh_builder)?;
+
         Ok(())
     }
 

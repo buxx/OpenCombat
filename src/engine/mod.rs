@@ -153,6 +153,11 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.react(messages);
     }
 
+    fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
+        let messages = self.collect_mouse_wheel(ctx, x, y);
+        self.react(messages);
+    }
+
     fn key_up_event(&mut self, ctx: &mut Context, keycode: KeyCode, _keymod: KeyMods) {
         let messages = self.key_released(ctx, keycode);
         self.react(messages);

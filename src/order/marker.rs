@@ -23,7 +23,7 @@ pub enum OrderMarker {
     MoveTo,
     MoveFastTo,
     SneakTo,
-    // FireTo,
+    FireTo,
     Defend,
     Hide,
 }

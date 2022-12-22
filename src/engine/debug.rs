@@ -82,16 +82,17 @@ impl Engine {
             }
         }
 
+        Ok(())
+    }
+
+    pub fn generate_debug_point_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
         let mut debug_points_left = vec![];
         while let Some(debug_point) = self.local_state.debug_points_mut().pop() {
             if debug_point.frame_i >= self.local_state.get_frame_i() {
-                mesh_builder.circle(
-                    DrawMode::fill(),
-                    debug_point.point.to_vec2(),
-                    2.0,
-                    2.0,
-                    BLUE,
-                )?;
+                let window_point = self
+                    .local_state
+                    .window_point_from_world_point(debug_point.point);
+                mesh_builder.circle(DrawMode::fill(), window_point.to_vec2(), 2.0, 2.0, BLUE)?;
                 debug_points_left.push(debug_point);
             }
         }

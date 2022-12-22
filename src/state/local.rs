@@ -1,4 +1,5 @@
 use ggez::graphics::Rect;
+use glam::Vec2;
 
 use crate::game::Side;
 use crate::order::PendingOrder;
@@ -147,7 +148,7 @@ impl LocalState {
     pub fn window_point_from_world_point(&self, world_point: WorldPoint) -> WindowPoint {
         WindowPoint::from(
             world_point
-                .apply(self.display_scene_offset.to_vec2())
+                .apply(self.display_scene_offset.to_vec2() / self.display_scene_scale.to_vec2())
                 .to_vec2()
                 * self.display_scene_scale.to_vec2(),
         )
@@ -157,8 +158,8 @@ impl LocalState {
         let window_point =
             self.window_point_from_world_point(WorldPoint::new(world_rect.x, world_rect.y));
         Rect::new(
-            window_point.x * self.display_scene_scale.x,
-            window_point.y * self.display_scene_scale.y,
+            window_point.x,
+            window_point.y,
             world_rect.w * self.display_scene_scale.x,
             world_rect.h * self.display_scene_scale.y,
         )
@@ -257,6 +258,10 @@ impl LocalState {
             LocalStateMessage::PushDebugPoint(debug_point) => {
                 //
                 self.debug_points.push(debug_point)
+            }
+            LocalStateMessage::ScaleUpdate(factor) => {
+                //
+                self.display_scene_scale.apply(Vec2::new(factor, factor))
             }
         }
     }
