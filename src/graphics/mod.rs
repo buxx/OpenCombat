@@ -112,7 +112,7 @@ impl Graphics {
         let body_sprite = DrawParam::new()
             .src(sprite_infos.body().shadow_version().to_rect())
             .offset(Offset::new(0.5, 0.5).to_vec2())
-            .rotation(vehicle.get_orientation().0)
+            .rotation(vehicle.get_chassis_orientation().0)
             .dest(vehicle.get_world_point().to_vec2() + shadow_offset);
         sprites.push(body_sprite);
 
@@ -120,7 +120,7 @@ impl Graphics {
         let body_sprite = DrawParam::new()
             .src(sprite_infos.body().to_rect())
             .offset(Offset::new(0.5, 0.5).to_vec2())
-            .rotation(vehicle.get_orientation().0)
+            .rotation(vehicle.get_chassis_orientation().0)
             .dest(vehicle.get_world_point().to_vec2());
         sprites.push(body_sprite);
 
@@ -129,14 +129,14 @@ impl Graphics {
             let turret_shadow_sprite = DrawParam::new()
                 .src(turret_sprite_info.shadow_version().to_rect())
                 .dest(vehicle.get_world_point().to_vec2())
-                .rotation(vehicle.get_orientation().0)
+                .rotation(vehicle.get_chassis_orientation().0)
                 .offset(Offset::new(0.5, 0.5).to_vec2() + turret_offset.to_vec2() + shadow_offset);
             sprites.push(turret_shadow_sprite);
 
             let turret_sprite = DrawParam::new()
                 .src(turret_sprite_info.to_rect())
                 .dest(vehicle.get_world_point().to_vec2())
-                .rotation(vehicle.get_orientation().0)
+                .rotation(vehicle.get_chassis_orientation().0)
                 .offset(Offset::new(0.5, 0.5).to_vec2() + turret_offset.to_vec2());
             sprites.push(turret_sprite);
         }

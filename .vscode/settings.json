@@ -3,6 +3,7 @@
         "absdiff",
         "astar",
         "bincode",
+        "ggez",
         "gids",
         "incapacited",
         "keymod",

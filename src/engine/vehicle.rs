@@ -36,7 +36,7 @@ impl Engine {
         let move_vector = (move_target_point.to_vec2() - vehicle_position.to_vec2()).normalize()
             * vehicle.get_type().drive_speed();
 
-        let rounded_vehicle_orientation = (vehicle.get_orientation().0
+        let rounded_chassis_orientation = (vehicle.get_chassis_orientation().0
             * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
             .round()
             .abs();
@@ -47,24 +47,25 @@ impl Engine {
 
         let mut messages = vec![];
 
-        // Need to rotate ?
-        if rounded_vehicle_orientation != target_vehicle_orientation {
-            let new_orientation = match short_angle_way(vehicle.get_orientation(), &angle) {
+        // Need to rotate chassis ?
+        if rounded_chassis_orientation != target_vehicle_orientation {
+            let new_orientation = match short_angle_way(vehicle.get_chassis_orientation(), &angle) {
                 crate::utils::AngleWay::ClockWise => {
-                    *vehicle.get_orientation() + vehicle.get_type().rotation_speed()
+                    *vehicle.get_chassis_orientation() + vehicle.get_type().chassis_rotation_speed()
                 }
                 crate::utils::AngleWay::CounterClockWise => {
-                    *vehicle.get_orientation() + (-vehicle.get_type().rotation_speed())
+                    *vehicle.get_chassis_orientation()
+                        + (-vehicle.get_type().chassis_rotation_speed())
                 }
             };
             messages.push(Message::SharedState(SharedStateMessage::Vehicle(
                 vehicle_index,
-                VehicleMessage::SetOrientation(new_orientation),
+                VehicleMessage::SetChassisOrientation(new_orientation),
             )));
         }
 
         // Can advance ?
-        if (short_angle(vehicle.get_orientation(), &angle).0
+        if (short_angle(vehicle.get_chassis_orientation(), &angle).0
             * VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_COEFFICIENT)
             .abs()
             < VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_DIFF

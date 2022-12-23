@@ -17,9 +17,15 @@ impl VehicleType {
         }
     }
 
-    pub fn rotation_speed(&self) -> Angle {
+    pub fn chassis_rotation_speed(&self) -> Angle {
         match self {
             VehicleType::T26 => Angle(0.00125),
+        }
+    }
+
+    pub fn main_turret_rotation_speed(&self) -> Angle {
+        match self {
+            VehicleType::T26 => Angle(0.00255),
         }
     }
 
@@ -61,7 +67,8 @@ pub enum OnBoardPlace {
 pub struct Vehicle {
     type_: VehicleType,
     world_point: WorldPoint,
-    orientation: Angle,
+    chassis_orientation: Angle,
+    main_turret_relative_orientation: Angle,
 }
 
 impl Vehicle {
@@ -69,7 +76,8 @@ impl Vehicle {
         Self {
             type_,
             world_point,
-            orientation: Angle(0.),
+            chassis_orientation: Angle(0.),
+            main_turret_relative_orientation: Angle(0.),
         }
     }
 
@@ -77,7 +85,10 @@ impl Vehicle {
         Self {
             type_: vehicle.get_type().clone(),
             world_point: vehicle.get_world_point(),
-            orientation: vehicle.get_orientation().clone(),
+            chassis_orientation: vehicle.get_chassis_orientation().clone(),
+            main_turret_relative_orientation: vehicle
+                .get_main_turret_relative_orientation()
+                .clone(),
         }
     }
 
@@ -93,11 +104,19 @@ impl Vehicle {
         &self.type_
     }
 
-    pub fn get_orientation(&self) -> &Angle {
-        &self.orientation
+    pub fn get_chassis_orientation(&self) -> &Angle {
+        &self.chassis_orientation
     }
 
-    pub fn set_orientation(&mut self, orientation: Angle) {
-        self.orientation = orientation
+    pub fn get_main_turret_relative_orientation(&self) -> &Angle {
+        &self.main_turret_relative_orientation
+    }
+
+    pub fn set_chassis_orientation(&mut self, orientation: Angle) {
+        self.chassis_orientation = orientation
+    }
+
+    pub fn set_main_turret_relative_orientation(&mut self, orientation: Angle) {
+        self.main_turret_relative_orientation = orientation
     }
 }

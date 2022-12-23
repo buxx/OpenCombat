@@ -1,4 +1,5 @@
 use crate::{
+    behavior::BehaviorMode,
     game::squad::{squad_positions, Formation},
     map::util::find_cover_grid_point,
     message::*,
@@ -59,12 +60,13 @@ impl Engine {
         let behavior_mode = self.soldier_behavior_mode(soldier_index);
         let vehicle_place = self.soldier_vehicle_place(soldier_index);
         let new_behavior = match behavior_mode {
-            crate::behavior::BehaviorMode::Ground => order.to_ground_behavior(),
-            crate::behavior::BehaviorMode::Vehicle => order.to_vehicle_behavior(
+            BehaviorMode::Ground => order.to_ground_behavior(),
+            BehaviorMode::Vehicle => order.to_vehicle_behavior(
                 vehicle_place.expect("must have vehicle place if vehicle behavior mode"),
             ),
         };
 
+        // FIXME BS NOW ? propagate different quand dans vehicle ?
         if self.soldier_is_squad_leader(soldier_index) {
             match order {
                 Order::MoveTo(_)

@@ -39,8 +39,8 @@ impl SharedState {
                 vehicle.set_world_point(new_world_point);
                 self.propagate_vehicle_position(vehicle_index);
             }
-            VehicleMessage::SetOrientation(angle) => {
-                vehicle.set_orientation(angle);
+            VehicleMessage::SetChassisOrientation(angle) => {
+                vehicle.set_chassis_orientation(angle);
                 self.propagate_vehicle_position(vehicle_index);
             }
         }
@@ -51,7 +51,7 @@ impl SharedState {
     pub fn propagate_vehicle_position(&mut self, vehicle_index: VehicleIndex) {
         let vehicle = &mut self.vehicle_mut(vehicle_index);
         let vehicle_point = vehicle.get_world_point();
-        let vehicle_orientation = vehicle.get_orientation().clone();
+        let vehicle_orientation = vehicle.get_chassis_orientation().clone();
         let sprite_infos = vehicle.get_type().sprites_infos();
         let places = sprite_infos.places();
         let mut new_positions: Vec<(SoldierIndex, WorldPoint)> = vec![];

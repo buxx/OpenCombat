@@ -66,7 +66,8 @@ pub enum SoldierMessage {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum VehicleMessage {
     SetWorldPosition(WorldPoint),
-    SetOrientation(Angle),
+    SetChassisOrientation(Angle),
+    // SetMainTurretOrientation(Angle),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
