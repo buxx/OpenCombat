@@ -73,6 +73,14 @@ impl Vehicle {
         }
     }
 
+    pub fn from_vehicle(vehicle: &Vehicle) -> Self {
+        Self {
+            type_: vehicle.get_type().clone(),
+            world_point: vehicle.get_world_point(),
+            orientation: vehicle.get_orientation().clone(),
+        }
+    }
+
     pub fn get_world_point(&self) -> WorldPoint {
         self.world_point
     }

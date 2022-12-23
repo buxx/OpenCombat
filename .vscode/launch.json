@@ -51,7 +51,9 @@
                 "--server-rep-address",
                 "tcp://127.0.0.1:4255",
                 "--server-bind-address",
-                "tcp://127.0.0.1:4256"
+                "tcp://127.0.0.1:4256",
+                "--side",
+                "b"
             ],
             "cwd": "${workspaceFolder}"
         },

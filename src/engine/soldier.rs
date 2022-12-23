@@ -157,13 +157,15 @@ impl Engine {
             if let Some((cover_grid_point, debug_grid_points)) =
                 find_cover_grid_point(&grid_point, &self.map, &already_used_cover_grid_points)
             {
-                for debug_grid_point in debug_grid_points.iter() {
-                    messages.push(Message::LocalState(LocalStateMessage::PushDebugPoint(
-                        DebugPoint {
-                            frame_i: self.local_state.get_frame_i() + 120,
-                            point: self.world_point_from_grid_point(*debug_grid_point),
-                        },
-                    )))
+                if self.local_state.get_debug_level().formation_positions() {
+                    for debug_grid_point in debug_grid_points.iter() {
+                        messages.push(Message::LocalState(LocalStateMessage::PushDebugPoint(
+                            DebugPoint {
+                                frame_i: self.local_state.get_frame_i() + 120,
+                                point: self.world_point_from_grid_point(*debug_grid_point),
+                            },
+                        )))
+                    }
                 }
 
                 let from_world_point = soldier.get_world_point();

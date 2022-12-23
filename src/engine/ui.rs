@@ -18,7 +18,7 @@ use crate::{
     utils::GREEN,
 };
 
-use super::Engine;
+use super::{input::Control, Engine};
 
 impl Engine {
     pub fn generate_selected_entities_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
@@ -245,32 +245,34 @@ impl Engine {
                     )]);
                 }
                 UIEvent::FinishedCursorVector(start, end) => {
-                    if let Some((pending_order, squad_id, order_marker_index, _)) =
-                        self.local_state.get_pending_order()
-                    {
-                        if let Some(order_) = self.order_from_pending_order(
-                            pending_order,
-                            *squad_id,
-                            *order_marker_index,
-                            &vec![],
-                        ) {
-                            messages.push(Message::SharedState(
-                                SharedStateMessage::PushCommandOrder(*squad_id, order_),
-                            ))
+                    if !self.local_state.controlling(&Control::Map) {
+                        if let Some((pending_order, squad_id, order_marker_index, _)) =
+                            self.local_state.get_pending_order()
+                        {
+                            if let Some(order_) = self.order_from_pending_order(
+                                pending_order,
+                                *squad_id,
+                                *order_marker_index,
+                                &vec![],
+                            ) {
+                                messages.push(Message::SharedState(
+                                    SharedStateMessage::PushCommandOrder(*squad_id, order_),
+                                ))
+                            }
+                            messages.extend(vec![
+                                Message::LocalState(LocalStateMessage::SetPendingOrder(None)),
+                                Message::LocalState(LocalStateMessage::SetDisplayPaths(vec![])),
+                            ]);
+                        } else {
+                            let world_start = self.local_state.world_point_from_window_point(start);
+                            let world_end = self.local_state.world_point_from_window_point(end);
+                            let soldier_indexes = self.get_entities_in_area(world_start, world_end);
+                            let soldier_indexes = self.filter_entities_by_side(soldier_indexes);
+                            let squad_ids = self.squad_ids_from_entities(soldier_indexes);
+                            messages.push(Message::LocalState(
+                                LocalStateMessage::SetSelectedSquads(squad_ids),
+                            ));
                         }
-                        messages.extend(vec![
-                            Message::LocalState(LocalStateMessage::SetPendingOrder(None)),
-                            Message::LocalState(LocalStateMessage::SetDisplayPaths(vec![])),
-                        ]);
-                    } else {
-                        let world_start = self.local_state.world_point_from_window_point(start);
-                        let world_end = self.local_state.world_point_from_window_point(end);
-                        let soldier_indexes = self.get_entities_in_area(world_start, world_end);
-                        let soldier_indexes = self.filter_entities_by_side(soldier_indexes);
-                        let squad_ids = self.squad_ids_from_entities(soldier_indexes);
-                        messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
-                            squad_ids,
-                        )));
                     }
                 }
                 UIEvent::FinishedCursorRightClick(point) => {

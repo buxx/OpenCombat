@@ -1,5 +1,7 @@
+use ggez::graphics::Rect;
 use glam::Vec2;
 
+use crate::engine::input::Control;
 use crate::game::Side;
 use crate::order::PendingOrder;
 use crate::utils::DebugPoint;
@@ -13,9 +15,9 @@ pub struct LocalState {
     /// Side of game instance
     side: Side,
     /// Offset to apply to battle scene by window relative
-    pub display_scene_offset: Vec2,
+    pub display_scene_offset: Offset,
     /// Scale to apply to battle scene by window relative
-    pub display_scene_scale: Vec2,
+    pub display_scene_scale: Scale,
     /// Display or not decor (trees, etc)
     pub draw_decor: bool,
     /// Current debug level to apply
@@ -47,6 +49,8 @@ pub struct LocalState {
     display_paths: Vec<(WorldPaths, SquadUuid)>,
     /// Debug points to display if debug mode
     debug_points: Vec<DebugPoint>,
+    /// Contains currently pressed keys
+    controls: Vec<Control>,
 }
 
 impl LocalState {
@@ -54,9 +58,9 @@ impl LocalState {
         Self {
             frame_i: 0,
             side,
-            display_scene_offset: Vec2::new(0., 0.),
+            display_scene_offset: Offset::new(0., 0.),
             // TODO : Zoom is not correctly managed yet
-            display_scene_scale: Vec2::new(1., 1.),
+            display_scene_scale: Scale::new(1., 1.),
             draw_decor: true,
             debug_level: DebugLevel::Debug0,
             debug_terrain: DebugTerrain::None,
@@ -70,6 +74,7 @@ impl LocalState {
             pending_order: None,
             display_paths: vec![],
             debug_points: vec![],
+            controls: vec![],
         }
     }
 
@@ -137,13 +142,30 @@ impl LocalState {
 
     pub fn world_point_from_window_point(&self, window_point: WindowPoint) -> WorldPoint {
         WorldPoint::from(
-            window_point.apply(-self.display_scene_offset).to_vec2() / self.display_scene_scale,
+            window_point
+                .apply(-self.display_scene_offset.to_vec2())
+                .to_vec2()
+                / self.display_scene_scale.to_vec2(),
         )
     }
 
     pub fn window_point_from_world_point(&self, world_point: WorldPoint) -> WindowPoint {
         WindowPoint::from(
-            world_point.apply(self.display_scene_offset).to_vec2() * self.display_scene_scale,
+            world_point
+                .apply(self.display_scene_offset.to_vec2() / self.display_scene_scale.to_vec2())
+                .to_vec2()
+                * self.display_scene_scale.to_vec2(),
+        )
+    }
+
+    pub fn window_rect_from_world_rect(&self, world_rect: Rect) -> Rect {
+        let window_point =
+            self.window_point_from_world_point(WorldPoint::new(world_rect.x, world_rect.y));
+        Rect::new(
+            window_point.x,
+            window_point.y,
+            world_rect.w * self.display_scene_scale.x,
+            world_rect.h * self.display_scene_scale.y,
         )
     }
 
@@ -189,9 +211,10 @@ impl LocalState {
                 self.current_cursor_point = point;
                 self.last_cursor_move_frame = self.frame_i;
             }
-            LocalStateMessage::SetSceneDisplayOffset(offset) => {
+            LocalStateMessage::ApplyOnSceneDisplayOffset(offset) => {
                 //
-                self.display_scene_offset += offset.to_vec2();
+                self.display_scene_offset =
+                    Offset::from_vec2(self.display_scene_offset.to_vec2() + offset.to_vec2());
             }
             LocalStateMessage::SetDebugLevel(level) => {
                 //
@@ -244,6 +267,28 @@ impl LocalState {
                 Side::A => self.side = Side::B,
                 Side::B => self.side = Side::A,
             },
+            LocalStateMessage::ScaleUpdate(factor) => {
+                //
+                self.display_scene_scale.apply(Vec2::new(factor, factor))
+            }
+            LocalStateMessage::AddControl(control) => {
+                //
+                self.controls.push(control)
+            }
+            LocalStateMessage::RemoveControl(control) => {
+                // TODO : Shorter way to do the following
+                let mut new_controls = vec![];
+                for control_ in &self.controls {
+                    if control_ != &control {
+                        new_controls.push(control_.clone())
+                    }
+                }
+                self.controls = new_controls;
+            }
         }
+    }
+
+    pub fn controlling(&self, control: &Control) -> bool {
+        self.controls.contains(control)
     }
 }

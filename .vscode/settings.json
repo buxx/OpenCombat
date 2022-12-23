@@ -6,6 +6,7 @@
         "gids",
         "incapacited",
         "keymod",
+        "keymods",
         "pathfinding",
         "spritebatch",
         "tilesets",

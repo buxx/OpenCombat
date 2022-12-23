@@ -77,20 +77,22 @@ impl Engine {
         for squad_id in self.local_state.selected_squads() {
             let squad = self.shared_state.squad(*squad_id);
             for (_, point) in squad_positions(squad, Formation::Line, &self.shared_state) {
-                mesh_builder.circle(DrawMode::fill(), point.to_vec2(), 2.0, 2.0, YELLOW)?;
+                let window_point = self.local_state.window_point_from_world_point(point);
+                mesh_builder.circle(DrawMode::fill(), window_point.to_vec2(), 2.0, 2.0, YELLOW)?;
             }
         }
 
+        Ok(())
+    }
+
+    pub fn generate_debug_point_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
         let mut debug_points_left = vec![];
         while let Some(debug_point) = self.local_state.debug_points_mut().pop() {
             if debug_point.frame_i >= self.local_state.get_frame_i() {
-                mesh_builder.circle(
-                    DrawMode::fill(),
-                    debug_point.point.to_vec2(),
-                    2.0,
-                    2.0,
-                    BLUE,
-                )?;
+                let window_point = self
+                    .local_state
+                    .window_point_from_world_point(debug_point.point);
+                mesh_builder.circle(DrawMode::fill(), window_point.to_vec2(), 2.0, 2.0, BLUE)?;
                 debug_points_left.push(debug_point);
             }
         }
@@ -111,13 +113,10 @@ impl Engine {
                 RED
             };
 
-            mesh_builder.circle(
-                DrawMode::fill(),
-                soldier.get_world_point().to_vec2(),
-                2.0,
-                2.0,
-                color,
-            )?;
+            let point = self
+                .local_state
+                .window_point_from_world_point(soldier.get_world_point());
+            mesh_builder.circle(DrawMode::fill(), point.to_vec2(), 2.0, 2.0, color)?;
         }
 
         Ok(())
@@ -130,26 +129,32 @@ impl Engine {
 
         // Draw soldiers selection areas
         for soldier in self.shared_state.soldiers() {
-            let selection_rect = soldier.get_selection_rect();
-            mesh_builder.rectangle(DrawMode::stroke(1.0), selection_rect, MAGENTA)?;
+            let rect = self
+                .local_state
+                .window_rect_from_world_rect(soldier.get_selection_rect());
+            mesh_builder.rectangle(DrawMode::stroke(1.0), rect, MAGENTA)?;
         }
 
         // Draw selection area on cursor hover scene items
         for soldier_index in self.get_soldiers_at_point(cursor_world_point) {
             let soldier = self.shared_state.soldier(soldier_index);
-            let selection_rect = soldier.get_selection_rect();
-            mesh_builder.rectangle(DrawMode::stroke(1.0), selection_rect, DARK_MAGENTA)?;
+            let rect = self
+                .local_state
+                .window_rect_from_world_rect(soldier.get_selection_rect());
+            mesh_builder.rectangle(DrawMode::stroke(1.0), rect, DARK_MAGENTA)?;
         }
 
-        // Draw selection area on all order marker and hover
+        // Draw selection area on all hovered soldiers
         for (_, order_marker, _, world_point, _) in self.shared_state.order_markers() {
-            let selection_rect = order_marker.sprite_info().get_selection_rect(world_point);
-            mesh_builder.rectangle(DrawMode::stroke(1.0), selection_rect, MAGENTA)?;
+            let rect = self.local_state.window_rect_from_world_rect(
+                order_marker.sprite_info().get_selection_rect(world_point),
+            );
+            mesh_builder.rectangle(DrawMode::stroke(1.0), rect, MAGENTA)?;
             if order_marker.sprite_info().contains(
                 &self.local_state.window_point_from_world_point(world_point),
                 &cursor_window_point,
             ) {
-                mesh_builder.rectangle(DrawMode::stroke(1.0), selection_rect, DARK_MAGENTA)?;
+                mesh_builder.rectangle(DrawMode::stroke(1.0), rect, DARK_MAGENTA)?;
             }
         }
 

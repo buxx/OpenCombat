@@ -3,6 +3,7 @@ use std::path;
 use game::Side;
 use ggez::event;
 use ggez::GameResult;
+use state::local::LocalState;
 use state::shared::SharedState;
 
 mod behavior;
@@ -49,6 +50,9 @@ pub struct Opt {
 
     #[structopt(long = "--server-bind-address")]
     server_pub_address: String,
+
+    #[structopt(short = "s", long = "side", default_value = "a")]
+    side: Side,
 }
 
 fn main() -> GameResult {
@@ -68,6 +72,7 @@ fn main() -> GameResult {
         }
         NetWorkMode::Client => SharedState::new(vec![], vec![], SoldiersOnBoard::new()),
     };
-    let engine = engine::Engine::new(config, graphics, shared_state, Side::A, map)?;
+    let local_state = LocalState::new(opt.side);
+    let engine = engine::Engine::new(config, graphics, shared_state, local_state, map)?;
     event::run(context, event_loop, engine)
 }

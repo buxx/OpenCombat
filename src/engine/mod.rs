@@ -16,7 +16,7 @@ mod behavior;
 mod client;
 mod debug;
 mod draw;
-mod input;
+pub mod input;
 mod interior;
 mod movement;
 mod network;
@@ -46,11 +46,10 @@ impl Engine {
         config: Config,
         graphics: Graphics,
         shared_state: SharedState,
-        side: Side,
+        local_state: LocalState,
         map: Map,
     ) -> GameResult<Engine> {
         let network = Network::new(config.clone())?;
-        let local_state = LocalState::new(side);
         let engine = Engine {
             config,
             network,
@@ -115,8 +114,8 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.generate_vehicles_sprites()?;
 
         let scene_draw_param = graphics::DrawParam::new()
-            .dest(self.local_state.display_scene_offset)
-            .scale(self.local_state.display_scene_scale);
+            .dest(self.local_state.display_scene_offset.to_vec2())
+            .scale(self.local_state.display_scene_scale.to_vec2());
         self.graphics
             .draw_scene(ctx, self.local_state.draw_decor, scene_draw_param)?;
 
@@ -153,8 +152,24 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.react(messages);
     }
 
+    fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
+        let messages = self.collect_mouse_wheel(ctx, x, y);
+        self.react(messages);
+    }
+
+    fn key_down_event(
+        &mut self,
+        ctx: &mut Context,
+        keycode: KeyCode,
+        keymods: KeyMods,
+        repeat: bool,
+    ) {
+        let messages = self.collect_key_pressed(ctx, keycode, keymods, repeat);
+        self.react(messages);
+    }
+
     fn key_up_event(&mut self, ctx: &mut Context, keycode: KeyCode, _keymod: KeyMods) {
-        let messages = self.key_released(ctx, keycode);
+        let messages = self.collect_key_released(ctx, keycode);
         self.react(messages);
     }
 }
