@@ -263,6 +263,10 @@ impl LocalState {
                 //
                 self.debug_points.push(debug_point)
             }
+            LocalStateMessage::ChangeSide => match self.side {
+                Side::A => self.side = Side::B,
+                Side::B => self.side = Side::A,
+            },
             LocalStateMessage::ScaleUpdate(factor) => {
                 //
                 self.display_scene_scale.apply(Vec2::new(factor, factor))

@@ -50,6 +50,7 @@ pub enum LocalStateMessage {
     SetDisplayPaths(Vec<(WorldPaths, SquadUuid)>),
     PushUIEvent(UIEvent),
     PushDebugPoint(DebugPoint),
+    ChangeSide,
     ScaleUpdate(f32),
     AddControl(Control),
     RemoveControl(Control),

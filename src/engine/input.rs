@@ -138,6 +138,7 @@ impl Engine {
                     new_debug_terrain,
                 )));
             }
+            KeyCode::F9 => messages.push(Message::LocalState(LocalStateMessage::ChangeSide)),
             KeyCode::LControl | KeyCode::RControl => messages.push(Message::LocalState(
                 LocalStateMessage::RemoveControl(Control::Map),
             )),
