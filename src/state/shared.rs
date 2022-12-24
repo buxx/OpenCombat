@@ -146,7 +146,7 @@ impl SharedState {
             .expect("Game shared_state should never own inconsistent squad index")
     }
 
-    pub fn soldier_on_board(&self) -> &SoldiersOnBoard {
+    pub fn _soldier_on_board(&self) -> &SoldiersOnBoard {
         &self.soldier_on_board
     }
 

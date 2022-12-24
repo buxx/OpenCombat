@@ -50,8 +50,9 @@ pub struct Visibility {
 }
 
 impl Visibility {
+    // TODO : Optimize performances here
     pub fn between_soldiers(
-        frame_i: u64,
+        _frame_i: u64,
         from_soldier: &Soldier,
         to_soldier: &Soldier,
         map: &Map,
@@ -62,7 +63,7 @@ impl Visibility {
         let mut grid_path: GridPath = GridPath::new(vec![]);
         let mut path_final_opacity: f32 = 0.0;
         let mut to_soldier_item_opacity: f32 = 0.0;
-        let visible_by_bullet_fire = false;
+        let _visible_by_bullet_fire = false;
         // let visible_by_bullet_fire =
         //     if let Some(last_bullet_fire_frame_i) = to_scene_item.last_bullet_fire {
         //         frame_i - last_bullet_fire_frame_i < 240
