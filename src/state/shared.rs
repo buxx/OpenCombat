@@ -6,6 +6,7 @@ use crate::{
     entity::{soldier::Soldier, vehicle::Vehicle},
     message::*,
     order::Order,
+    physics::visibility::Visibilities,
     sync::StateCopy,
     types::*,
     utils::vehicle_board_from_soldiers_on_board,
@@ -29,6 +30,8 @@ pub struct SharedState {
     command_orders: HashMap<SquadUuid, Order>,
     /// Squad leader orders. Squad members will pick from them theirs behaviors.
     squad_orders: HashMap<SoldierIndex, Order>,
+    /// All visibilities between soldiers
+    visibilities: Visibilities,
 }
 
 impl SharedState {
@@ -47,6 +50,7 @@ impl SharedState {
             squads: HashMap::new(),
             command_orders: HashMap::new(),
             squad_orders: HashMap::new(),
+            visibilities: Visibilities::new(),
         }
     }
 
@@ -154,6 +158,10 @@ impl SharedState {
         &self.vehicle_board
     }
 
+    pub fn visibilities(&self) -> &Visibilities {
+        &self.visibilities
+    }
+
     pub fn react(&mut self, state_message: crate::message::SharedStateMessage) -> Vec<SideEffect> {
         match state_message {
             SharedStateMessage::Soldier(soldier_index, soldier_message) => {
@@ -177,6 +185,9 @@ impl SharedState {
                 self.squad_orders
                     .remove(&soldier_index)
                     .expect("Game shared_state should never own inconsistent orders index");
+            }
+            SharedStateMessage::SetVisibilities(visibilities) => {
+                self.visibilities.set(visibilities)
             }
         };
 

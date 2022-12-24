@@ -34,6 +34,34 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Server (release)",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=opencombat",
+                    "--package=opencombat",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "opencombat",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "Server",
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Client",
             "cargo": {
                 "args": [

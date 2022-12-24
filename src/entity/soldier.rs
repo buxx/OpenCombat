@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Soldier {
+    uuid: SoldierIndex,
     side: Side,
     world_point: WorldPoint,
     squad_uuid: SquadUuid,
@@ -18,8 +19,14 @@ pub struct Soldier {
 }
 
 impl Soldier {
-    pub fn new(world_point: WorldPoint, squad_uuid: SquadUuid, side: Side) -> Self {
+    pub fn new(
+        uuid: SoldierIndex,
+        world_point: WorldPoint,
+        squad_uuid: SquadUuid,
+        side: Side,
+    ) -> Self {
         Self {
+            uuid,
             side,
             world_point,
             squad_uuid,
@@ -30,10 +37,15 @@ impl Soldier {
 
     pub fn from_soldier(soldier: &Soldier) -> Self {
         Self::new(
+            soldier.uuid(),
             soldier.get_world_point(),
             soldier.squad_uuid(),
             *soldier.get_side(),
         )
+    }
+
+    pub fn uuid(&self) -> SoldierIndex {
+        self.uuid
     }
 
     pub fn get_side(&self) -> &Side {
@@ -98,6 +110,11 @@ impl Soldier {
     }
 
     pub fn can_see_interior(&self) -> bool {
+        // FIXME : implement alive / incapacited
+        true
+    }
+
+    pub fn can_seek(&self) -> bool {
         // FIXME : implement alive / incapacited
         true
     }

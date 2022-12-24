@@ -228,4 +228,10 @@ impl Map {
             && grid_point.x < self.terrain_grid_width as i32
             && grid_point.y < self.terrain_grid_height as i32
     }
+
+    pub fn grid_point_from_world_point(&self, world_point: &WorldPoint) -> GridPoint {
+        let x = world_point.x as u32 / self.terrain.tileset.tile_width;
+        let y = world_point.y as u32 / self.terrain.tileset.tile_height;
+        GridPoint::new(x as i32, y as i32)
+    }
 }

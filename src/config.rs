@@ -11,6 +11,7 @@ pub struct Config {
     soldier_update_freq: u64,
     soldier_animate_freq: u64,
     interiors_update_freq: u64,
+    visibility_update_freq: u64,
 }
 
 // Width of sprite sheet
@@ -90,6 +91,8 @@ impl Config {
             soldier_animate_freq: 20,
             /// Frequency of update buildings interiors visibility
             interiors_update_freq: 60,
+            /// Frequency of update visibility between soldiers
+            visibility_update_freq: 60,
         })
     }
 
@@ -107,6 +110,10 @@ impl Config {
 
     pub fn interiors_update_freq(&self) -> u64 {
         self.interiors_update_freq
+    }
+
+    pub fn visibility_update_freq(&self) -> u64 {
+        self.visibility_update_freq
     }
 
     pub fn network_mode(&self) -> &NetWorkMode {

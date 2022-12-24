@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{DrawMode, MeshBuilder},
+    graphics::{Color, DrawMode, MeshBuilder},
     GameResult,
 };
 
@@ -155,6 +155,61 @@ impl Engine {
                 &cursor_window_point,
             ) {
                 mesh_builder.rectangle(DrawMode::stroke(1.0), rect, DARK_MAGENTA)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Draw selection areas
+    pub fn generate_visibilities_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
+        for squad_uuid in self.local_state.selected_squads() {
+            let squad_composition = self.shared_state.squad(*squad_uuid);
+            for soldier_index in squad_composition.members() {
+                let from_soldier = self.shared_state.soldier(*soldier_index);
+                let to_soldiers = self
+                    .shared_state
+                    .soldiers()
+                    .iter()
+                    .filter(|s| s.get_side() != from_soldier.get_side());
+                for to_soldier in to_soldiers {
+                    if let Some(visibility) = self
+                        .shared_state
+                        .visibilities()
+                        .get(&(from_soldier.uuid(), to_soldier.uuid()))
+                    {
+                        let start_world_point = from_soldier.get_world_point();
+                        let mut previous_point = self
+                            .local_state
+                            .window_point_from_world_point(start_world_point);
+                        let mut previous_opacity: f32 = 0.0;
+
+                        for (segment_world_point, segment_new_opacity) in
+                            visibility.opacity_segments.iter().skip(1)
+                        {
+                            let segment_point = self
+                                .local_state
+                                .window_point_from_world_point(*segment_world_point);
+                            let mut color_canal_value = 1.0 - previous_opacity;
+                            if color_canal_value < 0.0 {
+                                color_canal_value = 0.0;
+                            }
+                            mesh_builder.line(
+                                &vec![previous_point.to_vec2(), segment_point.to_vec2()],
+                                1.0,
+                                Color {
+                                    r: color_canal_value,
+                                    g: color_canal_value,
+                                    b: color_canal_value,
+                                    a: 1.0,
+                                },
+                            )?;
+
+                            previous_point = segment_point;
+                            previous_opacity = *segment_new_opacity;
+                        }
+                    }
+                }
             }
         }
 

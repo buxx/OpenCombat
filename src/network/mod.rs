@@ -20,7 +20,7 @@ pub struct Network {
     error_receiver: Receiver<OCError>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 struct Envelope {
     id: u64,
     messages: Vec<Message>,

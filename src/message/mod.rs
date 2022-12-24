@@ -1,8 +1,11 @@
+use std::collections::HashMap;
+
 use crate::{
     behavior::Behavior,
     debug::{DebugLevel, DebugTerrain},
     engine::input::Control,
     order::{Order, PendingOrder},
+    physics::visibility::Visibility,
     sync::StateCopy,
     types::*,
     utils::DebugPoint,
@@ -11,14 +14,14 @@ use serde::{Deserialize, Serialize};
 
 pub mod result;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Message {
     LocalState(LocalStateMessage),
     SharedState(SharedStateMessage),
     Network(NetworkMessage),
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum SharedStateMessage {
     Soldier(SoldierIndex, SoldierMessage),
     Vehicle(VehicleIndex, VehicleMessage),
@@ -26,9 +29,10 @@ pub enum SharedStateMessage {
     PushSquadOrder(SoldierIndex, Order),
     RemoveCommandOder(SquadUuid),
     RemoveSquadOder(SoldierIndex),
+    SetVisibilities(HashMap<(SoldierIndex, SoldierIndex), Visibility>),
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum LocalStateMessage {
     SetDebugLevel(DebugLevel),
     SetDebugTerrain(DebugTerrain),

@@ -1,16 +1,20 @@
 {
-    "cSpell.words": [
-        "absdiff",
-        "astar",
-        "bincode",
-        "ggez",
-        "gids",
-        "incapacited",
-        "keymod",
-        "keymods",
-        "pathfinding",
-        "spritebatch",
-        "tilesets",
-        "Tweenable"
-    ]
+        "cSpell.words": [
+                "absdiff",
+                "astar",
+                "bincode",
+                "ggez",
+                "bresenham",
+                "Bresenham",
+                "gids",
+                "incapacited",
+                "keymod",
+                "keymods",
+                "pathfinding",
+                "spritebatch",
+                "tileset",
+                "tilesets",
+                "Tweenable",
+                "uuids"
+        ]
 }

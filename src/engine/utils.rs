@@ -84,6 +84,7 @@ impl Engine {
         let y = world_point.y as u32 / self.map.terrain.tileset.tile_height;
         GridPoint::new(x as i32, y as i32)
     }
+
     pub fn world_point_from_grid_point(&self, grid_point: GridPoint) -> WorldPoint {
         let x = (grid_point.x * self.map.terrain.tileset.tile_width as i32)
             + (self.map.terrain.tileset.tile_width as i32 / 2);

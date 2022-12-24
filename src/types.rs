@@ -248,6 +248,29 @@ impl WorldPath {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GridPath {
+    pub points: Vec<GridPoint>,
+}
+
+impl GridPath {
+    pub fn new(points: Vec<GridPoint>) -> Self {
+        Self { points: vec![] }
+    }
+
+    pub fn contains(&self, point: &GridPoint) -> bool {
+        self.points.contains(point)
+    }
+
+    pub fn len(&self) -> usize {
+        self.points.len()
+    }
+
+    pub fn push(&mut self, point: GridPoint) {
+        self.points.push(point)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct WorldPaths {
     pub paths: Vec<WorldPath>,
 }
@@ -426,6 +449,9 @@ impl Neg for Angle {
         Self(-self.0)
     }
 }
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Meters(pub f32);
 
 pub type SoldierBoard = (VehicleIndex, OnBoardPlace);
 pub type SoldiersOnBoard = HashMap<SoldierIndex, SoldierBoard>;

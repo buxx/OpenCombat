@@ -119,6 +119,10 @@ impl Engine {
             self.generate_areas_meshes(mesh_builder)?
         }
 
+        if self.local_state.get_debug_level().visibilities() {
+            self.generate_visibilities_meshes(mesh_builder)?
+        }
+
         self.generate_debug_point_meshes(mesh_builder)?;
 
         Ok(())

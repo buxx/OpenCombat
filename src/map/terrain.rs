@@ -130,7 +130,7 @@ pub struct Terrain {
     pub tileset: Tileset,
     pub layer: Layer,
     pub image: TiledImage,
-    // FIXME (u32, u32) -> GridPoint
+    // FIXME use Vec
     pub tiles: HashMap<(u32, u32), TerrainTile>,
 }
 

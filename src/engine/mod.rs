@@ -28,6 +28,7 @@ mod ui;
 mod update;
 mod utils;
 mod vehicle;
+mod visibility;
 
 pub struct Engine {
     config: Config,
