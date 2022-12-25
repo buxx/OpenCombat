@@ -1,4 +1,5 @@
 use crate::{
+    game::Side,
     order::{marker::OrderMarker, Order},
     types::*,
 };
@@ -19,10 +20,11 @@ impl SharedState {
     // TODO : return type is too much complex
     pub fn order_markers(
         &self,
+        side: &Side,
     ) -> Vec<(Order, OrderMarker, SquadUuid, WorldPoint, OrderMarkerIndex)> {
         let mut marker_data = vec![];
 
-        for (squad_id, order) in self.all_orders() {
+        for (squad_id, order) in self.all_orders(side) {
             let marker = order.marker();
             let squad = self.squad(squad_id);
             match &order {

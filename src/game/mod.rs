@@ -4,6 +4,7 @@ pub mod squad;
 
 #[derive(Debug, Copy, Serialize, Deserialize, Clone, PartialEq)]
 pub enum Side {
+    All,
     A,
     B,
 }

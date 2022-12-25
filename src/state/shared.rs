@@ -4,6 +4,7 @@ use ggez::GameResult;
 
 use crate::{
     entity::{soldier::Soldier, vehicle::Vehicle},
+    game::Side,
     message::*,
     order::Order,
     physics::visibility::Visibilities,
@@ -120,13 +121,17 @@ impl SharedState {
         &self.squad_orders
     }
 
-    pub fn all_orders(&self) -> Vec<(SquadUuid, Order)> {
+    pub fn all_orders(&self, side: &Side) -> Vec<(SquadUuid, Order)> {
         let mut orders: Vec<(SquadUuid, Order)> = vec![];
 
-        for (squad_id, squad_composition) in &self.squads {
+        for (squad_uuid, squad_composition) in &self.squads {
+            if side != &Side::All && self.squad_side(squad_uuid) != side {
+                continue;
+            }
+
             let squad_leader = self.soldier(squad_composition.leader());
             if let Some(order) = squad_leader.get_behavior().to_order() {
-                orders.push((*squad_id, order));
+                orders.push((*squad_uuid, order));
             }
         }
 
@@ -135,6 +140,12 @@ impl SharedState {
         }
 
         orders
+    }
+
+    pub fn squad_side(&self, squad_uuid: &SquadUuid) -> &Side {
+        let composition = self.squad(*squad_uuid);
+        let squad_leader = self.soldier(composition.leader());
+        squad_leader.get_side()
     }
 
     pub fn squad(&self, squad_uuid: SquadUuid) -> &SquadComposition {

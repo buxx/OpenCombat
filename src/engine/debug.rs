@@ -5,7 +5,10 @@ use ggez::{
 
 use crate::{
     behavior::Behavior,
-    game::squad::{squad_positions, Formation},
+    game::{
+        squad::{squad_positions, Formation},
+        Side,
+    },
     utils::{BLUE, DARK_MAGENTA, GREEN, MAGENTA, RED, YELLOW},
 };
 
@@ -145,7 +148,7 @@ impl Engine {
         }
 
         // Draw selection area on all hovered soldiers
-        for (_, order_marker, _, world_point, _) in self.shared_state.order_markers() {
+        for (_, order_marker, _, world_point, _) in self.shared_state.order_markers(&Side::All) {
             let rect = self.local_state.window_rect_from_world_rect(
                 order_marker.sprite_info().get_selection_rect(world_point),
             );

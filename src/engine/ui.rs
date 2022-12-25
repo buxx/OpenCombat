@@ -133,7 +133,7 @@ impl Engine {
         }
 
         for (order, order_marker, squad_id, point, order_marker_index) in
-            self.shared_state.order_markers()
+            self.shared_state.order_markers(self.local_state.side())
         {
             // Special case : If we are dragging this order_marker_index, don't draw it (because we only want draw the
             // dragged order marker index)

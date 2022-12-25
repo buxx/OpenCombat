@@ -274,6 +274,7 @@ impl LocalState {
             LocalStateMessage::ChangeSide => match self.side {
                 Side::A => self.side = Side::B,
                 Side::B => self.side = Side::A,
+                Side::All => unreachable!("Side All is excluded from ChangeSide"),
             },
             LocalStateMessage::ScaleUpdate(factor) => {
                 //
