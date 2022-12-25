@@ -174,7 +174,7 @@ impl Engine {
                     .filter(|s| s.get_side() != from_soldier.get_side());
                 for to_soldier in to_soldiers {
                     if let Some(visibility) = self
-                        .shared_state
+                        .local_state
                         .visibilities()
                         .get(&(from_soldier.uuid(), to_soldier.uuid()))
                     {

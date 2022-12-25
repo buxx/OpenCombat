@@ -5,15 +5,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     behavior::Behavior,
+    config::{VISIBILITY_FIRSTS, VISIBILITY_PIXEL_STEPS},
     entity::soldier::Soldier,
     map::Map,
     types::{GridPath, Meters, SoldierIndex, WorldPoint},
 };
 
 use super::utils::meters_between_scene_points;
-
-// Visibility computing must consider firsts tiles differently
-pub const VISIBILITY_FIRSTS: usize = 4;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Visibilities {
@@ -78,7 +76,7 @@ impl Visibility {
         );
 
         // Compute opacity segments
-        for (pixel_x, pixel_y) in pixels {
+        for (pixel_x, pixel_y) in pixels.step_by(VISIBILITY_PIXEL_STEPS) {
             let grid_point =
                 map.grid_point_from_world_point(&WorldPoint::new(pixel_x as f32, pixel_y as f32));
             if !grid_path.contains(&grid_point) {

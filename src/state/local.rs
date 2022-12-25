@@ -4,6 +4,7 @@ use glam::Vec2;
 use crate::engine::input::Control;
 use crate::game::Side;
 use crate::order::PendingOrder;
+use crate::physics::visibility::Visibilities;
 use crate::utils::DebugPoint;
 use crate::{message::*, types::*};
 
@@ -51,6 +52,8 @@ pub struct LocalState {
     debug_points: Vec<DebugPoint>,
     /// Contains currently pressed keys
     controls: Vec<Control>,
+    /// All visibilities between soldiers
+    visibilities: Visibilities,
 }
 
 impl LocalState {
@@ -75,6 +78,7 @@ impl LocalState {
             display_paths: vec![],
             debug_points: vec![],
             controls: vec![],
+            visibilities: Visibilities::new(),
         }
     }
 
@@ -204,6 +208,10 @@ impl LocalState {
         self.debug_points = debug_points
     }
 
+    pub fn visibilities(&self) -> &Visibilities {
+        &self.visibilities
+    }
+
     pub fn react(&mut self, local_state_message: LocalStateMessage) {
         match local_state_message {
             LocalStateMessage::SetCursorPoint(point) => {
@@ -285,6 +293,7 @@ impl LocalState {
                 }
                 self.controls = new_controls;
             }
+            LocalStateMessage::SetVisibilities(visibilities) => self.visibilities.set(visibilities),
         }
     }
 

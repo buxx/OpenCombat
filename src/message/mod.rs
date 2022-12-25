@@ -29,7 +29,6 @@ pub enum SharedStateMessage {
     PushSquadOrder(SoldierIndex, Order),
     RemoveCommandOder(SquadUuid),
     RemoveSquadOder(SoldierIndex),
-    SetVisibilities(HashMap<(SoldierIndex, SoldierIndex), Visibility>),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -58,6 +57,7 @@ pub enum LocalStateMessage {
     ScaleUpdate(f32),
     AddControl(Control),
     RemoveControl(Control),
+    SetVisibilities(HashMap<(SoldierIndex, SoldierIndex), Visibility>),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

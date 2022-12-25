@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     entity::soldier::Soldier,
     game::Side,
-    message::{Message, SharedStateMessage},
+    message::{LocalStateMessage, Message},
     physics::visibility::Visibility,
 };
 
@@ -61,7 +61,7 @@ impl Engine {
             }
         }
 
-        vec![Message::SharedState(SharedStateMessage::SetVisibilities(
+        vec![Message::LocalState(LocalStateMessage::SetVisibilities(
             visibilities,
         ))]
     }

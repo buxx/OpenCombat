@@ -64,6 +64,11 @@ pub const DISPLAY_DEFEND_Y_OFFSET: f32 = 1.5;
 // Grid distance to search cover point
 pub const COVER_DISTANCE: i32 = 5;
 
+// Visibility computing must consider firsts tiles differently
+pub const VISIBILITY_FIRSTS: usize = 4;
+// When compute visibility, configure here each pixels step of line which me considered
+pub const VISIBILITY_PIXEL_STEPS: usize = 5;
+
 impl Config {
     pub fn new(opt: &Opt) -> GameResult<Self> {
         let (network_mode, server_rep_address, server_pub_address) = (
