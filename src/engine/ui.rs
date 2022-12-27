@@ -11,8 +11,10 @@ use crate::{
         DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
         PENDING_ORDER_PATH_FINDING_DRAW_FRAMES,
     },
+    game::weapon::Calibre,
     message::*,
     order::{Order, PendingOrder},
+    physics::event::bullet::BulletFire,
     types::*,
     ui::menu::squad_menu_sprite_info,
     utils::GREEN,
@@ -193,59 +195,16 @@ impl Engine {
         while let Some(event) = self.local_state.pop_ui_event() {
             match event {
                 UIEvent::FinishedCursorLeftClick(point) => {
-                    let squad_menu_displayed = self.local_state.get_squad_menu().is_some();
-
-                    // If this is a map selection click
-                    if !squad_menu_displayed {
-                        messages.extend(self.digest_scene_select_by_click(point));
-                    }
-
-                    // If this is a squad menu click
-                    if squad_menu_displayed {
-                        messages.extend(self.digest_squad_menu_select_by_click(point));
-                        messages.push(Message::LocalState(LocalStateMessage::SetSquadMenu(None)));
-                    }
-
-                    // This is a pending order click
-                    if let Some((pending_order, squad_id, _, cached_points)) =
-                        self.local_state.get_pending_order()
-                    {
-                        let is_appending = input::keyboard::is_key_pressed(ctx, KeyCode::LShift)
-                            || input::keyboard::is_key_pressed(ctx, KeyCode::RShift);
-
-                        if is_appending {
-                            messages.extend(vec![Message::LocalState(
-                                LocalStateMessage::AddCachePointToPendingOrder(
-                                    self.local_state.get_current_cursor_world_point(),
-                                ),
-                            )]);
-                        } else {
-                            // If order produced, push it on shared state
-                            if let Some(order_) = self.order_from_pending_order(
-                                pending_order,
-                                *squad_id,
-                                None,
-                                cached_points,
-                            ) {
-                                messages.push(Message::SharedState(
-                                    SharedStateMessage::PushCommandOrder(*squad_id, order_),
-                                ))
-                            }
-
-                            // In all cases, remove pending order
-                            messages.extend(vec![Message::LocalState(
-                                LocalStateMessage::SetPendingOrder(None),
-                            )]);
-                        }
+                    match self.local_state.controlling() {
+                        Control::Soldiers => messages
+                            .extend(self.left_click_finished_controlling_soldier(ctx, point)),
+                        Control::Map => {}
+                        Control::Physics => messages
+                            .extend(self.left_click_finished_controlling_physics(ctx, point)),
                     };
-
-                    // In all cases, clean some things
-                    messages.extend(vec![Message::LocalState(
-                        LocalStateMessage::SetDisplayPaths(vec![]),
-                    )]);
                 }
                 UIEvent::FinishedCursorVector(start, end) => {
-                    if !self.local_state.controlling(&Control::Map) {
+                    if self.local_state.is_controlling(&Control::Soldiers) {
                         if let Some((pending_order, squad_id, order_marker_index, _)) =
                             self.local_state.get_pending_order()
                         {
@@ -347,6 +306,90 @@ impl Engine {
                 }
             }
         }
+
+        messages
+    }
+
+    fn left_click_finished_controlling_soldier(
+        &mut self,
+        ctx: &Context,
+        point: WindowPoint,
+    ) -> Vec<Message> {
+        let mut messages = vec![];
+
+        let squad_menu_displayed = self.local_state.get_squad_menu().is_some();
+
+        // If this is a map selection click
+        if !squad_menu_displayed {
+            messages.extend(self.digest_scene_select_by_click(point));
+        }
+
+        // If this is a squad menu click
+        if squad_menu_displayed {
+            messages.extend(self.digest_squad_menu_select_by_click(point));
+            messages.push(Message::LocalState(LocalStateMessage::SetSquadMenu(None)));
+        }
+
+        // This is a pending order click
+        if let Some((pending_order, squad_id, _, cached_points)) =
+            self.local_state.get_pending_order()
+        {
+            let is_appending = input::keyboard::is_key_pressed(ctx, KeyCode::LShift)
+                || input::keyboard::is_key_pressed(ctx, KeyCode::RShift);
+
+            if is_appending {
+                messages.extend(vec![Message::LocalState(
+                    LocalStateMessage::AddCachePointToPendingOrder(
+                        self.local_state.get_current_cursor_world_point(),
+                    ),
+                )]);
+            } else {
+                // If order produced, push it on shared state
+                if let Some(order_) =
+                    self.order_from_pending_order(pending_order, *squad_id, None, cached_points)
+                {
+                    messages.push(Message::SharedState(SharedStateMessage::PushCommandOrder(
+                        *squad_id, order_,
+                    )))
+                }
+
+                // In all cases, remove pending order
+                messages.extend(vec![Message::LocalState(
+                    LocalStateMessage::SetPendingOrder(None),
+                )]);
+            }
+        };
+
+        // In all cases, clean some things
+        messages.extend(vec![Message::LocalState(
+            LocalStateMessage::SetDisplayPaths(vec![]),
+        )]);
+
+        messages
+    }
+
+    fn left_click_finished_controlling_physics(
+        &mut self,
+        _ctx: &Context,
+        point: WindowPoint,
+    ) -> Vec<Message> {
+        let mut messages = vec![];
+        let cursor_world_point = self.local_state.world_point_from_window_point(point);
+
+        match self.local_state.get_debug_physics() {
+            crate::debug::DebugPhysics::None => {}
+            crate::debug::DebugPhysics::x762x54BulletFire => {
+                messages.push(Message::SharedState(SharedStateMessage::PushBulletFire(
+                    BulletFire::new(
+                        self.local_state.get_frame_i(),
+                        WorldPoint::new(0., 0.),
+                        cursor_world_point.clone(),
+                        None,
+                        Calibre::x762x54,
+                    ),
+                )));
+            }
+        };
 
         messages
     }

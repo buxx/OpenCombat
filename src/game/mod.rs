@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 pub mod squad;
+pub mod weapon;
 
 #[derive(Debug, Copy, Serialize, Deserialize, Clone, PartialEq)]
 pub enum Side {

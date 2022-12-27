@@ -453,6 +453,9 @@ impl Neg for Angle {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Meters(pub f32);
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Precision(u8);
+
 pub type SoldierBoard = (VehicleIndex, OnBoardPlace);
 pub type SoldiersOnBoard = HashMap<SoldierIndex, SoldierBoard>;
 pub type VehicleBoard = HashMap<VehicleIndex, Vec<(OnBoardPlace, SoldierIndex)>>;

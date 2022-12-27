@@ -7,6 +7,13 @@ pub enum DebugTerrain {
     Opacity,
 }
 
+#[allow(non_camel_case_types)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub enum DebugPhysics {
+    None,
+    x762x54BulletFire,
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum DebugLevel {
     Debug0,

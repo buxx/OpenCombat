@@ -13,7 +13,7 @@ impl Engine {
     pub fn tick_visibilities(&self) -> Vec<Message> {
         let mut messages = vec![];
         let tick_visibility =
-            self.local_state.get_frame_i() % self.config.interiors_update_freq() == 0;
+            self.local_state.get_frame_i() % self.config.visibility_update_freq() == 0;
 
         if tick_visibility {
             messages.extend(self.update_visibilities())

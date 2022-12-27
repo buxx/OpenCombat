@@ -47,6 +47,13 @@ pub const DARK_MAGENTA: Color = Color {
     a: 1.0,
 };
 
+pub const GREY: Color = Color {
+    r: 0.5,
+    g: 0.5,
+    b: 0.5,
+    a: 1.0,
+};
+
 pub struct Rectangle<T> {
     pub top_left: T,
     pub top_right: T,

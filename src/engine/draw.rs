@@ -90,7 +90,7 @@ impl Engine {
 
     pub fn generate_game_play_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
         if self.local_state.get_pending_order().is_none()
-            && !self.local_state.controlling(&Control::Map)
+            && self.local_state.is_controlling(&Control::Soldiers)
         {
             self.generate_select_rectangle_meshes(mesh_builder)?;
         }

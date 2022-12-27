@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use crate::{
     behavior::Behavior,
-    debug::{DebugLevel, DebugTerrain},
+    debug::{DebugLevel, DebugPhysics, DebugTerrain},
     engine::input::Control,
     order::{Order, PendingOrder},
-    physics::visibility::Visibility,
+    physics::{event::bullet::BulletFire, visibility::Visibility},
     sync::StateCopy,
     types::*,
     utils::DebugPoint,
@@ -29,12 +29,15 @@ pub enum SharedStateMessage {
     PushSquadOrder(SoldierIndex, Order),
     RemoveCommandOder(SquadUuid),
     RemoveSquadOder(SoldierIndex),
+    PushBulletFire(BulletFire),
+    // PushSoundToPlay(Sound),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum LocalStateMessage {
     SetDebugLevel(DebugLevel),
     SetDebugTerrain(DebugTerrain),
+    SetDebugPhysics(DebugPhysics),
     SetCursorPoint(WindowPoint),
     SetLeftClickDown(Option<WindowPoint>),
     SetCurrentCursorVector(Option<(WindowPoint, WindowPoint)>),
@@ -55,8 +58,7 @@ pub enum LocalStateMessage {
     PushDebugPoint(DebugPoint),
     ChangeSide,
     ScaleUpdate(f32),
-    AddControl(Control),
-    RemoveControl(Control),
+    SetControl(Control),
     SetVisibilities(HashMap<(SoldierIndex, SoldierIndex), Visibility>),
 }
 

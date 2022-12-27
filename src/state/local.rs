@@ -8,7 +8,7 @@ use crate::physics::visibility::Visibilities;
 use crate::utils::DebugPoint;
 use crate::{message::*, types::*};
 
-use crate::debug::{DebugLevel, DebugTerrain};
+use crate::debug::{DebugLevel, DebugPhysics, DebugTerrain};
 
 pub struct LocalState {
     /// Printed frames since start of program
@@ -23,8 +23,10 @@ pub struct LocalState {
     pub draw_decor: bool,
     /// Current debug level to apply
     debug_level: DebugLevel,
-    /// Current debug level to apply
+    /// Current debug terrain to apply
     debug_terrain: DebugTerrain,
+    /// Current debug physics to apply
+    debug_physics: DebugPhysics,
     /// Current WindowPoint of mouse cursor
     current_cursor_point: WindowPoint,
     /// Last instant since cursor don't move
@@ -50,9 +52,9 @@ pub struct LocalState {
     display_paths: Vec<(WorldPaths, SquadUuid)>,
     /// Debug points to display if debug mode
     debug_points: Vec<DebugPoint>,
-    /// Contains currently pressed keys
-    controls: Vec<Control>,
-    /// All visibilities between soldiers
+    /// Contains current control mode
+    control: Control,
+    /// All visibilities between soldiers. Only used by Server
     visibilities: Visibilities,
 }
 
@@ -62,11 +64,11 @@ impl LocalState {
             frame_i: 0,
             side,
             display_scene_offset: Offset::new(0., 0.),
-            // TODO : Zoom is not correctly managed yet
             display_scene_scale: Scale::new(1., 1.),
             draw_decor: true,
             debug_level: DebugLevel::Debug0,
             debug_terrain: DebugTerrain::None,
+            debug_physics: DebugPhysics::None,
             current_cursor_point: WindowPoint::new(0., 0.),
             last_cursor_move_frame: 0,
             left_click_down: None,
@@ -77,7 +79,7 @@ impl LocalState {
             pending_order: None,
             display_paths: vec![],
             debug_points: vec![],
-            controls: vec![],
+            control: Control::Soldiers,
             visibilities: Visibilities::new(),
         }
     }
@@ -104,6 +106,10 @@ impl LocalState {
 
     pub fn get_debug_terrain(&self) -> &DebugTerrain {
         &self.debug_terrain
+    }
+
+    pub fn get_debug_physics(&self) -> &DebugPhysics {
+        &self.debug_physics
     }
 
     pub fn get_current_cursor_window_point(&self) -> &WindowPoint {
@@ -232,6 +238,7 @@ impl LocalState {
                 //
                 self.debug_terrain = value;
             }
+            LocalStateMessage::SetDebugPhysics(level) => self.debug_physics = level,
             LocalStateMessage::SetLeftClickDown(point) => {
                 //
                 self.left_click_down = point
@@ -280,25 +287,19 @@ impl LocalState {
                 //
                 self.display_scene_scale.apply(Vec2::new(factor, factor))
             }
-            LocalStateMessage::AddControl(control) => {
+            LocalStateMessage::SetControl(new_control) => {
                 //
-                self.controls.push(control)
-            }
-            LocalStateMessage::RemoveControl(control) => {
-                // TODO : Shorter way to do the following
-                let mut new_controls = vec![];
-                for control_ in &self.controls {
-                    if control_ != &control {
-                        new_controls.push(control_.clone())
-                    }
-                }
-                self.controls = new_controls;
+                self.control = new_control;
             }
             LocalStateMessage::SetVisibilities(visibilities) => self.visibilities.set(visibilities),
         }
     }
 
-    pub fn controlling(&self, control: &Control) -> bool {
-        self.controls.contains(control)
+    pub fn is_controlling(&self, control: &Control) -> bool {
+        &self.control == control
+    }
+
+    pub fn controlling(&self) -> &Control {
+        &self.control
     }
 }

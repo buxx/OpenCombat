@@ -4,7 +4,7 @@ use ggez::{
 };
 
 use crate::{
-    debug::{DebugLevel, DebugTerrain},
+    debug::{DebugLevel, DebugPhysics, DebugTerrain},
     message::*,
     types::*,
 };
@@ -14,7 +14,9 @@ use super::Engine;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub enum Control {
+    Soldiers,
     Map,
+    Physics,
 }
 
 enum MoveScreenMode {
@@ -105,7 +107,7 @@ impl Engine {
         let mut messages = vec![];
 
         if keycode == KeyCode::LControl || keycode == KeyCode::RControl {
-            messages.push(Message::LocalState(LocalStateMessage::AddControl(
+            messages.push(Message::LocalState(LocalStateMessage::SetControl(
                 Control::Map,
             )))
         }
@@ -138,14 +140,40 @@ impl Engine {
                     new_debug_terrain,
                 )));
             }
+            KeyCode::F10 => {
+                let new_debug_physics = match self.local_state.get_debug_physics() {
+                    DebugPhysics::None => DebugPhysics::x762x54BulletFire,
+                    DebugPhysics::x762x54BulletFire => DebugPhysics::None,
+                };
+                println!("Debug physics : {:?}", &new_debug_physics);
+                if &new_debug_physics != &DebugPhysics::None {
+                    messages.push(Message::LocalState(LocalStateMessage::SetControl(
+                        Control::Physics,
+                    )));
+                } else {
+                    messages.push(Message::LocalState(LocalStateMessage::SetControl(
+                        Control::Soldiers,
+                    )));
+                }
+                messages.push(Message::LocalState(LocalStateMessage::SetDebugPhysics(
+                    new_debug_physics,
+                )));
+            }
             KeyCode::F9 => messages.push(Message::LocalState(LocalStateMessage::ChangeSide)),
             KeyCode::LControl | KeyCode::RControl => messages.push(Message::LocalState(
-                LocalStateMessage::RemoveControl(Control::Map),
+                LocalStateMessage::SetControl(self.determine_controlling()),
             )),
             _ => {}
         };
 
         messages
+    }
+
+    pub fn determine_controlling(&self) -> Control {
+        match self.local_state.get_debug_physics() {
+            DebugPhysics::None => Control::Soldiers,
+            DebugPhysics::x762x54BulletFire => Control::Physics,
+        }
     }
 
     pub fn collect_mouse_motion(
@@ -177,7 +205,7 @@ impl Engine {
                         cursor_point,
                     ))),
                 ));
-                if self.local_state.controlling(&Control::Map) {
+                if self.local_state.is_controlling(&Control::Map) {
                     let last_cursor_point = self.local_state.get_current_cursor_window_point();
                     messages.push(Message::LocalState(
                         LocalStateMessage::ApplyOnSceneDisplayOffset(Offset::from_vec2(
@@ -208,7 +236,7 @@ impl Engine {
                 )));
 
                 // Check if any order under the cursor
-                if !self.local_state.controlling(&Control::Map) {
+                if self.local_state.is_controlling(&Control::Soldiers) {
                     for (_, order_marker, squad_id, world_point, order_marker_i) in
                         self.shared_state.order_markers(self.local_state.side())
                     {

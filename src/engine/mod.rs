@@ -20,6 +20,7 @@ mod interior;
 mod movement;
 mod network;
 mod order;
+mod physics;
 mod react;
 mod server;
 mod side;
@@ -124,6 +125,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.generate_menu_sprites()?;
 
         self.draw_debug_terrain(ctx, scene_draw_param)?;
+        self.draw_physics(&mut mesh_builder)?;
         self.generate_debug_meshes(&mut mesh_builder)?;
         self.generate_selection_meshes(&mut mesh_builder)?;
         self.generate_display_paths_meshes(&mut mesh_builder)?;
