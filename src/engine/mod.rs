@@ -4,6 +4,7 @@ use ggez::timer::check_update_time;
 use ggez::{event, GameError};
 use ggez::{Context, GameResult};
 
+use crate::audio::player::Player;
 use crate::config::Config;
 use crate::graphics::Graphics;
 use crate::map::Map;
@@ -35,6 +36,7 @@ pub struct Engine {
     config: Config,
     network: Network,
     graphics: Graphics,
+    player: Option<Player>,
     map: Map,
     /// The current shared state of the game. This struct is own by server and replicated on clients
     shared_state: SharedState,
@@ -55,6 +57,7 @@ impl Engine {
             config,
             network,
             graphics,
+            player: None,
             map,
             shared_state,
             local_state,
@@ -62,7 +65,7 @@ impl Engine {
         Ok(engine)
     }
 
-    fn init(&mut self) -> GameResult {
+    fn init(&mut self, ctx: &mut Context) -> GameResult {
         match self.config.network_mode() {
             // Server own game shared shared state, so init it
             crate::NetWorkMode::Server => {
@@ -76,6 +79,8 @@ impl Engine {
         if let Err(error) = self.network.init() {
             return Err(GameError::CustomError(error.to_string()));
         }
+
+        self.player = Some(Player::new(ctx)?);
 
         Ok(())
     }
@@ -93,7 +98,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
         while check_update_time(ctx, self.config.target_fps()) {
             // First thing to do is to initialize the shared state.
             if self.local_state.is_first_frame() {
-                self.init()?;
+                self.init(ctx)?;
             }
 
             // Execute "each frame" code

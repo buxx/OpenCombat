@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use ggez::GameResult;
 
 use crate::{
+    audio::Sound,
     entity::{soldier::Soldier, vehicle::Vehicle},
     game::Side,
     message::*,
@@ -203,6 +204,10 @@ impl SharedState {
             }
             SharedStateMessage::PushBulletFire(bullet_fire) => {
                 self.physics.bullet_fires.push(bullet_fire)
+            }
+            SharedStateMessage::PushSoundToPlay(sound) => {
+                //
+                return vec![SideEffect::PlaySound(sound)];
             }
         };
 

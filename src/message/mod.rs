@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
+    audio::Sound,
     behavior::Behavior,
     debug::{DebugLevel, DebugPhysics, DebugTerrain},
     engine::input::Control,
@@ -30,7 +31,7 @@ pub enum SharedStateMessage {
     RemoveCommandOder(SquadUuid),
     RemoveSquadOder(SoldierIndex),
     PushBulletFire(BulletFire),
-    // PushSoundToPlay(Sound),
+    PushSoundToPlay(Sound),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

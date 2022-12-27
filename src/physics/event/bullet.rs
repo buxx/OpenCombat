@@ -1,8 +1,8 @@
 use crate::{
-    game::weapon::Calibre,
+    game::weapon::Weapon,
     message::{Message, SharedStateMessage},
     types::{Precision, SoldierIndex, WorldPoint},
-    utils::{BLUE, GREY},
+    utils::GREY,
 };
 use serde::{Deserialize, Serialize};
 
@@ -14,7 +14,7 @@ pub struct BulletFire {
     from: WorldPoint,
     to: WorldPoint,
     target: Option<(SoldierIndex, Precision)>,
-    calibre: Calibre,
+    weapon: Weapon,
 }
 
 impl BulletFire {
@@ -23,7 +23,7 @@ impl BulletFire {
         from: WorldPoint,
         to: WorldPoint,
         target: Option<(SoldierIndex, Precision)>,
-        calibre: Calibre,
+        weapon: Weapon,
     ) -> Self {
         Self {
             new: true,
@@ -32,7 +32,7 @@ impl BulletFire {
             from,
             to,
             target,
-            calibre,
+            weapon,
         }
     }
 
@@ -43,13 +43,17 @@ impl BulletFire {
     }
 
     pub fn messages(&self, _frame_i: u64) -> Vec<Message> {
-        // if self.new {
-        //     return vec![Message::SharedState(SharedStateMessage::PushSoundToPlay(
-        //         self.calibre.sound(),
-        //     ))];
-        // }
+        let mut messages = vec![];
 
-        vec![]
+        if self.new {
+            for sound in self.weapon.fire_sounds() {
+                messages.push(Message::SharedState(SharedStateMessage::PushSoundToPlay(
+                    sound.clone(),
+                )));
+            }
+        }
+
+        messages
     }
 
     pub fn sprites(&self, _frame_i: u64) -> ggez::GameResult {

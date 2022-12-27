@@ -7,8 +7,12 @@ use crate::{
     behavior::Behavior,
     game::{
         squad::{squad_positions, Formation},
+        weapon::Weapon,
         Side,
     },
+    message::{Message, SharedStateMessage},
+    physics::event::bullet::BulletFire,
+    types::WorldPoint,
     utils::{BLUE, DARK_MAGENTA, GREEN, MAGENTA, RED, YELLOW},
 };
 
@@ -217,5 +221,26 @@ impl Engine {
         }
 
         Ok(())
+    }
+
+    pub fn generate_debug_physics(&self, from: WorldPoint, to: WorldPoint) -> Vec<Message> {
+        let mut messages = vec![];
+
+        match self.local_state.get_debug_physics() {
+            crate::debug::DebugPhysics::None => {}
+            crate::debug::DebugPhysics::MosinNagantM1924 => {
+                messages.push(Message::SharedState(SharedStateMessage::PushBulletFire(
+                    BulletFire::new(
+                        self.local_state.get_frame_i(),
+                        from,
+                        to,
+                        None,
+                        Weapon::MosinNagantM1924,
+                    ),
+                )));
+            }
+        };
+
+        messages
     }
 }

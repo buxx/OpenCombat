@@ -1,4 +1,4 @@
-use crate::types::*;
+use crate::{audio::Sound, types::*};
 
 pub mod local;
 mod order;
@@ -10,4 +10,5 @@ mod vehicle;
 pub enum SideEffect {
     RefreshEntityAnimation(SoldierIndex),
     SoldierFinishHisBehavior(SoldierIndex),
+    PlaySound(Sound),
 }

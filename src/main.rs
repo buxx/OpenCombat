@@ -6,6 +6,7 @@ use ggez::GameResult;
 use state::local::LocalState;
 use state::shared::SharedState;
 
+mod audio;
 mod behavior;
 mod config;
 mod debug;

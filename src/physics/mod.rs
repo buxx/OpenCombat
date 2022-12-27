@@ -33,10 +33,10 @@ impl Physics {
 
         let mut to_removes = vec![];
         for (i, bullet_fire) in self.bullet_fires.iter_mut().enumerate() {
+            messages.extend(bullet_fire.messages(frame_i));
             if bullet_fire.tick(frame_i) {
                 to_removes.push(i)
             }
-            messages.extend(bullet_fire.messages(frame_i));
         }
         to_removes.reverse();
         for i in to_removes {

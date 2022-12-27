@@ -11,7 +11,7 @@ use crate::{
         DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
         PENDING_ORDER_PATH_FINDING_DRAW_FRAMES,
     },
-    game::weapon::Calibre,
+    game::weapon::Weapon,
     message::*,
     order::{Order, PendingOrder},
     physics::event::bullet::BulletFire,
@@ -204,35 +204,15 @@ impl Engine {
                     };
                 }
                 UIEvent::FinishedCursorVector(start, end) => {
-                    if self.local_state.is_controlling(&Control::Soldiers) {
-                        if let Some((pending_order, squad_id, order_marker_index, _)) =
-                            self.local_state.get_pending_order()
-                        {
-                            if let Some(order_) = self.order_from_pending_order(
-                                pending_order,
-                                *squad_id,
-                                *order_marker_index,
-                                &vec![],
-                            ) {
-                                messages.push(Message::SharedState(
-                                    SharedStateMessage::PushCommandOrder(*squad_id, order_),
-                                ))
-                            }
-                            messages.extend(vec![
-                                Message::LocalState(LocalStateMessage::SetPendingOrder(None)),
-                                Message::LocalState(LocalStateMessage::SetDisplayPaths(vec![])),
-                            ]);
-                        } else {
-                            let world_start = self.local_state.world_point_from_window_point(start);
-                            let world_end = self.local_state.world_point_from_window_point(end);
-                            let soldier_indexes = self.get_entities_in_area(world_start, world_end);
-                            let soldier_indexes = self.filter_entities_by_side(soldier_indexes);
-                            let squad_ids = self.squad_ids_from_entities(soldier_indexes);
-                            messages.push(Message::LocalState(
-                                LocalStateMessage::SetSelectedSquads(squad_ids),
-                            ));
-                        }
-                    }
+                    match self.local_state.controlling() {
+                        Control::Soldiers => messages.extend(
+                            self.cursor_vector_finished_controlling_soldier(ctx, start, end),
+                        ),
+                        Control::Map => {}
+                        Control::Physics => messages.extend(
+                            self.cursor_vector_finished_controlling_physics(ctx, start, end),
+                        ),
+                    };
                 }
                 UIEvent::FinishedCursorRightClick(point) => {
                     let world_point = self.local_state.world_point_from_window_point(point);
@@ -373,24 +353,57 @@ impl Engine {
         _ctx: &Context,
         point: WindowPoint,
     ) -> Vec<Message> {
-        let mut messages = vec![];
-        let cursor_world_point = self.local_state.world_point_from_window_point(point);
+        let world_point = self.local_state.world_point_from_window_point(point);
+        self.generate_debug_physics(world_point.clone(), world_point)
+    }
 
-        match self.local_state.get_debug_physics() {
-            crate::debug::DebugPhysics::None => {}
-            crate::debug::DebugPhysics::x762x54BulletFire => {
-                messages.push(Message::SharedState(SharedStateMessage::PushBulletFire(
-                    BulletFire::new(
-                        self.local_state.get_frame_i(),
-                        WorldPoint::new(0., 0.),
-                        cursor_world_point.clone(),
-                        None,
-                        Calibre::x762x54,
-                    ),
-                )));
+    fn cursor_vector_finished_controlling_soldier(
+        &mut self,
+        _ctx: &Context,
+        start: WindowPoint,
+        end: WindowPoint,
+    ) -> Vec<Message> {
+        let mut messages = vec![];
+
+        if let Some((pending_order, squad_id, order_marker_index, _)) =
+            self.local_state.get_pending_order()
+        {
+            if let Some(order_) = self.order_from_pending_order(
+                pending_order,
+                *squad_id,
+                *order_marker_index,
+                &vec![],
+            ) {
+                messages.push(Message::SharedState(SharedStateMessage::PushCommandOrder(
+                    *squad_id, order_,
+                )))
             }
-        };
+            messages.extend(vec![
+                Message::LocalState(LocalStateMessage::SetPendingOrder(None)),
+                Message::LocalState(LocalStateMessage::SetDisplayPaths(vec![])),
+            ]);
+        } else {
+            let world_start = self.local_state.world_point_from_window_point(start);
+            let world_end = self.local_state.world_point_from_window_point(end);
+            let soldier_indexes = self.get_entities_in_area(world_start, world_end);
+            let soldier_indexes = self.filter_entities_by_side(soldier_indexes);
+            let squad_ids = self.squad_ids_from_entities(soldier_indexes);
+            messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
+                squad_ids,
+            )));
+        }
 
         messages
+    }
+
+    fn cursor_vector_finished_controlling_physics(
+        &mut self,
+        _ctx: &Context,
+        start: WindowPoint,
+        end: WindowPoint,
+    ) -> Vec<Message> {
+        let world_start = self.local_state.world_point_from_window_point(start);
+        let world_end = self.local_state.world_point_from_window_point(end);
+        self.generate_debug_physics(world_start, world_end)
     }
 }

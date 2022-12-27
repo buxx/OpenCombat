@@ -11,7 +11,7 @@ pub enum DebugTerrain {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum DebugPhysics {
     None,
-    x762x54BulletFire,
+    MosinNagantM1924,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

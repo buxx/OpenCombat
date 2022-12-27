@@ -142,8 +142,8 @@ impl Engine {
             }
             KeyCode::F10 => {
                 let new_debug_physics = match self.local_state.get_debug_physics() {
-                    DebugPhysics::None => DebugPhysics::x762x54BulletFire,
-                    DebugPhysics::x762x54BulletFire => DebugPhysics::None,
+                    DebugPhysics::None => DebugPhysics::MosinNagantM1924,
+                    DebugPhysics::MosinNagantM1924 => DebugPhysics::None,
                 };
                 println!("Debug physics : {:?}", &new_debug_physics);
                 if &new_debug_physics != &DebugPhysics::None {
@@ -172,7 +172,7 @@ impl Engine {
     pub fn determine_controlling(&self) -> Control {
         match self.local_state.get_debug_physics() {
             DebugPhysics::None => Control::Soldiers,
-            DebugPhysics::x762x54BulletFire => Control::Physics,
+            DebugPhysics::MosinNagantM1924 => Control::Physics,
         }
     }
 
