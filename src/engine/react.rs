@@ -24,6 +24,10 @@ impl Engine {
                     }
                     NetworkMessage::Acknowledge => unreachable!(),
                 },
+                Message::Graphics(graphics_message) => {
+                    //
+                    self.graphics.react(graphics_message)
+                }
             }
         }
 

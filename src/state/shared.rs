@@ -205,6 +205,10 @@ impl SharedState {
             SharedStateMessage::PushBulletFire(bullet_fire) => {
                 self.physics.bullet_fires.push(bullet_fire)
             }
+            SharedStateMessage::PushExplosion(explosion) => {
+                //
+                self.physics.explosions.push(explosion)
+            }
             SharedStateMessage::PushSoundToPlay(sound) => {
                 //
                 return vec![SideEffect::PlaySound(sound)];

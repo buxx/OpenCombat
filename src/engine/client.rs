@@ -24,7 +24,5 @@ impl Engine {
         self.tick_physics(); // Client don't apply physics messages (only server)
         self.dispatch_as_client(&messages);
         self.react(messages);
-
-        self.graphics.tick(ctx);
     }
 }

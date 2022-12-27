@@ -1,9 +1,15 @@
 use std::collections::HashMap;
 
 use ggez::Context;
-use keyframe::{functions::Linear, keyframes, AnimationSequence};
+use keyframe::{
+    functions::{EaseOut, Linear},
+    keyframes, AnimationSequence,
+};
 
-use crate::{entity::soldier::Soldier, graphics::AnimationFloor, types::*};
+use crate::{
+    entity::soldier::Soldier, game::explosive::Type as ExplosiveType, graphics::AnimationFloor,
+    types::*,
+};
 
 use super::{Graphics, TweenableRect};
 
@@ -44,6 +50,31 @@ pub fn soldier_animation(soldier: &Soldier) -> AnimationSequence<TweenableRect> 
     keyframes![(src_rect_start, 0.0, easing), (src_end_rect, duration)]
 }
 
+pub fn explosion_animation(type_: ExplosiveType) -> AnimationSequence<TweenableRect> {
+    let sprite = type_.sprite();
+
+    let src_rect_start = TweenableRect::new(
+        sprite.src_x_start(),
+        sprite.src_y(),
+        sprite.width(),
+        sprite.height(),
+    );
+    let src_end_rect = TweenableRect::new(
+        sprite.src_x_end(),
+        sprite.src_y(),
+        sprite.width(),
+        sprite.height(),
+    );
+    let duration = sprite.duration();
+
+    let easing = AnimationFloor {
+        pre_easing: Box::new(EaseOut),
+        frames: sprite.frame_count() as i32,
+    };
+
+    keyframes![(src_rect_start, 0.0, easing), (src_end_rect, duration)]
+}
+
 impl Graphics {
     pub fn initialize(&mut self, soldiers: &Vec<Soldier>) {
         self.soldier_animation_sequences = HashMap::new();
@@ -59,9 +90,22 @@ impl Graphics {
             .insert(soldier_index, animation);
     }
 
+    pub fn push_explosion_animation(&mut self, point: WorldPoint, type_: ExplosiveType) {
+        let animation = explosion_animation(type_);
+        self.explosion_sequences.push((point, animation));
+    }
+
+    pub fn remove_explosion_animation(&mut self, point: WorldPoint) {
+        self.explosion_sequences.retain(|e| e.0 != point)
+    }
+
     pub fn update(&mut self, ctx: &Context) {
         let secs = ggez::timer::delta(ctx).as_secs_f64();
+
         for (_, animation) in self.soldier_animation_sequences.iter_mut() {
+            animation.advance_and_maybe_wrap(secs);
+        }
+        for (_, animation) in self.explosion_sequences.iter_mut() {
             animation.advance_and_maybe_wrap(secs);
         }
     }

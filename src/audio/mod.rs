@@ -14,6 +14,7 @@ pub enum Sound {
     MosinNagantReload2,
     MosinNagantReload3,
     MosinNagantReload4,
+    CannonFire1,
 }
 
 impl Sound {
@@ -28,6 +29,7 @@ impl Sound {
             Sound::MosinNagantReload2 => "/audio/MosinNagantReload2.ogg",
             Sound::MosinNagantReload3 => "/audio/MosinNagantReload3.ogg",
             Sound::MosinNagantReload4 => "/audio/MosinNagantReload4.ogg",
+            Sound::CannonFire1 => "/audio/CannonFire1.ogg",
         }
         .to_string()
     }

@@ -8,24 +8,31 @@ use keyframe::{AnimationSequence, EasingFunction};
 use keyframe_derive::CanTween;
 
 use crate::{
-    config::{SPRITE_SHEET_HEIGHT, SPRITE_SHEET_WIDTH},
     entity::{soldier::Soldier, vehicle::Vehicle},
     map::Map,
+    message::GraphicsMessage,
     types::*,
     ui::menu::squad_menu_sprite_info,
 };
 
+use self::vehicle::VehicleGraphicInfos;
+
 pub mod animation;
+pub mod explosion;
 mod map;
 pub mod soldier;
 pub mod vehicle;
 
-const SPRITES_FILE_PATH: &'static str = "/sprites.png";
+const SOLDIERS_FILE_PATH: &'static str = "/soldiers.png";
+const VEHICLES_FILE_PATH: &'static str = "/vehicles.png";
+const EXPLOSIONS_FILE_PATH: &'static str = "/explosions.png";
 const UI_FILE_PATH: &'static str = "/ui.png";
 
 pub struct Graphics {
-    // Soldier, vehicle, explosions, etc sprite batch
-    sprites_batch: SpriteBatch,
+    // Sprites batches
+    soldiers_sprites_batch: SpriteBatch,
+    vehicles_sprites_batch: SpriteBatch,
+    explosions_sprites_batch: SpriteBatch,
     // Squad menu, etc
     ui_batch: SpriteBatch,
     // Map background sprite batch
@@ -34,30 +41,45 @@ pub struct Graphics {
     map_interiors_batch: SpriteBatch,
     // Map decor sprite batches
     map_decor_batches: Vec<SpriteBatch>,
-    // Entity animation
+    // Soldiers animations
     soldier_animation_sequences: HashMap<SoldierIndex, AnimationSequence<TweenableRect>>,
+    // Explosion animations
+    explosion_sequences: Vec<(WorldPoint, AnimationSequence<TweenableRect>)>,
 }
 
 impl Graphics {
     pub fn new(ctx: &mut Context, map: &Map) -> GameResult<Graphics> {
-        let sprites_batch = create_sprites_batch(ctx)?;
+        let soldiers_sprites_batch = create_sprites_batch(SOLDIERS_FILE_PATH, ctx)?;
+        let vehicles_sprites_batch = create_sprites_batch(VEHICLES_FILE_PATH, ctx)?;
+        let explosions_sprites_batch = create_sprites_batch(EXPLOSIONS_FILE_PATH, ctx)?;
         let ui_batch = create_ui_batch(ctx)?;
         let map_background_batch = map::get_map_background_batch(ctx, map)?;
         let map_interiors_batch = map::get_map_interiors_batch(ctx, map)?;
         let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
 
         Ok(Graphics {
-            sprites_batch,
+            soldiers_sprites_batch,
+            vehicles_sprites_batch,
+            explosions_sprites_batch,
             ui_batch,
             map_background_batch,
             map_interiors_batch,
             map_decor_batches,
             soldier_animation_sequences: HashMap::new(),
+            explosion_sequences: vec![],
         })
     }
 
     pub fn append_sprites_batch(&mut self, sprite: graphics::DrawParam) {
-        self.sprites_batch.add(sprite);
+        self.soldiers_sprites_batch.add(sprite);
+    }
+
+    pub fn append_vehicles_batch(&mut self, sprite: graphics::DrawParam) {
+        self.vehicles_sprites_batch.add(sprite);
+    }
+
+    pub fn append_explosions_batch(&mut self, sprite: graphics::DrawParam) {
+        self.explosions_sprites_batch.add(sprite);
     }
 
     pub fn append_interior(&mut self, sprite: graphics::DrawParam) {
@@ -104,13 +126,13 @@ impl Graphics {
         _vehicle_index: VehicleIndex,
         vehicle: &Vehicle,
     ) -> Vec<graphics::DrawParam> {
-        let sprite_infos = vehicle.get_type().sprites_infos();
+        let sprite_infos = VehicleGraphicInfos::sprites_infos(vehicle.get_type());
         let shadow_offset = RelativeOffset::new(0.05, 0.05).to_vec2();
         let mut sprites = vec![];
 
         // Vehicle body shadow
         let body_sprite = DrawParam::new()
-            .src(sprite_infos.body().shadow_version().to_rect())
+            .src(sprite_infos.chassis().shadow_version().to_rect())
             .offset(Offset::new(0.5, 0.5).to_vec2())
             .rotation(vehicle.get_chassis_orientation().0)
             .dest(vehicle.get_world_point().to_vec2() + shadow_offset);
@@ -118,7 +140,7 @@ impl Graphics {
 
         // Vehicle body
         let body_sprite = DrawParam::new()
-            .src(sprite_infos.body().to_rect())
+            .src(sprite_infos.chassis().to_rect())
             .offset(Offset::new(0.5, 0.5).to_vec2())
             .rotation(vehicle.get_chassis_orientation().0)
             .dest(vehicle.get_world_point().to_vec2());
@@ -139,6 +161,23 @@ impl Graphics {
                 .rotation(vehicle.get_chassis_orientation().0)
                 .offset(Offset::new(0.5, 0.5).to_vec2() + turret_offset.to_vec2());
             sprites.push(turret_sprite);
+        }
+
+        sprites
+    }
+
+    pub fn explosion_sprites(&self) -> Vec<graphics::DrawParam> {
+        let mut sprites = vec![];
+
+        for (world_point, explosion_sequence) in &self.explosion_sequences {
+            let current_frame_src: Rect = explosion_sequence.now_strict().unwrap().into();
+            sprites.push(
+                graphics::DrawParam::new()
+                    .src(current_frame_src)
+                    .offset(Offset::new(0.5, 0.5).to_vec2())
+                    .scale(Scale::new(0.25, 0.25).to_vec2())
+                    .dest(world_point.to_vec2()),
+            )
         }
 
         sprites
@@ -166,7 +205,9 @@ impl Graphics {
         graphics::draw(ctx, &self.map_interiors_batch, draw_param)?;
 
         // Entities, explosions, etc. sprites
-        graphics::draw(ctx, &self.sprites_batch, draw_param)?;
+        graphics::draw(ctx, &self.soldiers_sprites_batch, draw_param)?;
+        graphics::draw(ctx, &self.vehicles_sprites_batch, draw_param)?;
+        graphics::draw(ctx, &self.explosions_sprites_batch, draw_param)?;
 
         // Draw decor like Trees
         if draw_decor {
@@ -197,7 +238,9 @@ impl Graphics {
 
     pub fn clear(&mut self, ctx: &mut Context) {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
-        self.sprites_batch.clear();
+        self.soldiers_sprites_batch.clear();
+        self.vehicles_sprites_batch.clear();
+        self.explosions_sprites_batch.clear();
         self.ui_batch.clear();
     }
 
@@ -208,11 +251,21 @@ impl Graphics {
     pub fn tick(&mut self, ctx: &Context) {
         self.update(ctx);
     }
+
+    pub fn react(&mut self, message: GraphicsMessage) {
+        match message {
+            GraphicsMessage::PushExplosionAnimation(point, type_) => {
+                self.push_explosion_animation(point, type_)
+            }
+            GraphicsMessage::RemoveExplosionAnimation(point) => {
+                self.remove_explosion_animation(point)
+            }
+        }
+    }
 }
 
-pub fn create_sprites_batch(ctx: &mut Context) -> GameResult<SpriteBatch> {
-    let sprites_image = Image::new(ctx, SPRITES_FILE_PATH)?;
-    // sprites_image.set_filter(FilterMode::Nearest); // because pixel art
+pub fn create_sprites_batch(file_path: &str, ctx: &mut Context) -> GameResult<SpriteBatch> {
+    let sprites_image = Image::new(ctx, file_path)?;
     let sprites_batch = SpriteBatch::new(sprites_image);
 
     Ok(sprites_batch)
@@ -273,12 +326,19 @@ pub struct SpriteInfo {
 }
 
 impl SpriteInfo {
-    pub fn new(start_x: f32, start_y: f32, width: f32, height: f32) -> Self {
+    pub fn new(
+        start_x: f32,
+        start_y: f32,
+        width: f32,
+        height: f32,
+        sprite_sheet_width: f32,
+        sprite_sheet_height: f32,
+    ) -> Self {
         Self {
-            relative_start_x: start_x / SPRITE_SHEET_WIDTH,
-            relative_start_y: start_y / SPRITE_SHEET_HEIGHT,
-            relative_tile_width: width / SPRITE_SHEET_WIDTH,
-            relative_tile_height: height / SPRITE_SHEET_HEIGHT,
+            relative_start_x: start_x / sprite_sheet_width,
+            relative_start_y: start_y / sprite_sheet_height,
+            relative_tile_width: width / sprite_sheet_width,
+            relative_tile_height: height / sprite_sheet_height,
         }
     }
 

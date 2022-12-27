@@ -15,22 +15,8 @@ pub struct Config {
     physics_update_freq: u64,
 }
 
-// Width of sprite sheet
-pub const SPRITE_SHEET_WIDTH: f32 = 640.0;
-// Height of sprite sheet
-pub const SPRITE_SHEET_HEIGHT: f32 = 960.0;
-pub const SOLDIER_SPRITE_STAND_HEIGHT: f32 = 12.0;
-pub const SOLDIER_SPRITE_STAND_WIDTH: f32 = 12.0;
-pub const SPRITE_SHEET_SOLDIER_STAND_COLUMN_COUNT: usize =
-    (SPRITE_SHEET_WIDTH / SOLDIER_SPRITE_STAND_WIDTH) as usize;
-pub const SPRITE_SHEET_SOLDIER_STAND_ROW_COUNT: usize =
-    (SPRITE_SHEET_HEIGHT / SOLDIER_SPRITE_STAND_HEIGHT) as usize;
-pub const SOLDIER_SPRITE_LYING_HEIGHT: f32 = 32.0;
-pub const SOLDIER_SPRITE_LYING_WIDTH: f32 = 20.0;
-pub const SPRITE_SHEET_SOLDIER_LYING_COLUMN_COUNT: usize =
-    (SPRITE_SHEET_WIDTH / SOLDIER_SPRITE_LYING_WIDTH) as usize;
-pub const SPRITE_SHEET_SOLDIER_LYING_ROW_COUNT: usize =
-    (SPRITE_SHEET_HEIGHT / SOLDIER_SPRITE_LYING_HEIGHT) as usize;
+// FIXME : probmeme d'animation sur equipe quand cours
+
 // Width of sprite sheet
 pub const UI_SPRITE_SHEET_WIDTH: f32 = 800.0;
 // Height of sprite sheet

@@ -11,7 +11,8 @@ pub enum DebugTerrain {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum DebugPhysics {
     None,
-    MosinNagantM1924,
+    MosinNagantM1924GunFire,
+    BrandtMle2731Shelling,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+pub mod explosive;
 pub mod squad;
 pub mod weapon;
 

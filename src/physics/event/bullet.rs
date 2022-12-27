@@ -2,7 +2,6 @@ use crate::{
     game::weapon::Weapon,
     message::{Message, SharedStateMessage},
     types::{Precision, SoldierIndex, WorldPoint},
-    utils::GREY,
 };
 use serde::{Deserialize, Serialize};
 
@@ -37,7 +36,6 @@ impl BulletFire {
     }
 
     pub fn tick(&mut self, frame_i: u64) -> bool {
-        println!(".");
         self.new = false;
         frame_i >= self.end
     }
@@ -56,17 +54,11 @@ impl BulletFire {
         messages
     }
 
-    pub fn sprites(&self, _frame_i: u64) -> ggez::GameResult {
-        Ok(())
+    pub fn from(&self) -> &WorldPoint {
+        &self.from
     }
 
-    pub fn meshes(
-        &self,
-        mesh_builder: &mut ggez::graphics::MeshBuilder,
-        _frame_i: u64,
-    ) -> ggez::GameResult {
-        mesh_builder.line(&vec![self.from.to_vec2(), self.to.to_vec2()], 1.0, GREY)?;
-
-        Ok(())
+    pub fn to(&self) -> &WorldPoint {
+        &self.to
     }
 }

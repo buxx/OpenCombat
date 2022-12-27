@@ -1,9 +1,9 @@
-use crate::config::{
-    SPRITE_SHEET_SOLDIER_LYING_COLUMN_COUNT, SPRITE_SHEET_SOLDIER_LYING_ROW_COUNT,
-    SPRITE_SHEET_SOLDIER_STAND_COLUMN_COUNT, SPRITE_SHEET_SOLDIER_STAND_ROW_COUNT,
-};
-
 use super::animation::Sprite;
+
+const SPRITE_SHEET_WIDTH: usize = 256;
+const SPRITE_SHEET_HEIGHT: usize = 192;
+const TILE_WIDTH: usize = 32;
+const TILE_HEIGHT: usize = 32;
 
 #[derive(Debug)]
 pub enum SoldierAnimationType {
@@ -16,24 +16,10 @@ pub enum SoldierAnimationType {
 
 impl Sprite for SoldierAnimationType {
     fn sprite_sheet_column_count(&self) -> usize {
-        match self {
-            SoldierAnimationType::Idle
-            | SoldierAnimationType::Walking
-            | SoldierAnimationType::Running => SPRITE_SHEET_SOLDIER_STAND_COLUMN_COUNT,
-            SoldierAnimationType::Crawling | SoldierAnimationType::LyingDown => {
-                SPRITE_SHEET_SOLDIER_LYING_COLUMN_COUNT
-            }
-        }
+        SPRITE_SHEET_WIDTH / TILE_WIDTH
     }
     fn sprite_sheet_row_count(&self) -> usize {
-        match self {
-            SoldierAnimationType::Idle
-            | SoldierAnimationType::Walking
-            | SoldierAnimationType::Running => SPRITE_SHEET_SOLDIER_STAND_ROW_COUNT,
-            SoldierAnimationType::Crawling | SoldierAnimationType::LyingDown => {
-                SPRITE_SHEET_SOLDIER_LYING_ROW_COUNT
-            }
-        }
+        SPRITE_SHEET_HEIGHT / TILE_HEIGHT
     }
 
     fn src_x_start(&self) -> f32 {

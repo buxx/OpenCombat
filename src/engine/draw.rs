@@ -12,9 +12,9 @@ use crate::{
 use super::{input::Control, Engine};
 
 impl Engine {
-    // TODO : don't generate sprites of non visible soldiers (hidden enemy, outside screen, etc)
     pub fn generate_soldiers_sprites(&mut self) -> GameResult {
         for (i, soldier) in self.shared_state.soldiers().iter().enumerate() {
+            // TODO : don't generate sprites of non visible soldiers (hidden enemy, outside screen, etc)
             if !self.is_soldier_drawable(SoldierIndex(i)) {
                 continue;
             }
@@ -47,8 +47,16 @@ impl Engine {
     pub fn generate_vehicles_sprites(&mut self) -> GameResult {
         for (i, vehicle) in self.shared_state.vehicles().iter().enumerate() {
             for sprite in self.graphics.vehicle_sprites(VehicleIndex(i), vehicle) {
-                self.graphics.append_sprites_batch(sprite);
+                self.graphics.append_vehicles_batch(sprite);
             }
+        }
+
+        Ok(())
+    }
+
+    pub fn generate_explosion_sprites(&mut self) -> GameResult {
+        for sprite in self.graphics.explosion_sprites() {
+            self.graphics.append_explosions_batch(sprite);
         }
 
         Ok(())

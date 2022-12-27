@@ -108,6 +108,8 @@ impl event::EventHandler<ggez::GameError> for Engine {
             self.local_state.increment_frame_i();
         }
 
+        self.graphics.tick(ctx);
+
         Ok(())
     }
 
@@ -118,6 +120,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.generate_map_sprites(self.local_state.draw_decor)?;
         self.generate_soldiers_sprites()?;
         self.generate_vehicles_sprites()?;
+        self.generate_explosion_sprites()?;
 
         let scene_draw_param = graphics::DrawParam::new()
             .dest(self.local_state.display_scene_offset.to_vec2())

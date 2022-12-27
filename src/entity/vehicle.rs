@@ -1,8 +1,4 @@
-use crate::{
-    config::TARGET_FPS,
-    graphics::{vehicle::VehicleGraphicInfos, SpriteInfo},
-    types::*,
-};
+use crate::{config::TARGET_FPS, types::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -32,25 +28,6 @@ impl VehicleType {
     pub fn drive_speed(&self) -> f32 {
         match self {
             VehicleType::T26 => 5.0 / TARGET_FPS as f32,
-        }
-    }
-
-    pub fn sprites_infos(&self) -> VehicleGraphicInfos {
-        match self {
-            VehicleType::T26 => {
-                VehicleGraphicInfos::tank(
-                    SpriteInfo::new(0., 192., 64., 96.),
-                    (
-                        RelativeOffset::new(0.05, 0.),
-                        SpriteInfo::new(128., 192., 64., 96.),
-                    ),
-                    // FIXME BS NOW : These positions must strictly match with board_composition (check it at startup ?)
-                    vec![
-                        (OnBoardPlace::Driver, Offset::new(8., -16.)),
-                        (OnBoardPlace::MainTurretGunner, Offset::new(-3., 0.)),
-                    ],
-                )
-            }
         }
     }
 }

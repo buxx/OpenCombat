@@ -5,13 +5,15 @@ use ggez::{
 
 use crate::{
     behavior::Behavior,
+    debug::DebugPhysics,
     game::{
+        explosive::Type as ExplosiveType,
         squad::{squad_positions, Formation},
         weapon::Weapon,
         Side,
     },
     message::{Message, SharedStateMessage},
-    physics::event::bullet::BulletFire,
+    physics::event::{bullet::BulletFire, explosion::Explosion},
     types::WorldPoint,
     utils::{BLUE, DARK_MAGENTA, GREEN, MAGENTA, RED, YELLOW},
 };
@@ -227,8 +229,8 @@ impl Engine {
         let mut messages = vec![];
 
         match self.local_state.get_debug_physics() {
-            crate::debug::DebugPhysics::None => {}
-            crate::debug::DebugPhysics::MosinNagantM1924 => {
+            DebugPhysics::None => {}
+            DebugPhysics::MosinNagantM1924GunFire => {
                 messages.push(Message::SharedState(SharedStateMessage::PushBulletFire(
                     BulletFire::new(
                         self.local_state.get_frame_i(),
@@ -236,6 +238,15 @@ impl Engine {
                         to,
                         None,
                         Weapon::MosinNagantM1924,
+                    ),
+                )));
+            }
+            DebugPhysics::BrandtMle2731Shelling => {
+                messages.push(Message::SharedState(SharedStateMessage::PushExplosion(
+                    Explosion::new(
+                        from,
+                        ExplosiveType::FA19241927,
+                        self.local_state.get_frame_i(),
                     ),
                 )));
             }

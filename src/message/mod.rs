@@ -5,8 +5,12 @@ use crate::{
     behavior::Behavior,
     debug::{DebugLevel, DebugPhysics, DebugTerrain},
     engine::input::Control,
+    game::explosive::Type as ExplosiveType,
     order::{Order, PendingOrder},
-    physics::{event::bullet::BulletFire, visibility::Visibility},
+    physics::{
+        event::{bullet::BulletFire, explosion::Explosion},
+        visibility::Visibility,
+    },
     sync::StateCopy,
     types::*,
     utils::DebugPoint,
@@ -20,6 +24,13 @@ pub enum Message {
     LocalState(LocalStateMessage),
     SharedState(SharedStateMessage),
     Network(NetworkMessage),
+    Graphics(GraphicsMessage),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum GraphicsMessage {
+    PushExplosionAnimation(WorldPoint, ExplosiveType),
+    RemoveExplosionAnimation(WorldPoint),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -31,6 +42,7 @@ pub enum SharedStateMessage {
     RemoveCommandOder(SquadUuid),
     RemoveSquadOder(SoldierIndex),
     PushBulletFire(BulletFire),
+    PushExplosion(Explosion),
     PushSoundToPlay(Sound),
 }
 

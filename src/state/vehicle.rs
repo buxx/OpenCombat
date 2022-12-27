@@ -1,6 +1,9 @@
 use ggez::GameResult;
 
-use crate::{message::VehicleMessage, types::*, utils::apply_angle_on_point};
+use crate::{
+    graphics::vehicle::VehicleGraphicInfos, message::VehicleMessage, types::*,
+    utils::apply_angle_on_point,
+};
 
 use super::{shared::SharedState, SideEffect};
 
@@ -52,7 +55,7 @@ impl SharedState {
         let vehicle = &mut self.vehicle_mut(vehicle_index);
         let vehicle_point = vehicle.get_world_point();
         let vehicle_orientation = vehicle.get_chassis_orientation().clone();
-        let sprite_infos = vehicle.get_type().sprites_infos();
+        let sprite_infos = VehicleGraphicInfos::sprites_infos(vehicle.get_type());
         let places = sprite_infos.places();
         let mut new_positions: Vec<(SoldierIndex, WorldPoint)> = vec![];
         for (place, soldier_index) in self.vehicle_board().get(&vehicle_index).unwrap_or(&vec![]) {
