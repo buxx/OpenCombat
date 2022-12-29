@@ -279,10 +279,13 @@ impl Engine {
 
         match button {
             MouseButton::Left => {
-                let start_point = self
-                    .local_state
-                    .get_left_click_down_window_point()
-                    .expect("No left button down before button up ?!");
+                let start_point = match self.local_state.get_left_click_down_window_point() {
+                    Some(start_point) => *start_point,
+                    None => {
+                        // No left button down before button up ?!
+                        return vec![];
+                    }
+                };
                 let end_point = WindowPoint::new(x, y);
 
                 // No more longer left click down or current drag
