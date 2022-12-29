@@ -23,6 +23,8 @@ impl Engine {
         messages.extend(self.tick_interiors());
         messages.extend(self.tick_physics());
         self.dispatch_as_client(&messages);
-        self.react(messages);
+
+        let side_effects = self.react(messages);
+        self.react_side_effects(side_effects, ctx);
     }
 }

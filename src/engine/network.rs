@@ -29,10 +29,10 @@ impl Engine {
         for message in messages {
             match message {
                 // State changes must be sent to clients
-                Message::SharedState(SharedStateMessage::PushCommandOrder(_, _)) => {
-                    dispatch_messages.push(message.clone())
-                }
-                Message::SharedState(SharedStateMessage::PushSquadOrder(_, _)) => {
+                Message::SharedState(SharedStateMessage::PushCommandOrder(_, _))
+                | Message::SharedState(SharedStateMessage::PushSquadOrder(_, _))
+                | Message::SharedState(SharedStateMessage::PushBulletFire(_))
+                | Message::SharedState(SharedStateMessage::PushExplosion(_)) => {
                     dispatch_messages.push(message.clone())
                 }
                 _ => {}

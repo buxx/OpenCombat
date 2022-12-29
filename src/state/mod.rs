@@ -7,6 +7,7 @@ mod soldier;
 mod squad;
 mod vehicle;
 
+#[derive(Debug)]
 pub enum SideEffect {
     RefreshEntityAnimation(SoldierIndex),
     SoldierFinishHisBehavior(SoldierIndex),
