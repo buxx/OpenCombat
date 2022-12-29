@@ -232,22 +232,12 @@ impl Engine {
             DebugPhysics::None => {}
             DebugPhysics::MosinNagantM1924GunFire => {
                 messages.push(Message::SharedState(SharedStateMessage::PushBulletFire(
-                    BulletFire::new(
-                        self.local_state.get_frame_i(),
-                        from,
-                        to,
-                        None,
-                        Weapon::MosinNagantM1924,
-                    ),
+                    BulletFire::new(from, to, None, Weapon::MosinNagantM1924),
                 )));
             }
             DebugPhysics::BrandtMle2731Shelling => {
                 messages.push(Message::SharedState(SharedStateMessage::PushExplosion(
-                    Explosion::new(
-                        from,
-                        ExplosiveType::FA19241927,
-                        self.local_state.get_frame_i(),
-                    ),
+                    Explosion::new(from, ExplosiveType::FA19241927),
                 )));
             }
         };

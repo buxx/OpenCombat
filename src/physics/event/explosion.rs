@@ -16,14 +16,19 @@ pub struct Explosion {
 }
 
 impl Explosion {
-    pub fn new(point: WorldPoint, type_: ExplosiveType, frame_i: u64) -> Self {
+    pub fn new(point: WorldPoint, type_: ExplosiveType) -> Self {
         Self {
             new: true,
-            start: frame_i,
-            end: frame_i + (type_.sprite().duration() as u32 * TARGET_FPS) as u64,
+            start: 0,
+            end: 0,
             point,
             explosive_type: type_,
         }
+    }
+
+    pub fn init(&mut self, frame_i: u64) {
+        self.start = frame_i;
+        self.end = frame_i + (self.explosive_type.sprite().duration() as u32 * TARGET_FPS) as u64;
     }
 
     pub fn tick(&mut self, frame_i: u64) -> bool {

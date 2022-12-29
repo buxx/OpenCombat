@@ -14,7 +14,7 @@ use crate::{
     utils::vehicle_board_from_soldiers_on_board,
 };
 
-use super::SideEffect;
+use super::{local::LocalState, SideEffect};
 
 pub struct SharedState {
     /// Used to ignore server shared_state modifications since shared state not received from server
@@ -178,7 +178,11 @@ impl SharedState {
         &mut self.physics
     }
 
-    pub fn react(&mut self, state_message: crate::message::SharedStateMessage) -> Vec<SideEffect> {
+    pub fn react(
+        &mut self,
+        state_message: crate::message::SharedStateMessage,
+        local_state: &LocalState,
+    ) -> Vec<SideEffect> {
         match state_message {
             SharedStateMessage::Soldier(soldier_index, soldier_message) => {
                 return self.react_soldier_message(soldier_index, soldier_message);
@@ -202,11 +206,12 @@ impl SharedState {
                     .remove(&soldier_index)
                     .expect("Game shared_state should never own inconsistent orders index");
             }
-            SharedStateMessage::PushBulletFire(bullet_fire) => {
+            SharedStateMessage::PushBulletFire(mut bullet_fire) => {
+                bullet_fire.init(local_state.get_frame_i());
                 self.physics.bullet_fires.push(bullet_fire)
             }
-            SharedStateMessage::PushExplosion(explosion) => {
-                //
+            SharedStateMessage::PushExplosion(mut explosion) => {
+                explosion.init(local_state.get_frame_i());
                 self.physics.explosions.push(explosion)
             }
             SharedStateMessage::PushSoundToPlay(sound) => {

@@ -18,7 +18,6 @@ pub struct BulletFire {
 
 impl BulletFire {
     pub fn new(
-        frame_i: u64,
         from: WorldPoint,
         to: WorldPoint,
         target: Option<(SoldierIndex, Precision)>,
@@ -26,13 +25,18 @@ impl BulletFire {
     ) -> Self {
         Self {
             new: true,
-            start: frame_i,
-            end: frame_i + 5,
+            start: 0,
+            end: 0,
             from,
             to,
             target,
             weapon,
         }
+    }
+
+    pub fn init(&mut self, frame_i: u64) {
+        self.start = frame_i;
+        self.end = frame_i + 5;
     }
 
     pub fn tick(&mut self, frame_i: u64) -> bool {

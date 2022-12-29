@@ -9,7 +9,10 @@ impl Engine {
         for message in messages {
             match message {
                 Message::SharedState(shared_state_message) => {
-                    side_effects.extend(self.shared_state.react(shared_state_message));
+                    side_effects.extend(
+                        self.shared_state
+                            .react(shared_state_message, &self.local_state),
+                    );
                 }
                 Message::LocalState(local_state_message) => {
                     self.local_state.react(local_state_message)

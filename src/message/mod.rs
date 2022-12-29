@@ -23,8 +23,8 @@ pub mod result;
 pub enum Message {
     LocalState(LocalStateMessage),
     SharedState(SharedStateMessage),
-    Network(NetworkMessage),
     Graphics(GraphicsMessage),
+    Network(NetworkMessage),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
