@@ -11,6 +11,7 @@ use crate::map::Map;
 use crate::network::Network;
 use crate::state::local::LocalState;
 use crate::state::shared::SharedState;
+use crate::NetworkMode;
 mod animate;
 mod behavior;
 mod client;
@@ -68,12 +69,12 @@ impl Engine {
     fn init(&mut self, ctx: &mut Context) -> GameResult {
         match self.config.network_mode() {
             // Server own game shared shared state, so init it
-            crate::NetWorkMode::Server => {
+            crate::NetworkMode::Server => {
                 self.shared_state.init()?;
                 self.graphics.initialize(self.shared_state.soldiers());
             }
             // Client initialize its shared state when received from server
-            crate::NetWorkMode::Client => {}
+            crate::NetworkMode::Client => {}
         };
 
         if let Err(error) = self.network.init() {
@@ -87,8 +88,8 @@ impl Engine {
 
     fn tick(&mut self, ctx: &mut Context) {
         match self.config.network_mode() {
-            crate::NetWorkMode::Server => self.tick_as_server(ctx),
-            crate::NetWorkMode::Client => self.tick_as_client(ctx),
+            NetworkMode::Server => self.tick_as_server(ctx),
+            NetworkMode::Client => self.tick_as_client(ctx),
         }
     }
 }

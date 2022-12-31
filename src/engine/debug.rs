@@ -12,7 +12,7 @@ use crate::{
         weapon::Weapon,
         Side,
     },
-    message::{Message, SharedStateMessage},
+    message::{Message, PhysicsMessage, SharedStateMessage},
     physics::event::{bullet::BulletFire, explosion::Explosion},
     types::WorldPoint,
     utils::{BLUE, DARK_MAGENTA, GREEN, MAGENTA, RED, YELLOW},
@@ -231,12 +231,12 @@ impl Engine {
         match self.local_state.get_debug_physics() {
             DebugPhysics::None => {}
             DebugPhysics::MosinNagantM1924GunFire => {
-                messages.push(Message::SharedState(SharedStateMessage::PushBulletFire(
+                messages.push(Message::Physics(PhysicsMessage::PushBulletFire(
                     BulletFire::new(from, to, None, Weapon::MosinNagantM1924),
                 )));
             }
             DebugPhysics::BrandtMle2731Shelling => {
-                messages.push(Message::SharedState(SharedStateMessage::PushExplosion(
+                messages.push(Message::Physics(PhysicsMessage::PushExplosion(
                     Explosion::new(from, ExplosiveType::FA19241927),
                 )));
             }

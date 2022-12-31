@@ -4,6 +4,8 @@ use glam::Vec2;
 use crate::engine::input::Control;
 use crate::game::Side;
 use crate::order::PendingOrder;
+use crate::physics::event::bullet::BulletFire;
+use crate::physics::event::explosion::Explosion;
 use crate::physics::visibility::Visibilities;
 use crate::utils::DebugPoint;
 use crate::{message::*, types::*};
@@ -56,6 +58,9 @@ pub struct LocalState {
     control: Control,
     /// All visibilities between soldiers. Only used by Server
     visibilities: Visibilities,
+    /// Physics
+    bullet_fires: Vec<BulletFire>,
+    explosions: Vec<Explosion>,
 }
 
 impl LocalState {
@@ -81,6 +86,8 @@ impl LocalState {
             debug_points: vec![],
             control: Control::Soldiers,
             visibilities: Visibilities::new(),
+            bullet_fires: vec![],
+            explosions: vec![],
         }
     }
 
@@ -292,6 +299,12 @@ impl LocalState {
                 self.control = new_control;
             }
             LocalStateMessage::SetVisibilities(visibilities) => self.visibilities.set(visibilities),
+            LocalStateMessage::RemoveBulletFire(index) => {
+                self.bullet_fires.remove(index.0);
+            }
+            LocalStateMessage::RemoveExplosion(index) => {
+                self.explosions.remove(index.0);
+            }
         }
     }
 
@@ -301,5 +314,21 @@ impl LocalState {
 
     pub fn controlling(&self) -> &Control {
         &self.control
+    }
+
+    pub fn bullet_fires(&self) -> &Vec<BulletFire> {
+        &self.bullet_fires
+    }
+
+    pub fn push_bullet_fire(&mut self, bullet_fire: BulletFire) {
+        self.bullet_fires.push(bullet_fire)
+    }
+
+    pub fn explosions(&self) -> &Vec<Explosion> {
+        &self.explosions
+    }
+
+    pub fn push_explosion(&mut self, explosion: Explosion) {
+        self.explosions.push(explosion)
     }
 }

@@ -253,7 +253,7 @@ pub struct GridPath {
 }
 
 impl GridPath {
-    pub fn new(points: Vec<GridPoint>) -> Self {
+    pub fn new() -> Self {
         Self { points: vec![] }
     }
 
@@ -329,6 +329,12 @@ pub struct VehicleIndex(pub usize);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct OrderMarkerIndex(pub usize);
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct BulletFireIndex(pub usize);
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct ExplosionIndex(pub usize);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct SquadUuid(pub usize);

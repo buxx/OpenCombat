@@ -1,10 +1,10 @@
 use ggez::GameResult;
 
-use crate::{NetWorkMode, Opt};
+use crate::{NetworkMode, Opt};
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    network_mode: NetWorkMode,
+    network_mode: NetworkMode,
     server_rep_address: String,
     server_pub_address: String,
     target_fps: u32,
@@ -114,7 +114,7 @@ impl Config {
         self.physics_update_freq
     }
 
-    pub fn network_mode(&self) -> &NetWorkMode {
+    pub fn network_mode(&self) -> &NetworkMode {
         &self.network_mode
     }
 

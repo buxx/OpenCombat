@@ -58,7 +58,7 @@ impl Visibility {
         let from_point = from_soldier.get_world_point();
         let to_point = to_soldier.get_world_point();
         let mut opacity_segments: Vec<(WorldPoint, f32)> = vec![];
-        let mut grid_path: GridPath = GridPath::new(vec![]);
+        let mut grid_path: GridPath = GridPath::new();
         let mut path_final_opacity: f32 = 0.0;
         let mut to_soldier_item_opacity: f32 = 0.0;
         let _visible_by_bullet_fire = false;

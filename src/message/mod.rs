@@ -25,6 +25,13 @@ pub enum Message {
     SharedState(SharedStateMessage),
     Graphics(GraphicsMessage),
     Network(NetworkMessage),
+    Physics(PhysicsMessage),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum PhysicsMessage {
+    PushBulletFire(BulletFire),
+    PushExplosion(Explosion),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -41,8 +48,7 @@ pub enum SharedStateMessage {
     PushSquadOrder(SoldierIndex, Order),
     RemoveCommandOder(SquadUuid),
     RemoveSquadOder(SoldierIndex),
-    PushBulletFire(BulletFire),
-    PushExplosion(Explosion),
+    // TODO : Why this is a shared state message ? It should be only local no ?
     PushSoundToPlay(Sound),
 }
 
@@ -73,6 +79,8 @@ pub enum LocalStateMessage {
     ScaleUpdate(f32),
     SetControl(Control),
     SetVisibilities(HashMap<(SoldierIndex, SoldierIndex), Visibility>),
+    RemoveBulletFire(BulletFireIndex),
+    RemoveExplosion(ExplosionIndex),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

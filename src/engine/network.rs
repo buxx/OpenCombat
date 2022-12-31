@@ -1,4 +1,4 @@
-use crate::message::{Message, SharedStateMessage};
+use crate::message::{Message, PhysicsMessage, SharedStateMessage};
 
 use super::Engine;
 
@@ -15,6 +15,8 @@ impl Engine {
             match message {
                 // State changes must be sent to clients
                 Message::SharedState(_) => dispatch_messages.push(message.clone()),
+                // Physics are displayed by clients and computed by server
+                Message::Physics(_) => dispatch_messages.push(message.clone()),
                 _ => {}
             }
         }
@@ -30,9 +32,7 @@ impl Engine {
             match message {
                 // State changes must be sent to clients
                 Message::SharedState(SharedStateMessage::PushCommandOrder(_, _))
-                | Message::SharedState(SharedStateMessage::PushSquadOrder(_, _))
-                | Message::SharedState(SharedStateMessage::PushBulletFire(_))
-                | Message::SharedState(SharedStateMessage::PushExplosion(_)) => {
+                | Message::SharedState(SharedStateMessage::PushSquadOrder(_, _)) => {
                     dispatch_messages.push(message.clone())
                 }
                 _ => {}

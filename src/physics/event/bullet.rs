@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BulletFire {
-    new: bool,
     start: u64,
     end: u64,
     from: WorldPoint,
@@ -24,7 +23,6 @@ impl BulletFire {
         weapon: Weapon,
     ) -> Self {
         Self {
-            new: true,
             start: 0,
             end: 0,
             from,
@@ -34,20 +32,23 @@ impl BulletFire {
         }
     }
 
-    pub fn init(&mut self, frame_i: u64) {
-        self.start = frame_i;
-        self.end = frame_i + 5;
+    pub fn init(&mut self, start_frame_i: u64) {
+        self.start = start_frame_i;
+        self.end = start_frame_i + 5;
     }
 
-    pub fn tick(&mut self, frame_i: u64) -> bool {
-        self.new = false;
+    pub fn finished(&self, frame_i: u64) -> bool {
         frame_i >= self.end
     }
 
-    pub fn messages(&self, _frame_i: u64) -> Vec<Message> {
+    pub fn effective(&self, frame_i: u64) -> bool {
+        self.start == frame_i
+    }
+
+    pub fn messages(&self, frame_i: u64) -> Vec<Message> {
         let mut messages = vec![];
 
-        if self.new {
+        if self.start == frame_i {
             for sound in self.weapon.fire_sounds() {
                 messages.push(Message::SharedState(SharedStateMessage::PushSoundToPlay(
                     sound.clone(),

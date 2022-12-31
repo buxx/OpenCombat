@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     audio::Sound,
-    config::TARGET_FPS,
     graphics::{animation::Sprite, explosion::ExplosionAnimationType},
 };
 

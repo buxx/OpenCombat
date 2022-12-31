@@ -3,12 +3,10 @@ use std::collections::HashMap;
 use ggez::GameResult;
 
 use crate::{
-    audio::Sound,
     entity::{soldier::Soldier, vehicle::Vehicle},
     game::Side,
     message::*,
     order::Order,
-    physics::Physics,
     sync::StateCopy,
     types::*,
     utils::vehicle_board_from_soldiers_on_board,
@@ -32,8 +30,6 @@ pub struct SharedState {
     command_orders: HashMap<SquadUuid, Order>,
     /// Squad leader orders. Squad members will pick from them theirs behaviors.
     squad_orders: HashMap<SoldierIndex, Order>,
-    /// Vector of emitted physic event.
-    physics: Physics,
 }
 
 impl SharedState {
@@ -52,7 +48,6 @@ impl SharedState {
             squads: HashMap::new(),
             command_orders: HashMap::new(),
             squad_orders: HashMap::new(),
-            physics: Physics::new(),
         }
     }
 
@@ -170,14 +165,6 @@ impl SharedState {
         &self.vehicle_board
     }
 
-    pub fn physics(&self) -> &Physics {
-        &self.physics
-    }
-
-    pub fn physics_mut(&mut self) -> &mut Physics {
-        &mut self.physics
-    }
-
     pub fn react(
         &mut self,
         state_message: crate::message::SharedStateMessage,
@@ -205,14 +192,6 @@ impl SharedState {
                 self.squad_orders
                     .remove(&soldier_index)
                     .expect("Game shared_state should never own inconsistent orders index");
-            }
-            SharedStateMessage::PushBulletFire(mut bullet_fire) => {
-                bullet_fire.init(local_state.get_frame_i());
-                self.physics.bullet_fires.push(bullet_fire)
-            }
-            SharedStateMessage::PushExplosion(mut explosion) => {
-                explosion.init(local_state.get_frame_i());
-                self.physics.explosions.push(explosion)
             }
             SharedStateMessage::PushSoundToPlay(sound) => {
                 //

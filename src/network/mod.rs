@@ -54,11 +54,11 @@ impl Network {
 
     pub fn init(&mut self) -> Result<(), OCError> {
         match self.config.network_mode() {
-            crate::NetWorkMode::Server => {
+            crate::NetworkMode::Server => {
                 self.start_rep()?;
                 self.start_pub()?
             }
-            crate::NetWorkMode::Client => {
+            crate::NetworkMode::Client => {
                 self.start_req()?;
                 self.start_sub()?;
             }

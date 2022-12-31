@@ -31,6 +31,18 @@ impl Engine {
                     //
                     self.graphics.react(graphics_message)
                 }
+                Message::Physics(physics_message) => match physics_message {
+                    PhysicsMessage::PushBulletFire(mut bullet_fire) => {
+                        // Add one to current frame because bullet fire will begin to be process at the next frame
+                        bullet_fire.init(self.local_state.get_frame_i() + 1);
+                        self.local_state.push_bullet_fire(bullet_fire)
+                    }
+                    PhysicsMessage::PushExplosion(mut explosion) => {
+                        // Add one to current frame because explosion will begin to be process at the next frame
+                        explosion.init(self.local_state.get_frame_i() + 1);
+                        self.local_state.push_explosion(explosion)
+                    }
+                },
             }
         }
 

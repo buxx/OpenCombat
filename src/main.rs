@@ -34,7 +34,7 @@ pub const RESOURCE_PATH: &'static str = "resources";
 
 arg_enum! {
     #[derive(Debug, Clone)]
-    pub enum NetWorkMode {
+    pub enum NetworkMode {
         Server,
         Client
     }
@@ -43,8 +43,8 @@ arg_enum! {
 #[derive(StructOpt, Debug)]
 #[structopt(name = "basic")]
 pub struct Opt {
-    #[structopt(possible_values = &NetWorkMode::variants(), case_insensitive = true)]
-    network_mode: NetWorkMode,
+    #[structopt(possible_values = &NetworkMode::variants(), case_insensitive = true)]
+    network_mode: NetworkMode,
 
     #[structopt(long = "--server-rep-address")]
     server_rep_address: String,
@@ -67,11 +67,11 @@ fn main() -> GameResult {
     let map = map::Map::new(&mut context, "map1")?;
     let graphics = graphics::Graphics::new(&mut context, &map)?;
     let shared_state = match config.network_mode() {
-        NetWorkMode::Server => {
+        NetworkMode::Server => {
             let (soldiers, vehicles, boards) = hardcode::shared_state_fixtures();
             SharedState::new(soldiers, vehicles, boards)
         }
-        NetWorkMode::Client => SharedState::new(vec![], vec![], SoldiersOnBoard::new()),
+        NetworkMode::Client => SharedState::new(vec![], vec![], SoldiersOnBoard::new()),
     };
     let local_state = LocalState::new(opt.side);
     let engine = engine::Engine::new(config, graphics, shared_state, local_state, map)?;
