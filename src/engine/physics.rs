@@ -5,6 +5,7 @@ use crate::{
     physics::event::{bullet::BulletFire, explosion::Explosion},
     types::{BulletFireIndex, ExplosionIndex},
     utils::GREY,
+    NetworkMode,
 };
 
 use super::Engine;
@@ -26,9 +27,10 @@ impl Engine {
         let frame_i = self.local_state.get_frame_i();
 
         for (i, bullet_fire) in self.local_state.bullet_fires().iter().enumerate() {
-            messages.extend(bullet_fire.messages(frame_i));
+            messages.extend(bullet_fire.fx(frame_i));
 
-            if bullet_fire.effective(frame_i) {
+            if self.config.network_mode() == &NetworkMode::Server && bullet_fire.effective(frame_i)
+            {
                 messages.extend(self.bullet_fire_effects(bullet_fire))
             }
 
@@ -53,9 +55,9 @@ impl Engine {
         let frame_i = self.local_state.get_frame_i();
 
         for (i, explosion) in self.local_state.explosions().iter().enumerate() {
-            messages.extend(explosion.messages(self.local_state.get_frame_i()));
+            messages.extend(explosion.fx(self.local_state.get_frame_i()));
 
-            if explosion.effective(frame_i) {
+            if self.config.network_mode() == &NetworkMode::Server && explosion.effective(frame_i) {
                 messages.extend(self.explosion_effects(explosion))
             }
 

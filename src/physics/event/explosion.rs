@@ -38,7 +38,7 @@ impl Explosion {
         self.start == frame_i
     }
 
-    pub fn messages(&self, frame_i: u64) -> Vec<Message> {
+    pub fn fx(&self, frame_i: u64) -> Vec<Message> {
         let mut messages = vec![];
 
         if self.start == frame_i {

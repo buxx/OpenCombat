@@ -33,7 +33,7 @@ use types::*;
 pub const RESOURCE_PATH: &'static str = "resources";
 
 arg_enum! {
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
     pub enum NetworkMode {
         Server,
         Client
