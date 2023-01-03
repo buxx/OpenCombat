@@ -95,9 +95,7 @@ pub enum SoldierMessage {
     SetUnconscious(bool),
     ReachBehaviorStep,
     IncreaseUnderFire(u32),
-    IncreaseFear(u32),
     DecreaseUnderFire,
-    DecreaseFear,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

@@ -55,10 +55,7 @@ impl Engine {
         let soldier_behavior = soldier.get_behavior();
         let soldier_order = soldier.order();
 
-        if soldier.fear() == &Feeling::Fear.max() {
-            // TODO : soldier angle
-            new_behavior = Some(Behavior::Hide(Angle(0.)));
-        } else if soldier.under_fire() == &Feeling::UnderFire.max() {
+        if soldier.under_fire().is_max() {
             // TODO : soldier angle
             new_behavior = Some(Behavior::Hide(Angle(0.)));
         }
@@ -67,12 +64,12 @@ impl Engine {
         if let Some(order) = soldier.order() {
             match order {
                 Order::MoveTo(path) => {
-                    if soldier.under_fire().0 > 100 {
+                    if soldier.under_fire().is_warning() || soldier.under_fire().is_danger() {
                         new_behavior = Some(Behavior::SneakTo(path.clone()));
                     }
                 }
                 Order::MoveFastTo(path) => {
-                    if soldier.under_fire().0 > 150 {
+                    if soldier.under_fire().is_danger() {
                         new_behavior = Some(Behavior::SneakTo(path.clone()));
                     }
                 }
@@ -81,7 +78,7 @@ impl Engine {
                 Order::Hide(_) => {}
             }
         } else {
-            if soldier.under_fire().0 > 0 {
+            if soldier.under_fire().value() > 0 {
                 // TODO : soldier angle
                 new_behavior = Some(Behavior::Hide(Angle(0.)));
             }

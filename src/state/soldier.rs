@@ -32,9 +32,7 @@ impl SharedState {
             SoldierMessage::SetAlive(alive) => soldier.set_alive(alive),
             SoldierMessage::SetUnconscious(unconscious) => soldier.set_unconscious(unconscious),
             SoldierMessage::IncreaseUnderFire(value) => soldier.increase_under_fire(value),
-            SoldierMessage::IncreaseFear(value) => soldier.increase_fear(value),
             SoldierMessage::DecreaseUnderFire => soldier.decrease_under_fire(),
-            SoldierMessage::DecreaseFear => soldier.decrease_fear(),
             SoldierMessage::SetOrder(order) => soldier.set_order(order),
         }
 

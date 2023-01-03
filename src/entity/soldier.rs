@@ -22,8 +22,7 @@ pub struct Soldier {
     looking_direction: Angle,
     alive: bool,
     unconscious: bool,
-    under_fire: FeelingIntensity,
-    fear: FeelingIntensity,
+    under_fire: Feeling,
 }
 
 impl Soldier {
@@ -43,8 +42,7 @@ impl Soldier {
             looking_direction: Angle(0.0),
             alive: true,
             unconscious: false,
-            under_fire: FeelingIntensity(0),
-            fear: FeelingIntensity(0),
+            under_fire: Feeling::UnderFire(0),
         }
     }
 
@@ -168,35 +166,15 @@ impl Soldier {
         self.alive && !self.unconscious
     }
 
-    pub fn under_fire(&self) -> &FeelingIntensity {
+    pub fn under_fire(&self) -> &Feeling {
         &self.under_fire
     }
 
     pub fn increase_under_fire(&mut self, value: u32) {
-        self.under_fire.0 = min(self.under_fire.0 + value, Feeling::UnderFire.max().0);
+        self.under_fire.increase(value)
     }
 
     pub fn decrease_under_fire(&mut self) {
-        if Feeling::UnderFire.decrease_value().0 > self.under_fire.0 {
-            self.under_fire.0 = 0;
-        } else {
-            self.under_fire.0 = self.under_fire.0 - Feeling::UnderFire.decrease_value().0
-        }
-    }
-
-    pub fn fear(&self) -> &FeelingIntensity {
-        &self.fear
-    }
-
-    pub fn increase_fear(&mut self, value: u32) {
-        self.fear.0 = min(self.fear.0 + value, Feeling::Fear.max().0);
-    }
-
-    pub fn decrease_fear(&mut self) {
-        if Feeling::Fear.decrease_value().0 > self.fear.0 {
-            self.fear.0 = 0;
-        } else {
-            self.fear.0 = self.fear.0 - Feeling::Fear.decrease_value().0
-        }
+        self.under_fire.decrease()
     }
 }

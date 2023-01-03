@@ -51,23 +51,9 @@ impl Engine {
             50
         };
 
-        let fear = if distance.0 < 5.0 {
-            150
-        } else if distance.0 < 10.0 {
-            100
-        } else {
-            25
-        };
-
-        vec![
-            Message::SharedState(SharedStateMessage::Soldier(
-                soldier_index,
-                SoldierMessage::IncreaseUnderFire(under_fire),
-            )),
-            Message::SharedState(SharedStateMessage::Soldier(
-                soldier_index,
-                SoldierMessage::IncreaseFear(fear),
-            )),
-        ]
+        vec![Message::SharedState(SharedStateMessage::Soldier(
+            soldier_index,
+            SoldierMessage::IncreaseUnderFire(under_fire),
+        ))]
     }
 }

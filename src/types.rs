@@ -465,9 +465,6 @@ pub struct BlastPower(pub u8);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Precision(u8);
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct FeelingIntensity(pub u32);
-
 pub type SoldierBoard = (VehicleIndex, OnBoardPlace);
 pub type SoldiersOnBoard = HashMap<SoldierIndex, SoldierBoard>;
 pub type VehicleBoard = HashMap<VehicleIndex, Vec<(OnBoardPlace, SoldierIndex)>>;
