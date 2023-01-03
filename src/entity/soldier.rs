@@ -1,8 +1,11 @@
+use std::cmp::min;
+
 use crate::{
-    behavior::Behavior,
+    behavior::{feeling::Feeling, Behavior},
     config::{SOLDIER_SELECTABLE_SQUARE_SIDE, SOLDIER_SELECTABLE_SQUARE_SIDE_HALF},
     game::Side,
     graphics::{animation::Sprite, soldier::SoldierAnimationType},
+    order::Order,
     types::*,
 };
 use ggez::graphics::Rect;
@@ -14,8 +17,13 @@ pub struct Soldier {
     side: Side,
     world_point: WorldPoint,
     squad_uuid: SquadUuid,
+    order: Option<Order>,
     behavior: Behavior,
     looking_direction: Angle,
+    alive: bool,
+    unconscious: bool,
+    under_fire: FeelingIntensity,
+    fear: FeelingIntensity,
 }
 
 impl Soldier {
@@ -30,8 +38,13 @@ impl Soldier {
             side,
             world_point,
             squad_uuid,
+            order: None,
             behavior: Behavior::Idle,
             looking_direction: Angle(0.0),
+            alive: true,
+            unconscious: false,
+            under_fire: FeelingIntensity(0),
+            fear: FeelingIntensity(0),
         }
     }
 
@@ -72,8 +85,23 @@ impl Soldier {
         &mut self.behavior
     }
 
+    pub fn order(&self) -> Option<&Order> {
+        match &self.order {
+            Some(order) => Some(order),
+            None => None,
+        }
+    }
+
+    pub fn order_mut(&mut self) -> &mut Option<Order> {
+        &mut self.order
+    }
+
     pub fn set_behavior(&mut self, behavior: Behavior) {
         self.behavior = behavior
+    }
+
+    pub fn set_order(&mut self, order: Option<Order>) {
+        self.order = order
     }
 
     pub fn get_looking_direction(&self) -> Angle {
@@ -105,17 +133,70 @@ impl Soldier {
             Behavior::CommandRotateTo(_) => SoldierAnimationType::Idle,
             Behavior::DriveTo(_) => SoldierAnimationType::Idle,
             Behavior::RotateTo(_) => SoldierAnimationType::Idle,
+            // TODO : Different animation according to death type
+            Behavior::Dead => SoldierAnimationType::DeadWithSideBlood,
+            Behavior::Unconscious => SoldierAnimationType::LyingDown,
         };
         Box::new(animation_type)
     }
 
+    pub fn set_alive(&mut self, value: bool) {
+        self.alive = value
+    }
+
+    pub fn set_unconscious(&mut self, value: bool) {
+        self.unconscious = value
+    }
+
+    pub fn can_be_animated(&self) -> bool {
+        self.alive && !self.unconscious
+    }
+
+    pub fn can_produce_sound(&self) -> bool {
+        self.alive && !self.unconscious
+    }
+
+    pub fn can_feel_explosion(&self) -> bool {
+        self.alive
+    }
+
     pub fn can_see_interior(&self) -> bool {
-        // FIXME : implement alive / incapacited
-        true
+        self.alive && !self.unconscious
     }
 
     pub fn can_seek(&self) -> bool {
-        // FIXME : implement alive / incapacited
-        true
+        self.alive && !self.unconscious
+    }
+
+    pub fn under_fire(&self) -> &FeelingIntensity {
+        &self.under_fire
+    }
+
+    pub fn increase_under_fire(&mut self, value: u32) {
+        self.under_fire.0 = min(self.under_fire.0 + value, Feeling::UnderFire.max().0);
+    }
+
+    pub fn decrease_under_fire(&mut self) {
+        if Feeling::UnderFire.decrease_value().0 > self.under_fire.0 {
+            self.under_fire.0 = 0;
+        } else {
+            self.under_fire.0 = self.under_fire.0 - Feeling::UnderFire.decrease_value().0
+        }
+    }
+
+    pub fn fear(&self) -> &FeelingIntensity {
+        &self.fear
+    }
+
+    pub fn increase_fear(&mut self, value: u32) {
+        self.fear.0 = min(self.fear.0 + value, Feeling::Fear.max().0);
+    }
+
+    pub fn decrease_fear(&mut self) {
+        if Feeling::Fear.decrease_value().0 > self.fear.0 {
+            self.fear.0 = 0;
+        } else {
+            self.fear.0 = self.fear.0 - Feeling::Fear.decrease_value().0
+        }
     }
 }

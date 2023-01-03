@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     audio::Sound,
     graphics::{animation::Sprite, explosion::ExplosionAnimationType},
+    types::BlastPower,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -28,5 +29,11 @@ impl Type {
             Type::FA19241927 => ExplosionAnimationType::Explosion1,
         };
         Box::new(animation_type)
+    }
+
+    pub fn blast(&self) -> BlastPower {
+        BlastPower(match self {
+            Type::FA19241927 => 50,
+        })
     }
 }

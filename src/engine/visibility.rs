@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::collections::HashMap;
 
 use crate::{
@@ -5,6 +6,7 @@ use crate::{
     game::Side,
     message::{LocalStateMessage, Message},
     physics::visibility::Visibility,
+    types::SoldierIndex,
 };
 
 use super::Engine;
@@ -23,7 +25,6 @@ impl Engine {
     }
 
     pub fn update_visibilities(&self) -> Vec<Message> {
-        let mut visibilities = HashMap::new();
         let side_a_soldiers: Vec<&Soldier> = self
             .shared_state
             .soldiers()
@@ -37,32 +38,55 @@ impl Engine {
             .filter(|s| s.get_side() == &Side::B)
             .collect();
 
-        for side_a_soldier in side_a_soldiers.iter().filter(|s| s.can_seek()) {
-            for side_b_soldier in &side_b_soldiers {
-                let visibility = Visibility::between_soldiers(
-                    self.local_state.get_frame_i(),
-                    side_a_soldier,
-                    side_b_soldier,
-                    &self.map,
-                );
-                visibilities.insert((side_a_soldier.uuid(), side_b_soldier.uuid()), visibility);
-            }
-        }
-
-        for side_b_soldier in side_b_soldiers.into_iter().filter(|s| s.can_seek()) {
-            for side_a_soldier in &side_a_soldiers {
-                let visibility = Visibility::between_soldiers(
-                    self.local_state.get_frame_i(),
-                    side_b_soldier,
-                    side_a_soldier,
-                    &self.map,
-                );
-                visibilities.insert((side_b_soldier.uuid(), side_a_soldier.uuid()), visibility);
-            }
-        }
+        let from_side_a_visibilities: HashMap<(SoldierIndex, SoldierIndex), Visibility> =
+            side_a_soldiers
+                .iter()
+                .map(|s| s.uuid())
+                .collect::<Vec<SoldierIndex>>()
+                .into_par_iter()
+                .flat_map(|i| self.soldier_visibilities(i, &side_b_soldiers))
+                .collect();
+        let from_side_b_visibilities: HashMap<(SoldierIndex, SoldierIndex), Visibility> =
+            side_b_soldiers
+                .iter()
+                .map(|s| s.uuid())
+                .collect::<Vec<SoldierIndex>>()
+                .into_par_iter()
+                .flat_map(|i| self.soldier_visibilities(i, &side_a_soldiers))
+                .collect();
 
         vec![Message::LocalState(LocalStateMessage::SetVisibilities(
-            visibilities,
+            from_side_a_visibilities
+                .into_iter()
+                .chain(from_side_b_visibilities)
+                .collect(),
         ))]
+    }
+
+    pub fn soldier_visibilities(
+        &self,
+        soldier_index: SoldierIndex,
+        other_soldiers: &Vec<&Soldier>,
+    ) -> HashMap<(SoldierIndex, SoldierIndex), Visibility> {
+        let mut visibilities = HashMap::new();
+        let soldier = self.shared_state.soldier(soldier_index);
+
+        if !soldier.can_seek() {
+            return visibilities;
+        }
+
+        for other_soldier in other_soldiers {
+            visibilities.insert(
+                (soldier.uuid(), other_soldier.uuid()),
+                Visibility::between_soldiers(
+                    self.local_state.get_frame_i(),
+                    soldier,
+                    other_soldier,
+                    &self.map,
+                ),
+            );
+        }
+
+        visibilities
     }
 }

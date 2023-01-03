@@ -50,6 +50,8 @@ impl Engine {
             Behavior::CommandRotateTo(_) => todo!(),
             Behavior::DriveTo(paths) => self.drive_update(soldier_index, &paths),
             Behavior::RotateTo(_) => todo!(),
+            Behavior::Dead => vec![],
+            Behavior::Unconscious => vec![],
         });
 
         messages

@@ -30,6 +30,14 @@ impl Explosion {
             start_frame_i + (self.explosive_type.sprite().duration() as u32 * TARGET_FPS) as u64;
     }
 
+    pub fn point(&self) -> &WorldPoint {
+        &self.point
+    }
+
+    pub fn type_(&self) -> &ExplosiveType {
+        &self.explosive_type
+    }
+
     pub fn finished(&self, frame_i: u64) -> bool {
         frame_i >= self.end
     }

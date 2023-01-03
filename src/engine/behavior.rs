@@ -1,4 +1,9 @@
-use crate::{behavior::BehaviorMode, types::SoldierIndex};
+use crate::{
+    behavior::{Behavior, BehaviorMode},
+    config::TARGET_FPS,
+    message::{Message, SharedStateMessage, SoldierMessage},
+    types::{Meters, SoldierIndex},
+};
 
 use super::Engine;
 
@@ -8,5 +13,61 @@ impl Engine {
             return BehaviorMode::Vehicle;
         }
         BehaviorMode::Ground
+    }
+
+    pub fn soldier_die(&self, soldier_index: SoldierIndex) -> Vec<Message> {
+        vec![
+            Message::SharedState(SharedStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetBehavior(Behavior::Dead),
+            )),
+            Message::SharedState(SharedStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetAlive(false),
+            )),
+        ]
+    }
+
+    pub fn soldier_stunned(&self, soldier_index: SoldierIndex) -> Vec<Message> {
+        vec![
+            Message::SharedState(SharedStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetBehavior(Behavior::Unconscious),
+            )),
+            Message::SharedState(SharedStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetUnconscious(true),
+            )),
+        ]
+    }
+
+    // TODO : have a real algorithm here
+    pub fn soldier_blast(&self, soldier_index: SoldierIndex, distance: Meters) -> Vec<Message> {
+        let under_fire = if distance.0 < 5.0 {
+            150
+        } else if distance.0 < 10.0 {
+            100
+        } else {
+            50
+        };
+
+        let fear = if distance.0 < 5.0 {
+            150
+        } else if distance.0 < 10.0 {
+            100
+        } else {
+            25
+        };
+
+        vec![
+            Message::SharedState(SharedStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::IncreaseUnderFire(under_fire),
+            )),
+            Message::SharedState(SharedStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::IncreaseFear(fear),
+            )),
+        ]
     }
 }

@@ -102,4 +102,22 @@ impl Order {
             Order::Hide(angle) => Some(*angle),
         }
     }
+
+    pub fn reach_step(&mut self) -> bool {
+        match self {
+            Order::MoveTo(paths) | Order::MoveFastTo(paths) | Order::SneakTo(paths) => {
+                paths
+                    .remove_next_point()
+                    .expect("Reach a move behavior implies containing point");
+
+                if paths.next_point().is_none() {
+                    return true;
+                }
+            }
+            Order::Defend(_) => {}
+            Order::Hide(_) => {}
+        }
+
+        false
+    }
 }

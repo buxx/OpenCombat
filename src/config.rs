@@ -13,6 +13,7 @@ pub struct Config {
     interiors_update_freq: u64,
     visibility_update_freq: u64,
     physics_update_freq: u64,
+    feeling_decreasing_freq: u64,
 }
 
 // FIXME : probmeme d'animation sur equipe quand cours
@@ -87,6 +88,8 @@ impl Config {
             visibility_update_freq: 60,
             /// Frequency of update visibility between soldiers
             physics_update_freq: 1,
+            /// Frequency of decreasing feelings
+            feeling_decreasing_freq: 60,
         })
     }
 
@@ -112,6 +115,10 @@ impl Config {
 
     pub fn physics_update_freq(&self) -> u64 {
         self.physics_update_freq
+    }
+
+    pub fn feeling_decreasing_freq(&self) -> u64 {
+        self.feeling_decreasing_freq
     }
 
     pub fn network_mode(&self) -> &NetworkMode {

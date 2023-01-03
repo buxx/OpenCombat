@@ -7,12 +7,13 @@ use crate::{
     game::Side,
     message::*,
     order::Order,
+    physics::effect::Effect,
     sync::StateCopy,
     types::*,
     utils::vehicle_board_from_soldiers_on_board,
 };
 
-use super::{local::LocalState, SideEffect};
+use super::SideEffect;
 
 pub struct SharedState {
     /// Used to ignore server shared_state modifications since shared state not received from server
@@ -30,6 +31,8 @@ pub struct SharedState {
     command_orders: HashMap<SquadUuid, Order>,
     /// Squad leader orders. Squad members will pick from them theirs behaviors.
     squad_orders: HashMap<SoldierIndex, Order>,
+    /// Physics effects to deal with
+    physics_effects: Vec<Effect>,
 }
 
 impl SharedState {
@@ -48,6 +51,7 @@ impl SharedState {
             squads: HashMap::new(),
             command_orders: HashMap::new(),
             squad_orders: HashMap::new(),
+            physics_effects: vec![],
         }
     }
 
@@ -165,11 +169,15 @@ impl SharedState {
         &self.vehicle_board
     }
 
-    pub fn react(
-        &mut self,
-        state_message: crate::message::SharedStateMessage,
-        local_state: &LocalState,
-    ) -> Vec<SideEffect> {
+    pub fn physics_effects(&self) -> &Vec<Effect> {
+        &self.physics_effects
+    }
+
+    pub fn physics_effects_mut(&mut self) -> &mut Vec<Effect> {
+        &mut self.physics_effects
+    }
+
+    pub fn react(&mut self, state_message: crate::message::SharedStateMessage) -> Vec<SideEffect> {
         match state_message {
             SharedStateMessage::Soldier(soldier_index, soldier_message) => {
                 return self.react_soldier_message(soldier_index, soldier_message);
@@ -196,6 +204,10 @@ impl SharedState {
             SharedStateMessage::PushSoundToPlay(sound) => {
                 //
                 return vec![SideEffect::PlaySound(sound)];
+            }
+            SharedStateMessage::PushPhysicsEffect(effect) => {
+                //
+                self.physics_effects.push(effect)
             }
         };
 

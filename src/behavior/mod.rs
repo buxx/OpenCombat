@@ -1,3 +1,5 @@
+use std::mem::discriminant;
+
 use crate::{
     config::{MOVE_FAST_VELOCITY, MOVE_HIDE_VELOCITY, MOVE_VELOCITY},
     order::Order,
@@ -5,6 +7,9 @@ use crate::{
     utils::angle,
 };
 use serde::{Deserialize, Serialize};
+
+pub mod feeling;
+pub mod gesture;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {
@@ -21,6 +26,9 @@ pub enum Behavior {
     Idle,
     Defend(Angle),
     Hide(Angle),
+    //
+    Dead,
+    Unconscious,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -46,6 +54,7 @@ impl Behavior {
             Behavior::CommandRotateTo(_) => None,
             Behavior::DriveTo(_) => None,
             Behavior::RotateTo(_) => None,
+            Behavior::Dead | Behavior::Unconscious => None, // TODO: keep angle for dead/unconscious soldiers
         }
     }
 
@@ -61,6 +70,8 @@ impl Behavior {
             Behavior::CommandRotateTo(_) => None,
             Behavior::DriveTo(_) => None,
             Behavior::RotateTo(_) => None,
+            Behavior::Dead => None,
+            Behavior::Unconscious => None,
         }
     }
 
@@ -85,6 +96,8 @@ impl Behavior {
             | Behavior::Hide(_)
             | Behavior::CommandRotateTo(_)
             | Behavior::RotateTo(_) => {}
+            Behavior::Dead => {}
+            Behavior::Unconscious => {}
         }
 
         false
@@ -99,9 +112,32 @@ impl Behavior {
             Behavior::Defend(angle) => Some(Order::Defend(*angle)),
             Behavior::Hide(angle) => Some(Order::Hide(*angle)),
             Behavior::CommandDriveTo(paths) => Some(Order::MoveTo(paths.clone())),
-            Behavior::CommandRotateTo(angle) => None,
+            Behavior::CommandRotateTo(_angle) => todo!(),
             Behavior::DriveTo(paths) => Some(Order::MoveTo(paths.clone())),
-            Behavior::RotateTo(angle) => None,
+            Behavior::RotateTo(_angle) => todo!(),
+            Behavior::Dead => None,
+            Behavior::Unconscious => None,
+        }
+    }
+
+    pub fn match_with_order(&self, order: &Order) -> bool {
+        match self {
+            Behavior::MoveTo(_) => matches!(order, Order::MoveTo(_)),
+            Behavior::MoveFastTo(_) => matches!(order, Order::MoveFastTo(_)),
+            Behavior::SneakTo(_) => matches!(order, Order::SneakTo(_)),
+            Behavior::CommandDriveTo(_) => {
+                matches!(order, Order::MoveTo(_)) || matches!(order, Order::MoveFastTo(_))
+            }
+            Behavior::CommandRotateTo(_) => todo!(),
+            Behavior::DriveTo(_) => {
+                matches!(order, Order::MoveTo(_)) || matches!(order, Order::MoveFastTo(_))
+            }
+            Behavior::RotateTo(_) => todo!(),
+            Behavior::Idle => false,
+            Behavior::Defend(_) => matches!(order, Order::Defend(_)),
+            Behavior::Hide(_) => matches!(order, Order::Hide(_)),
+            Behavior::Dead => false,
+            Behavior::Unconscious => false,
         }
     }
 }

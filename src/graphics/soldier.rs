@@ -12,6 +12,7 @@ pub enum SoldierAnimationType {
     Running,
     Crawling,
     LyingDown,
+    DeadWithSideBlood,
 }
 
 impl Sprite for SoldierAnimationType {
@@ -35,8 +36,9 @@ impl Sprite for SoldierAnimationType {
             SoldierAnimationType::Idle => 0,
             SoldierAnimationType::Walking => 1,
             SoldierAnimationType::Running => 1,
-            SoldierAnimationType::Crawling => 1,
-            SoldierAnimationType::LyingDown => 2,
+            SoldierAnimationType::Crawling => 2,
+            SoldierAnimationType::LyingDown => 3,
+            SoldierAnimationType::DeadWithSideBlood => 4,
         };
 
         row as f32 / self.sprite_sheet_row_count() as f32
@@ -46,9 +48,10 @@ impl Sprite for SoldierAnimationType {
         match self {
             SoldierAnimationType::Idle => 2,
             SoldierAnimationType::Walking => 8,
-            SoldierAnimationType::Running => 8,
-            SoldierAnimationType::Crawling => 5,
+            SoldierAnimationType::Running => 2,
+            SoldierAnimationType::Crawling => 8,
             SoldierAnimationType::LyingDown => 2,
+            SoldierAnimationType::DeadWithSideBlood => 2,
         }
     }
 
@@ -67,6 +70,7 @@ impl Sprite for SoldierAnimationType {
             SoldierAnimationType::Running => 2.,
             SoldierAnimationType::Crawling => 4.,
             SoldierAnimationType::LyingDown => 1.,
+            SoldierAnimationType::DeadWithSideBlood => 1.,
         }
     }
 }

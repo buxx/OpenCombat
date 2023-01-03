@@ -18,7 +18,7 @@ pub fn shared_state_fixtures() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) 
 
     for x in 0..1 {
         let squad = utils::new_squad_uuid();
-        for y in 0..10 {
+        for y in 0..5 {
             // let x: f32 = rng.gen_range(0.0..800.0);
             // let y: f32 = rng.gen_range(0.0..800.0);
             let soldier = Soldier::new(
@@ -34,7 +34,7 @@ pub fn shared_state_fixtures() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) 
 
     for x in 0..1 {
         let squad = utils::new_squad_uuid();
-        for y in 0..8 {
+        for y in 0..5 {
             // let x: f32 = rng.gen_range(0.0..800.0);
             // let y: f32 = rng.gen_range(0.0..800.0);
             let soldier = Soldier::new(

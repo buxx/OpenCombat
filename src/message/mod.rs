@@ -8,6 +8,7 @@ use crate::{
     game::explosive::Type as ExplosiveType,
     order::{Order, PendingOrder},
     physics::{
+        effect::Effect,
         event::{bullet::BulletFire, explosion::Explosion},
         visibility::Visibility,
     },
@@ -48,6 +49,7 @@ pub enum SharedStateMessage {
     PushSquadOrder(SoldierIndex, Order),
     RemoveCommandOder(SquadUuid),
     RemoveSquadOder(SoldierIndex),
+    PushPhysicsEffect(Effect),
     // TODO : Why this is a shared state message ? It should be only local no ?
     PushSoundToPlay(Sound),
 }
@@ -87,8 +89,15 @@ pub enum LocalStateMessage {
 pub enum SoldierMessage {
     SetWorldPosition(WorldPoint),
     SetBehavior(Behavior),
+    SetOrder(Option<Order>),
     SetOrientation(Angle),
+    SetAlive(bool),
+    SetUnconscious(bool),
     ReachBehaviorStep,
+    IncreaseUnderFire(u32),
+    IncreaseFear(u32),
+    DecreaseUnderFire,
+    DecreaseFear,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

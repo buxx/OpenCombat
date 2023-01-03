@@ -17,6 +17,7 @@ mod behavior;
 mod client;
 mod debug;
 mod draw;
+mod feeling;
 pub mod input;
 mod interior;
 mod movement;

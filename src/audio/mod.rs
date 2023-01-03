@@ -15,6 +15,19 @@ pub enum Sound {
     MosinNagantReload3,
     MosinNagantReload4,
     CannonFire1,
+    MaleScreaming1,
+    MaleScreaming2,
+    MaleScreaming3,
+    MaleScreaming4,
+    MaleScreaming5,
+    MaleDie1,
+    MaleDie2,
+    MaleDie3,
+    MaleDie4,
+    MaleDie5,
+    MaleDie6,
+    MaleDie7,
+    MaleDie8,
 }
 
 impl Sound {
@@ -30,6 +43,19 @@ impl Sound {
             Sound::MosinNagantReload3 => "/audio/MosinNagantReload3.ogg",
             Sound::MosinNagantReload4 => "/audio/MosinNagantReload4.ogg",
             Sound::CannonFire1 => "/audio/CannonFire1.ogg",
+            Sound::MaleScreaming1 => "/audio/MaleScreaming1.ogg",
+            Sound::MaleScreaming2 => "/audio/MaleScreaming2.ogg",
+            Sound::MaleScreaming3 => "/audio/MaleScreaming3.ogg",
+            Sound::MaleScreaming4 => "/audio/MaleScreaming4.ogg",
+            Sound::MaleScreaming5 => "/audio/MaleScreaming5.ogg",
+            Sound::MaleDie1 => "/audio/MaleDie1.ogg",
+            Sound::MaleDie2 => "/audio/MaleDie2.ogg",
+            Sound::MaleDie3 => "/audio/MaleDie3.ogg",
+            Sound::MaleDie4 => "/audio/MaleDie4.ogg",
+            Sound::MaleDie5 => "/audio/MaleDie5.ogg",
+            Sound::MaleDie6 => "/audio/MaleDie6.ogg",
+            Sound::MaleDie7 => "/audio/MaleDie7.ogg",
+            Sound::MaleDie8 => "/audio/MaleDie8.ogg",
         }
         .to_string()
     }

@@ -10,6 +10,7 @@ impl Engine {
 
         let mut messages = vec![];
         messages.extend(self.tick_soldiers());
+        messages.extend(self.tick_feeling_decreasing_soldiers());
         messages.extend(self.tick_interiors());
         messages.extend(self.tick_visibilities());
         messages.extend(self.tick_physics());

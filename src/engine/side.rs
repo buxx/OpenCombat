@@ -15,7 +15,8 @@ impl Engine {
                 }
                 SideEffect::SoldierFinishHisBehavior(soldier_index) => {
                     let soldier = self.shared_state.soldier_mut(soldier_index);
-                    soldier.set_behavior(Behavior::Idle)
+                    soldier.set_behavior(Behavior::Idle);
+                    soldier.set_order(None);
                 }
                 SideEffect::PlaySound(sound) => {
                     if let Some(player) = &mut self.player {

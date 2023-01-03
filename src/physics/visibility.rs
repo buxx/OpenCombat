@@ -144,6 +144,8 @@ impl Visibility {
             // ItemBehavior::MoveFastTo(_, _) => 2.0,
             // ItemBehavior::EngageSceneItem(_, _) => 0.0,
             // ItemBehavior::EngageGridPoint(_) => 0.0,
+            Behavior::Dead => 1000.0,        // Always visible
+            Behavior::Unconscious => 1000.0, // Always visible
         };
 
         to_soldier_item_opacity = to_soldier_item_opacity - by_behavior_modifier;

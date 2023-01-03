@@ -40,17 +40,28 @@ impl Engine {
         messages
     }
 
+    pub fn tick_feeling_decreasing_soldiers(&self) -> Vec<Message> {
+        let mut messages = vec![];
+        let tick_feeling_decreasing =
+            self.local_state.get_frame_i() % self.config.feeling_decreasing_freq() == 0;
+
+        if tick_feeling_decreasing {
+            let soldier_messages: Vec<Message> = (0..self.shared_state.soldiers().len())
+                .into_par_iter()
+                .flat_map(|i| self.decrease_feeling(SoldierIndex(i)))
+                .collect();
+            messages.extend(soldier_messages);
+        }
+
+        messages
+    }
+
     pub fn soldier_is_squad_leader(&self, soldier_index: SoldierIndex) -> bool {
         let soldier = self.shared_state.soldier(soldier_index);
         let squad_uuid = soldier.squad_uuid();
         let squad_composition = self.shared_state.squad(squad_uuid);
         let squad_leader = squad_composition.leader();
         squad_leader == soldier_index
-    }
-
-    pub fn soldier_can_take_order(&self, _soldier_i: SoldierIndex, _order: &Order) -> bool {
-        // TODO : check if order can be applied (e.g. if soldier is not panicking, under fire, etc.)
-        true
     }
 
     pub fn take_order(&self, soldier_index: SoldierIndex, order: &Order) -> Vec<Message> {
@@ -79,10 +90,16 @@ impl Engine {
             }
         }
 
-        messages.push(Message::SharedState(SharedStateMessage::Soldier(
-            soldier_index,
-            SoldierMessage::SetBehavior(new_behavior),
-        )));
+        messages.extend(vec![
+            Message::SharedState(SharedStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetBehavior(new_behavior),
+            )),
+            Message::SharedState(SharedStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetOrder(Some(order.clone())),
+            )),
+        ]);
 
         messages
     }
