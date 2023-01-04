@@ -1,5 +1,5 @@
 use crate::{
-    behavior::{Behavior, BehaviorMode},
+    behavior::{feeling::Feeling, Behavior, BehaviorMode},
     config::TARGET_FPS,
     message::{Message, SharedStateMessage, SoldierMessage},
     types::{Meters, SoldierIndex},
@@ -43,17 +43,9 @@ impl Engine {
 
     // TODO : have a real algorithm here
     pub fn soldier_blast(&self, soldier_index: SoldierIndex, distance: Meters) -> Vec<Message> {
-        let under_fire = if distance.0 < 5.0 {
-            150
-        } else if distance.0 < 10.0 {
-            100
-        } else {
-            50
-        };
-
         vec![Message::SharedState(SharedStateMessage::Soldier(
             soldier_index,
-            SoldierMessage::IncreaseUnderFire(under_fire),
+            SoldierMessage::IncreaseUnderFire(Feeling::UnderFire(0).blast_increase_value(distance)),
         ))]
     }
 }

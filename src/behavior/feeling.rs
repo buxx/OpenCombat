@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 
+use crate::types::Meters;
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum Feeling {
     UnderFire(u32),
@@ -12,6 +14,20 @@ const UNDER_FIRE_DANGER: u32 = 150;
 const UNDER_FIRE_WARNING: u32 = 100;
 
 impl Feeling {
+    pub fn blast_increase_value(&self, distance: Meters) -> u32 {
+        match self {
+            Feeling::UnderFire(_) => {
+                if distance.0 < 5.0 {
+                    150
+                } else if distance.0 < 10.0 {
+                    100
+                } else {
+                    50
+                }
+            }
+        }
+    }
+
     pub fn decrease(&mut self) {
         match self {
             Feeling::UnderFire(value) => {
