@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{behavior::Behavior, entity::vehicle::OnBoardPlace, types::*};
 use serde::{Deserialize, Serialize};
 
@@ -119,5 +121,17 @@ impl Order {
         }
 
         false
+    }
+}
+
+impl Display for Order {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Order::MoveTo(_) => f.write_str("MoveTo"),
+            Order::MoveFastTo(_) => f.write_str("MoveFastTo"),
+            Order::SneakTo(_) => f.write_str("SneakTo"),
+            Order::Defend(_) => f.write_str("Defend"),
+            Order::Hide(_) => f.write_str("Hide"),
+        }
     }
 }

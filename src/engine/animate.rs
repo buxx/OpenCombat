@@ -97,6 +97,12 @@ impl Engine {
         } else if let Some(order) = soldier_order {
             // And current behavior don't match with order
             if !soldier_behavior.match_with_order(order) {
+                println!(
+                    "ADAPT::Soldier({})::{}::{}",
+                    soldier.uuid(),
+                    &soldier_behavior,
+                    &order,
+                );
                 // Adapt soldier from order
                 return self.take_order(soldier_index, order);
             }

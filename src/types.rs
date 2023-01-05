@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     f32::consts::FRAC_PI_2,
+    fmt::Display,
     ops::{Add, Neg},
 };
 
@@ -323,6 +324,12 @@ impl WorldPaths {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct SoldierIndex(pub usize);
+
+impl Display for SoldierIndex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{}", self.0))
+    }
+}
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct VehicleIndex(pub usize);

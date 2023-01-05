@@ -28,6 +28,20 @@ impl Feeling {
         }
     }
 
+    pub fn proximity_bullet_increase_value(&self, distance: Meters) -> u32 {
+        match self {
+            Feeling::UnderFire(_) => {
+                if distance.0 < 3.0 {
+                    150
+                } else if distance.0 < 10.0 {
+                    100
+                } else {
+                    30
+                }
+            }
+        }
+    }
+
     pub fn decrease(&mut self) {
         match self {
             Feeling::UnderFire(value) => {

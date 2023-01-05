@@ -35,7 +35,7 @@ impl Engine {
         messages
     }
 
-    // FIXME : find algorithm kill/injure about explosives
+    // FIXME : find algorithm kill/injure about explosives + terrain + position
     fn explosion_effects(&self, explosion: &Explosion) -> Vec<Message> {
         let mut messages = vec![];
         let point = explosion.point();
@@ -58,7 +58,7 @@ impl Engine {
                 messages.push(Message::SharedState(SharedStateMessage::PushPhysicsEffect(
                     Effect::StunningBlast(soldier.uuid()),
                 )))
-            } else if distance_from_point.0 < 100.0 {
+            } else if distance_from_point.0 < 75.0 {
                 messages.push(Message::SharedState(SharedStateMessage::PushPhysicsEffect(
                     Effect::ProximityBlast(soldier.uuid(), distance_from_point.clone()),
                 )))

@@ -1,4 +1,4 @@
-use std::mem::discriminant;
+use std::fmt::Display;
 
 use crate::{
     config::{MOVE_FAST_VELOCITY, MOVE_HIDE_VELOCITY, MOVE_VELOCITY},
@@ -133,11 +133,30 @@ impl Behavior {
                 matches!(order, Order::MoveTo(_)) || matches!(order, Order::MoveFastTo(_))
             }
             Behavior::RotateTo(_) => todo!(),
-            Behavior::Idle => false,
+            Behavior::Idle => true, // Idle is used between move steps
             Behavior::Defend(_) => matches!(order, Order::Defend(_)),
             Behavior::Hide(_) => matches!(order, Order::Hide(_)),
             Behavior::Dead => false,
             Behavior::Unconscious => false,
+        }
+    }
+}
+
+impl Display for Behavior {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Behavior::MoveTo(_) => f.write_str("MoveTo"),
+            Behavior::MoveFastTo(_) => f.write_str("MoveFastTo"),
+            Behavior::SneakTo(_) => f.write_str("SneakTo"),
+            Behavior::CommandDriveTo(_) => f.write_str("CommandDriveTo"),
+            Behavior::CommandRotateTo(_) => f.write_str("CommandRotateTo"),
+            Behavior::DriveTo(_) => f.write_str("DriveTo"),
+            Behavior::RotateTo(_) => f.write_str("RotateTo"),
+            Behavior::Idle => f.write_str("Idle"),
+            Behavior::Defend(_) => f.write_str("Defend"),
+            Behavior::Hide(_) => f.write_str("Hide"),
+            Behavior::Dead => f.write_str("Dead"),
+            Behavior::Unconscious => f.write_str("Unconscious"),
         }
     }
 }

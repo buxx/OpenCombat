@@ -116,7 +116,10 @@ impl Engine {
                 self.squad_leader_propagate_move_order(squad_uuid, order)
             }
             Order::Defend(_) => self.squad_leader_propagate_defend_order(squad_uuid, order),
-            Order::Hide(_) => self.squad_leader_propagate_defend_order(squad_uuid, order),
+            Order::Hide(_) => {
+                // TODO: special implementation for hide
+                self.squad_leader_propagate_defend_order(squad_uuid, order)
+            }
         });
 
         messages
@@ -144,7 +147,14 @@ impl Engine {
                     .collect();
                 let world_paths = WorldPaths::new(vec![WorldPath::new(world_path)]);
                 let member_order = match order {
-                    Order::MoveTo(_) => Order::MoveTo(world_paths),
+                    Order::MoveTo(_) => {
+                        println!(
+                            "PROPAGATE_MOVE::Soldier({})::{:?}",
+                            soldier.uuid(),
+                            world_paths
+                        );
+                        Order::MoveTo(world_paths)
+                    }
                     Order::MoveFastTo(_) => Order::MoveFastTo(world_paths),
                     Order::SneakTo(_) => Order::SneakTo(world_paths),
                     _ => unreachable!(),
@@ -162,7 +172,7 @@ impl Engine {
     fn squad_leader_propagate_defend_order(
         &self,
         squad_uuid: SquadUuid,
-        order: &Order,
+        _order: &Order,
     ) -> Vec<Message> {
         let squad = self.shared_state.squad(squad_uuid);
         let mut messages = vec![];
@@ -222,13 +232,13 @@ impl Engine {
         messages
     }
 
-    fn squad_leader_propagate_hide_order(
-        &self,
-        squad_uuid: SquadUuid,
-        order: &Order,
-    ) -> Vec<Message> {
-        let mut messages = vec![];
+    // fn squad_leader_propagate_hide_order(
+    //     &self,
+    //     squad_uuid: SquadUuid,
+    //     order: &Order,
+    // ) -> Vec<Message> {
+    //     let mut messages = vec![];
 
-        messages
-    }
+    //     messages
+    // }
 }

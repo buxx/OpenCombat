@@ -158,6 +158,10 @@ impl Soldier {
         self.alive
     }
 
+    pub fn can_feel_bullet_fire(&self) -> bool {
+        self.alive
+    }
+
     pub fn can_see_interior(&self) -> bool {
         self.alive && !self.unconscious
     }

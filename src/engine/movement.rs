@@ -22,10 +22,16 @@ impl Engine {
         {
             // If it is the last point, move is finished
             if path.is_last_point().expect("Must contain points") {
-                messages.push(Message::SharedState(SharedStateMessage::Soldier(
-                    soldier_index,
-                    SoldierMessage::SetBehavior(Behavior::Idle),
-                )));
+                messages.extend(vec![
+                    Message::SharedState(SharedStateMessage::Soldier(
+                        soldier_index,
+                        SoldierMessage::SetBehavior(Behavior::Idle),
+                    )),
+                    Message::SharedState(SharedStateMessage::Soldier(
+                        soldier_index,
+                        SoldierMessage::SetOrder(None),
+                    )),
+                ]);
             } else {
                 messages.push(Message::SharedState(SharedStateMessage::Soldier(
                     soldier_index,

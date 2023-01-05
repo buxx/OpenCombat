@@ -37,6 +37,14 @@ impl BulletFire {
         self.end = start_frame_i + 5;
     }
 
+    pub fn point(&self) -> &WorldPoint {
+        &self.to
+    }
+
+    pub fn weapon(&self) -> &Weapon {
+        &&self.weapon
+    }
+
     pub fn finished(&self, frame_i: u64) -> bool {
         frame_i >= self.end
     }

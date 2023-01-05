@@ -7,4 +7,7 @@ pub enum Effect {
     KillingBlast(SoldierIndex),
     StunningBlast(SoldierIndex),
     ProximityBlast(SoldierIndex, Meters),
+    KillingBullet(SoldierIndex),
+    InjuringBullet(SoldierIndex),
+    ProximityBullet(SoldierIndex, Meters),
 }
