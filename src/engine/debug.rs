@@ -45,7 +45,9 @@ impl Engine {
             if let Some(world_paths) = match squad_leader.get_behavior() {
                 Behavior::MoveTo(world_paths)
                 | Behavior::MoveFastTo(world_paths)
-                | Behavior::SneakTo(world_paths) => Some(world_paths),
+                | Behavior::SneakTo(world_paths)
+                | Behavior::DriveTo(world_paths) => Some(world_paths),
+
                 _ => None,
             } {
                 for world_path in &world_paths.paths {

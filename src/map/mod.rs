@@ -9,6 +9,7 @@ use ggez::graphics::MeshBuilder;
 use ggez::Context;
 use ggez::GameError;
 use ggez::GameResult;
+use strum::IntoEnumIterator;
 use tiled::{
     parse_with_path, Image as TiledImage, Layer, LayerData, Map as TiledMap, ObjectGroup,
     Orientation, Tileset,
@@ -21,6 +22,8 @@ use crate::map::util::{
     extract_objects, extract_tileset, extract_tileset_images, extract_tilesets_containing_gids,
     get_tileset_i_for_gid,
 };
+use crate::physics::path::Direction;
+use crate::physics::path::PathMode;
 use crate::types::*;
 use crate::RESOURCE_PATH;
 use core::cmp;
@@ -191,31 +194,46 @@ impl Map {
         GameResult::Ok(map)
     }
 
-    pub fn successors(&self, from: &GridPoint) -> Vec<(GridPoint, i32)> {
+    pub fn successors(
+        &self,
+        from: &(GridPoint, Direction),
+        path_mode: &PathMode,
+    ) -> Vec<((GridPoint, Direction), i32)> {
         let mut successors = vec![];
 
-        for (mod_x, mod_y) in [
-            (-1, -1),
-            (0, -1),
-            (1, -1),
-            (-1, 0),
-            (0, 0),
-            (1, 0),
-            (-1, 1),
-            (0, 1),
-            (1, 1),
-        ]
-        .iter()
-        {
-            let new_x = from.x + mod_x;
-            let new_y = from.y + mod_y;
+        for direction in Direction::iter() {
+            let (mod_x, mod_y) = direction.modifier();
+            let new_x = from.0.x + mod_x;
+            let new_y = from.0.y + mod_y;
 
+            // Don't care ifd outside map
             if new_x < 0 || new_y < 0 {
                 continue;
             }
 
+            // If in map
             if let Some(next_tile) = self.terrain.tiles.get(&(new_x as u32, new_y as u32)) {
-                successors.push((GridPoint::new(new_x, new_y), next_tile.pedestrian_cost))
+                if path_mode.include_vehicles() {
+                    if next_tile.block_vehicle {
+                        continue;
+                    }
+
+                    match path_mode {
+                        PathMode::Drive(size) => {
+                            if !self.point_allow_vehicle(&GridPoint::new(new_x, new_y), size) {
+                                continue;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+
+                let cost = match path_mode {
+                    PathMode::Walk => next_tile.pedestrian_cost,
+                    PathMode::Drive(_size) => from.1.angle_cost(&direction),
+                };
+
+                successors.push(((GridPoint::new(new_x, new_y), direction), cost))
             }
         }
 
@@ -233,5 +251,25 @@ impl Map {
         let x = world_point.x as u32 / self.terrain.tileset.tile_width;
         let y = world_point.y as u32 / self.terrain.tileset.tile_height;
         GridPoint::new(x as i32, y as i32)
+    }
+
+    fn point_allow_vehicle(&self, point: &GridPoint, size: &VehicleSize) -> bool {
+        let half = (size.0 / 2) as i32;
+        let start_x = point.x - half;
+        let end_x = point.x + half;
+        let start_y = point.y - half;
+        let end_y = point.y + half;
+
+        for x in start_x..end_x {
+            for y in start_y..end_y {
+                if let Some(tile) = self.terrain.tiles.get(&(x as u32, y as u32)) {
+                    if tile.block_vehicle {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 }

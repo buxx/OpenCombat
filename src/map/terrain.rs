@@ -27,6 +27,7 @@ pub struct TerrainTile {
     pub tile_y: u32,
     pub opacity: f32,
     pub pedestrian_cost: i32,
+    pub block_vehicle: bool,
 }
 
 impl TerrainTile {
@@ -50,6 +51,7 @@ impl TerrainTile {
                 tile_x,
                 tile_y,
                 pedestrian_cost: 10,
+                block_vehicle: false,
             },
             "MiddleGrass" => Self {
                 id: TerrainTileId::MiddleGrass,
@@ -61,6 +63,7 @@ impl TerrainTile {
                 tile_x,
                 tile_y,
                 pedestrian_cost: 10,
+                block_vehicle: false,
             },
             "HighGrass" => Self {
                 id: TerrainTileId::HighGrass,
@@ -71,7 +74,8 @@ impl TerrainTile {
                 relative_tile_height,
                 tile_x,
                 tile_y,
-                pedestrian_cost: 11,
+                pedestrian_cost: 10,
+                block_vehicle: false,
             },
             "Dirt" => Self {
                 id: TerrainTileId::Dirt,
@@ -82,7 +86,8 @@ impl TerrainTile {
                 relative_tile_height,
                 tile_x,
                 tile_y,
-                pedestrian_cost: 10,
+                pedestrian_cost: 11,
+                block_vehicle: false,
             },
             "Mud" => Self {
                 id: TerrainTileId::Mud,
@@ -94,6 +99,7 @@ impl TerrainTile {
                 tile_x,
                 tile_y,
                 pedestrian_cost: 11,
+                block_vehicle: false,
             },
             "Concrete" => Self {
                 id: TerrainTileId::Concrete,
@@ -104,7 +110,8 @@ impl TerrainTile {
                 relative_tile_height,
                 tile_x,
                 tile_y,
-                pedestrian_cost: 10,
+                pedestrian_cost: 50,
+                block_vehicle: true,
             },
             "BrickWall" => Self {
                 id: TerrainTileId::BrickWall,
@@ -116,9 +123,9 @@ impl TerrainTile {
                 tile_x,
                 tile_y,
                 pedestrian_cost: 50,
+                block_vehicle: true,
             },
             &_ => {
-                // FIXME BS NOW: manage errors
                 panic!("Unknown tile id {}", id)
             }
         }
@@ -202,7 +209,11 @@ pub fn get_tile_from_terrain_tileset_with_id(
     )));
 }
 
-pub fn grid_points_for_square(center_point: &GridPoint, width: i32, height: i32) -> Vec<GridPoint> {
+pub fn _grid_points_for_square(
+    center_point: &GridPoint,
+    width: i32,
+    height: i32,
+) -> Vec<GridPoint> {
     let mut points = vec![];
 
     let start_x = center_point.x - (height / 2);

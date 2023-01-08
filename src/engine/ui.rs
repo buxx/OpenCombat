@@ -6,15 +6,12 @@ use ggez::{
 use glam::Vec2;
 
 use crate::{
-    behavior::BehaviorMode,
     config::{
         DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
         PENDING_ORDER_PATH_FINDING_DRAW_FRAMES,
     },
-    game::weapon::Weapon,
     message::*,
     order::{Order, PendingOrder},
-    physics::event::bullet::BulletFire,
     types::*,
     ui::menu::squad_menu_sprite_info,
     utils::GREEN,
@@ -264,15 +261,15 @@ impl Engine {
                     }
                 }
                 UIEvent::DrawPathFinding(squad_id, order_marker_index, cached_points) => {
-                    let squad_leader_index = self.shared_state.squad(squad_id).leader();
-                    let behavior_mode = self.soldier_behavior_mode(squad_leader_index);
-                    let take_only_bounds = behavior_mode == BehaviorMode::Vehicle;
+                    let (path_mode, start_direction) =
+                        self.shared_state.squad_path_mode_and_direction(squad_id);
 
                     if let Some(world_paths) = self.create_path_finding(
                         squad_id,
                         order_marker_index,
                         &cached_points,
-                        take_only_bounds,
+                        &path_mode,
+                        &start_direction,
                     ) {
                         messages.push(Message::LocalState(LocalStateMessage::SetDisplayPaths(
                             vec![(world_paths, squad_id)],

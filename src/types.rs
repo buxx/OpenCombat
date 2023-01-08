@@ -289,7 +289,7 @@ impl WorldPaths {
         }
     }
 
-    pub fn next_path_last_point(&self) -> Option<WorldPoint> {
+    pub fn _next_path_last_point(&self) -> Option<WorldPoint> {
         if self.paths.is_empty() {
             None
         } else {
@@ -333,6 +333,9 @@ impl Display for SoldierIndex {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct VehicleIndex(pub usize);
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct VehicleSize(pub usize);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct OrderMarkerIndex(pub usize);

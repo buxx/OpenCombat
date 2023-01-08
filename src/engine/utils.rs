@@ -3,9 +3,9 @@ use std::{cmp, collections::HashSet};
 use ggez::graphics::Rect;
 
 use crate::{
-    behavior::{Behavior, BehaviorMode},
+    behavior::Behavior,
     order::PendingOrder,
-    physics::path::find_path,
+    physics::path::{find_path, Direction, PathMode},
     types::*,
 };
 
@@ -138,7 +138,8 @@ impl Engine {
         squad_id: SquadUuid,
         order_marker_index: Option<OrderMarkerIndex>,
         cached_points: &Vec<WorldPoint>,
-        take_only_bounds: bool,
+        path_mode: &PathMode,
+        start_direction: &Option<Direction>,
     ) -> Option<WorldPaths> {
         let squad = self.shared_state.squad(squad_id);
         let soldier = self.shared_state.soldier(squad.leader());
@@ -198,24 +199,22 @@ impl Engine {
         // Build path finding on each parts
         let mut world_paths = vec![];
         for (bound_start, bound_end) in bounds {
-            if !take_only_bounds {
-                if let Some(grid_points_path) = find_path(&self.map, &bound_start, &bound_end, true)
-                {
-                    if grid_points_path.len() > 0 {
-                        let world_point_path = grid_points_path
-                            .iter()
-                            .map(|p| self.world_point_from_grid_point(GridPoint::from(*p)))
-                            .collect();
-                        let world_path = WorldPath::new(world_point_path);
-                        world_paths.push(world_path);
-                    }
+            if let Some(grid_points_path) = find_path(
+                &self.map,
+                &bound_start,
+                &bound_end,
+                true,
+                path_mode,
+                start_direction,
+            ) {
+                if grid_points_path.len() > 0 {
+                    let world_point_path = grid_points_path
+                        .iter()
+                        .map(|p| self.world_point_from_grid_point(GridPoint::from(*p)))
+                        .collect();
+                    let world_path = WorldPath::new(world_point_path);
+                    world_paths.push(world_path);
                 }
-            } else {
-                let world_path = WorldPath::new(vec![
-                    self.world_point_from_grid_point(bound_start),
-                    self.world_point_from_grid_point(bound_end),
-                ]);
-                world_paths.push(world_path);
             }
         }
 
@@ -243,24 +242,22 @@ impl Engine {
         order_marker_index: Option<OrderMarkerIndex>,
         cached_points: &Vec<WorldPoint>,
     ) -> Option<WorldPaths> {
-        let squad_leader_index = self.shared_state.squad(squad_id).leader();
-        let behavior_mode = self.soldier_behavior_mode(squad_leader_index);
-        let take_only_bounds = behavior_mode == BehaviorMode::Vehicle;
-
-        // Try to grab from display path only for ground moves
-        if !take_only_bounds {
-            for (display_paths, path_squad_id) in self.local_state.get_display_paths() {
-                if *path_squad_id == squad_id {
-                    return Some(display_paths.clone());
-                }
+        // Take path from displayed path if exist
+        for (display_paths, path_squad_id) in self.local_state.get_display_paths() {
+            if *path_squad_id == squad_id {
+                return Some(display_paths.clone());
             }
         }
 
+        // Else, create a path
+        let (path_mode, start_direction) =
+            self.shared_state.squad_path_mode_and_direction(squad_id);
         return self.create_path_finding(
             squad_id,
             order_marker_index,
             cached_points,
-            take_only_bounds,
+            &path_mode,
+            &start_direction,
         );
     }
 

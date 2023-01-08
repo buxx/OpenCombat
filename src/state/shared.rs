@@ -5,9 +5,13 @@ use ggez::GameResult;
 use crate::{
     entity::{soldier::Soldier, vehicle::Vehicle},
     game::Side,
+    graphics::vehicle::VehicleGraphicInfos,
     message::*,
     order::Order,
-    physics::effect::Effect,
+    physics::{
+        effect::Effect,
+        path::{Direction, PathMode},
+    },
     sync::StateCopy,
     types::*,
     utils::vehicle_board_from_soldiers_on_board,
@@ -163,6 +167,30 @@ impl SharedState {
 
     pub fn soldier_board(&self, soldier_index: SoldierIndex) -> Option<&SoldierBoard> {
         self.soldier_on_board.get(&soldier_index)
+    }
+
+    pub fn soldier_vehicle(&self, soldier_index: SoldierIndex) -> Option<VehicleIndex> {
+        if let Some(soldier_board) = self.soldier_board(soldier_index) {
+            return Some(soldier_board.0);
+        }
+
+        None
+    }
+
+    pub fn squad_path_mode_and_direction(
+        &self,
+        squad_id: SquadUuid,
+    ) -> (PathMode, Option<Direction>) {
+        let squad_leader_index = self.squad(squad_id).leader();
+        if let Some(vehicle_index) = self.soldier_vehicle(squad_leader_index) {
+            let vehicle = self.vehicle(vehicle_index);
+            (
+                PathMode::Drive(*VehicleGraphicInfos::sprites_infos(vehicle.get_type()).size()),
+                Some(Direction::from_angle(vehicle.get_chassis_orientation())),
+            )
+        } else {
+            (PathMode::Walk, None)
+        }
     }
 
     pub fn vehicle_board(&self) -> &VehicleBoard {

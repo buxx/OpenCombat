@@ -15,6 +15,8 @@ pub struct VehicleGraphicInfos {
     main_turret: Option<(RelativeOffset, SpriteInfo)>,
     // Offset is the place decal from tank sprite center
     places: VehicleGraphicPlaces,
+    /// Used for collisions
+    size: VehicleSize,
 }
 
 impl VehicleGraphicInfos {
@@ -22,12 +24,14 @@ impl VehicleGraphicInfos {
         chassis: SpriteInfo,
         main_turret: (RelativeOffset, SpriteInfo),
         places: Vec<(OnBoardPlace, Offset)>,
+        size: VehicleSize,
     ) -> Self {
         let places = places.into_iter().collect();
         Self {
             chassis,
             main_turret: Some(main_turret),
             places,
+            size,
         }
     }
 
@@ -59,6 +63,8 @@ impl VehicleGraphicInfos {
                         (OnBoardPlace::Driver, Offset::new(8., -16.)),
                         (OnBoardPlace::MainTurretGunner, Offset::new(-3., 0.)),
                     ],
+                    // TODO : compute this value according to map grid size (meters)
+                    VehicleSize(10),
                 )
             }
         }
@@ -74,5 +80,9 @@ impl VehicleGraphicInfos {
 
     pub fn places(&self) -> &VehicleGraphicPlaces {
         &self.places
+    }
+
+    pub fn size(&self) -> &VehicleSize {
+        &self.size
     }
 }

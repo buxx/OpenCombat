@@ -4,7 +4,7 @@ use crate::{
     map::util::find_cover_grid_point,
     message::*,
     order::Order,
-    physics::path::find_path,
+    physics::path::{find_path, PathMode},
     types::*,
     utils::DebugPoint,
 };
@@ -140,6 +140,8 @@ impl Engine {
                 &self.grid_point_from_world_point(soldier.get_world_point()),
                 &self.grid_point_from_world_point(point),
                 true,
+                &PathMode::Walk,
+                &None,
             ) {
                 let world_path = grid_path
                     .iter()
@@ -147,14 +149,7 @@ impl Engine {
                     .collect();
                 let world_paths = WorldPaths::new(vec![WorldPath::new(world_path)]);
                 let member_order = match order {
-                    Order::MoveTo(_) => {
-                        println!(
-                            "PROPAGATE_MOVE::Soldier({})::{:?}",
-                            soldier.uuid(),
-                            world_paths
-                        );
-                        Order::MoveTo(world_paths)
-                    }
+                    Order::MoveTo(_) => Order::MoveTo(world_paths),
                     Order::MoveFastTo(_) => Order::MoveFastTo(world_paths),
                     Order::SneakTo(_) => Order::SneakTo(world_paths),
                     _ => unreachable!(),

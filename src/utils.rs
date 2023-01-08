@@ -71,6 +71,16 @@ pub fn angle(to_point: &WorldPoint, from_point: &WorldPoint) -> Angle {
     Angle(f32::atan2(to_point.y - from_point.y, to_point.x - from_point.x) + FRAC_PI_2)
 }
 
+pub fn angleg(to_point: &GridPoint, from_point: &GridPoint) -> Angle {
+    // Note: angle computed by adding FRAC_PI_2 because sprites are north oriented
+    Angle(
+        f32::atan2(
+            to_point.y as f32 - from_point.y as f32,
+            to_point.x as f32 - from_point.x as f32,
+        ) + FRAC_PI_2,
+    )
+}
+
 pub fn apply_angle_on_point<T: Xy>(point_to_rotate: &T, reference_point: &T, angle: &Angle) -> T {
     let sin = f32::sin(angle.0);
     let cos = f32::cos(angle.0);

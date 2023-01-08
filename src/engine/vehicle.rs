@@ -30,7 +30,7 @@ impl Engine {
         let vehicle = self.shared_state.vehicle(vehicle_index);
         let vehicle_position = vehicle.get_world_point();
         let move_target_point = paths
-            .next_path_last_point()
+            .next_point()
             .expect("Execute drive update imply move path is filled");
         let angle = angle(&move_target_point, &vehicle_position);
         let move_vector = (move_target_point.to_vec2() - vehicle_position.to_vec2()).normalize()
