@@ -52,6 +52,8 @@ pub struct LocalState {
     )>, // ..., ..., editing move index, cached points
     /// Paths to display
     display_paths: Vec<(WorldPaths, SquadUuid)>,
+    /// Used to know a path already search here last frame
+    last_computed_path_point: Option<WorldPoint>,
     /// Debug points to display if debug mode
     debug_points: Vec<DebugPoint>,
     /// Contains current control mode
@@ -83,6 +85,7 @@ impl LocalState {
             squad_menu: None,
             pending_order: None,
             display_paths: vec![],
+            last_computed_path_point: None,
             debug_points: vec![],
             control: Control::Soldiers,
             visibilities: Visibilities::new(),
@@ -213,6 +216,10 @@ impl LocalState {
         &self.display_paths
     }
 
+    pub fn last_computed_path_point(&self) -> &Option<WorldPoint> {
+        &self.last_computed_path_point
+    }
+
     pub fn debug_points_mut(&mut self) -> &mut Vec<DebugPoint> {
         &mut self.debug_points
     }
@@ -272,7 +279,8 @@ impl LocalState {
             }
             LocalStateMessage::SetDisplayPaths(display_paths) => {
                 //
-                self.display_paths = display_paths
+                self.display_paths = display_paths;
+                self.last_computed_path_point = None;
             }
             LocalStateMessage::AddCachePointToPendingOrder(new_point) => {
                 let (_, _, _, cached_points) = self

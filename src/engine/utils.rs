@@ -148,6 +148,11 @@ impl Engine {
         let cursor_world_point = self.local_state.get_current_cursor_world_point();
         let cursor_grid_point = self.grid_point_from_world_point(cursor_world_point);
 
+        // Prevent compute same thing each frames when path not found
+        if &Some(cursor_world_point) == self.local_state.last_computed_path_point() {
+            return None;
+        }
+
         // Determine different path "part" to find:
         // Editing existing case
         let bounds = if let Some(order_marker_index_) = order_marker_index {
