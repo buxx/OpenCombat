@@ -4,9 +4,10 @@ use ggez::graphics::Rect;
 
 use crate::{
     behavior::Behavior,
-    order::PendingOrder,
+    order::{marker::OrderMarker, Order, PendingOrder},
     physics::path::{find_path, Direction, PathMode},
     types::*,
+    utils::WorldShape,
 };
 
 use super::Engine;
@@ -101,7 +102,6 @@ impl Engine {
     ) -> Vec<(WindowPoint, Angle, Offset)> {
         let squad = self.shared_state.squad(squad_id);
         let squad_leader = self.shared_state.soldier(squad.leader());
-        let order_marker = pending_order.marker();
         match pending_order {
             PendingOrder::MoveTo | PendingOrder::MoveFastTo | PendingOrder::SneakTo => {
                 let mut params = vec![];
@@ -110,13 +110,13 @@ impl Engine {
                         self.local_state
                             .window_point_from_world_point(*cached_point),
                         Angle(0.),
-                        order_marker.offset(),
+                        Offset::half(),
                     ));
                 }
                 params.push((
                     *self.local_state.get_current_cursor_window_point(),
                     Angle(0.),
-                    order_marker.offset(),
+                    Offset::half(),
                 ));
                 params
             }
@@ -127,7 +127,7 @@ impl Engine {
                     self.local_state
                         .window_point_from_world_point(squad_leader.get_world_point()),
                     Angle::from_points(&to_point, &from_point),
-                    order_marker.offset(),
+                    Offset::half(),
                 )]
             }
         }
@@ -272,5 +272,16 @@ impl Engine {
         let to_point = self.local_state.get_current_cursor_world_point().to_vec2();
         let from_point = squad_leader.get_world_point().to_vec2();
         Angle::from_points(&to_point, &from_point)
+    }
+
+    pub fn defend_order_selection_shape(
+        &self,
+        order: &Order,
+        marker: &OrderMarker,
+        from_point: &WorldPoint,
+    ) -> WorldShape {
+        WorldShape::from_rect(&marker.sprite_info().selection_rect(*from_point))
+            .rotate(order.angle().unwrap_or(Angle::zero()))
+            .cut(marker.selectable())
     }
 }

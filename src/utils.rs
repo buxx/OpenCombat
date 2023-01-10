@@ -1,9 +1,11 @@
+use geo::{coord, Contains, Triangle};
+use glam::Vec2;
 use serde::{Deserialize, Serialize};
 use std::{f32::consts::FRAC_PI_2, sync::atomic::AtomicUsize};
 
-use ggez::graphics::Color;
+use ggez::graphics::{Color, Rect};
 
-use crate::types::*;
+use crate::{state::local::LocalState, types::*};
 
 pub const GREEN: Color = Color {
     r: 0.0,
@@ -53,13 +55,6 @@ pub const GREY: Color = Color {
     b: 0.5,
     a: 1.0,
 };
-
-pub struct Rectangle<T> {
-    pub top_left: T,
-    pub top_right: T,
-    pub bottom_left: T,
-    pub bottom_right: T,
-}
 
 pub fn new_squad_uuid() -> usize {
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -172,4 +167,175 @@ pub fn grid_points_for_square(center_point: &GridPoint, width: i32, height: i32)
 pub struct DebugPoint {
     pub frame_i: u64,
     pub point: WorldPoint,
+}
+
+pub fn rotated_rect<T: Xy>(rect: (&T, f32, f32), rotation: (Angle, Offset)) -> (T, T, T, T) {
+    let (origin_top_left, origin_top_right, origin_bottom_right, origin_bottom_left) =
+        rect_to_points(rect);
+
+    let angle = rotation.0;
+    let reference = origin_top_left.apply(rotation.1.x, rotation.1.y);
+    let after_top_left = apply_angle_on_point(&origin_top_left, &reference, &angle);
+    let after_top_right = apply_angle_on_point(&origin_top_right, &reference, &angle);
+    let after_bottom_right = apply_angle_on_point(&origin_bottom_right, &reference, &angle);
+    let after_bottom_left = apply_angle_on_point(&origin_bottom_left, &reference, &angle);
+
+    (
+        after_top_left,
+        after_top_right,
+        after_bottom_right,
+        after_bottom_left,
+    )
+}
+
+pub fn rotated_rect_draw_points<T: Xy>(rect: (&T, f32, f32), rotation: (Angle, Offset)) -> Vec<T> {
+    let (after_top_left, after_top_right, after_bottom_right, after_bottom_left) =
+        rotated_rect(rect, rotation);
+
+    vec![
+        after_top_left.apply(0., 0.),
+        after_top_right,
+        after_bottom_right,
+        after_bottom_left,
+        after_top_left,
+    ]
+}
+
+pub fn rect_to_points<T: Xy>(rect: (&T, f32, f32)) -> (T, T, T, T) {
+    (
+        rect.0.apply(0., 0.),
+        rect.0.apply(rect.1, 0.),
+        rect.0.apply(rect.1, rect.2),
+        rect.0.apply(0., rect.2),
+    )
+}
+
+pub fn rect_contains(rect: &Rect, rotation: (Angle, Offset), point: Vec2) -> bool {
+    let rect_orig = Point::new(rect.x, rect.y);
+    let (after_top_left, after_top_right, after_bottom_right, after_bottom_left) =
+        rotated_rect((&rect_orig, rect.w, rect.h), (rotation.0, rotation.1));
+
+    let triangle1 = Triangle::new(
+        coord! { x: after_top_left.x, y: after_top_left.y },
+        coord! { x: after_top_right.x, y: after_top_right.y },
+        coord! { x: after_bottom_left.x, y: after_bottom_left.y },
+    );
+    let triangle2 = Triangle::new(
+        coord! { x: after_bottom_right.x, y: after_bottom_right.y },
+        coord! { x: after_bottom_left.x, y: after_bottom_left.y },
+        coord! { x: after_top_right.x, y: after_top_right.y },
+    );
+
+    triangle1.contains(&coord! { x: point.x, y: point.y })
+        || triangle2.contains(&coord! { x: point.x, y: point.y })
+}
+
+pub struct WorldShape {
+    pub top_left: WorldPoint,
+    pub top_right: WorldPoint,
+    pub bottom_right: WorldPoint,
+    pub bottom_left: WorldPoint,
+}
+
+impl WorldShape {
+    pub fn from_rect(rect: &Rect) -> Self {
+        Self {
+            top_left: WorldPoint::new(rect.x, rect.y),
+            top_right: WorldPoint::new(rect.x + rect.w, rect.y),
+            bottom_right: WorldPoint::new(rect.x + rect.w, rect.y + rect.h),
+            bottom_left: WorldPoint::new(rect.x, rect.y + rect.h),
+        }
+    }
+
+    pub fn to_window_shape(&self, local_state: &LocalState) -> WindowShape {
+        WindowShape {
+            top_left: local_state.window_point_from_world_point(self.top_left),
+            top_right: local_state.window_point_from_world_point(self.top_right),
+            bottom_right: local_state.window_point_from_world_point(self.bottom_right),
+            bottom_left: local_state.window_point_from_world_point(self.bottom_left),
+        }
+    }
+
+    pub fn rotate(&self, angle: Angle) -> Self {
+        let width = self.top_right.x - self.top_left.x;
+        let height = self.bottom_left.y - self.top_left.y;
+        let center_offset = Vec2::new(width / 2., height / 2.);
+        let reference_point = self.top_left.apply(center_offset);
+
+        let after_top_left = apply_angle_on_point(&self.top_left, &reference_point, &angle);
+        let after_top_right = apply_angle_on_point(&self.top_right, &reference_point, &angle);
+        let after_bottom_right = apply_angle_on_point(&self.bottom_right, &reference_point, &angle);
+        let after_bottom_left = apply_angle_on_point(&self.bottom_left, &reference_point, &angle);
+
+        Self {
+            top_left: after_top_left,
+            top_right: after_top_right,
+            bottom_right: after_bottom_right,
+            bottom_left: after_bottom_left,
+        }
+    }
+
+    pub fn cut(&self, selectable: Offset) -> Self {
+        let top_right_x_len = self.top_right.x - self.top_left.x;
+        let top_right_y_len = self.top_right.y - self.top_left.y;
+
+        let bottom_right_x_len = self.bottom_right.x - self.top_right.x;
+        let bottom_right_y_len = self.bottom_right.y - self.top_right.y;
+
+        let new_top_left = self.top_left;
+        let new_top_right = WorldPoint::new(
+            self.top_left.x + top_right_x_len * selectable.x,
+            self.top_left.y + top_right_y_len * selectable.x,
+        );
+        let new_bottom_right = WorldPoint::new(
+            self.top_right.x + bottom_right_x_len * selectable.y,
+            self.top_right.y + bottom_right_y_len * selectable.y,
+        );
+        let new_bottom_left = WorldPoint::new(
+            self.top_left.x + bottom_right_x_len * selectable.y,
+            self.top_left.y + bottom_right_y_len * selectable.y,
+        );
+
+        Self {
+            top_left: new_top_left,
+            top_right: new_top_right,
+            bottom_right: new_bottom_right,
+            bottom_left: new_bottom_left,
+        }
+    }
+}
+
+pub struct WindowShape {
+    pub top_left: WindowPoint,
+    pub top_right: WindowPoint,
+    pub bottom_right: WindowPoint,
+    pub bottom_left: WindowPoint,
+}
+
+impl WindowShape {
+    pub fn draw_points(&self) -> Vec<Vec2> {
+        vec![
+            self.top_left.to_vec2(),
+            self.top_right.to_vec2(),
+            self.bottom_right.to_vec2(),
+            self.bottom_left.to_vec2(),
+            self.top_left.to_vec2(),
+        ]
+    }
+
+    pub fn contains(&self, point: &WindowPoint) -> bool {
+        let triangle1 = Triangle::new(
+            coord! { x: self.top_left.x, y: self.top_left.y },
+            coord! { x: self.top_right.x, y: self.top_right.y },
+            coord! { x: self.bottom_left.x, y: self.bottom_left.y },
+        );
+        let triangle2 = Triangle::new(
+            coord! { x: self.bottom_right.x, y: self.bottom_right.y },
+            coord! { x: self.bottom_left.x, y: self.bottom_left.y },
+            coord! { x: self.top_right.x, y: self.top_right.y },
+        );
+
+        triangle1.contains(&coord! { x: point.x, y: point.y })
+            || triangle2.contains(&coord! { x: point.x, y: point.y })
+    }
 }

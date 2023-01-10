@@ -2,7 +2,7 @@ use crate::config::{
     DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET, UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH,
 };
 use crate::types::*;
-use crate::utils::{apply_angle_on_point, Rectangle};
+use crate::utils::rect_contains;
 use ggez::graphics::{self, Rect};
 
 use super::PendingOrder;
@@ -11,12 +11,12 @@ const ORDER_MARKER_START_X: f32 = 0.0;
 const ORDER_MARKER_START_Y: f32 = 100.0;
 const ORDER_MARKER_WIDTH: f32 = 11.0;
 const ORDER_MARKER_HEIGHT: f32 = 11.0;
-const ORDER_MARKER_DEFEND_START_Y: f32 = 200.0;
+const ORDER_MARKER_DEFEND_START_Y: f32 = 150.0;
 const ORDER_MARKER_DEFEND_WIDTH: f32 = 50.0;
-const ORDER_MARKER_DEFEND_HEIGHT: f32 = 17.0;
-const ORDER_MARKER_HIDE_START_Y: f32 = 170.0;
+const ORDER_MARKER_DEFEND_HEIGHT: f32 = 50.0;
+const ORDER_MARKER_HIDE_START_Y: f32 = 200.0;
 const ORDER_MARKER_HIDE_WIDTH: f32 = 50.0;
-const ORDER_MARKER_HIDE_HEIGHT: f32 = 17.0;
+const ORDER_MARKER_HIDE_HEIGHT: f32 = 50.0;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum OrderMarker {
@@ -29,18 +29,13 @@ pub enum OrderMarker {
 }
 
 impl OrderMarker {
-    pub fn offset(&self) -> Offset {
+    pub fn selectable(&self) -> Offset {
         match self {
             OrderMarker::MoveTo
             | OrderMarker::MoveFastTo
             | OrderMarker::SneakTo
-            | OrderMarker::FireTo => {
-                // For unknown reason, (0.5, 0.5) produce a pixel display error
-                Offset::new(0.51, 0.51)
-            }
-            OrderMarker::Defend | OrderMarker::Hide => {
-                Offset::new(DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET)
-            }
+            | OrderMarker::FireTo => Offset::new(1.0, 1.0),
+            OrderMarker::Defend | OrderMarker::Hide => Offset::new(1.0, 0.33),
         }
     }
 
@@ -164,7 +159,7 @@ impl OrderMarkerSpriteInfo {
         )
     }
 
-    pub fn get_selection_rect(&self, from: WorldPoint) -> Rect {
+    pub fn selection_rect(&self, from: WorldPoint) -> Rect {
         Rect::new(
             from.x - self.half_width,
             from.y - self.half_height,
@@ -173,34 +168,16 @@ impl OrderMarkerSpriteInfo {
         )
     }
 
-    pub fn _rotated_rectangle(
+    // pub fn get_selection_rect2(&self, from: WorldPoint) -> Rect {
+    //     Rect::new(from.x, from.y, self.width, self.height)
+    // }
+
+    pub fn contains(
         &self,
-        from_scene_point: &WindowPoint,
-        rotate_from_point: &WindowPoint,
-        angle: Angle,
-    ) -> Rectangle<WindowPoint> {
-        let top_left = WindowPoint::new(
-            from_scene_point.x - self.half_width,
-            from_scene_point.y - self.half_height,
-        );
-        let top_right = WindowPoint::new(top_left.x + self.width, top_left.y);
-        let bottom_left = WindowPoint::new(top_left.x, top_left.y + self.height);
-        let bottom_right = WindowPoint::new(top_left.x + self.width, top_left.y + self.height);
-
-        let top_left = apply_angle_on_point(&top_left, &rotate_from_point, &angle);
-        let top_right = apply_angle_on_point(&top_right, &rotate_from_point, &angle);
-        let bottom_left = apply_angle_on_point(&bottom_left, &rotate_from_point, &angle);
-        let bottom_right = apply_angle_on_point(&bottom_right, &rotate_from_point, &angle);
-
-        Rectangle {
-            top_left,
-            top_right,
-            bottom_left,
-            bottom_right,
-        }
-    }
-
-    pub fn contains(&self, draw_to: &WindowPoint, cursor: &WindowPoint) -> bool {
-        self.rectangle(draw_to).contains(cursor.to_vec2())
+        draw_to: &WindowPoint,
+        rotation: (Angle, Offset),
+        cursor: &WindowPoint,
+    ) -> bool {
+        rect_contains(&self.rectangle(draw_to), rotation, cursor.to_vec2())
     }
 }

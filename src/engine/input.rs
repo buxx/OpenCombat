@@ -230,25 +230,24 @@ impl Engine {
         y: f32,
     ) -> Vec<Message> {
         let mut messages = vec![];
+        let cursor = WindowPoint::new(x, y);
 
         match button {
             MouseButton::Left => {
                 // Update cursor down position
                 messages.push(Message::LocalState(LocalStateMessage::SetLeftClickDown(
-                    Some(WindowPoint::new(x, y)),
+                    Some(cursor.clone()),
                 )));
 
                 // Check if any order under the cursor
                 if self.local_state.is_controlling(&Control::Soldiers) {
-                    for (_, order_marker, squad_id, world_point, order_marker_i) in
+                    for (order, order_marker, squad_id, world_point, order_marker_i) in
                         self.shared_state.order_markers(self.local_state.side())
                     {
-                        let window_point =
-                            self.local_state.window_point_from_world_point(world_point);
-                        // FIXME : Must take angle (see v1)
-                        if order_marker
-                            .sprite_info()
-                            .contains(&window_point, &WindowPoint::new(x, y))
+                        if self
+                            .defend_order_selection_shape(&order, &order_marker, &world_point)
+                            .to_window_shape(&self.local_state)
+                            .contains(&cursor)
                         {
                             messages.push(Message::LocalState(LocalStateMessage::SetPendingOrder(
                                 Some((

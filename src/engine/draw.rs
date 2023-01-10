@@ -148,7 +148,12 @@ impl Engine {
         for (draw_to, angle, offset) in
             self.get_pending_order_params(pending_order, squad_id, cached_points)
         {
-            draw_params.push(sprite_infos.as_draw_params(draw_to, angle, offset))
+            draw_params.push(
+                sprite_infos
+                    .as_draw_params(draw_to, angle, offset)
+                    // Defend/Hide sprite must be scaled
+                    .scale(self.local_state.display_scene_scale.to_vec2()),
+            )
         }
         draw_params
     }
@@ -160,9 +165,11 @@ impl Engine {
         point: WindowPoint,
     ) -> Vec<DrawParam> {
         let sprite_infos = order_marker.sprite_info();
-        let offset = order_marker.offset();
         let angle = order.angle().unwrap_or(Angle(0.));
-        vec![sprite_infos.as_draw_params(point, angle, offset)]
+        vec![sprite_infos
+            .as_draw_params(point, angle, Offset::half())
+            // Defend/Hide sprite must be scaled
+            .scale(self.local_state.display_scene_scale.to_vec2())]
     }
 
     pub fn draw_debug_terrain(

@@ -23,7 +23,7 @@ pub fn shared_state_fixtures() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) 
             // let y: f32 = rng.gen_range(0.0..800.0);
             let soldier = Soldier::new(
                 SoldierIndex(soldiers_index),
-                WorldPoint::from(Vec2::new(x as f32 * 10. + 20.0, y as f32 * 10.)),
+                WorldPoint::from(Vec2::new(x as f32 * 10. + 20.0, y as f32 * 10. + 100.)),
                 SquadUuid(squad),
                 Side::A,
             );

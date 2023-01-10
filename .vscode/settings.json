@@ -6,6 +6,7 @@
                 "bincode",
                 "bresenham",
                 "Bresenham",
+                "consts",
                 "ggez",
                 "gids",
                 "incapacited",

@@ -49,6 +49,11 @@ impl Engine {
                 continue;
             }
 
+            // Simple for now, but if in vehicle, don't be affected
+            if self.soldier_vehicle_place(soldier.uuid()).is_some() {
+                continue;
+            }
+
             let distance_from_point =
                 meters_between_scene_points(&soldier.get_world_point(), point);
 

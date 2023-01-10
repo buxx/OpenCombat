@@ -5,16 +5,59 @@ use std::{
     ops::{Add, Neg},
 };
 
+use geo::{coord, Contains, Triangle};
+use ggez::graphics::Rect;
 use serde::{Deserialize, Serialize};
 
 use glam::Vec2;
 
-use crate::entity::vehicle::OnBoardPlace;
+use crate::{
+    entity::vehicle::OnBoardPlace,
+    state::local::LocalState,
+    utils::{apply_angle_on_point, rotated_rect},
+};
 
 pub trait Xy {
     fn from_xy(x: f32, y: f32) -> Self;
+    fn apply(&self, x: f32, y: f32) -> Self;
     fn x(&self) -> f32;
     fn y(&self) -> f32;
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Point {
+    pub x: f32,
+    pub y: f32,
+}
+impl Point {
+    pub fn new(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
+    pub fn to_vec2(&self) -> Vec2 {
+        Vec2::new(self.x, self.y)
+    }
+}
+
+impl Xy for Point {
+    fn from_xy(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
+    fn x(&self) -> f32 {
+        self.x
+    }
+
+    fn y(&self) -> f32 {
+        self.y
+    }
+
+    fn apply(&self, x: f32, y: f32) -> Self {
+        Self {
+            x: self.x + x,
+            y: self.y + y,
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
@@ -36,6 +79,13 @@ impl WorldPoint {
         Self {
             x: self.x + raw.x,
             y: self.y + raw.y,
+        }
+    }
+
+    pub fn factor(self, raw: Vec2) -> Self {
+        Self {
+            x: self.x * raw.x,
+            y: self.y * raw.y,
         }
     }
 
@@ -67,6 +117,13 @@ impl Xy for WorldPoint {
 
     fn y(&self) -> f32 {
         self.y
+    }
+
+    fn apply(&self, x: f32, y: f32) -> Self {
+        Self {
+            x: self.x + x,
+            y: self.y + y,
+        }
     }
 }
 
@@ -163,6 +220,13 @@ impl Xy for WindowPoint {
 
     fn y(&self) -> f32 {
         self.y
+    }
+
+    fn apply(&self, x: f32, y: f32) -> Self {
+        Self {
+            x: self.x + x,
+            y: self.y + y,
+        }
     }
 }
 
@@ -402,6 +466,14 @@ impl Offset {
         Self { x, y }
     }
 
+    pub fn zero() -> Self {
+        Self { x: 0., y: 0. }
+    }
+
+    pub fn half() -> Self {
+        Self { x: 0.5, y: 0.5 }
+    }
+
     pub fn _apply(self, raw: Vec2) -> Self {
         Self {
             x: self.x + raw.x,
@@ -415,6 +487,13 @@ impl Offset {
 
     pub fn from_vec2(vec: Vec2) -> Self {
         Self::new(vec.x, vec.y)
+    }
+
+    pub fn to_absolute(&self, reference: Vec2) -> Self {
+        Self {
+            x: reference.x * self.x,
+            y: reference.y * self.y,
+        }
     }
 }
 
@@ -447,6 +526,10 @@ pub struct Angle(pub f32);
 impl Angle {
     pub fn from_points(to_point: &Vec2, from_point: &Vec2) -> Self {
         Self(f32::atan2(to_point.y - from_point.y, to_point.x - from_point.x) + FRAC_PI_2)
+    }
+
+    pub fn zero() -> Self {
+        Self(0.)
     }
 }
 

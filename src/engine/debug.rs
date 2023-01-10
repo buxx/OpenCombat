@@ -12,10 +12,10 @@ use crate::{
         weapon::Weapon,
         Side,
     },
-    message::{Message, PhysicsMessage, SharedStateMessage},
+    message::{Message, PhysicsMessage},
     physics::event::{bullet::BulletFire, explosion::Explosion},
-    types::WorldPoint,
-    utils::{BLUE, DARK_MAGENTA, GREEN, MAGENTA, RED, YELLOW},
+    types::{Angle, WorldPoint},
+    utils::{WorldShape, BLUE, DARK_MAGENTA, GREEN, MAGENTA, RED, YELLOW},
 };
 
 use super::Engine;
@@ -155,18 +155,18 @@ impl Engine {
             mesh_builder.rectangle(DrawMode::stroke(1.0), rect, DARK_MAGENTA)?;
         }
 
-        // Draw selection area on all hovered soldiers
-        for (_, order_marker, _, world_point, _) in self.shared_state.order_markers(&Side::All) {
-            let rect = self.local_state.window_rect_from_world_rect(
-                order_marker.sprite_info().get_selection_rect(world_point),
-            );
-            mesh_builder.rectangle(DrawMode::stroke(1.0), rect, MAGENTA)?;
-            if order_marker.sprite_info().contains(
-                &self.local_state.window_point_from_world_point(world_point),
-                &cursor_window_point,
-            ) {
-                mesh_builder.rectangle(DrawMode::stroke(1.0), rect, DARK_MAGENTA)?;
-            }
+        // Draw selection area on all order markers
+        for (order, order_marker, _, world_point, _) in self.shared_state.order_markers(&Side::All)
+        {
+            let shape = self
+                .defend_order_selection_shape(&order, &order_marker, &world_point)
+                .to_window_shape(&self.local_state);
+            let color = if shape.contains(cursor_window_point) {
+                DARK_MAGENTA
+            } else {
+                MAGENTA
+            };
+            mesh_builder.line(&shape.draw_points(), 1.0, color)?;
         }
 
         Ok(())
