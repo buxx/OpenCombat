@@ -137,9 +137,7 @@ impl SharedState {
             }
 
             let squad_leader = self.soldier(squad_composition.leader());
-            if let Some(order) = squad_leader.get_behavior().to_order() {
-                orders.push((*squad_uuid, order));
-            }
+            orders.push((*squad_uuid, squad_leader.order().clone())); // FIXME : clone perf ?
         }
 
         for (squad_id, order) in &self.command_orders {
