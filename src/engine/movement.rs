@@ -1,4 +1,4 @@
-use crate::{behavior::Behavior, message::*, types::*};
+use crate::{behavior::Behavior, message::*, order::Order, types::*};
 
 use super::Engine;
 
@@ -29,7 +29,7 @@ impl Engine {
                     )),
                     Message::SharedState(SharedStateMessage::Soldier(
                         soldier_index,
-                        SoldierMessage::SetOrder(None),
+                        SoldierMessage::SetOrder(Order::Idle),
                     )),
                 ]);
             } else {

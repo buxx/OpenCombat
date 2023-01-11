@@ -37,6 +37,7 @@ impl PendingOrder {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Order {
+    Idle,
     MoveTo(WorldPaths),
     MoveFastTo(WorldPaths),
     SneakTo(WorldPaths),
@@ -52,6 +53,7 @@ impl Order {
             Order::SneakTo(paths) => Behavior::SneakTo(paths.clone()),
             Order::Defend(angle) => Behavior::Defend(angle.clone()),
             Order::Hide(angle) => Behavior::Hide(angle.clone()),
+            Order::Idle => Behavior::Idle,
         }
     }
     pub fn to_vehicle_behavior(&self, place: &OnBoardPlace) -> Behavior {
@@ -62,6 +64,7 @@ impl Order {
                 Order::SneakTo(paths) => Behavior::DriveTo(paths.clone()),
                 Order::Defend(angle) => Behavior::RotateTo(angle.clone()),
                 Order::Hide(angle) => Behavior::RotateTo(angle.clone()),
+                Order::Idle => Behavior::Idle,
             },
             OnBoardPlace::MainCommandment => match self {
                 Order::MoveTo(paths) => Behavior::CommandDriveTo(paths.clone()),
@@ -69,6 +72,7 @@ impl Order {
                 Order::SneakTo(paths) => Behavior::CommandDriveTo(paths.clone()),
                 Order::Defend(angle) => Behavior::CommandRotateTo(angle.clone()),
                 Order::Hide(angle) => Behavior::CommandRotateTo(angle.clone()),
+                Order::Idle => Behavior::Idle,
             },
             OnBoardPlace::MainTurretGunner => match self {
                 Order::MoveTo(_) => Behavior::Idle,
@@ -76,6 +80,7 @@ impl Order {
                 Order::SneakTo(_) => Behavior::Idle,
                 Order::Defend(_) => Behavior::Idle,
                 Order::Hide(_) => Behavior::Idle,
+                Order::Idle => Behavior::Idle,
             },
             OnBoardPlace::Passenger1 => match self {
                 Order::MoveTo(_) => Behavior::Idle,
@@ -83,17 +88,19 @@ impl Order {
                 Order::SneakTo(_) => Behavior::Idle,
                 Order::Defend(_) => Behavior::Idle,
                 Order::Hide(_) => Behavior::Idle,
+                Order::Idle => Behavior::Idle,
             },
         }
     }
 
-    pub fn marker(&self) -> OrderMarker {
+    pub fn marker(&self) -> Option<OrderMarker> {
         match self {
-            Order::MoveTo(_) => OrderMarker::MoveTo,
-            Order::MoveFastTo(_) => OrderMarker::MoveFastTo,
-            Order::SneakTo(_) => OrderMarker::SneakTo,
-            Order::Defend(_) => OrderMarker::Defend,
-            Order::Hide(_) => OrderMarker::Hide,
+            Order::MoveTo(_) => Some(OrderMarker::MoveTo),
+            Order::MoveFastTo(_) => Some(OrderMarker::MoveFastTo),
+            Order::SneakTo(_) => Some(OrderMarker::SneakTo),
+            Order::Defend(_) => Some(OrderMarker::Defend),
+            Order::Hide(_) => Some(OrderMarker::Hide),
+            Order::Idle => None,
         }
     }
 
@@ -102,6 +109,7 @@ impl Order {
             Order::MoveTo(_) | Order::MoveFastTo(_) | Order::SneakTo(_) => None,
             Order::Defend(angle) => Some(*angle),
             Order::Hide(angle) => Some(*angle),
+            Order::Idle => None,
         }
     }
 
@@ -118,6 +126,7 @@ impl Order {
             }
             Order::Defend(_) => {}
             Order::Hide(_) => {}
+            Order::Idle => {}
         }
 
         false
@@ -132,6 +141,7 @@ impl Display for Order {
             Order::SneakTo(_) => f.write_str("SneakTo"),
             Order::Defend(_) => f.write_str("Defend"),
             Order::Hide(_) => f.write_str("Hide"),
+            Order::Idle => f.write_str("Idle"),
         }
     }
 }

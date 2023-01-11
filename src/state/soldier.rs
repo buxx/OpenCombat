@@ -22,9 +22,8 @@ impl SharedState {
             }
             SoldierMessage::SetOrientation(angle) => soldier.set_looking_direction(angle),
             SoldierMessage::ReachBehaviorStep => {
-                if let Some(order) = soldier.order_mut() {
-                    order.reach_step();
-                }
+                soldier.order_mut().reach_step();
+
                 if soldier.get_behavior_mut().reach_step() {
                     return vec![SideEffect::SoldierFinishHisBehavior(soldier_index)];
                 }

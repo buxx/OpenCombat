@@ -2,7 +2,7 @@ use std::mem::discriminant;
 
 use super::Engine;
 use crate::{
-    behavior::{feeling::Feeling, Behavior},
+    behavior::Behavior,
     message::{Message, SharedStateMessage, SoldierMessage},
     order::Order,
     types::{Angle, SoldierIndex},
@@ -22,7 +22,7 @@ impl Engine {
         // Take new order for squad leader
         if self.soldier_is_squad_leader(soldier_index) {
             if let Some(order) = self.shared_state.order_for_squad_leader(soldier_index) {
-                if Some(order) != soldier.order() {
+                if order != soldier.order() {
                     messages.extend(self.take_order(soldier_index, order));
                     messages.push(Message::SharedState(SharedStateMessage::RemoveCommandOder(
                         soldier.squad_uuid(),
@@ -33,7 +33,7 @@ impl Engine {
         // Take new order for squad member
         } else {
             if let Some(order) = self.shared_state.order_for_squad_member(soldier_index) {
-                if Some(order) != soldier.order() {
+                if order != soldier.order() {
                     messages.extend(self.take_order(soldier_index, order));
                     messages.push(Message::SharedState(SharedStateMessage::RemoveSquadOder(
                         soldier_index,
@@ -61,26 +61,27 @@ impl Engine {
         }
 
         // TODO : algorithm or config for values ?
-        if let Some(order) = soldier.order() {
-            match order {
-                Order::MoveTo(path) => {
-                    if soldier.under_fire().is_warning() || soldier.under_fire().is_danger() {
-                        new_behavior = Some(Behavior::SneakTo(path.clone()));
-                    }
+        let order = soldier.order();
+
+        match order {
+            Order::MoveTo(path) => {
+                if soldier.under_fire().is_warning() || soldier.under_fire().is_danger() {
+                    new_behavior = Some(Behavior::SneakTo(path.clone()));
                 }
-                Order::MoveFastTo(path) => {
-                    if soldier.under_fire().is_danger() {
-                        new_behavior = Some(Behavior::SneakTo(path.clone()));
-                    }
-                }
-                Order::SneakTo(_) => {}
-                Order::Defend(_) => {}
-                Order::Hide(_) => {}
             }
-        } else {
-            if soldier.under_fire().value() > 0 {
-                // TODO : soldier angle
-                new_behavior = Some(Behavior::Hide(Angle(0.)));
+            Order::MoveFastTo(path) => {
+                if soldier.under_fire().is_danger() {
+                    new_behavior = Some(Behavior::SneakTo(path.clone()));
+                }
+            }
+            Order::SneakTo(_) => {}
+            Order::Defend(_) => {}
+            Order::Hide(_) => {}
+            Order::Idle => {
+                if soldier.under_fire().value() > 0 {
+                    // TODO : soldier angle
+                    new_behavior = Some(Behavior::Hide(Angle(0.)));
+                }
             }
         }
 
@@ -94,18 +95,9 @@ impl Engine {
                 ))];
             }
         // If there is no adaptation
-        } else if let Some(order) = soldier_order {
-            // And current behavior don't match with order
-            if !soldier_behavior.match_with_order(order) {
-                println!(
-                    "ADAPT::Soldier({})::{}::{}",
-                    soldier.uuid(),
-                    &soldier_behavior,
-                    &order,
-                );
-                // Adapt soldier from order
-                return self.take_order(soldier_index, order);
-            }
+        } else if !soldier_behavior.match_with_order(order) {
+            // Adapt soldier from order
+            return self.take_order(soldier_index, order);
         }
 
         vec![]

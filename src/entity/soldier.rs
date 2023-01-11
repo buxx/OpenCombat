@@ -1,5 +1,3 @@
-use std::cmp::min;
-
 use crate::{
     behavior::{feeling::Feeling, Behavior},
     config::{SOLDIER_SELECTABLE_SQUARE_SIDE, SOLDIER_SELECTABLE_SQUARE_SIDE_HALF},
@@ -17,7 +15,7 @@ pub struct Soldier {
     side: Side,
     world_point: WorldPoint,
     squad_uuid: SquadUuid,
-    order: Option<Order>,
+    order: Order,
     behavior: Behavior,
     looking_direction: Angle,
     alive: bool,
@@ -37,7 +35,7 @@ impl Soldier {
             side,
             world_point,
             squad_uuid,
-            order: None,
+            order: Order::Idle,
             behavior: Behavior::Idle,
             looking_direction: Angle(0.0),
             alive: true,
@@ -83,14 +81,11 @@ impl Soldier {
         &mut self.behavior
     }
 
-    pub fn order(&self) -> Option<&Order> {
-        match &self.order {
-            Some(order) => Some(order),
-            None => None,
-        }
+    pub fn order(&self) -> &Order {
+        &self.order
     }
 
-    pub fn order_mut(&mut self) -> &mut Option<Order> {
+    pub fn order_mut(&mut self) -> &mut Order {
         &mut self.order
     }
 
@@ -98,7 +93,7 @@ impl Soldier {
         self.behavior = behavior
     }
 
-    pub fn set_order(&mut self, order: Option<Order>) {
+    pub fn set_order(&mut self, order: Order) {
         self.order = order
     }
 

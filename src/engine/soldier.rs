@@ -87,6 +87,7 @@ impl Engine {
                 | Order::Hide(_) => {
                     messages.extend(self.squad_leader_propagate_order(soldier.squad_uuid(), &order))
                 }
+                Order::Idle => {}
             }
         }
 
@@ -97,7 +98,7 @@ impl Engine {
             )),
             Message::SharedState(SharedStateMessage::Soldier(
                 soldier_index,
-                SoldierMessage::SetOrder(Some(order.clone())),
+                SoldierMessage::SetOrder(order.clone()),
             )),
         ]);
 
@@ -119,6 +120,9 @@ impl Engine {
             Order::Hide(_) => {
                 // TODO: special implementation for hide
                 self.squad_leader_propagate_defend_order(squad_uuid, order)
+            }
+            Order::Idle => {
+                vec![]
             }
         });
 

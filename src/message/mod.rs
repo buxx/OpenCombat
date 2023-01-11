@@ -89,7 +89,7 @@ pub enum LocalStateMessage {
 pub enum SoldierMessage {
     SetWorldPosition(WorldPoint),
     SetBehavior(Behavior),
-    SetOrder(Option<Order>),
+    SetOrder(Order),
     SetOrientation(Angle),
     SetAlive(bool),
     SetUnconscious(bool),

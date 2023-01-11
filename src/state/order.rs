@@ -46,7 +46,7 @@ impl SharedState {
                             .map(|(i, wp)| {
                                 (
                                     order.clone(),
-                                    marker.clone(),
+                                    marker.clone().unwrap(),  // FIXME : unwrap to delete
                                     squad_id,
                                     wp.last_point().expect("Must have point here"),
                                     OrderMarkerIndex(i),
@@ -59,12 +59,13 @@ impl SharedState {
                     let squad_leader = self.soldier(squad.leader());
                     marker_data.push((
                         order.clone(),
-                        marker.clone(),
+                        marker.clone().unwrap(), // FIXME unwrap to remove
                         squad_id,
                         squad_leader.get_world_point(),
                         OrderMarkerIndex(0),
                     ));
                 }
+                Order::Idle => {}
             }
         }
 

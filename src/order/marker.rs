@@ -1,6 +1,4 @@
-use crate::config::{
-    DISPLAY_DEFEND_X_OFFSET, DISPLAY_DEFEND_Y_OFFSET, UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH,
-};
+use crate::config::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
 use crate::types::*;
 use crate::utils::rect_contains;
 use ggez::graphics::{self, Rect};

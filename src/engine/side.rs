@@ -1,6 +1,6 @@
 use ggez::Context;
 
-use crate::{behavior::Behavior, state::SideEffect};
+use crate::{behavior::Behavior, order::Order, state::SideEffect};
 
 use super::Engine;
 
@@ -16,7 +16,7 @@ impl Engine {
                 SideEffect::SoldierFinishHisBehavior(soldier_index) => {
                     let soldier = self.shared_state.soldier_mut(soldier_index);
                     soldier.set_behavior(Behavior::Idle);
-                    soldier.set_order(None);
+                    soldier.set_order(Order::Idle);
                 }
                 SideEffect::PlaySound(sound) => {
                     if let Some(player) = &mut self.player {
