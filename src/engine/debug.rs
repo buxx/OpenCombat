@@ -14,8 +14,8 @@ use crate::{
     },
     message::{Message, PhysicsMessage},
     physics::event::{bullet::BulletFire, explosion::Explosion},
-    types::{Angle, WorldPoint},
-    utils::{WorldShape, BLUE, DARK_MAGENTA, GREEN, MAGENTA, RED, YELLOW},
+    types::WorldPoint,
+    utils::{BLUE, DARK_MAGENTA, GREEN, MAGENTA, RED, YELLOW},
 };
 
 use super::Engine;
@@ -144,6 +144,15 @@ impl Engine {
                 .local_state
                 .window_rect_from_world_rect(soldier.get_selection_rect());
             mesh_builder.rectangle(DrawMode::stroke(1.0), rect, MAGENTA)?;
+        }
+
+        // Draw vehicle physics areas
+        for vehicle in self.shared_state.vehicles() {
+            let shape = vehicle
+                .get_chassis_shape()
+                .to_window_shape(&self.local_state);
+
+            mesh_builder.line(&shape.draw_points(), 1.0, MAGENTA)?;
         }
 
         // Draw selection area on cursor hover scene items

@@ -28,6 +28,7 @@ pub enum Sound {
     MaleDie6,
     MaleDie7,
     MaleDie8,
+    MetalHit1,
 }
 
 impl Sound {
@@ -56,6 +57,7 @@ impl Sound {
             Sound::MaleDie6 => "/audio/MaleDie6.ogg",
             Sound::MaleDie7 => "/audio/MaleDie7.ogg",
             Sound::MaleDie8 => "/audio/MaleDie8.ogg",
+            Sound::MetalHit1 => "/audio/MetalHit1.ogg",
         }
         .to_string()
     }

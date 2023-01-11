@@ -126,7 +126,7 @@ impl Graphics {
         _vehicle_index: VehicleIndex,
         vehicle: &Vehicle,
     ) -> Vec<graphics::DrawParam> {
-        let sprite_infos = VehicleGraphicInfos::sprites_infos(vehicle.get_type());
+        let sprite_infos = VehicleGraphicInfos::from_type(vehicle.get_type());
         let shadow_offset = RelativeOffset::new(0.05, 0.05).to_vec2();
         let mut sprites = vec![];
 

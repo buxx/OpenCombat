@@ -281,7 +281,7 @@ impl Engine {
         from_point: &WorldPoint,
     ) -> WorldShape {
         WorldShape::from_rect(&marker.sprite_info().selection_rect(*from_point))
-            .rotate(order.angle().unwrap_or(Angle::zero()))
+            .rotate(&order.angle().unwrap_or(Angle::zero()))
             .cut(marker.selectable())
     }
 }

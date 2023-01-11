@@ -70,6 +70,14 @@ impl Engine {
             }
         }
 
+        for vehicle in self.shared_state.vehicles() {
+            if vehicle.get_chassis_shape().contains(point) {
+                messages.push(Message::SharedState(SharedStateMessage::PushPhysicsEffect(
+                    Effect::VehicleShellImpact(*vehicle.uuid(), explosive_type.clone()),
+                )))
+            }
+        }
+
         messages
     }
 

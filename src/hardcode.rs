@@ -48,7 +48,11 @@ pub fn shared_state_fixtures() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) 
         }
     }
 
-    let tank = Vehicle::new(VehicleType::T26, WorldPoint::from(Vec2::new(100., 100.)));
+    let tank = Vehicle::new(
+        VehicleIndex(0),
+        VehicleType::T26,
+        WorldPoint::from(Vec2::new(100., 100.)),
+    );
     vehicles.push(tank);
 
     let tank1_squad = utils::new_squad_uuid();

@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::{Meters, SoldierIndex};
+use crate::{
+    game::explosive::Type as ExplosiveType,
+    types::{Meters, SoldierIndex, VehicleIndex},
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Effect {
@@ -10,4 +13,5 @@ pub enum Effect {
     KillingBullet(SoldierIndex),
     InjuringBullet(SoldierIndex),
     ProximityBullet(SoldierIndex, Meters),
+    VehicleShellImpact(VehicleIndex, ExplosiveType),
 }

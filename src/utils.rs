@@ -5,7 +5,7 @@ use std::{f32::consts::FRAC_PI_2, sync::atomic::AtomicUsize};
 
 use ggez::graphics::{Color, Rect};
 
-use crate::{state::local::LocalState, types::*};
+use crate::{physics::utils::DISTANCE_TO_METERS_COEFFICIENT, state::local::LocalState, types::*};
 
 pub const GREEN: Color = Color {
     r: 0.0,
@@ -256,7 +256,7 @@ impl WorldShape {
         }
     }
 
-    pub fn rotate(&self, angle: Angle) -> Self {
+    pub fn rotate(&self, angle: &Angle) -> Self {
         let width = self.top_right.x - self.top_left.x;
         let height = self.bottom_left.y - self.top_left.y;
         let center_offset = Vec2::new(width / 2., height / 2.);
@@ -302,6 +302,58 @@ impl WorldShape {
             bottom_right: new_bottom_right,
             bottom_left: new_bottom_left,
         }
+    }
+
+    pub fn from_meters(width: Meters, height: Meters) -> Self {
+        let width_ = width.0 / DISTANCE_TO_METERS_COEFFICIENT;
+        let height_ = height.0 / DISTANCE_TO_METERS_COEFFICIENT;
+
+        Self {
+            top_left: WorldPoint::new(0., 0.),
+            top_right: WorldPoint::new(width_, 0.),
+            bottom_right: WorldPoint::new(width_, height_),
+            bottom_left: WorldPoint::new(0., height_),
+        }
+    }
+
+    pub fn from_point(&self, point: WorldPoint) -> WorldShape {
+        let width = self.top_right.x - self.top_left.x;
+        let height = self.bottom_left.y - self.top_left.y;
+
+        Self {
+            top_left: point,
+            top_right: point.apply(Vec2::new(width, 0.)),
+            bottom_right: point.apply(Vec2::new(width, height)),
+            bottom_left: point.apply(Vec2::new(0., height)),
+        }
+    }
+
+    pub fn centered(&self) -> Self {
+        let width = self.top_right.x - self.top_left.x;
+        let height = self.bottom_left.y - self.top_left.y;
+
+        Self {
+            top_left: self.top_left.apply(-Vec2::new(width / 2., height / 2.)),
+            top_right: self.top_right.apply(-Vec2::new(width / 2., height / 2.)),
+            bottom_right: self.bottom_right.apply(-Vec2::new(width / 2., height / 2.)),
+            bottom_left: self.bottom_left.apply(-Vec2::new(width / 2., height / 2.)),
+        }
+    }
+
+    pub fn contains(&self, point: &WorldPoint) -> bool {
+        let triangle1 = Triangle::new(
+            coord! { x: self.top_left.x, y: self.top_left.y },
+            coord! { x: self.top_right.x, y: self.top_right.y },
+            coord! { x: self.bottom_left.x, y: self.bottom_left.y },
+        );
+        let triangle2 = Triangle::new(
+            coord! { x: self.bottom_right.x, y: self.bottom_right.y },
+            coord! { x: self.bottom_left.x, y: self.bottom_left.y },
+            coord! { x: self.top_right.x, y: self.top_right.y },
+        );
+
+        triangle1.contains(&coord! { x: point.x, y: point.y })
+            || triangle2.contains(&coord! { x: point.x, y: point.y })
     }
 }
 

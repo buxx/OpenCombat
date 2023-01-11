@@ -1,4 +1,6 @@
-use crate::{config::TARGET_FPS, types::*};
+use crate::{
+    config::TARGET_FPS, graphics::vehicle::VehicleGraphicInfos, types::*, utils::WorldShape,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -42,6 +44,7 @@ pub enum OnBoardPlace {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Vehicle {
+    uuid: VehicleIndex,
     type_: VehicleType,
     world_point: WorldPoint,
     chassis_orientation: Angle,
@@ -49,8 +52,9 @@ pub struct Vehicle {
 }
 
 impl Vehicle {
-    pub fn new(type_: VehicleType, world_point: WorldPoint) -> Self {
+    pub fn new(uuid: VehicleIndex, type_: VehicleType, world_point: WorldPoint) -> Self {
         Self {
+            uuid,
             type_,
             world_point,
             chassis_orientation: Angle(0.),
@@ -60,6 +64,7 @@ impl Vehicle {
 
     pub fn from_vehicle(vehicle: &Vehicle) -> Self {
         Self {
+            uuid: *vehicle.uuid(),
             type_: vehicle.get_type().clone(),
             world_point: vehicle.get_world_point(),
             chassis_orientation: vehicle.get_chassis_orientation().clone(),
@@ -67,6 +72,10 @@ impl Vehicle {
                 .get_main_turret_relative_orientation()
                 .clone(),
         }
+    }
+
+    pub fn uuid(&self) -> &VehicleIndex {
+        &self.uuid
     }
 
     pub fn get_world_point(&self) -> WorldPoint {
@@ -95,5 +104,13 @@ impl Vehicle {
 
     pub fn set_main_turret_relative_orientation(&mut self, orientation: Angle) {
         self.main_turret_relative_orientation = orientation
+    }
+
+    pub fn get_chassis_shape(&self) -> WorldShape {
+        VehicleGraphicInfos::from_type(&self.type_)
+            .chassis_physics()
+            .from_point(self.world_point)
+            .centered()
+            .rotate(&self.chassis_orientation)
     }
 }

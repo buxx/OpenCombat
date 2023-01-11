@@ -185,7 +185,7 @@ impl SharedState {
         if let Some(vehicle_index) = self.soldier_vehicle(squad_leader_index) {
             let vehicle = self.vehicle(vehicle_index);
             (
-                PathMode::Drive(*VehicleGraphicInfos::sprites_infos(vehicle.get_type()).size()),
+                PathMode::Drive(*VehicleGraphicInfos::from_type(vehicle.get_type()).size()),
                 Some(Direction::from_angle(vehicle.get_chassis_orientation())),
             )
         } else {

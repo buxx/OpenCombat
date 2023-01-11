@@ -2,6 +2,7 @@ use crate::{
     entity::vehicle::{OnBoardPlace, VehicleType},
     graphics::SpriteInfo,
     types::*,
+    utils::WorldShape,
 };
 
 const SPRITE_SHEET_WIDTH: f32 = 256.;
@@ -17,6 +18,8 @@ pub struct VehicleGraphicInfos {
     places: VehicleGraphicPlaces,
     /// Used for collisions
     size: VehicleSize,
+    /// Chassis physics space
+    chassis_physics: WorldShape,
 }
 
 impl VehicleGraphicInfos {
@@ -25,6 +28,7 @@ impl VehicleGraphicInfos {
         main_turret: (RelativeOffset, SpriteInfo),
         places: Vec<(OnBoardPlace, Offset)>,
         size: VehicleSize,
+        chassis_physics: WorldShape,
     ) -> Self {
         let places = places.into_iter().collect();
         Self {
@@ -32,10 +36,11 @@ impl VehicleGraphicInfos {
             main_turret: Some(main_turret),
             places,
             size,
+            chassis_physics,
         }
     }
 
-    pub fn sprites_infos(type_: &VehicleType) -> VehicleGraphicInfos {
+    pub fn from_type(type_: &VehicleType) -> VehicleGraphicInfos {
         match type_ {
             VehicleType::T26 => {
                 VehicleGraphicInfos::tank(
@@ -65,6 +70,7 @@ impl VehicleGraphicInfos {
                     ],
                     // TODO : compute this value according to map grid size (meters)
                     VehicleSize(10),
+                    WorldShape::from_meters(Meters(11.), Meters(21.)),
                 )
             }
         }
@@ -84,5 +90,9 @@ impl VehicleGraphicInfos {
 
     pub fn size(&self) -> &VehicleSize {
         &self.size
+    }
+
+    pub fn chassis_physics(&self) -> &WorldShape {
+        &self.chassis_physics
     }
 }

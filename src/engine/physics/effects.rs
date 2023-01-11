@@ -93,6 +93,14 @@ impl Engine {
                 Effect::ProximityBullet(_, _) => {
                     // TODO (bullet impact sometimes)
                 }
+                Effect::VehicleShellImpact(_, _) => {
+                    let pick_from = vec![Sound::MetalHit1];
+                    messages.push(Message::SharedState(SharedStateMessage::PushSoundToPlay(
+                        *pick_from
+                            .choose(&mut rand::thread_rng())
+                            .expect("Must one be chosen"),
+                    )))
+                }
             }
         }
 
@@ -121,6 +129,9 @@ impl Engine {
                 }
                 Effect::ProximityBullet(soldier_index, distance) => {
                     messages.extend(self.soldier_proximity_bullet(soldier_index, distance))
+                }
+                Effect::VehicleShellImpact(_vehicle_index, _explosive_type) => {
+                    // TODO (with a real explosive algorithm)
                 }
             }
         }
