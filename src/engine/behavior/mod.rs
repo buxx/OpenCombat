@@ -3,9 +3,10 @@ use std::mem::discriminant;
 use super::Engine;
 use crate::{
     behavior::{Behavior, BehaviorMode},
+    entity::soldier::Soldier,
     message::{Message, SharedStateMessage, SoldierMessage},
     order::Order,
-    types::{Angle, SoldierIndex},
+    types::{Angle, SoldierIndex, WorldPaths},
 };
 
 mod blast;
@@ -20,58 +21,66 @@ impl Engine {
         BehaviorMode::Ground
     }
 
-    // FIXME BS NOW : what about all times computed (network, change regulary, etc) ?
     pub fn resolve_soldier_behavior(&self, soldier_index: SoldierIndex) -> Vec<Message> {
-        let mut new_behavior: Option<Behavior> = None;
         let soldier = self.shared_state.soldier(soldier_index);
-        let soldier_behavior = soldier.get_behavior();
-        let soldier_order = soldier.order();
-
-        if soldier.under_fire().is_max() {
-            // TODO : soldier angle
-            new_behavior = Some(Behavior::Hide(Angle(0.)));
-        }
-
-        // TODO : algorithm or config for values ?
         let order = soldier.order();
+        let behavior = match order {
+            Order::Idle => self.resolve_soldier_idle_behavior(soldier),
+            Order::MoveTo(paths) => self.resolve_soldier_move_behavior(soldier, paths),
+            Order::MoveFastTo(paths) => self.resolve_soldier_move_behavior(soldier, paths),
+            Order::SneakTo(paths) => self.resolve_soldier_move_fast_behavior(soldier, paths),
+            Order::Defend(angle) => self.resolve_soldier_defend_behavior(soldier, angle),
+            Order::Hide(angle) => self.resolve_soldier_hide_behavior(soldier, angle),
+        };
 
-        match order {
-            Order::MoveTo(path) => {
-                if soldier.under_fire().is_warning() || soldier.under_fire().is_danger() {
-                    new_behavior = Some(Behavior::SneakTo(path.clone()));
-                }
-            }
-            Order::MoveFastTo(path) => {
-                if soldier.under_fire().is_danger() {
-                    new_behavior = Some(Behavior::SneakTo(path.clone()));
-                }
-            }
-            Order::SneakTo(_) => {}
-            Order::Defend(_) => {}
-            Order::Hide(_) => {}
-            Order::Idle => {
-                if soldier.under_fire().value() > 0 {
-                    // TODO : soldier angle
-                    new_behavior = Some(Behavior::Hide(Angle(0.)));
-                }
-            }
-        }
-
-        // Behavior has been adapted according to context
-        if let Some(new_behavior) = new_behavior {
-            // And it is a new behavior (permit to not send it over network for nothing)
-            if discriminant(&new_behavior) != discriminant(soldier_behavior) {
-                return vec![Message::SharedState(SharedStateMessage::Soldier(
-                    soldier_index,
-                    SoldierMessage::SetBehavior(new_behavior),
-                ))];
-            }
-        // If there is no adaptation
-        } else if !soldier_behavior.match_with_order(order) {
-            // Adapt soldier from order
-            return self.take_order(soldier_index, order);
-        }
+        // Change soldier behavior if computed behavior is different from its current behavior
+        if &behavior != soldier.get_behavior() {
+            return vec![Message::SharedState(SharedStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetBehavior(behavior),
+            ))];
+        };
 
         vec![]
+    }
+
+    pub fn resolve_soldier_idle_behavior(&self, soldier: &Soldier) -> Behavior {
+        if soldier.under_fire().exist() {
+            // TODO : soldier angle
+            Behavior::Hide(Angle(0.))
+        } else {
+            Behavior::Idle
+        }
+    }
+
+    pub fn resolve_soldier_move_behavior(&self, soldier: &Soldier, paths: &WorldPaths) -> Behavior {
+        if soldier.under_fire().is_warning()
+            || soldier.under_fire().is_danger()
+            || soldier.under_fire().is_max()
+        {
+            Behavior::SneakTo(paths.clone())
+        } else {
+            Behavior::MoveTo(paths.clone())
+        }
+    }
+
+    pub fn resolve_soldier_move_fast_behavior(
+        &self,
+        soldier: &Soldier,
+        paths: &WorldPaths,
+    ) -> Behavior {
+        if soldier.under_fire().is_danger() || soldier.under_fire().is_max() {
+            Behavior::SneakTo(paths.clone())
+        } else {
+            Behavior::MoveFastTo(paths.clone())
+        }
+    }
+
+    pub fn resolve_soldier_defend_behavior(&self, _soldier: &Soldier, angle: &Angle) -> Behavior {
+        Behavior::Defend(*angle)
+    }
+
+    pub fn resolve_soldier_hide_behavior(&self, _soldier: &Soldier, angle: &Angle) -> Behavior {
+        Behavior::Hide(*angle)
     }
 }
