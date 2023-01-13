@@ -18,6 +18,8 @@ mod client;
 mod debug;
 mod draw;
 mod feeling;
+mod fight;
+mod gesture;
 pub mod input;
 mod interior;
 mod movement;

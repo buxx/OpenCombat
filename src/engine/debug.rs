@@ -42,7 +42,7 @@ impl Engine {
     pub fn generate_move_paths_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
         for (_, squad_composition) in self.shared_state.squads() {
             let squad_leader = self.shared_state.soldier(squad_composition.leader());
-            if let Some(world_paths) = match squad_leader.get_behavior() {
+            if let Some(world_paths) = match squad_leader.behavior() {
                 Behavior::MoveTo(world_paths)
                 | Behavior::MoveFastTo(world_paths)
                 | Behavior::SneakTo(world_paths)

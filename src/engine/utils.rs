@@ -233,7 +233,7 @@ impl Engine {
     pub fn current_squad_world_paths(&self, squad_id: SquadUuid) -> Option<&WorldPaths> {
         let squad = self.shared_state.squad(squad_id);
         let squad_leader = self.shared_state.soldier(squad.leader());
-        match squad_leader.get_behavior() {
+        match squad_leader.behavior() {
             Behavior::MoveTo(world_paths)
             | Behavior::MoveFastTo(world_paths)
             | Behavior::SneakTo(world_paths) => Some(world_paths),

@@ -325,8 +325,10 @@ impl Engine {
                 if let Some(order_) =
                     self.order_from_pending_order(pending_order, *squad_id, None, cached_points)
                 {
-                    messages.push(Message::SharedState(SharedStateMessage::PushCommandOrder(
-                        *squad_id, order_,
+                    let squad_leader = self.shared_state.squad(*squad_id).leader();
+                    messages.push(Message::SharedState(SharedStateMessage::Soldier(
+                        squad_leader,
+                        SoldierMessage::SetOrder(order_),
                     )))
                 }
 
@@ -371,8 +373,10 @@ impl Engine {
                 *order_marker_index,
                 &vec![],
             ) {
-                messages.push(Message::SharedState(SharedStateMessage::PushCommandOrder(
-                    *squad_id, order_,
+                let squad_leader = self.shared_state.squad(*squad_id).leader();
+                messages.push(Message::SharedState(SharedStateMessage::Soldier(
+                    squad_leader,
+                    SoldierMessage::SetOrder(order_),
                 )))
             }
             messages.extend(vec![

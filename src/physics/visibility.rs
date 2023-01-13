@@ -32,6 +32,15 @@ impl Visibilities {
     pub fn get(&self, soldiers: &(SoldierIndex, SoldierIndex)) -> Option<&Visibility> {
         self.visibilities.get(soldiers)
     }
+
+    pub fn visibles_soldiers_by(&self, soldier: &Soldier) -> Vec<&Visibility> {
+        self.visibilities
+            .values()
+            .filter(|v| v.from_soldier == soldier.uuid())
+            .filter(|v| v.to_soldier.is_some())
+            .filter(|v| v.visible)
+            .collect()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -87,10 +96,6 @@ impl Visibility {
                 {
                     Some(tile) => tile,
                     None => {
-                        // println!(
-                        //     "Error : Grid point {}.{} is out of map !",
-                        //     grid_point.x, grid_point.y
-                        // );
                         continue;
                     }
                 };
@@ -123,8 +128,9 @@ impl Visibility {
         //     }
         // }
 
-        let by_behavior_modifier: f32 = match to_soldier.get_behavior() {
+        let by_behavior_modifier: f32 = match to_soldier.behavior() {
             Behavior::Idle => 0.5,
+            // Behavior::EngageSoldier(_) => 0.5,
             Behavior::Hide(_) => -0.3,
             Behavior::Defend(_) => -0.3,
             Behavior::MoveTo(_) => 1.0,
@@ -133,8 +139,6 @@ impl Visibility {
             // TODO : What about vehicle ?
             Behavior::DriveTo(_) => 0.5,
             Behavior::RotateTo(_) => 0.5,
-            Behavior::CommandRotateTo(_) => 0.5,
-            Behavior::CommandDriveTo(_) => 0.5,
             // ItemBehavior::Dead => 0.0,
             // ItemBehavior::Unconscious => 0.0,
             // ItemBehavior::Standing => 0.5,
@@ -144,8 +148,8 @@ impl Visibility {
             // ItemBehavior::MoveFastTo(_, _) => 2.0,
             // ItemBehavior::EngageSceneItem(_, _) => 0.0,
             // ItemBehavior::EngageGridPoint(_) => 0.0,
-            Behavior::Dead => 1000.0,        // Always visible
-            Behavior::Unconscious => 1000.0, // Always visible
+            Behavior::Dead => 1000.0, // Always visible
+            Behavior::Unconscious => 1000.0,
         };
 
         to_soldier_item_opacity = to_soldier_item_opacity - by_behavior_modifier;

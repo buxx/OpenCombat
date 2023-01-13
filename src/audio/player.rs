@@ -28,7 +28,7 @@ impl Player {
                 source.play_detached(ctx)?;
             }
             None => {
-                println!("Unknown sound {:?}", sound)
+                println!("ERROR :: Unknown sound {:?}", sound)
             }
         };
 

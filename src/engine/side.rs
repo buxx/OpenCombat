@@ -21,7 +21,7 @@ impl Engine {
                 SideEffect::PlaySound(sound) => {
                     if let Some(player) = &mut self.player {
                         match player.play(sound, ctx) {
-                            Err(e) => println!("Sound error : {e}"),
+                            Err(e) => println!("ERROR :: Sound error :: {e}"),
                             _ => {}
                         };
                     }

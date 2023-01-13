@@ -6,12 +6,11 @@ impl Engine {
     pub fn movement_updates(&self, soldier_index: SoldierIndex, path: &WorldPaths) -> Vec<Message> {
         let mut messages = vec![];
         let soldier = self.shared_state.soldier(soldier_index);
-
         let point = path.next_point().expect("Must have point in path");
 
         // There is a next point in path, go to it
         let velocity = soldier
-            .get_behavior()
+            .behavior()
             .velocity()
             .expect("Entity behavior must have velocity when move code called");
         let vector = (point.to_vec2() - soldier.get_world_point().to_vec2()).normalize() * velocity;
@@ -38,16 +37,6 @@ impl Engine {
                     SoldierMessage::ReachBehaviorStep,
                 )));
             }
-
-            // If this is a squad leader, propagate current order
-
-            if self.soldier_is_squad_leader(soldier_index) {
-                // Send order to other squad members
-                if let Some(order) = soldier.get_behavior().to_order() {
-                    messages
-                        .extend(self.squad_leader_propagate_order(soldier.squad_uuid(), &order));
-                }
-            };
 
             // Movement required
         } else {

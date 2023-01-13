@@ -31,10 +31,6 @@ pub struct SharedState {
     vehicle_board: VehicleBoard,
     /// Squad organizations, must be updated when squad leader changes.
     squads: HashMap<SquadUuid, SquadComposition>,
-    /// Players orders. Squad leaders will pick from them theirs behaviors.
-    command_orders: HashMap<SquadUuid, Order>,
-    /// Squad leader orders. Squad members will pick from them theirs behaviors.
-    squad_orders: HashMap<SoldierIndex, Order>,
     /// Physics effects to deal with
     physics_effects: Vec<Effect>,
 }
@@ -53,8 +49,6 @@ impl SharedState {
             soldier_on_board: soldier_on_board,
             vehicle_board,
             squads: HashMap::new(),
-            command_orders: HashMap::new(),
-            squad_orders: HashMap::new(),
             physics_effects: vec![],
         }
     }
@@ -120,14 +114,6 @@ impl SharedState {
         self.squads = squads;
     }
 
-    pub fn command_orders(&self) -> &HashMap<SquadUuid, Order> {
-        &self.command_orders
-    }
-
-    pub fn squad_orders(&self) -> &HashMap<SoldierIndex, Order> {
-        &self.squad_orders
-    }
-
     pub fn all_orders(&self, side: &Side) -> Vec<(SquadUuid, Order)> {
         let mut orders: Vec<(SquadUuid, Order)> = vec![];
 
@@ -138,10 +124,6 @@ impl SharedState {
 
             let squad_leader = self.soldier(squad_composition.leader());
             orders.push((*squad_uuid, squad_leader.order().clone())); // FIXME : clone perf ?
-        }
-
-        for (squad_id, order) in &self.command_orders {
-            orders.push((*squad_id, order.clone()));
         }
 
         orders
@@ -203,29 +185,13 @@ impl SharedState {
         &mut self.physics_effects
     }
 
-    pub fn react(&mut self, state_message: crate::message::SharedStateMessage) -> Vec<SideEffect> {
+    pub fn react(&mut self, state_message: SharedStateMessage) -> Vec<SideEffect> {
         match state_message {
             SharedStateMessage::Soldier(soldier_index, soldier_message) => {
                 return self.react_soldier_message(soldier_index, soldier_message);
             }
             SharedStateMessage::Vehicle(vehicle_index, vehicle_message) => {
                 return self.react_vehicle_message(vehicle_index, vehicle_message);
-            }
-            SharedStateMessage::PushCommandOrder(squad_uuid, order) => {
-                self.command_orders.insert(squad_uuid, order);
-            }
-            SharedStateMessage::PushSquadOrder(soldier_index, order) => {
-                self.squad_orders.insert(soldier_index, order);
-            }
-            SharedStateMessage::RemoveCommandOder(squad_uuid) => {
-                self.command_orders
-                    .remove(&squad_uuid)
-                    .expect("Game shared_state should never own inconsistent orders index");
-            }
-            SharedStateMessage::RemoveSquadOder(soldier_index) => {
-                self.squad_orders
-                    .remove(&soldier_index)
-                    .expect("Game shared_state should never own inconsistent orders index");
             }
             SharedStateMessage::PushSoundToPlay(sound) => {
                 //

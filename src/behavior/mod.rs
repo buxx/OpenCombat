@@ -3,6 +3,7 @@ use std::fmt::Display;
 use crate::{
     config::{MOVE_FAST_VELOCITY, MOVE_HIDE_VELOCITY, MOVE_VELOCITY},
     order::Order,
+    state::shared::SharedState,
     types::*,
     utils::angle,
 };
@@ -18,8 +19,6 @@ pub enum Behavior {
     MoveFastTo(WorldPaths),
     SneakTo(WorldPaths),
     // Vehicle specific orders
-    CommandDriveTo(WorldPaths),
-    CommandRotateTo(Angle),
     DriveTo(WorldPaths),
     RotateTo(Angle),
     // Common orders
@@ -29,6 +28,8 @@ pub enum Behavior {
     //
     Dead,
     Unconscious,
+    // Combat
+    // EngageSoldier(SoldierIndex),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -37,8 +38,15 @@ pub enum BehaviorMode {
     Vehicle,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BehaviorPropagation {
+    OnChange,
+    Regularly,
+    Never,
+}
+
 impl Behavior {
-    pub fn angle(&self, reference_point: WorldPoint) -> Option<Angle> {
+    pub fn angle(&self, reference_point: WorldPoint, shared_state: &SharedState) -> Option<Angle> {
         match self {
             Behavior::Idle => None,
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
@@ -50,11 +58,14 @@ impl Behavior {
             }
             Behavior::Defend(angle) => Some(*angle),
             Behavior::Hide(angle) => Some(*angle),
-            Behavior::CommandDriveTo(_) => None,
-            Behavior::CommandRotateTo(_) => None,
             Behavior::DriveTo(_) => None,
             Behavior::RotateTo(_) => None,
-            Behavior::Dead | Behavior::Unconscious => None, // TODO: keep angle for dead/unconscious soldiers
+            // Behavior::EngageSoldier(opponent_index) => {
+            //     let opponent = shared_state.soldier(*opponent_index);
+            //     Some(angle(&opponent.get_world_point(), &reference_point))
+            // }
+            // TODO: keep angle for dead/unconscious soldiers
+            Behavior::Dead | Behavior::Unconscious => None,
         }
     }
 
@@ -64,14 +75,28 @@ impl Behavior {
             Behavior::MoveTo(_) => Some(MOVE_VELOCITY),
             Behavior::MoveFastTo(_) => Some(MOVE_FAST_VELOCITY),
             Behavior::SneakTo(_) => Some(MOVE_HIDE_VELOCITY),
-            Behavior::CommandDriveTo(_) => None,
             Behavior::Defend(_) => None,
             Behavior::Hide(_) => None,
-            Behavior::CommandRotateTo(_) => None,
             Behavior::DriveTo(_) => None,
             Behavior::RotateTo(_) => None,
             Behavior::Dead => None,
             Behavior::Unconscious => None,
+            // Behavior::EngageSoldier(_) => None,
+        }
+    }
+
+    pub fn propagation(&self) -> BehaviorPropagation {
+        match self {
+            Behavior::MoveTo(_) | Behavior::MoveFastTo(_) | Behavior::SneakTo(_) => {
+                BehaviorPropagation::Regularly
+            }
+            Behavior::DriveTo(_) => BehaviorPropagation::Never,
+            Behavior::RotateTo(_) => todo!(),
+            Behavior::Idle => BehaviorPropagation::OnChange,
+            Behavior::Defend(_) => BehaviorPropagation::OnChange,
+            Behavior::Hide(_) => BehaviorPropagation::OnChange,
+            Behavior::Dead => BehaviorPropagation::Never,
+            Behavior::Unconscious => BehaviorPropagation::Never,
         }
     }
 
@@ -81,8 +106,7 @@ impl Behavior {
             Behavior::MoveTo(paths)
             | Behavior::MoveFastTo(paths)
             | Behavior::SneakTo(paths)
-            | Behavior::DriveTo(paths)
-            | Behavior::CommandDriveTo(paths) => {
+            | Behavior::DriveTo(paths) => {
                 paths
                     .remove_next_point()
                     .expect("Reach a move behavior implies containing point");
@@ -91,54 +115,12 @@ impl Behavior {
                     return true;
                 }
             }
-            Behavior::Idle
-            | Behavior::Defend(_)
-            | Behavior::Hide(_)
-            | Behavior::CommandRotateTo(_)
-            | Behavior::RotateTo(_) => {}
+            Behavior::Idle | Behavior::Defend(_) | Behavior::Hide(_) | Behavior::RotateTo(_) => {}
             Behavior::Dead => {}
-            Behavior::Unconscious => {}
+            Behavior::Unconscious => {} // Behavior::EngageSoldier(_) => {}
         }
 
         false
-    }
-
-    pub fn to_order(&self) -> Option<Order> {
-        match self {
-            Behavior::Idle => None,
-            Behavior::MoveTo(paths) => Some(Order::MoveTo(paths.clone())),
-            Behavior::MoveFastTo(paths) => Some(Order::MoveFastTo(paths.clone())),
-            Behavior::SneakTo(paths) => Some(Order::SneakTo(paths.clone())),
-            Behavior::Defend(angle) => Some(Order::Defend(*angle)),
-            Behavior::Hide(angle) => Some(Order::Hide(*angle)),
-            Behavior::CommandDriveTo(paths) => Some(Order::MoveTo(paths.clone())),
-            Behavior::CommandRotateTo(_angle) => todo!(),
-            Behavior::DriveTo(paths) => Some(Order::MoveTo(paths.clone())),
-            Behavior::RotateTo(_angle) => todo!(),
-            Behavior::Dead => None,
-            Behavior::Unconscious => None,
-        }
-    }
-
-    pub fn match_with_order(&self, order: &Order) -> bool {
-        match self {
-            Behavior::MoveTo(_) => matches!(order, Order::MoveTo(_)),
-            Behavior::MoveFastTo(_) => matches!(order, Order::MoveFastTo(_)),
-            Behavior::SneakTo(_) => matches!(order, Order::SneakTo(_)),
-            Behavior::CommandDriveTo(_) => {
-                matches!(order, Order::MoveTo(_)) || matches!(order, Order::MoveFastTo(_))
-            }
-            Behavior::CommandRotateTo(_) => todo!(),
-            Behavior::DriveTo(_) => {
-                matches!(order, Order::MoveTo(_)) || matches!(order, Order::MoveFastTo(_))
-            }
-            Behavior::RotateTo(_) => todo!(),
-            Behavior::Idle => true, // Idle is used between move steps
-            Behavior::Defend(_) => matches!(order, Order::Defend(_)),
-            Behavior::Hide(_) => matches!(order, Order::Hide(_)),
-            Behavior::Dead => false,
-            Behavior::Unconscious => false,
-        }
     }
 }
 
@@ -148,8 +130,6 @@ impl Display for Behavior {
             Behavior::MoveTo(_) => f.write_str("MoveTo"),
             Behavior::MoveFastTo(_) => f.write_str("MoveFastTo"),
             Behavior::SneakTo(_) => f.write_str("SneakTo"),
-            Behavior::CommandDriveTo(_) => f.write_str("CommandDriveTo"),
-            Behavior::CommandRotateTo(_) => f.write_str("CommandRotateTo"),
             Behavior::DriveTo(_) => f.write_str("DriveTo"),
             Behavior::RotateTo(_) => f.write_str("RotateTo"),
             Behavior::Idle => f.write_str("Idle"),
@@ -157,6 +137,7 @@ impl Display for Behavior {
             Behavior::Hide(_) => f.write_str("Hide"),
             Behavior::Dead => f.write_str("Dead"),
             Behavior::Unconscious => f.write_str("Unconscious"),
+            // Behavior::EngageSoldier(_) => f.write_str("Engage"),
         }
     }
 }

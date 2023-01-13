@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{behavior::Behavior, entity::vehicle::OnBoardPlace, types::*};
+use crate::types::*;
 use serde::{Deserialize, Serialize};
 
 use self::marker::OrderMarker;
@@ -43,56 +43,10 @@ pub enum Order {
     SneakTo(WorldPaths),
     Defend(Angle),
     Hide(Angle),
+    // EngageSquad(SquadUuid),
 }
 
 impl Order {
-    pub fn to_ground_behavior(&self) -> Behavior {
-        match self {
-            Order::MoveTo(paths) => Behavior::MoveTo(paths.clone()),
-            Order::MoveFastTo(paths) => Behavior::MoveFastTo(paths.clone()),
-            Order::SneakTo(paths) => Behavior::SneakTo(paths.clone()),
-            Order::Defend(angle) => Behavior::Defend(angle.clone()),
-            Order::Hide(angle) => Behavior::Hide(angle.clone()),
-            Order::Idle => Behavior::Idle,
-        }
-    }
-    pub fn to_vehicle_behavior(&self, place: &OnBoardPlace) -> Behavior {
-        match place {
-            OnBoardPlace::Driver => match self {
-                Order::MoveTo(paths) => Behavior::DriveTo(paths.clone()),
-                Order::MoveFastTo(paths) => Behavior::DriveTo(paths.clone()),
-                Order::SneakTo(paths) => Behavior::DriveTo(paths.clone()),
-                Order::Defend(angle) => Behavior::RotateTo(angle.clone()),
-                Order::Hide(angle) => Behavior::RotateTo(angle.clone()),
-                Order::Idle => Behavior::Idle,
-            },
-            OnBoardPlace::MainCommandment => match self {
-                Order::MoveTo(paths) => Behavior::CommandDriveTo(paths.clone()),
-                Order::MoveFastTo(paths) => Behavior::CommandDriveTo(paths.clone()),
-                Order::SneakTo(paths) => Behavior::CommandDriveTo(paths.clone()),
-                Order::Defend(angle) => Behavior::CommandRotateTo(angle.clone()),
-                Order::Hide(angle) => Behavior::CommandRotateTo(angle.clone()),
-                Order::Idle => Behavior::Idle,
-            },
-            OnBoardPlace::MainTurretGunner => match self {
-                Order::MoveTo(_) => Behavior::Idle,
-                Order::MoveFastTo(_) => Behavior::Idle,
-                Order::SneakTo(_) => Behavior::Idle,
-                Order::Defend(_) => Behavior::Idle,
-                Order::Hide(_) => Behavior::Idle,
-                Order::Idle => Behavior::Idle,
-            },
-            OnBoardPlace::Passenger1 => match self {
-                Order::MoveTo(_) => Behavior::Idle,
-                Order::MoveFastTo(_) => Behavior::Idle,
-                Order::SneakTo(_) => Behavior::Idle,
-                Order::Defend(_) => Behavior::Idle,
-                Order::Hide(_) => Behavior::Idle,
-                Order::Idle => Behavior::Idle,
-            },
-        }
-    }
-
     pub fn marker(&self) -> Option<OrderMarker> {
         match self {
             Order::MoveTo(_) => Some(OrderMarker::MoveTo),

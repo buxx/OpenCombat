@@ -1,4 +1,4 @@
-use crate::message::{Message, PhysicsMessage, SharedStateMessage};
+use crate::message::{Message, SharedStateMessage, SoldierMessage};
 
 use super::Engine;
 
@@ -30,11 +30,11 @@ impl Engine {
 
         for message in messages {
             match message {
-                // State changes must be sent to clients
-                Message::SharedState(SharedStateMessage::PushCommandOrder(_, _))
-                | Message::SharedState(SharedStateMessage::PushSquadOrder(_, _)) => {
-                    dispatch_messages.push(message.clone())
-                }
+                // New order
+                Message::SharedState(SharedStateMessage::Soldier(
+                    _,
+                    SoldierMessage::SetOrder(_),
+                )) => dispatch_messages.push(message.clone()),
                 _ => {}
             }
         }
@@ -48,7 +48,7 @@ impl Engine {
 
         for error in self.network.errors() {
             // For now, only print errors
-            println!("Network error : {}", error)
+            println!("ERROR :: Network error :: {}", error)
         }
 
         messages
@@ -59,7 +59,7 @@ impl Engine {
 
         for error in self.network.errors() {
             // For now, only print errors
-            println!("Network error : {}", error)
+            println!("ERROR :: Network error :: {}", error)
         }
 
         messages

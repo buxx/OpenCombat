@@ -18,7 +18,10 @@ impl Engine {
         let soldier = self.shared_state.soldier(i);
         let mut messages = vec![];
 
-        if let Some(angle_) = soldier.get_behavior().angle(soldier.get_world_point()) {
+        if let Some(angle_) = soldier
+            .behavior()
+            .angle(soldier.get_world_point(), &self.shared_state)
+        {
             let soldier_message = SoldierMessage::SetOrientation(angle_);
             messages.push(Message::SharedState(SharedStateMessage::Soldier(
                 i,
@@ -33,7 +36,7 @@ impl Engine {
         let soldier = self.shared_state.soldier(soldier_index);
         let mut messages = vec![];
 
-        messages.extend(match soldier.get_behavior() {
+        messages.extend(match soldier.behavior() {
             Behavior::Idle => {
                 vec![]
             }
@@ -46,10 +49,13 @@ impl Engine {
             Behavior::Hide(_) => {
                 vec![]
             }
-            Behavior::CommandDriveTo(_) => todo!(),
-            Behavior::CommandRotateTo(_) => todo!(),
+            // Behavior::CommandDriveTo(_) => todo!(),
+            // Behavior::CommandRotateTo(_) => todo!(),
             Behavior::DriveTo(paths) => self.drive_update(soldier_index, &paths),
             Behavior::RotateTo(_) => todo!(),
+            // Behavior::EngageSoldier(opponent_index) => {
+            //     self.engage_soldier_update(&soldier_index, opponent_index)
+            // }
             Behavior::Dead => vec![],
             Behavior::Unconscious => vec![],
         });

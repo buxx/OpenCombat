@@ -146,7 +146,7 @@ impl Engine {
                     DebugPhysics::MosinNagantM1924GunFire => DebugPhysics::BrandtMle2731Shelling,
                     DebugPhysics::BrandtMle2731Shelling => DebugPhysics::None,
                 };
-                println!("Debug physics : {:?}", &new_debug_physics);
+                println!("DEBUG :: physics : {:?}", &new_debug_physics);
                 if &new_debug_physics != &DebugPhysics::None {
                     messages.push(Message::LocalState(LocalStateMessage::SetControl(
                         Control::Physics,

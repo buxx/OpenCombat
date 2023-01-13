@@ -7,15 +7,6 @@ use crate::{
 use super::shared::SharedState;
 
 impl SharedState {
-    pub fn order_for_squad_leader(&self, soldier_index: SoldierIndex) -> Option<&Order> {
-        let soldier = self.soldier(soldier_index);
-        self.command_orders().get(&soldier.squad_uuid())
-    }
-
-    pub fn order_for_squad_member(&self, soldier_index: SoldierIndex) -> Option<&Order> {
-        self.squad_orders().get(&soldier_index)
-    }
-
     // TODO : this func must clone things, this is not optimal
     // TODO : return type is too much complex
     pub fn order_markers(

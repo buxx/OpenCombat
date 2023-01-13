@@ -332,7 +332,7 @@ impl Network {
 
                 // Check no message(s) was lost, if yes, require sync from server
                 if last_counter != 0 && last_counter + 1 != envelope.id {
-                    println!("Network : message(s) lost, require global Sync");
+                    println!("WARNING :: Network :: message(s) lost, require global Sync");
                     thread_send_sender
                         .send(vec![Message::Network(NetworkMessage::RequireCompleteSync)])
                         .expect(&format!(

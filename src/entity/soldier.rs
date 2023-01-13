@@ -73,7 +73,7 @@ impl Soldier {
         self.squad_uuid
     }
 
-    pub fn get_behavior(&self) -> &Behavior {
+    pub fn behavior(&self) -> &Behavior {
         &self.behavior
     }
 
@@ -115,20 +115,21 @@ impl Soldier {
     }
 
     pub fn get_animation_type(&self) -> Box<dyn Sprite> {
-        let animation_type = match self.get_behavior() {
+        let animation_type = match self.behavior() {
             Behavior::Idle => SoldierAnimationType::Idle,
             Behavior::MoveTo(_) => SoldierAnimationType::Walking,
             Behavior::MoveFastTo(_) => SoldierAnimationType::Walking,
             Behavior::SneakTo(_) => SoldierAnimationType::Crawling,
             Behavior::Defend(_) => SoldierAnimationType::LyingDown,
             Behavior::Hide(_) => SoldierAnimationType::LyingDown,
-            Behavior::CommandDriveTo(_) => SoldierAnimationType::Idle,
-            Behavior::CommandRotateTo(_) => SoldierAnimationType::Idle,
+            // Behavior::CommandDriveTo(_) => SoldierAnimationType::Idle,
+            // Behavior::CommandRotateTo(_) => SoldierAnimationType::Idle,
             Behavior::DriveTo(_) => SoldierAnimationType::Idle,
             Behavior::RotateTo(_) => SoldierAnimationType::Idle,
             // TODO : Different animation according to death type
             Behavior::Dead => SoldierAnimationType::DeadWithSideBlood,
             Behavior::Unconscious => SoldierAnimationType::LyingDown,
+            // Behavior::EngageSoldier(_) => SoldierAnimationType::LyingDown,
         };
         Box::new(animation_type)
     }

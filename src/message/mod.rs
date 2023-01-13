@@ -45,10 +45,6 @@ pub enum GraphicsMessage {
 pub enum SharedStateMessage {
     Soldier(SoldierIndex, SoldierMessage),
     Vehicle(VehicleIndex, VehicleMessage),
-    PushCommandOrder(SquadUuid, Order),
-    PushSquadOrder(SoldierIndex, Order),
-    RemoveCommandOder(SquadUuid),
-    RemoveSquadOder(SoldierIndex),
     PushPhysicsEffect(Effect),
     // TODO : Why this is a shared state message ? It should be only local no ?
     PushSoundToPlay(Sound),
