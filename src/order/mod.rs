@@ -9,28 +9,61 @@ pub mod marker;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PendingOrder {
-    MoveTo,
-    MoveFastTo,
-    SneakTo,
-    Defend,
-    Hide,
+    MoveTo(SquadUuid, Option<OrderMarkerIndex>, Vec<WorldPoint>),
+    MoveFastTo(SquadUuid, Option<OrderMarkerIndex>, Vec<WorldPoint>),
+    SneakTo(SquadUuid, Option<OrderMarkerIndex>, Vec<WorldPoint>),
+    // FIXME BS NOW ///////////// delete Angle here no ?
+    Defend(SquadUuid, Angle),
+    Hide(SquadUuid, Angle),
 }
 
 impl PendingOrder {
     pub fn expect_path_finding(&self) -> bool {
         match self {
-            PendingOrder::MoveTo | PendingOrder::MoveFastTo | PendingOrder::SneakTo => true,
+            PendingOrder::MoveTo(_, _, _)
+            | PendingOrder::MoveFastTo(_, _, _)
+            | PendingOrder::SneakTo(_, _, _) => true,
             _ => false,
         }
     }
 
     pub fn marker(&self) -> OrderMarker {
         match self {
-            PendingOrder::MoveTo => OrderMarker::MoveTo,
-            PendingOrder::MoveFastTo => OrderMarker::MoveFastTo,
-            PendingOrder::SneakTo => OrderMarker::SneakTo,
-            PendingOrder::Defend => OrderMarker::Defend,
-            PendingOrder::Hide => OrderMarker::Hide,
+            PendingOrder::MoveTo(_, _, _) => OrderMarker::MoveTo,
+            PendingOrder::MoveFastTo(_, _, _) => OrderMarker::MoveFastTo,
+            PendingOrder::SneakTo(_, _, _) => OrderMarker::SneakTo,
+            PendingOrder::Defend(_, _) => OrderMarker::Defend,
+            PendingOrder::Hide(_, _) => OrderMarker::Hide,
+        }
+    }
+
+    pub fn squad_index(&self) -> &SquadUuid {
+        match self {
+            PendingOrder::MoveTo(squad_index, _, _) => squad_index,
+            PendingOrder::MoveFastTo(squad_index, _, _) => squad_index,
+            PendingOrder::SneakTo(squad_index, _, _) => squad_index,
+            PendingOrder::Defend(squad_index, _) => squad_index,
+            PendingOrder::Hide(squad_index, _) => squad_index,
+        }
+    }
+
+    pub fn order_marker_index(&self) -> &Option<OrderMarkerIndex> {
+        match self {
+            PendingOrder::MoveTo(_, order_marker_index, _) => order_marker_index,
+            PendingOrder::MoveFastTo(_, order_marker_index, _) => order_marker_index,
+            PendingOrder::SneakTo(_, order_marker_index, _) => order_marker_index,
+            PendingOrder::Defend(_, _) => &None,
+            PendingOrder::Hide(_, _) => &None,
+        }
+    }
+
+    pub fn cached_points(&self) -> Vec<WorldPoint> {
+        match self {
+            PendingOrder::MoveTo(_, _, cached_points) => cached_points.clone(),
+            PendingOrder::MoveFastTo(_, _, cached_points) => cached_points.clone(),
+            PendingOrder::SneakTo(_, _, cached_points) => cached_points.clone(),
+            PendingOrder::Defend(_, _) => vec![],
+            PendingOrder::Hide(_, _) => vec![],
         }
     }
 }

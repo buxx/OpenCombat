@@ -122,6 +122,21 @@ impl Behavior {
 
         false
     }
+
+    pub fn world_paths(&self) -> Option<&WorldPaths> {
+        match self {
+            Behavior::MoveTo(world_paths)
+            | Behavior::MoveFastTo(world_paths)
+            | Behavior::SneakTo(world_paths)
+            | Behavior::DriveTo(world_paths) => Some(world_paths),
+            Behavior::RotateTo(_)
+            | Behavior::Idle
+            | Behavior::Defend(_)
+            | Behavior::Hide(_)
+            | Behavior::Dead
+            | Behavior::Unconscious => None,
+        }
+    }
 }
 
 impl Display for Behavior {

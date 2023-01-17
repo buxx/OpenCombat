@@ -72,15 +72,18 @@ impl Engine {
         ))]
     }
 
-    fn digest_squad_menu_select_by_click(&self, cursor_point: WindowPoint) -> Vec<Message> {
-        let (menu_point, squad_id) = self
-            .local_state
-            .get_squad_menu()
-            .expect("This code should only called when squad menu");
+    fn digest_squad_menu_select_by_click(
+        &self,
+        cursor_point: &WindowPoint,
+        squad_menu_point: &WindowPoint,
+        squad_index: &SquadUuid,
+    ) -> Vec<Message> {
         let squad_menu_sprite_info = squad_menu_sprite_info();
-        if let Some(menu_item) = squad_menu_sprite_info.item_clicked(&menu_point, &cursor_point) {
+        if let Some(menu_item) =
+            squad_menu_sprite_info.item_clicked(&squad_menu_point, &cursor_point)
+        {
             return vec![Message::LocalState(LocalStateMessage::SetPendingOrder(
-                Some((menu_item.to_pending_order(), squad_id, None, vec![])),
+                Some(menu_item.to_pending_order(squad_index)),
             ))];
         };
 
@@ -123,11 +126,8 @@ impl Engine {
     }
 
     pub fn generate_orders_sprites(&mut self) -> GameResult {
-        if let Some((pending_order, squad_id, _, cached_points)) =
-            self.local_state.get_pending_order()
-        {
-            let sprites =
-                self.generate_pending_order_sprites(pending_order, *squad_id, cached_points);
+        if let Some(pending_order) = self.local_state.get_pending_order() {
+            let sprites = self.generate_pending_order_sprites(pending_order);
             self.graphics.extend_ui_batch(sprites);
         }
 
@@ -136,11 +136,10 @@ impl Engine {
         {
             // Special case : If we are dragging this order_marker_index, don't draw it (because we only want draw the
             // dragged order marker index)
-            if let Some((_, pending_squad_id, pending_order_marker_index, _)) =
-                self.local_state.get_pending_order()
-            {
-                if let Some(pending_order_marker_index_) = pending_order_marker_index {
-                    if *pending_squad_id == squad_id
+            if let Some(pending_order) = self.local_state.get_pending_order() {
+                if let Some(pending_order_marker_index_) = pending_order.order_marker_index() {
+                    if *pending_order.squad_index() == squad_id
+                        && &order_marker_index == pending_order_marker_index_
                         && *pending_order_marker_index_ == order_marker_index
                     {
                         continue;
@@ -155,33 +154,27 @@ impl Engine {
         Ok(())
     }
 
-    pub fn order_from_pending_order(
-        &self,
-        pending_order: &PendingOrder,
-        squad_id: SquadUuid,
-        order_marker_index: Option<OrderMarkerIndex>,
-        cached_points: &Vec<WorldPoint>,
-    ) -> Option<Order> {
+    pub fn order_from_pending_order(&self, pending_order: &PendingOrder) -> Option<Order> {
         match pending_order {
-            crate::order::PendingOrder::MoveTo => {
+            PendingOrder::MoveTo(squad_index, order_marker_index, cached_points) => {
                 //
-                self.create_move_to_order(squad_id, order_marker_index, cached_points)
+                self.create_move_to_order(squad_index, order_marker_index, cached_points)
             }
-            crate::order::PendingOrder::MoveFastTo => {
+            PendingOrder::MoveFastTo(squad_index, order_marker_index, cached_points) => {
                 //
-                self.create_move_fast_to_order(squad_id, order_marker_index, cached_points)
+                self.create_move_fast_to_order(squad_index, order_marker_index, cached_points)
             }
-            crate::order::PendingOrder::SneakTo => {
+            PendingOrder::SneakTo(squad_index, order_marker_index, cached_points) => {
                 //
-                self.create_sneak_to_order(squad_id, order_marker_index, cached_points)
+                self.create_sneak_to_order(squad_index, order_marker_index, cached_points)
             }
-            crate::order::PendingOrder::Defend => {
+            PendingOrder::Defend(squad_index, angle) => {
                 //
-                self.create_defend_order(squad_id)
+                self.create_defend_order(*squad_index)
             }
-            crate::order::PendingOrder::Hide => {
+            PendingOrder::Hide(squad_index, angle) => {
                 //
-                self.create_hide_order(squad_id)
+                self.create_hide_order(*squad_index)
             }
         }
     }
@@ -244,16 +237,14 @@ impl Engine {
                 }
                 UIEvent::ImmobileCursorSince(since) => {
                     // Paths to draw if pending order
-                    if let Some((pending_order, squad_id, order_marker_index, cached_points)) =
-                        self.local_state.get_pending_order()
-                    {
+                    if let Some(pending_order) = self.local_state.get_pending_order() {
                         if since == PENDING_ORDER_PATH_FINDING_DRAW_FRAMES {
                             if pending_order.expect_path_finding() {
                                 messages.push(Message::LocalState(LocalStateMessage::PushUIEvent(
                                     UIEvent::DrawPathFinding(
-                                        *squad_id,
-                                        *order_marker_index,
-                                        cached_points.clone(),
+                                        *pending_order.squad_index(),
+                                        *pending_order.order_marker_index(),
+                                        pending_order.cached_points().clone(),
                                     ),
                                 )));
                             }
@@ -266,7 +257,7 @@ impl Engine {
 
                     if let Some(world_paths) = self.create_path_finding(
                         squad_id,
-                        order_marker_index,
+                        &order_marker_index,
                         &cached_points,
                         &path_mode,
                         &start_direction,
@@ -294,23 +285,19 @@ impl Engine {
     ) -> Vec<Message> {
         let mut messages = vec![];
 
-        let squad_menu_displayed = self.local_state.get_squad_menu().is_some();
-
-        // If this is a map selection click
-        if !squad_menu_displayed {
+        if let Some((squad_menu_point, squad_index)) = self.local_state.get_squad_menu() {
+            messages.extend(self.digest_squad_menu_select_by_click(
+                &point,
+                squad_menu_point,
+                squad_index,
+            ));
+            messages.push(Message::LocalState(LocalStateMessage::SetSquadMenu(None)));
+        } else {
             messages.extend(self.digest_scene_select_by_click(point));
         }
 
-        // If this is a squad menu click
-        if squad_menu_displayed {
-            messages.extend(self.digest_squad_menu_select_by_click(point));
-            messages.push(Message::LocalState(LocalStateMessage::SetSquadMenu(None)));
-        }
-
         // This is a pending order click
-        if let Some((pending_order, squad_id, _, cached_points)) =
-            self.local_state.get_pending_order()
-        {
+        if let Some(pending_order) = self.local_state.get_pending_order() {
             let is_appending = input::keyboard::is_key_pressed(ctx, KeyCode::LShift)
                 || input::keyboard::is_key_pressed(ctx, KeyCode::RShift);
 
@@ -322,13 +309,14 @@ impl Engine {
                 )]);
             } else {
                 // If order produced, push it on shared state
-                if let Some(order_) =
-                    self.order_from_pending_order(pending_order, *squad_id, None, cached_points)
-                {
-                    let squad_leader = self.shared_state.squad(*squad_id).leader();
+                if let Some(order) = self.order_from_pending_order(pending_order) {
+                    let squad_leader = self
+                        .shared_state
+                        .squad(*pending_order.squad_index())
+                        .leader();
                     messages.push(Message::SharedState(SharedStateMessage::Soldier(
                         squad_leader,
-                        SoldierMessage::SetOrder(order_),
+                        SoldierMessage::SetOrder(order),
                     )))
                 }
 
@@ -364,16 +352,12 @@ impl Engine {
     ) -> Vec<Message> {
         let mut messages = vec![];
 
-        if let Some((pending_order, squad_id, order_marker_index, _)) =
-            self.local_state.get_pending_order()
-        {
-            if let Some(order_) = self.order_from_pending_order(
-                pending_order,
-                *squad_id,
-                *order_marker_index,
-                &vec![],
-            ) {
-                let squad_leader = self.shared_state.squad(*squad_id).leader();
+        if let Some(pending_order) = self.local_state.get_pending_order() {
+            if let Some(order_) = self.order_from_pending_order(pending_order) {
+                let squad_leader = self
+                    .shared_state
+                    .squad(*pending_order.squad_index())
+                    .leader();
                 messages.push(Message::SharedState(SharedStateMessage::Soldier(
                     squad_leader,
                     SoldierMessage::SetOrder(order_),

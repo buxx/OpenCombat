@@ -4,7 +4,7 @@ use crate::{
     entity::soldier::Soldier,
     message::{Message, SharedStateMessage, SoldierMessage},
     order::Order,
-    types::{Angle, WorldPaths},
+    types::{Angle, SquadUuid, WorldPaths},
     utils::DebugPoint,
 };
 
@@ -20,6 +20,10 @@ impl Engine {
             return BehaviorMode::Vehicle;
         }
         BehaviorMode::Ground
+    }
+    pub fn squad_behavior_mode(&self, squad_index: &SquadUuid) -> BehaviorMode {
+        let squad = self.shared_state.squad(*squad_index);
+        self.soldier_behavior_mode(self.shared_state.soldier(squad.leader()))
     }
 
     pub fn soldier_behavior(&self, soldier: &Soldier) -> Vec<Message> {

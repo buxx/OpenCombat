@@ -20,13 +20,13 @@ pub enum MenuItem {
 }
 
 impl MenuItem {
-    pub fn to_pending_order(&self) -> PendingOrder {
+    pub fn to_pending_order(&self, squad_index: &SquadUuid) -> PendingOrder {
         match self {
-            MenuItem::Move => PendingOrder::MoveTo,
-            MenuItem::MoveFast => PendingOrder::MoveFastTo,
-            MenuItem::Sneak => PendingOrder::SneakTo,
-            MenuItem::Defend => PendingOrder::Defend,
-            MenuItem::Hide => PendingOrder::Hide,
+            MenuItem::Move => PendingOrder::MoveTo(*squad_index, None, vec![]),
+            MenuItem::MoveFast => PendingOrder::MoveFastTo(*squad_index, None, vec![]),
+            MenuItem::Sneak => PendingOrder::SneakTo(*squad_index, None, vec![]),
+            MenuItem::Defend => PendingOrder::Defend(*squad_index, Angle(0.)),
+            MenuItem::Hide => PendingOrder::Hide(*squad_index, Angle(0.)),
         }
     }
 }

@@ -245,17 +245,18 @@ impl Engine {
                         self.shared_state.order_markers(self.local_state.side())
                     {
                         if self
-                            .defend_order_selection_shape(&order, &order_marker, &world_point)
+                            .order_marker_selection_shape(&order, &order_marker, &world_point)
                             .to_window_shape(&self.local_state)
                             .contains(&cursor)
                         {
+                            let pending_order = self.create_pending_order_from_order_marker(
+                                &order_marker,
+                                &squad_id,
+                                &Some(order_marker_i),
+                                &vec![],
+                            );
                             messages.push(Message::LocalState(LocalStateMessage::SetPendingOrder(
-                                Some((
-                                    order_marker.to_pending_order(),
-                                    squad_id,
-                                    Some(order_marker_i),
-                                    vec![],
-                                )),
+                                Some(pending_order),
                             )));
                         }
                     }

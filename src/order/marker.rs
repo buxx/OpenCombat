@@ -37,7 +37,7 @@ impl OrderMarker {
         }
     }
 
-    pub fn sprite_info(&self) -> OrderMarkerSpriteInfo {
+    pub fn sprite_info(&self, _active: bool) -> OrderMarkerSpriteInfo {
         match self {
             OrderMarker::MoveTo => OrderMarkerSpriteInfo {
                 relative_start_x: ORDER_MARKER_START_X / UI_SPRITE_SHEET_WIDTH,
@@ -102,17 +102,6 @@ impl OrderMarker {
                 half_width: ORDER_MARKER_HIDE_WIDTH / 2.0,
                 half_height: ORDER_MARKER_HIDE_HEIGHT / 2.0,
             },
-        }
-    }
-
-    pub fn to_pending_order(&self) -> PendingOrder {
-        match self {
-            OrderMarker::MoveTo => PendingOrder::MoveTo,
-            OrderMarker::MoveFastTo => PendingOrder::MoveFastTo,
-            OrderMarker::SneakTo => PendingOrder::SneakTo,
-            OrderMarker::FireTo => todo!(),
-            OrderMarker::Defend => PendingOrder::Defend,
-            OrderMarker::Hide => PendingOrder::Hide,
         }
     }
 }

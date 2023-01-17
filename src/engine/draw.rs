@@ -136,25 +136,54 @@ impl Engine {
         Ok(())
     }
 
-    pub fn generate_pending_order_sprites(
-        &self,
-        pending_order: &PendingOrder,
-        squad_id: SquadUuid,
-        cached_points: &Vec<WorldPoint>,
-    ) -> Vec<DrawParam> {
+    pub fn generate_pending_order_sprites(&self, pending_order: &PendingOrder) -> Vec<DrawParam> {
         let mut draw_params = vec![];
-        let order_marker = pending_order.marker();
-        let sprite_infos = order_marker.sprite_info();
-        for (draw_to, angle, offset) in
-            self.get_pending_order_params(pending_order, squad_id, cached_points)
-        {
-            draw_params.push(
-                sprite_infos
-                    .as_draw_params(draw_to, angle, offset)
-                    // Defend/Hide sprite must be scaled
-                    .scale(self.local_state.display_scene_scale.to_vec2()),
-            )
+
+        let squad = self.shared_state.squad(*pending_order.squad_index());
+        let squad_leader = self.shared_state.soldier(squad.leader());
+
+        match pending_order {
+            PendingOrder::MoveTo(squad_index, order_marker_index, cached_points)
+            | PendingOrder::MoveFastTo(squad_index, order_marker_index, cached_points)
+            | PendingOrder::SneakTo(squad_index, order_marker_index, cached_points) => {
+                let sprite_infos = pending_order.marker().sprite_info(false);
+                for cached_point in cached_points {
+                    let point = self
+                        .local_state
+                        .window_point_from_world_point(*cached_point);
+                    draw_params.push(
+                        sprite_infos
+                            .as_draw_params(point, Angle(0.), Offset::half())
+                            .scale(self.local_state.display_scene_scale.to_vec2()),
+                    )
+                }
+                let cursor_point = self.local_state.get_current_cursor_window_point();
+                draw_params.push(
+                    sprite_infos
+                        .as_draw_params(*cursor_point, Angle(0.), Offset::half())
+                        .scale(self.local_state.display_scene_scale.to_vec2()),
+                );
+            }
+            PendingOrder::Defend(squad_index, angle) | PendingOrder::Hide(squad_index, angle) => {
+                let sprite_infos = pending_order.marker().sprite_info(false);
+                let to_point = self.local_state.get_current_cursor_world_point().to_vec2();
+                let from_point = squad_leader.get_world_point().to_vec2();
+                let point = self
+                    .local_state
+                    .window_point_from_world_point(squad_leader.get_world_point());
+                draw_params.push(
+                    sprite_infos
+                        .as_draw_params(
+                            point,
+                            Angle::from_points(&to_point, &from_point),
+                            Offset::half(),
+                        )
+                        // Defend/Hide sprite are scaled
+                        .scale(self.local_state.display_scene_scale.to_vec2()),
+                )
+            }
         }
+
         draw_params
     }
 
@@ -164,7 +193,7 @@ impl Engine {
         order_marker: &OrderMarker,
         point: WindowPoint,
     ) -> Vec<DrawParam> {
-        let sprite_infos = order_marker.sprite_info();
+        let sprite_infos = order_marker.sprite_info(false);
         let angle = order.angle().unwrap_or(Angle(0.));
         vec![sprite_infos
             .as_draw_params(point, angle, Offset::half())

@@ -44,12 +44,7 @@ pub struct LocalState {
     /// Possible currently displayed menu
     squad_menu: Option<(WindowPoint, SquadUuid)>,
     /// Possible current player squad order
-    pending_order: Option<(
-        PendingOrder,
-        SquadUuid,
-        Option<OrderMarkerIndex>,
-        Vec<WorldPoint>,
-    )>, // ..., ..., editing move index, cached points
+    pending_order: Option<PendingOrder>,
     /// Paths to display
     display_paths: Vec<(WorldPaths, SquadUuid)>,
     /// Used to know a path already search here last frame
@@ -201,14 +196,7 @@ impl LocalState {
         self.last_cursor_move_frame
     }
 
-    pub fn get_pending_order(
-        &self,
-    ) -> &Option<(
-        PendingOrder,
-        SquadUuid,
-        Option<OrderMarkerIndex>,
-        Vec<WorldPoint>,
-    )> {
+    pub fn get_pending_order(&self) -> &Option<PendingOrder> {
         &self.pending_order
     }
 
@@ -282,13 +270,16 @@ impl LocalState {
                 self.display_paths = display_paths;
                 self.last_computed_path_point = None;
             }
-            LocalStateMessage::AddCachePointToPendingOrder(new_point) => {
-                let (_, _, _, cached_points) = self
-                    .pending_order
-                    .as_mut()
-                    .expect("Add cache point imply existing pending order");
-                cached_points.push(new_point)
-            }
+            LocalStateMessage::AddCachePointToPendingOrder(new_point) => match self
+                .pending_order
+                .as_mut()
+                .expect("Add cache point imply existing pending order")
+            {
+                PendingOrder::MoveTo(_, _, points)
+                | PendingOrder::MoveFastTo(_, _, points)
+                | PendingOrder::SneakTo(_, _, points) => points.push(new_point),
+                _ => unreachable!(),
+            },
             LocalStateMessage::PushDebugPoint(debug_point) => {
                 //
                 self.debug_points.push(debug_point)

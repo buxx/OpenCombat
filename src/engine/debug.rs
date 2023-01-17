@@ -168,7 +168,7 @@ impl Engine {
         for (order, order_marker, _, world_point, _) in self.shared_state.order_markers(&Side::All)
         {
             let shape = self
-                .defend_order_selection_shape(&order, &order_marker, &world_point)
+                .order_marker_selection_shape(&order, &order_marker, &world_point)
                 .to_window_shape(&self.local_state);
             let color = if shape.contains(cursor_window_point) {
                 DARK_MAGENTA

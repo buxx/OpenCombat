@@ -61,14 +61,7 @@ pub enum LocalStateMessage {
     ApplyOnSceneDisplayOffset(Offset),
     SetSelectedSquads(Vec<SquadUuid>),
     SetSquadMenu(Option<(WindowPoint, SquadUuid)>),
-    SetPendingOrder(
-        Option<(
-            PendingOrder,
-            SquadUuid,
-            Option<OrderMarkerIndex>,
-            Vec<WorldPoint>,
-        )>,
-    ),
+    SetPendingOrder(Option<PendingOrder>),
     AddCachePointToPendingOrder(WorldPoint),
     SetDisplayPaths(Vec<(WorldPaths, SquadUuid)>),
     PushUIEvent(UIEvent),
