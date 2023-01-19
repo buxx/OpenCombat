@@ -12,7 +12,7 @@ use crate::{
         weapon::Weapon,
         Side,
     },
-    message::{Message, PhysicsMessage},
+    message::{Message, PhysicsMessage, SharedStateMessage},
     physics::event::{bullet::BulletFire, explosion::Explosion},
     types::WorldPoint,
     utils::{BLUE, DARK_MAGENTA, GREEN, MAGENTA, RED, YELLOW},
@@ -242,9 +242,26 @@ impl Engine {
         match self.local_state.get_debug_physics() {
             DebugPhysics::None => {}
             DebugPhysics::MosinNagantM1924GunFire => {
-                messages.push(Message::Physics(PhysicsMessage::PushBulletFire(
-                    BulletFire::new(from, to, None, Weapon::MosinNagantM1924),
-                )));
+                messages.extend(
+                    [
+                        vec![Message::Physics(PhysicsMessage::PushBulletFire(
+                            BulletFire::new(
+                                from,
+                                to,
+                                None,
+                                Weapon::MosinNagantM1924(true, None).ammunition(),
+                            ),
+                        ))],
+                        Weapon::MosinNagantM1924(true, None)
+                            .fire_sounds()
+                            .iter()
+                            .map(|sound| {
+                                Message::SharedState(SharedStateMessage::PushSoundToPlay(*sound))
+                            })
+                            .collect(),
+                    ]
+                    .concat(),
+                );
             }
             DebugPhysics::BrandtMle2731Shelling => {
                 messages.push(Message::Physics(PhysicsMessage::PushExplosion(

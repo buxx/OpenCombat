@@ -1,11 +1,13 @@
 use ggez::GameResult;
 
 use crate::{
-    graphics::vehicle::VehicleGraphicInfos, message::VehicleMessage, types::*,
+    graphics::vehicle::VehicleGraphicInfos,
+    message::{SideEffect, VehicleMessage},
+    types::*,
     utils::apply_angle_on_point,
 };
 
-use super::{shared::SharedState, SideEffect};
+use super::shared::SharedState;
 
 impl SharedState {
     pub fn check_board_integrity(&self) -> GameResult {

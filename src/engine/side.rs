@@ -1,6 +1,6 @@
 use ggez::Context;
 
-use crate::{behavior::Behavior, order::Order, state::SideEffect};
+use crate::{behavior::Behavior, message::SideEffect, order::Order};
 
 use super::Engine;
 

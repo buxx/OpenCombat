@@ -5,10 +5,11 @@ use ggez::graphics::Rect;
 use crate::{
     behavior::{Behavior, BehaviorMode},
     entity::vehicle::OnBoardPlace,
-    order::{marker::OrderMarker, Order, PendingOrder},
+    game::Side,
+    order::{marker::OrderMarker, Order},
     physics::path::{find_path, Direction, PathMode},
     types::*,
-    utils::WorldShape,
+    utils::{angle, WorldShape},
 };
 
 use super::Engine;
@@ -50,12 +51,16 @@ impl Engine {
         soldier_indexes
     }
 
-    pub fn filter_entities_by_side(&self, soldier_indexes: Vec<SoldierIndex>) -> Vec<SoldierIndex> {
+    pub fn filter_entities_by_side(
+        &self,
+        soldier_indexes: Vec<SoldierIndex>,
+        side: &Side,
+    ) -> Vec<SoldierIndex> {
         let mut filtered_soldier_indexes = vec![];
 
         for soldier_index in soldier_indexes {
             let soldier = self.shared_state.soldier(soldier_index);
-            if soldier.get_side() == self.local_state.side() {
+            if soldier.get_side() == side {
                 filtered_soldier_indexes.push(soldier_index);
             }
         }
@@ -94,46 +99,6 @@ impl Engine {
             + (self.map.terrain.tileset.tile_height as i32 / 2);
         WorldPoint::new(x as f32, y as f32)
     }
-
-    //////////////////////////////////////////: delete after ok
-    // pub fn get_pending_order_params(
-    //     &self,
-    //     pending_order: &PendingOrder,
-    //     squad_id: SquadUuid,
-    //     cached_points: &Vec<WorldPoint>,
-    // ) -> Vec<(WindowPoint, Angle, Offset)> {
-    //     let squad = self.shared_state.squad(squad_id);
-    //     let squad_leader = self.shared_state.soldier(squad.leader());
-    //     match pending_order {
-    //         PendingOrder::MoveTo | PendingOrder::MoveFastTo | PendingOrder::SneakTo => {
-    //             let mut params = vec![];
-    //             for cached_point in cached_points {
-    //                 params.push((
-    //                     self.local_state
-    //                         .window_point_from_world_point(*cached_point),
-    //                     Angle(0.),
-    //                     Offset::half(),
-    //                 ));
-    //             }
-    //             params.push((
-    //                 *self.local_state.get_current_cursor_window_point(),
-    //                 Angle(0.),
-    //                 Offset::half(),
-    //             ));
-    //             params
-    //         }
-    //         PendingOrder::Defend | PendingOrder::Hide => {
-    //             let to_point = self.local_state.get_current_cursor_world_point().to_vec2();
-    //             let from_point = squad_leader.get_world_point().to_vec2();
-    //             vec![(
-    //                 self.local_state
-    //                     .window_point_from_world_point(squad_leader.get_world_point()),
-    //                 Angle::from_points(&to_point, &from_point),
-    //                 Offset::half(),
-    //             )]
-    //         }
-    //     }
-    // }
 
     pub fn create_path_finding(
         &self,
@@ -302,8 +267,36 @@ impl Engine {
         marker: &OrderMarker,
         from_point: &WorldPoint,
     ) -> WorldShape {
-        WorldShape::from_rect(&marker.sprite_info(false).selection_rect(*from_point))
+        WorldShape::from_rect(&marker.sprite_info().selection_rect(*from_point))
             .rotate(&order.angle().unwrap_or(Angle::zero()))
             .cut(marker.selectable())
+    }
+
+    pub fn behavior_angle(
+        &self,
+        behavior: &Behavior,
+        reference_point: &WorldPoint,
+    ) -> Option<Angle> {
+        match behavior {
+            Behavior::Idle => None,
+            Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
+                if let Some(next_point) = paths.next_point() {
+                    Some(angle(&next_point, &reference_point))
+                } else {
+                    None
+                }
+            }
+            Behavior::Defend(angle) => Some(*angle),
+            Behavior::Hide(angle) => Some(*angle),
+            Behavior::DriveTo(_) => None,
+            Behavior::RotateTo(_) => None,
+            Behavior::SuppressFire(point) => Some(angle(&point, &reference_point)),
+            // Behavior::EngageSoldier(opponent_index) => {
+            //     let opponent = shared_state.soldier(*opponent_index);
+            //     Some(angle(&opponent.get_world_point(), &reference_point))
+            // }
+            // TODO: keep angle for dead/unconscious soldiers
+            Behavior::Dead | Behavior::Unconscious => None,
+        }
     }
 }

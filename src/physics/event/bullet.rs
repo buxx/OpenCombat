@@ -1,6 +1,6 @@
 use crate::{
-    game::weapon::Weapon,
-    message::{Message, SharedStateMessage},
+    game::weapon::Ammunition,
+    message::Message,
     types::{Precision, SoldierIndex, WorldPoint},
 };
 use serde::{Deserialize, Serialize};
@@ -12,7 +12,7 @@ pub struct BulletFire {
     from: WorldPoint,
     to: WorldPoint,
     target: Option<(SoldierIndex, Precision)>,
-    weapon: Weapon,
+    ammunition: Ammunition,
 }
 
 impl BulletFire {
@@ -20,7 +20,7 @@ impl BulletFire {
         from: WorldPoint,
         to: WorldPoint,
         target: Option<(SoldierIndex, Precision)>,
-        weapon: Weapon,
+        ammunition: Ammunition,
     ) -> Self {
         Self {
             start: 0,
@@ -28,7 +28,7 @@ impl BulletFire {
             from,
             to,
             target,
-            weapon,
+            ammunition,
         }
     }
 
@@ -41,8 +41,8 @@ impl BulletFire {
         &self.to
     }
 
-    pub fn weapon(&self) -> &Weapon {
-        &&self.weapon
+    pub fn _ammunition(&self) -> &Ammunition {
+        &self.ammunition
     }
 
     pub fn finished(&self, frame_i: u64) -> bool {
@@ -53,18 +53,8 @@ impl BulletFire {
         self.start == frame_i
     }
 
-    pub fn fx(&self, frame_i: u64) -> Vec<Message> {
-        let mut messages = vec![];
-
-        if self.start == frame_i {
-            for sound in self.weapon.fire_sounds() {
-                messages.push(Message::SharedState(SharedStateMessage::PushSoundToPlay(
-                    sound.clone(),
-                )));
-            }
-        }
-
-        messages
+    pub fn fx(&self, _frame_i: u64) -> Vec<Message> {
+        vec![]
     }
 
     pub fn from(&self) -> &WorldPoint {

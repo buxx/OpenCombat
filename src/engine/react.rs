@@ -1,4 +1,7 @@
-use crate::{message::*, state::SideEffect, sync::StateCopy};
+use crate::{
+    message::{Message, NetworkMessage, PhysicsMessage, SideEffect},
+    sync::StateCopy,
+};
 
 use super::Engine;
 

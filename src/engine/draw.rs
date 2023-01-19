@@ -5,6 +5,7 @@ use ggez::{
 
 use crate::{
     debug::DebugTerrain,
+    entity::soldier::Soldier,
     order::{marker::OrderMarker, Order, PendingOrder},
     types::*,
 };
@@ -20,7 +21,7 @@ impl Engine {
             }
 
             for sprite in self.graphics.soldier_sprites(SoldierIndex(i), soldier) {
-                self.graphics.append_sprites_batch(sprite);
+                self.graphics.append_soldier_sprites_batch(sprite);
             }
         }
 
@@ -36,8 +37,9 @@ impl Engine {
         }
 
         // Don't draw soldier in opposite side and not visible
-        // FIXME : except visibles
-        if soldier.get_side() != self.local_state.side() {
+        if soldier.get_side() != self.local_state.side()
+            && !self.soldier_is_visible_by_side(soldier, self.local_state.side())
+        {
             return false;
         }
 
@@ -143,10 +145,10 @@ impl Engine {
         let squad_leader = self.shared_state.soldier(squad.leader());
 
         match pending_order {
-            PendingOrder::MoveTo(squad_index, order_marker_index, cached_points)
-            | PendingOrder::MoveFastTo(squad_index, order_marker_index, cached_points)
-            | PendingOrder::SneakTo(squad_index, order_marker_index, cached_points) => {
-                let sprite_infos = pending_order.marker().sprite_info(false);
+            PendingOrder::MoveTo(_, _, cached_points)
+            | PendingOrder::MoveFastTo(_, _, cached_points)
+            | PendingOrder::SneakTo(_, _, cached_points) => {
+                let sprite_infos = self.pending_order_marker(pending_order).sprite_info();
                 for cached_point in cached_points {
                     let point = self
                         .local_state
@@ -164,8 +166,8 @@ impl Engine {
                         .scale(self.local_state.display_scene_scale.to_vec2()),
                 );
             }
-            PendingOrder::Defend(squad_index, angle) | PendingOrder::Hide(squad_index, angle) => {
-                let sprite_infos = pending_order.marker().sprite_info(false);
+            PendingOrder::Defend(_) | PendingOrder::Hide(_) => {
+                let sprite_infos = self.pending_order_marker(pending_order).sprite_info();
                 let to_point = self.local_state.get_current_cursor_world_point().to_vec2();
                 let from_point = squad_leader.get_world_point().to_vec2();
                 let point = self
@@ -182,9 +184,39 @@ impl Engine {
                         .scale(self.local_state.display_scene_scale.to_vec2()),
                 )
             }
+            PendingOrder::EngageOrFire(_) => {
+                let sprite_infos = self.pending_order_marker(pending_order).sprite_info();
+                let to_point = self.local_state.get_current_cursor_window_point();
+                draw_params.push(sprite_infos.as_draw_params(*to_point, Angle(0.), Offset::half()))
+            }
         }
 
         draw_params
+    }
+
+    fn pending_order_marker(&self, pending_order: &PendingOrder) -> OrderMarker {
+        match pending_order {
+            PendingOrder::MoveTo(_, _, _) => OrderMarker::MoveTo,
+            PendingOrder::MoveFastTo(_, _, _) => OrderMarker::MoveFastTo,
+            PendingOrder::SneakTo(_, _, _) => OrderMarker::SneakTo,
+            PendingOrder::Defend(_) => OrderMarker::Defend,
+            PendingOrder::Hide(_) => OrderMarker::Hide,
+            PendingOrder::EngageOrFire(_) => {
+                let cursor_point = self.local_state.get_current_cursor_world_point();
+                if let Some(_) = self
+                    .get_opponent_soldiers_at_point(cursor_point)
+                    .iter()
+                    .filter(|s| s.can_be_designed_as_target())
+                    .filter(|s| self.soldier_is_visible_by_side(s, self.local_state.side()))
+                    .collect::<Vec<&&Soldier>>()
+                    .first()
+                {
+                    OrderMarker::EngageSquad
+                } else {
+                    OrderMarker::SuppressFire
+                }
+            }
+        }
     }
 
     pub fn generate_order_marker_sprites(
@@ -193,7 +225,7 @@ impl Engine {
         order_marker: &OrderMarker,
         point: WindowPoint,
     ) -> Vec<DrawParam> {
-        let sprite_infos = order_marker.sprite_info(false);
+        let sprite_infos = order_marker.sprite_info();
         let angle = order.angle().unwrap_or(Angle(0.));
         vec![sprite_infos
             .as_draw_params(point, angle, Offset::half())

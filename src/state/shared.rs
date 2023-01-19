@@ -17,8 +17,6 @@ use crate::{
     utils::vehicle_board_from_soldiers_on_board,
 };
 
-use super::SideEffect;
-
 pub struct SharedState {
     /// Used to ignore server shared_state modifications since shared state not received from server
     initialized: bool,

@@ -4,7 +4,7 @@ use crate::{
     entity::soldier::Soldier,
     message::{Message, SharedStateMessage, SoldierMessage},
     order::Order,
-    types::{Angle, SquadUuid, WorldPaths},
+    types::{Angle, SoldierIndex, SquadUuid, WorldPaths, WorldPoint},
     utils::DebugPoint,
 };
 
@@ -13,6 +13,7 @@ mod bullet;
 mod death;
 mod defend;
 mod moves;
+mod suppress;
 
 impl Engine {
     pub fn soldier_behavior_mode(&self, soldier: &Soldier) -> BehaviorMode {
@@ -37,6 +38,8 @@ impl Engine {
             Order::SneakTo(paths) => self.move_fast_behavior(soldier, paths),
             Order::Defend(angle) => self.defend_behavior(soldier, angle),
             Order::Hide(angle) => self.hide_behavior(soldier, angle),
+            Order::EngageSquad(opponent_index) => self.engage_behavior(soldier, opponent_index),
+            Order::SuppressFire(point) => self.suppress_fire_behavior(soldier, point),
         };
 
         // In case of squad leader and regularly propagation
@@ -94,6 +97,9 @@ impl Engine {
             Behavior::RotateTo(_) => todo!(),
             Behavior::Idle | Behavior::Dead | Behavior::Unconscious => {
                 vec![]
+            }
+            Behavior::SuppressFire(point) => {
+                self.propagate_suppress_fire(leader.squad_uuid(), point)
             } // Behavior::EngageSoldier(_) => todo!(),
         };
 
@@ -154,5 +160,14 @@ impl Engine {
 
     pub fn hide_behavior(&self, _soldier: &Soldier, angle: &Angle) -> Behavior {
         Behavior::Hide(*angle)
+    }
+
+    pub fn engage_behavior(&self, _soldier: &Soldier, opponent_index: &SoldierIndex) -> Behavior {
+        // FIXME BS NOW : todo ...
+        Behavior::Idle
+    }
+
+    pub fn suppress_fire_behavior(&self, _soldier: &Soldier, point: &WorldPoint) -> Behavior {
+        Behavior::SuppressFire(*point)
     }
 }

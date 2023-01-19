@@ -6,10 +6,12 @@ use ggez::{
 use glam::Vec2;
 
 use crate::{
+    audio::Sound,
     config::{
         DEFAULT_SELECTED_SQUARE_SIDE, DEFAULT_SELECTED_SQUARE_SIDE_HALF,
         PENDING_ORDER_PATH_FINDING_DRAW_FRAMES,
     },
+    entity::soldier::Soldier,
     message::*,
     order::{Order, PendingOrder},
     types::*,
@@ -54,7 +56,15 @@ impl Engine {
 
     pub fn get_side_entities_at_point(&self, point: WorldPoint) -> Vec<SoldierIndex> {
         let soldier_indexes = self.get_soldiers_at_point(point);
-        self.filter_entities_by_side(soldier_indexes)
+        self.filter_entities_by_side(soldier_indexes, self.local_state.side())
+    }
+
+    pub fn get_opponent_soldiers_at_point(&self, point: WorldPoint) -> Vec<&Soldier> {
+        let soldier_indexes = self.get_soldiers_at_point(point);
+        self.filter_entities_by_side(soldier_indexes, self.local_state.opponent_side())
+            .iter()
+            .map(|i| self.shared_state.soldier(*i))
+            .collect()
     }
 
     fn digest_scene_select_by_click(&self, point: WindowPoint) -> Vec<Message> {
@@ -168,13 +178,17 @@ impl Engine {
                 //
                 self.create_sneak_to_order(squad_index, order_marker_index, cached_points)
             }
-            PendingOrder::Defend(squad_index, angle) => {
+            PendingOrder::Defend(squad_index) => {
                 //
                 self.create_defend_order(*squad_index)
             }
-            PendingOrder::Hide(squad_index, angle) => {
+            PendingOrder::Hide(squad_index) => {
                 //
                 self.create_hide_order(*squad_index)
+            }
+            PendingOrder::EngageOrFire(squad_index) => {
+                //
+                self.create_engage_order(&squad_index)
             }
         }
     }
@@ -314,9 +328,16 @@ impl Engine {
                         .shared_state
                         .squad(*pending_order.squad_index())
                         .leader();
-                    messages.push(Message::SharedState(SharedStateMessage::Soldier(
-                        squad_leader,
-                        SoldierMessage::SetOrder(order),
+                    messages.extend(vec![
+                        Message::SharedState(SharedStateMessage::Soldier(
+                            squad_leader,
+                            SoldierMessage::SetOrder(order),
+                        )),
+                        Message::SharedState(SharedStateMessage::PushSoundToPlay(Sound::Clac1)),
+                    ])
+                } else {
+                    messages.push(Message::SharedState(SharedStateMessage::PushSoundToPlay(
+                        Sound::Bip1,
                     )))
                 }
 
@@ -358,9 +379,16 @@ impl Engine {
                     .shared_state
                     .squad(*pending_order.squad_index())
                     .leader();
-                messages.push(Message::SharedState(SharedStateMessage::Soldier(
-                    squad_leader,
-                    SoldierMessage::SetOrder(order_),
+                messages.extend(vec![
+                    Message::SharedState(SharedStateMessage::Soldier(
+                        squad_leader,
+                        SoldierMessage::SetOrder(order_),
+                    )),
+                    Message::SharedState(SharedStateMessage::PushSoundToPlay(Sound::Clac1)),
+                ])
+            } else {
+                messages.push(Message::SharedState(SharedStateMessage::PushSoundToPlay(
+                    Sound::Bip1,
                 )))
             }
             messages.extend(vec![
@@ -371,7 +399,8 @@ impl Engine {
             let world_start = self.local_state.world_point_from_window_point(start);
             let world_end = self.local_state.world_point_from_window_point(end);
             let soldier_indexes = self.get_entities_in_area(world_start, world_end);
-            let soldier_indexes = self.filter_entities_by_side(soldier_indexes);
+            let soldier_indexes =
+                self.filter_entities_by_side(soldier_indexes, self.local_state.side());
             let squad_ids = self.squad_ids_from_entities(soldier_indexes);
             messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
                 squad_ids,

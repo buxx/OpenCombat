@@ -3,8 +3,6 @@ use crate::types::*;
 use crate::utils::rect_contains;
 use ggez::graphics::{self, Rect};
 
-use super::PendingOrder;
-
 const ORDER_MARKER_START_X: f32 = 0.0;
 const ORDER_MARKER_START_Y: f32 = 100.0;
 const ORDER_MARKER_WIDTH: f32 = 11.0;
@@ -21,9 +19,10 @@ pub enum OrderMarker {
     MoveTo,
     MoveFastTo,
     SneakTo,
-    FireTo,
     Defend,
     Hide,
+    EngageSquad,
+    SuppressFire,
 }
 
 impl OrderMarker {
@@ -32,12 +31,13 @@ impl OrderMarker {
             OrderMarker::MoveTo
             | OrderMarker::MoveFastTo
             | OrderMarker::SneakTo
-            | OrderMarker::FireTo => Offset::new(1.0, 1.0),
+            | OrderMarker::SuppressFire
+            | OrderMarker::EngageSquad => Offset::new(1.0, 1.0),
             OrderMarker::Defend | OrderMarker::Hide => Offset::new(1.0, 0.33),
         }
     }
 
-    pub fn sprite_info(&self, _active: bool) -> OrderMarkerSpriteInfo {
+    pub fn sprite_info(&self) -> OrderMarkerSpriteInfo {
         match self {
             OrderMarker::MoveTo => OrderMarkerSpriteInfo {
                 relative_start_x: ORDER_MARKER_START_X / UI_SPRITE_SHEET_WIDTH,
@@ -71,7 +71,19 @@ impl OrderMarker {
                 half_width: ORDER_MARKER_WIDTH / 2.0,
                 half_height: ORDER_MARKER_HEIGHT / 2.0,
             },
-            OrderMarker::FireTo => OrderMarkerSpriteInfo {
+            OrderMarker::SuppressFire => OrderMarkerSpriteInfo {
+                relative_start_x: (ORDER_MARKER_START_X + ORDER_MARKER_WIDTH)
+                    / UI_SPRITE_SHEET_WIDTH,
+                relative_start_y: (ORDER_MARKER_START_Y + (ORDER_MARKER_HEIGHT * 3.0))
+                    / UI_SPRITE_SHEET_HEIGHT,
+                relative_width: ORDER_MARKER_WIDTH / UI_SPRITE_SHEET_WIDTH,
+                relative_height: ORDER_MARKER_HEIGHT / UI_SPRITE_SHEET_HEIGHT,
+                width: ORDER_MARKER_WIDTH,
+                height: ORDER_MARKER_HEIGHT,
+                half_width: ORDER_MARKER_WIDTH / 2.0,
+                half_height: ORDER_MARKER_HEIGHT / 2.0,
+            },
+            OrderMarker::EngageSquad => OrderMarkerSpriteInfo {
                 relative_start_x: ORDER_MARKER_START_X / UI_SPRITE_SHEET_WIDTH,
                 relative_start_y: (ORDER_MARKER_START_Y + (ORDER_MARKER_HEIGHT * 3.0))
                     / UI_SPRITE_SHEET_HEIGHT,

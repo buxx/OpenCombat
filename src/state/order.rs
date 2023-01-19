@@ -57,6 +57,27 @@ impl SharedState {
                     ));
                 }
                 Order::Idle => {}
+                Order::EngageSquad(soldier_index) => {
+                    let soldier = self.soldier(*soldier_index);
+                    let squad = self.squad(soldier.squad_uuid());
+                    let leader = self.soldier(squad.leader());
+                    marker_data.push((
+                        order.clone(),
+                        marker.clone().unwrap(), // FIXME unwrap to remove
+                        squad_id,
+                        leader.get_world_point(),
+                        OrderMarkerIndex(0),
+                    ));
+                }
+                Order::SuppressFire(point) => {
+                    marker_data.push((
+                        order.clone(),
+                        marker.clone().unwrap(), // FIXME unwrap to remove
+                        squad_id,
+                        *point,
+                        OrderMarkerIndex(0),
+                    ));
+                }
             }
         }
 

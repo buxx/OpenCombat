@@ -1,5 +1,8 @@
-use super::{shared::SharedState, SideEffect};
-use crate::{message::SoldierMessage, types::*};
+use super::shared::SharedState;
+use crate::{
+    message::{SideEffect, SoldierMessage},
+    types::*,
+};
 
 impl SharedState {
     pub fn react_soldier_message(
@@ -20,6 +23,9 @@ impl SharedState {
                 soldier.set_behavior(behavior);
                 return vec![SideEffect::RefreshEntityAnimation(soldier_index)];
             }
+            SoldierMessage::SetGesture(gesture) => {
+                soldier.set_gesture(gesture);
+            }
             SoldierMessage::SetOrientation(angle) => soldier.set_looking_direction(angle),
             SoldierMessage::ReachBehaviorStep => {
                 if soldier.order_mut().reach_step() || soldier.get_behavior_mut().reach_step() {
@@ -31,6 +37,8 @@ impl SharedState {
             SoldierMessage::IncreaseUnderFire(value) => soldier.increase_under_fire(value),
             SoldierMessage::DecreaseUnderFire => soldier.decrease_under_fire(),
             SoldierMessage::SetOrder(order) => soldier.set_order(order),
+            SoldierMessage::ReloadWeapon(class) => soldier.reload_weapon(&class),
+            SoldierMessage::WeaponShot(class) => soldier.weapon_shot(&class),
         }
 
         vec![]

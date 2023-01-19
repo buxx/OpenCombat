@@ -8,7 +8,7 @@ impl Engine {
         let mut visibles = self
             .local_state
             .visibilities()
-            .visibles_soldiers_by(soldier);
+            .visibles_soldiers_by_soldier(soldier);
         // TODO : Use Millimeters as default unit instead Meters ?
         visibles.sort_by(|a, b| (a.distance.0 as u32).cmp(&(b.distance.0 as u32)));
 

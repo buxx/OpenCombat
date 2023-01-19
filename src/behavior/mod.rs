@@ -2,10 +2,7 @@ use std::fmt::Display;
 
 use crate::{
     config::{MOVE_FAST_VELOCITY, MOVE_HIDE_VELOCITY, MOVE_VELOCITY},
-    order::Order,
-    state::shared::SharedState,
     types::*,
-    utils::angle,
 };
 use serde::{Deserialize, Serialize};
 
@@ -29,7 +26,7 @@ pub enum Behavior {
     Dead,
     Unconscious,
     // Combat
-    // EngageSoldier(SoldierIndex),
+    SuppressFire(WorldPoint), // EngageSoldier(SoldierIndex),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -46,29 +43,6 @@ pub enum BehaviorPropagation {
 }
 
 impl Behavior {
-    pub fn angle(&self, reference_point: WorldPoint, shared_state: &SharedState) -> Option<Angle> {
-        match self {
-            Behavior::Idle => None,
-            Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
-                if let Some(next_point) = paths.next_point() {
-                    Some(angle(&next_point, &reference_point))
-                } else {
-                    None
-                }
-            }
-            Behavior::Defend(angle) => Some(*angle),
-            Behavior::Hide(angle) => Some(*angle),
-            Behavior::DriveTo(_) => None,
-            Behavior::RotateTo(_) => None,
-            // Behavior::EngageSoldier(opponent_index) => {
-            //     let opponent = shared_state.soldier(*opponent_index);
-            //     Some(angle(&opponent.get_world_point(), &reference_point))
-            // }
-            // TODO: keep angle for dead/unconscious soldiers
-            Behavior::Dead | Behavior::Unconscious => None,
-        }
-    }
-
     pub fn velocity(&self) -> Option<f32> {
         match self {
             Behavior::Idle => None,
@@ -81,6 +55,7 @@ impl Behavior {
             Behavior::RotateTo(_) => None,
             Behavior::Dead => None,
             Behavior::Unconscious => None,
+            Behavior::SuppressFire(_) => None,
             // Behavior::EngageSoldier(_) => None,
         }
     }
@@ -95,6 +70,7 @@ impl Behavior {
             Behavior::Idle => BehaviorPropagation::OnChange,
             Behavior::Defend(_) => BehaviorPropagation::OnChange,
             Behavior::Hide(_) => BehaviorPropagation::OnChange,
+            Behavior::SuppressFire(_) => BehaviorPropagation::OnChange,
             Behavior::Dead => BehaviorPropagation::Never,
             Behavior::Unconscious => BehaviorPropagation::Never,
         }
@@ -117,7 +93,8 @@ impl Behavior {
             }
             Behavior::Idle | Behavior::Defend(_) | Behavior::Hide(_) | Behavior::RotateTo(_) => {}
             Behavior::Dead => {}
-            Behavior::Unconscious => {} // Behavior::EngageSoldier(_) => {}
+            Behavior::Unconscious => {}
+            Behavior::SuppressFire(_) => {} // Behavior::EngageSoldier(_) => {}
         }
 
         false
@@ -134,7 +111,8 @@ impl Behavior {
             | Behavior::Defend(_)
             | Behavior::Hide(_)
             | Behavior::Dead
-            | Behavior::Unconscious => None,
+            | Behavior::Unconscious
+            | Behavior::SuppressFire(_) => None,
         }
     }
 }
@@ -152,6 +130,7 @@ impl Display for Behavior {
             Behavior::Hide(_) => f.write_str("Hide"),
             Behavior::Dead => f.write_str("Dead"),
             Behavior::Unconscious => f.write_str("Unconscious"),
+            Behavior::SuppressFire(_) => f.write_str("SuppressFire"),
             // Behavior::EngageSoldier(_) => f.write_str("Engage"),
         }
     }

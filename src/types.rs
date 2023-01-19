@@ -428,6 +428,10 @@ impl SquadComposition {
     pub fn members(&self) -> &Vec<SoldierIndex> {
         &self.1
     }
+
+    pub fn subordinates(&self) -> Vec<&SoldierIndex> {
+        self.1.iter().filter(|i| i != &&self.0).collect()
+    }
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]

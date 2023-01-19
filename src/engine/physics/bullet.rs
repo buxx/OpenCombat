@@ -7,31 +7,19 @@ use crate::engine::Engine;
 use crate::message::SharedStateMessage;
 use crate::physics::effect::Effect;
 use crate::physics::utils::meters_between_scene_points;
-use crate::{
-    message::{LocalStateMessage, Message},
-    physics::event::bullet::BulletFire,
-    types::BulletFireIndex,
-    utils::GREY,
-    NetworkMode,
-};
+use crate::{message::Message, physics::event::bullet::BulletFire, utils::GREY, NetworkMode};
 
 impl Engine {
     pub fn tick_bullet_fires(&self) -> Vec<Message> {
         let mut messages = vec![];
         let frame_i = self.local_state.get_frame_i();
 
-        for (i, bullet_fire) in self.local_state.bullet_fires().iter().enumerate() {
+        for bullet_fire in self.local_state.bullet_fires() {
             messages.extend(bullet_fire.fx(frame_i));
 
             if self.config.network_mode() == &NetworkMode::Server && bullet_fire.effective(frame_i)
             {
                 messages.extend(self.bullet_fire_effects(bullet_fire))
-            }
-
-            if bullet_fire.finished(frame_i) {
-                messages.push(Message::LocalState(LocalStateMessage::RemoveBulletFire(
-                    BulletFireIndex(i),
-                )))
             }
         }
 
@@ -42,7 +30,6 @@ impl Engine {
     fn bullet_fire_effects(&self, bullet_fire: &BulletFire) -> Vec<Message> {
         let mut messages = vec![];
         let point = bullet_fire.point();
-        let _weapon = bullet_fire.weapon();
 
         for soldier in self.shared_state.soldiers() {
             if !soldier.can_feel_bullet_fire() {

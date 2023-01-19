@@ -61,6 +61,19 @@ impl Engine {
         return Some(Order::Defend(angle));
     }
 
+    pub fn create_engage_order(&self, squad_id: &SquadUuid) -> Option<Order> {
+        let world_point = self.local_state.get_current_cursor_world_point();
+        if let Some(soldier) = self.get_opponent_soldiers_at_point(world_point).first() {
+            return Some(Order::EngageSquad(soldier.uuid()));
+        } else {
+            if self.point_is_visible_by_squad(&world_point, squad_id) {
+                return Some(Order::SuppressFire(world_point));
+            }
+        }
+
+        None
+    }
+
     pub fn create_pending_order_from_order_marker(
         &self,
         order_marker: &OrderMarker,
@@ -78,9 +91,10 @@ impl Engine {
             OrderMarker::SneakTo => {
                 PendingOrder::MoveTo(*squad_index, *order_marker_index, cached_points.clone())
             }
-            OrderMarker::FireTo => todo!(),
-            OrderMarker::Defend => PendingOrder::Defend(*squad_index, Angle(0.)),
-            OrderMarker::Hide => PendingOrder::Hide(*squad_index, Angle(0.)),
+            OrderMarker::Defend => PendingOrder::Defend(*squad_index),
+            OrderMarker::Hide => PendingOrder::Hide(*squad_index),
+            OrderMarker::EngageSquad => PendingOrder::EngageOrFire(*squad_index),
+            OrderMarker::SuppressFire => PendingOrder::EngageOrFire(*squad_index),
         }
     }
 }

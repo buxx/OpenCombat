@@ -15,6 +15,7 @@ pub enum MenuItem {
     Move,
     MoveFast,
     Sneak,
+    Fire,
     Defend,
     Hide,
 }
@@ -25,8 +26,9 @@ impl MenuItem {
             MenuItem::Move => PendingOrder::MoveTo(*squad_index, None, vec![]),
             MenuItem::MoveFast => PendingOrder::MoveFastTo(*squad_index, None, vec![]),
             MenuItem::Sneak => PendingOrder::SneakTo(*squad_index, None, vec![]),
-            MenuItem::Defend => PendingOrder::Defend(*squad_index, Angle(0.)),
-            MenuItem::Hide => PendingOrder::Hide(*squad_index, Angle(0.)),
+            MenuItem::Defend => PendingOrder::Defend(*squad_index),
+            MenuItem::Hide => PendingOrder::Hide(*squad_index),
+            MenuItem::Fire => PendingOrder::EngageOrFire(*squad_index),
         }
     }
 }
@@ -45,7 +47,7 @@ pub fn squad_menu_sprite_info() -> VerticalMenuSpriteInfo {
             MenuItem::Move,
             MenuItem::MoveFast,
             MenuItem::Sneak,
-            MenuItem::Defend,
+            MenuItem::Fire,
             MenuItem::Defend,
             MenuItem::Hide,
         ],

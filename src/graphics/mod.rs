@@ -70,7 +70,7 @@ impl Graphics {
         })
     }
 
-    pub fn append_sprites_batch(&mut self, sprite: graphics::DrawParam) {
+    pub fn append_soldier_sprites_batch(&mut self, sprite: graphics::DrawParam) {
         self.soldiers_sprites_batch.add(sprite);
     }
 

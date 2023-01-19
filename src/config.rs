@@ -45,10 +45,6 @@ pub const VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT: f32 = 100.;
 pub const VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_COEFFICIENT: f32 = 100.;
 pub const VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_DIFF: f32 = 50.;
 
-// Offset of defend/hide sprite from leader position
-pub const DISPLAY_DEFEND_X_OFFSET: f32 = 0.5;
-pub const DISPLAY_DEFEND_Y_OFFSET: f32 = 1.5;
-
 // Grid distance to search cover point
 pub const COVER_DISTANCE: i32 = 5;
 

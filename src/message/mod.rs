@@ -2,9 +2,10 @@ use std::collections::HashMap;
 
 use crate::{
     audio::Sound,
-    behavior::Behavior,
+    behavior::{gesture::Gesture, Behavior},
     debug::{DebugLevel, DebugPhysics, DebugTerrain},
     engine::input::Control,
+    entity::soldier::WeaponClass,
     game::explosive::Type as ExplosiveType,
     order::{Order, PendingOrder},
     physics::{
@@ -70,14 +71,13 @@ pub enum LocalStateMessage {
     ScaleUpdate(f32),
     SetControl(Control),
     SetVisibilities(HashMap<(SoldierIndex, SoldierIndex), Visibility>),
-    RemoveBulletFire(BulletFireIndex),
-    RemoveExplosion(ExplosionIndex),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum SoldierMessage {
     SetWorldPosition(WorldPoint),
     SetBehavior(Behavior),
+    SetGesture(Gesture),
     SetOrder(Order),
     SetOrientation(Angle),
     SetAlive(bool),
@@ -85,6 +85,8 @@ pub enum SoldierMessage {
     ReachBehaviorStep,
     IncreaseUnderFire(u32),
     DecreaseUnderFire,
+    ReloadWeapon(WeaponClass),
+    WeaponShot(WeaponClass),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -109,4 +111,11 @@ pub enum NetworkMessage {
     Acknowledge,
     RequireCompleteSync,
     InitializeStateFrom(StateCopy),
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub enum SideEffect {
+    RefreshEntityAnimation(SoldierIndex),
+    SoldierFinishHisBehavior(SoldierIndex),
+    PlaySound(Sound),
 }

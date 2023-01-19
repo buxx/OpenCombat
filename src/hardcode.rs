@@ -5,7 +5,10 @@ use crate::{
         soldier::Soldier,
         vehicle::{OnBoardPlace, Vehicle, VehicleType},
     },
-    game::Side,
+    game::{
+        weapon::{Magazine, Weapon},
+        Side,
+    },
     types::*,
     utils,
 };
@@ -26,6 +29,14 @@ pub fn shared_state_fixtures() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) 
                 WorldPoint::from(Vec2::new(x as f32 * 10. + 20.0, y as f32 * 10. + 100.)),
                 SquadUuid(squad),
                 Side::A,
+                Some(Weapon::MosinNagantM1924(
+                    false,
+                    Some(Magazine::full(Magazine::MosinNagant(0))),
+                )),
+                vec![
+                    Magazine::full(Magazine::MosinNagant(0)),
+                    Magazine::full(Magazine::MosinNagant(0)),
+                ],
             );
             soldiers.push(soldier);
             soldiers_index += 1;
@@ -42,6 +53,14 @@ pub fn shared_state_fixtures() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) 
                 WorldPoint::from(Vec2::new(x as f32 * 10. + 550., y as f32 * 10. + 250.)),
                 SquadUuid(squad),
                 Side::B,
+                Some(Weapon::MosinNagantM1924(
+                    false,
+                    Some(Magazine::full(Magazine::MosinNagant(0))),
+                )),
+                vec![
+                    Magazine::full(Magazine::MosinNagant(0)),
+                    Magazine::full(Magazine::MosinNagant(0)),
+                ],
             );
             soldiers.push(soldier);
             soldiers_index += 1;
@@ -61,6 +80,8 @@ pub fn shared_state_fixtures() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) 
         WorldPoint::from(Vec2::new(0., 0.)),
         SquadUuid(tank1_squad),
         Side::A,
+        None,
+        vec![],
     );
     soldiers.push(tank_driver);
     soldiers_index += 1;
@@ -73,6 +94,8 @@ pub fn shared_state_fixtures() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) 
         WorldPoint::from(Vec2::new(0., 0.)),
         SquadUuid(tank1_squad),
         Side::A,
+        None,
+        vec![],
     );
     soldiers.push(tank_gunner);
     boards.insert(

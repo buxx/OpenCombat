@@ -105,6 +105,14 @@ impl LocalState {
         &self.side
     }
 
+    pub fn opponent_side(&self) -> &Side {
+        match self.side {
+            Side::A => &Side::B,
+            Side::B => &Side::A,
+            _ => unreachable!(),
+        }
+    }
+
     pub fn get_debug_level(&self) -> &DebugLevel {
         &self.debug_level
     }
@@ -298,12 +306,6 @@ impl LocalState {
                 self.control = new_control;
             }
             LocalStateMessage::SetVisibilities(visibilities) => self.visibilities.set(visibilities),
-            LocalStateMessage::RemoveBulletFire(index) => {
-                self.bullet_fires.remove(index.0);
-            }
-            LocalStateMessage::RemoveExplosion(index) => {
-                self.explosions.remove(index.0);
-            }
         }
     }
 
@@ -329,5 +331,11 @@ impl LocalState {
 
     pub fn push_explosion(&mut self, explosion: Explosion) {
         self.explosions.push(explosion)
+    }
+
+    pub fn remove_finished_physics(&mut self) {
+        let frame_i = self.frame_i;
+        self.bullet_fires.retain(|b| !b.finished(frame_i));
+        self.explosions.retain(|e| !e.finished(frame_i));
     }
 }
