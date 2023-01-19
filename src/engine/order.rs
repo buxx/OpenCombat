@@ -1,4 +1,5 @@
 use crate::{
+    entity::soldier::Soldier,
     order::{marker::OrderMarker, Order, PendingOrder},
     types::*,
 };
@@ -63,7 +64,14 @@ impl Engine {
 
     pub fn create_engage_order(&self, squad_id: &SquadUuid) -> Option<Order> {
         let world_point = self.local_state.get_current_cursor_world_point();
-        if let Some(soldier) = self.get_opponent_soldiers_at_point(world_point).first() {
+        if let Some(soldier) = self
+            .get_opponent_soldiers_at_point(world_point)
+            .iter()
+            .filter(|s| s.can_be_designed_as_target())
+            .filter(|s| self.soldier_is_visible_by_side(s, self.local_state.side()))
+            .collect::<Vec<&&Soldier>>()
+            .first()
+        {
             return Some(Order::EngageSquad(soldier.uuid()));
         } else {
             if self.point_is_visible_by_squad(&world_point, squad_id) {
