@@ -1,48 +1,25 @@
 use crate::{
     behavior::gesture::{Gesture, GestureContext},
     engine::Engine,
-    entity::soldier::{Soldier, WeaponClass},
-    game::weapon::Weapon,
-    types::WorldPoint,
+    entity::soldier::Soldier,
+    types::SoldierIndex,
 };
 
 impl Engine {
-    pub fn engage_point_gesture(
+    pub fn engage_soldier_gesture(
         &self,
         soldier: &Soldier,
-        point: &WorldPoint,
-        weapon: (WeaponClass, &Weapon),
+        engaged_soldier_index: &SoldierIndex,
     ) -> (GestureContext, Gesture) {
-        let frame_i = self.local_state.get_frame_i();
-        let current = soldier.gesture();
+        let point = self
+            .shared_state
+            .soldier(*engaged_soldier_index)
+            .get_world_point();
 
-        let gesture = match current {
-            Gesture::Idle => {
-                //
-                Gesture::Reloading(
-                    self.soldier_reloading_end(soldier, weapon.1),
-                    weapon.0.clone(),
-                )
-            }
-            Gesture::Reloading(_, _) => {
-                //
-                current.next(
-                    frame_i,
-                    Gesture::Aiming(self.soldier_aiming_end(soldier, weapon.1), weapon.0.clone()),
-                )
-            }
-            Gesture::Aiming(_, _) => {
-                //
-                let end = self.soldier_firing_end(soldier, weapon.1);
-                current.next(frame_i, Gesture::Firing(end, weapon.0.clone()))
-            }
-            Gesture::Firing(_, _) => {
-                //
-                current.next(frame_i, Gesture::Idle)
-            }
-        };
+        if let Some(weapon) = self.soldier_able_to_fire_on_point(soldier, &point) {
+            return self.engage_point_gesture(soldier, &point, weapon);
+        }
 
-        let final_point = self.soldier_fire_point(soldier, &weapon.0, point);
-        (GestureContext::Firing(final_point, None), gesture)
+        (GestureContext::Idle, Gesture::Idle)
     }
 }

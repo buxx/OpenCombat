@@ -291,10 +291,8 @@ impl Engine {
             Behavior::DriveTo(_) => None,
             Behavior::RotateTo(_) => None,
             Behavior::SuppressFire(point) => Some(angle(&point, &reference_point)),
-            // Behavior::EngageSoldier(opponent_index) => {
-            //     let opponent = shared_state.soldier(*opponent_index);
-            //     Some(angle(&opponent.get_world_point(), &reference_point))
-            // }
+            // FIXME BS NOW : don't know yet which soldier ?! :(
+            Behavior::EngageSoldier(_) => None,
             // TODO: keep angle for dead/unconscious soldiers
             Behavior::Dead | Behavior::Unconscious => None,
         }

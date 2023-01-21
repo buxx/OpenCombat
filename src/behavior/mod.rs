@@ -26,7 +26,8 @@ pub enum Behavior {
     Dead,
     Unconscious,
     // Combat
-    SuppressFire(WorldPoint), // EngageSoldier(SoldierIndex),
+    SuppressFire(WorldPoint),
+    EngageSoldier(SoldierIndex),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -56,7 +57,7 @@ impl Behavior {
             Behavior::Dead => None,
             Behavior::Unconscious => None,
             Behavior::SuppressFire(_) => None,
-            // Behavior::EngageSoldier(_) => None,
+            Behavior::EngageSoldier(_) => None,
         }
     }
 
@@ -73,6 +74,7 @@ impl Behavior {
             Behavior::SuppressFire(_) => BehaviorPropagation::OnChange,
             Behavior::Dead => BehaviorPropagation::Never,
             Behavior::Unconscious => BehaviorPropagation::Never,
+            Behavior::EngageSoldier(_) => BehaviorPropagation::OnChange,
         }
     }
 
@@ -94,7 +96,8 @@ impl Behavior {
             Behavior::Idle | Behavior::Defend(_) | Behavior::Hide(_) | Behavior::RotateTo(_) => {}
             Behavior::Dead => {}
             Behavior::Unconscious => {}
-            Behavior::SuppressFire(_) => {} // Behavior::EngageSoldier(_) => {}
+            Behavior::SuppressFire(_) => {}
+            Behavior::EngageSoldier(_) => {}
         }
 
         false
@@ -112,7 +115,8 @@ impl Behavior {
             | Behavior::Hide(_)
             | Behavior::Dead
             | Behavior::Unconscious
-            | Behavior::SuppressFire(_) => None,
+            | Behavior::SuppressFire(_)
+            | Behavior::EngageSoldier(_) => None,
         }
     }
 }
@@ -131,7 +135,7 @@ impl Display for Behavior {
             Behavior::Dead => f.write_str("Dead"),
             Behavior::Unconscious => f.write_str("Unconscious"),
             Behavior::SuppressFire(_) => f.write_str("SuppressFire"),
-            // Behavior::EngageSoldier(_) => f.write_str("Engage"),
+            Behavior::EngageSoldier(_) => f.write_str("EngageSquad"),
         }
     }
 }

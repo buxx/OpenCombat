@@ -82,7 +82,8 @@ impl Visibility {
             // TODO : What about vehicle ?
             Behavior::DriveTo(_) => 0.5,
             Behavior::RotateTo(_) => 0.5,
-            Behavior::SuppressFire(_) => -0.5,
+            Behavior::SuppressFire(_) => 0.5,
+            Behavior::EngageSoldier(_) => 0.5,
             // ItemBehavior::Dead => 0.0,
             // ItemBehavior::Unconscious => 0.0,
             // ItemBehavior::Standing => 0.5,

@@ -69,7 +69,7 @@ pub enum Order {
     SneakTo(WorldPaths),
     Defend(Angle),
     Hide(Angle),
-    EngageSquad(SoldierIndex),
+    EngageSquad(SquadUuid),
     SuppressFire(WorldPoint),
 }
 

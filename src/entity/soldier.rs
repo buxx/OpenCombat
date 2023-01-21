@@ -165,7 +165,7 @@ impl Soldier {
             Behavior::Dead => SoldierAnimationType::DeadWithSideBlood,
             Behavior::Unconscious => SoldierAnimationType::LyingDown,
             Behavior::SuppressFire(_) => SoldierAnimationType::LyingDown,
-            // Behavior::EngageSoldier(_) => SoldierAnimationType::LyingDown,
+            Behavior::EngageSoldier(_) => SoldierAnimationType::LyingDown,
         };
         Box::new(animation_type)
     }

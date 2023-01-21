@@ -57,9 +57,8 @@ impl SharedState {
                     ));
                 }
                 Order::Idle => {}
-                Order::EngageSquad(soldier_index) => {
-                    let soldier = self.soldier(*soldier_index);
-                    let squad = self.squad(soldier.squad_uuid());
+                Order::EngageSquad(squad_index) => {
+                    let squad = self.squad(*squad_index);
                     let leader = self.soldier(squad.leader());
                     marker_data.push((
                         order.clone(),

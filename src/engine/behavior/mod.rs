@@ -4,7 +4,7 @@ use crate::{
     entity::soldier::Soldier,
     message::{Message, SharedStateMessage, SoldierMessage},
     order::Order,
-    types::{Angle, SoldierIndex, SquadUuid, WorldPaths, WorldPoint},
+    types::{Angle, SquadUuid, WorldPaths, WorldPoint},
     utils::DebugPoint,
 };
 
@@ -12,6 +12,7 @@ mod blast;
 mod bullet;
 mod death;
 mod defend;
+mod engage;
 mod moves;
 mod suppress;
 
@@ -38,7 +39,7 @@ impl Engine {
             Order::SneakTo(paths) => self.move_fast_behavior(soldier, paths),
             Order::Defend(angle) => self.defend_behavior(soldier, angle),
             Order::Hide(angle) => self.hide_behavior(soldier, angle),
-            Order::EngageSquad(opponent_index) => self.engage_behavior(soldier, opponent_index),
+            Order::EngageSquad(squad_index) => self.engage_behavior(soldier, squad_index),
             Order::SuppressFire(point) => self.suppress_fire_behavior(soldier, point),
         };
 
@@ -100,7 +101,10 @@ impl Engine {
             }
             Behavior::SuppressFire(point) => {
                 self.propagate_suppress_fire(leader.squad_uuid(), point)
-            } // Behavior::EngageSoldier(_) => todo!(),
+            }
+            Behavior::EngageSoldier(soldier_index) => {
+                self.propagate_engage_soldier(&leader.squad_uuid(), soldier_index)
+            }
         };
 
         for (subordinate, order) in orders {
@@ -117,9 +121,8 @@ impl Engine {
     }
 
     pub fn idle_behavior(&self, soldier: &Soldier) -> Behavior {
-        if let Some(_opponent) = self.get_soldier_opponent(soldier) {
-            // return Behavior::EngageSoldier(opponent.uuid());
-            return Behavior::Idle;
+        if let Some(opponent) = self.get_soldier_opponent(soldier, None) {
+            return Behavior::EngageSoldier(opponent.uuid());
         }
 
         if soldier.under_fire().exist() {
@@ -131,6 +134,10 @@ impl Engine {
     }
 
     pub fn move_behavior(&self, soldier: &Soldier, paths: &WorldPaths) -> Behavior {
+        if let Some(opponent) = self.get_soldier_opponent(soldier, None) {
+            return Behavior::EngageSoldier(opponent.uuid());
+        }
+
         match self.soldier_behavior_mode(soldier) {
             BehaviorMode::Ground => {
                 if soldier.under_fire().is_warning()
@@ -162,8 +169,12 @@ impl Engine {
         Behavior::Hide(*angle)
     }
 
-    pub fn engage_behavior(&self, _soldier: &Soldier, opponent_index: &SoldierIndex) -> Behavior {
-        // FIXME BS NOW : todo ...
+    pub fn engage_behavior(&self, soldier: &Soldier, squad_index: &SquadUuid) -> Behavior {
+        // TODO : If can't see any squad opponent, but can move to covered position, move to it
+        if let Some(opponent) = self.get_soldier_opponent(soldier, Some(squad_index)) {
+            return Behavior::EngageSoldier(opponent.uuid());
+        }
+
         Behavior::Idle
     }
 

@@ -46,17 +46,12 @@ impl Engine {
             Behavior::Hide(_) => {
                 vec![]
             }
-            // Behavior::CommandDriveTo(_) => todo!(),
-            // Behavior::CommandRotateTo(_) => todo!(),
             Behavior::DriveTo(paths) => self.drive_update(soldier_index, &paths),
             Behavior::RotateTo(_) => todo!(),
             Behavior::SuppressFire(_) => {
-                // FIXME : todo ...
                 vec![]
             }
-            // Behavior::EngageSoldier(opponent_index) => {
-            //     self.engage_soldier_update(&soldier_index, opponent_index)
-            // }
+            Behavior::EngageSoldier(_) => vec![],
             Behavior::Dead => vec![],
             Behavior::Unconscious => vec![],
         });

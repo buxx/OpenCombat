@@ -72,7 +72,7 @@ impl Engine {
             .collect::<Vec<&&Soldier>>()
             .first()
         {
-            return Some(Order::EngageSquad(soldier.uuid()));
+            return Some(Order::EngageSquad(soldier.squad_uuid()));
         } else {
             if self.point_is_visible_by_squad(&world_point, squad_id) {
                 return Some(Order::SuppressFire(world_point));

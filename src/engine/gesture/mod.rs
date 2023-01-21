@@ -21,7 +21,14 @@ mod weapon;
 impl Engine {
     pub fn soldier_gesture(&self, soldier: &Soldier) -> Vec<Message> {
         let new_gesture = match soldier.behavior() {
-            Behavior::SuppressFire(point) => self.suppress_fire_gesture(soldier, point),
+            Behavior::SuppressFire(point) => {
+                //
+                self.suppress_fire_gesture(soldier, point)
+            }
+            Behavior::EngageSoldier(soldier_index) => {
+                //
+                self.engage_soldier_gesture(soldier, soldier_index)
+            }
             _ => (GestureContext::Idle, Gesture::Idle),
         };
 

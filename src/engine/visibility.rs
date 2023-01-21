@@ -149,9 +149,8 @@ impl Engine {
                     | Order::Defend(_)
                     | Order::Hide(_)
                     | Order::SuppressFire(_) => {}
-                    Order::EngageSquad(engaged_soldier_index) => {
-                        let engaged_soldier = self.shared_state.soldier(engaged_soldier_index);
-                        let engaged_squad = self.shared_state.squad(engaged_soldier.squad_uuid());
+                    Order::EngageSquad(squad_uuid) => {
+                        let engaged_squad = self.shared_state.squad(squad_uuid);
                         if !engaged_squad
                             .members()
                             .iter()
