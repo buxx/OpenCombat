@@ -94,10 +94,10 @@ impl Engine {
                 PendingOrder::MoveTo(*squad_index, *order_marker_index, cached_points.clone())
             }
             OrderMarker::MoveFastTo => {
-                PendingOrder::MoveTo(*squad_index, *order_marker_index, cached_points.clone())
+                PendingOrder::MoveFastTo(*squad_index, *order_marker_index, cached_points.clone())
             }
             OrderMarker::SneakTo => {
-                PendingOrder::MoveTo(*squad_index, *order_marker_index, cached_points.clone())
+                PendingOrder::SneakTo(*squad_index, *order_marker_index, cached_points.clone())
             }
             OrderMarker::Defend => PendingOrder::Defend(*squad_index),
             OrderMarker::Hide => PendingOrder::Hide(*squad_index),
