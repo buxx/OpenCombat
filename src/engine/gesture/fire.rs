@@ -3,6 +3,7 @@ use crate::{
     engine::Engine,
     entity::soldier::{Soldier, WeaponClass},
     game::weapon::Weapon,
+    physics::utils::meters_between_scene_points,
     types::WorldPoint,
 };
 use glam::Vec2;
@@ -72,14 +73,16 @@ impl Engine {
 
     pub fn soldier_fire_point(
         &self,
-        _soldier: &Soldier,
+        soldier: &Soldier,
         _weapon_class: &WeaponClass,
         target_point: &WorldPoint,
     ) -> WorldPoint {
         let mut rng = rand::thread_rng();
         // TODO : change precision according to weapon, stress, distance, etc
-        let x_change = rng.gen_range(-10.0..10.0);
-        let y_change = rng.gen_range(-10.0..10.0);
+        let range = 10.0
+            * (meters_between_scene_points(&soldier.get_world_point(), target_point).0 / 500.0);
+        let x_change = rng.gen_range(-range..range);
+        let y_change = rng.gen_range(-range..range);
         WorldPoint::from(target_point.apply(Vec2::new(x_change, y_change)))
     }
 }
