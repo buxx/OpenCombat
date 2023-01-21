@@ -113,7 +113,7 @@ impl Weapon {
         }
     }
 
-    pub fn can_reload_and_shoot(&self) -> bool {
+    pub fn can_reload(&self) -> bool {
         match self {
             Weapon::MosinNagantM1924(_, magazine) => {
                 if let Some(magazine) = magazine {
@@ -129,10 +129,15 @@ impl Weapon {
         match self {
             Weapon::MosinNagantM1924(ready_bullet, magazine) => {
                 if !*ready_bullet {
-                    if let Some(magazine) = magazine {
-                        if magazine.filled() {
-                            magazine.remove_one();
+                    if let Some(magazine_) = magazine {
+                        if magazine_.filled() {
+                            magazine_.remove_one();
                             *ready_bullet = true;
+                        }
+
+                        if !magazine_.filled() {
+                            println!("plop");
+                            *magazine = None;
                         }
                     }
                 }
@@ -143,6 +148,12 @@ impl Weapon {
     pub fn shot(&mut self) {
         match self {
             Weapon::MosinNagantM1924(ready_bullet, _) => *ready_bullet = false,
+        }
+    }
+
+    pub fn set_magazine(&mut self, new_magazine: Magazine) {
+        match self {
+            Weapon::MosinNagantM1924(_, magazine) => *magazine = Some(new_magazine),
         }
     }
 }

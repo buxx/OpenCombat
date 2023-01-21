@@ -20,7 +20,7 @@ impl Engine {
         }
 
         if let Some((weapon_class, weapon)) = self.soldier_weapon_for_point(soldier, point) {
-            if weapon.can_fire() || weapon.can_reload_and_shoot() {
+            if weapon.can_fire() || weapon.can_reload() {
                 return Some((weapon_class, weapon));
             }
 

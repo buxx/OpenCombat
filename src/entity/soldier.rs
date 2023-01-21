@@ -231,9 +231,19 @@ impl Soldier {
     }
 
     pub fn reload_weapon(&mut self, class: &WeaponClass) {
+        let mut magazines = self.magazines.clone();
         if let Some(weapon) = self.weapon_mut(class) {
             weapon.reload();
+            if weapon.magazine().is_none() {
+                while let Some(magazine) = magazines.pop() {
+                    if weapon.accepted_magazine(&magazine) {
+                        weapon.set_magazine(magazine);
+                        break;
+                    }
+                }
+            }
         }
+        self.magazines = magazines;
     }
 
     pub fn weapon_shot(&mut self, class: &WeaponClass) {
