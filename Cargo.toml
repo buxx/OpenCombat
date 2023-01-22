@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 rayon = "1"
 ggez = "0.7.0"
-glam = { version = "0.20.0", features = ["mint"]}
+glam = { version = "0.22.0", features = ["mint"]}
 rand = "0.8.5"
 structopt = "0.3.21"
 crossbeam-channel = "0.5"
