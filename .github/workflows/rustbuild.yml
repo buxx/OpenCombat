@@ -1,5 +1,8 @@
 name: rustbuild
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - 'releases/**'
 
 jobs:
   build-msys-mingw64:
