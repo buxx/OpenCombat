@@ -1,0 +1,23 @@
+name: rustbuild
+on: [push, pull_request]
+
+jobs:
+  build-msys-mingw64:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git mingw-w64-x86_64-cc mingw-w64-x86_64-rust mingw-w64-x86_64-zeromq --needed
+      - name: CI-Build
+        run: cargo build --release
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: opencombat
+          path: target/release/opencombat.exe
