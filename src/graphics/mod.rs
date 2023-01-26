@@ -45,6 +45,10 @@ pub struct Graphics {
     soldier_animation_sequences: HashMap<SoldierIndex, AnimationSequence<TweenableRect>>,
     // Explosion animations
     explosion_sequences: Vec<(WorldPoint, AnimationSequence<TweenableRect>)>,
+    //
+    debug_terrain_batch: SpriteBatch,
+    //
+    debug_terrain_opacity_mesh_builder: MeshBuilder,
 }
 
 impl Graphics {
@@ -56,6 +60,9 @@ impl Graphics {
         let map_background_batch = map::get_map_background_batch(ctx, map)?;
         let map_interiors_batch = map::get_map_interiors_batch(ctx, map)?;
         let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
+        let debug_terrain_batch = map::create_debug_terrain_batch(ctx, map)?;
+        let debug_terrain_opacity_mesh_builder =
+            map::create_debug_terrain_opacity_mesh_builder(map)?;
 
         Ok(Graphics {
             soldiers_sprites_batch,
@@ -67,6 +74,8 @@ impl Graphics {
             map_decor_batches,
             soldier_animation_sequences: HashMap::new(),
             explosion_sequences: vec![],
+            debug_terrain_batch,
+            debug_terrain_opacity_mesh_builder,
         })
     }
 
@@ -261,6 +270,14 @@ impl Graphics {
                 self.remove_explosion_animation(point)
             }
         }
+    }
+
+    pub fn debug_terrain_batch(&self) -> &SpriteBatch {
+        &self.debug_terrain_batch
+    }
+
+    pub fn debug_terrain_opacity_mesh_builder(&self) -> &MeshBuilder {
+        &self.debug_terrain_opacity_mesh_builder
     }
 }
 

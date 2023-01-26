@@ -3,10 +3,10 @@
  <tileset firstgid="1" source="terrain.tsx"/>
  <tileset firstgid="2001" source="trees_64x64.tsx"/>
  <tileset firstgid="2010" source="trees_32x32.tsx"/>
- <imagelayer id="2" name="background">
+ <imagelayer id="2" name="background_image">
   <image source="map1bg.png" width="560" height="320"/>
  </imagelayer>
- <imagelayer id="6" name="interiors">
+ <imagelayer id="6" name="interiors_image">
   <image source="interiors.png" width="560" height="320"/>
  </imagelayer>
  <layer id="1" name="terrain" width="112" height="64" visible="0">
@@ -145,7 +145,7 @@
 2010,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="4" name="interiors">
+ <objectgroup id="4" name="interiors_zones">
   <object id="9" x="24.6667" y="108.667" width="72.6667" height="61.3333"/>
   <object id="10" x="278" y="13.3333" width="197.333" height="78.6667"/>
   <object id="11" x="438.667" y="170" width="69.3333" height="92"/>

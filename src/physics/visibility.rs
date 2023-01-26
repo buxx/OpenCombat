@@ -191,9 +191,8 @@ impl Visibility {
                 map.grid_point_from_world_point(&WorldPoint::new(pixel_x as f32, pixel_y as f32));
             if !grid_path.contains(&grid_point) {
                 let terrain_tile = match map
-                    .terrain
-                    .tiles
-                    .get(&(grid_point.x as u32, grid_point.y as u32))
+                    .terrain_tiles()
+                    .get((grid_point.y * map.width() as i32 + grid_point.x) as usize)
                 {
                     Some(tile) => tile,
                     None => {

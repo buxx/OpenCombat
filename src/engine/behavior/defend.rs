@@ -3,7 +3,7 @@ use crate::{
     engine::Engine,
     entity::soldier::Soldier,
     game::squad::{squad_positions, Formation},
-    map::util::find_cover_grid_point,
+    map::find_cover_grid_point,
     order::Order,
     types::{GridPoint, SquadUuid, WorldPath, WorldPaths},
     utils::DebugPoint,
