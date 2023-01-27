@@ -13,12 +13,18 @@
                 "keymod",
                 "keymods",
                 "Mosin",
+                "msys",
+                "msystem",
                 "Nagant",
+                "opencombat",
                 "pathfinding",
+                "rustbuild",
                 "spritebatch",
+                "tilecount",
                 "tileset",
                 "tilesets",
                 "Tweenable",
-                "uuids"
+                "uuids",
+                "zeromq"
         ]
 }

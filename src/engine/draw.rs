@@ -240,18 +240,14 @@ impl Engine {
     ) -> GameResult {
         match self.local_state.get_debug_terrain() {
             DebugTerrain::Tiles => {
-                if let Some(debug_terrain_batch) = &self.map.debug_terrain_batch {
-                    graphics::draw(ctx, debug_terrain_batch, draw_param)?;
-                }
+                graphics::draw(ctx, self.graphics.debug_terrain_batch(), draw_param)?;
             }
             DebugTerrain::Opacity => {
-                if let Some(debug_terrain_opacity_mesh_builder) =
-                    &self.map.debug_terrain_opacity_mesh_builder
-                {
-                    let debug_terrain_opacity_mesh =
-                        debug_terrain_opacity_mesh_builder.build(ctx)?;
-                    graphics::draw(ctx, &debug_terrain_opacity_mesh, draw_param)?;
-                }
+                let mesh = self
+                    .graphics
+                    .debug_terrain_opacity_mesh_builder()
+                    .build(ctx)?;
+                graphics::draw(ctx, &mesh, draw_param)?;
             }
             DebugTerrain::None => {}
         };

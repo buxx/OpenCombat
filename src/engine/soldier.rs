@@ -1,14 +1,4 @@
-use crate::{
-    behavior::BehaviorMode,
-    entity::soldier::Soldier,
-    game::squad::{squad_positions, Formation},
-    map::util::find_cover_grid_point,
-    message::*,
-    order::Order,
-    physics::path::{find_path, PathMode},
-    types::*,
-    utils::DebugPoint,
-};
+use crate::{message::*, types::*};
 use rayon::prelude::*;
 
 use super::Engine;

@@ -19,12 +19,12 @@ impl Engine {
     pub fn update_interior_sprites(&mut self) {
         self.graphics.clear_map_interiors_batch();
 
-        for interior in self.map.interiors_objects.objects.iter() {
+        for interior in self.map.interiors() {
             // World coordinates
-            let start_x = interior.x;
-            let start_y = interior.y;
-            let end_x = start_x + interior.width;
-            let end_y = start_y + interior.height;
+            let start_x = interior.x();
+            let start_y = interior.y();
+            let end_x = start_x + interior.width();
+            let end_y = start_y + interior.height();
 
             for soldier in self.shared_state.soldiers() {
                 let can_see_interior = soldier.can_see_interior();
@@ -43,10 +43,10 @@ impl Engine {
                     self.graphics.append_interior(
                         DrawParam::new()
                             .src(Rect::new(
-                                start_x / self.map.interiors_image.width as f32,
-                                start_y / self.map.interiors_image.height as f32,
-                                interior.width / self.map.interiors_image.width as f32,
-                                interior.height / self.map.interiors_image.height as f32,
+                                interior.relative_x(),
+                                interior.relative_y(),
+                                interior.relative_width(),
+                                interior.relative_height(),
                             ))
                             .dest(WorldPoint::new(start_x, start_y).to_vec2()),
                     );
