@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 rayon = "1"
-ggez = "0.7.0"
+ggez = "0.8.1"
 glam = { version = "0.22.0", features = ["mint"]}
 rand = "0.8.5"
 structopt = "0.3.21"
