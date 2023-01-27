@@ -1,7 +1,4 @@
-use ggez::{
-    event::{KeyCode, KeyMods, MouseButton},
-    input, Context,
-};
+use ggez::{event::MouseButton, input::keyboard::KeyInput, winit::event::VirtualKeyCode, Context};
 
 use crate::{
     debug::{DebugLevel, DebugPhysics, DebugTerrain},
@@ -52,8 +49,8 @@ impl Engine {
     fn collect_keyboard_inputs(&self, ctx: &mut Context) -> Vec<Message> {
         let mut messages = vec![];
 
-        let shift_pressed = input::keyboard::is_key_pressed(ctx, KeyCode::LShift)
-            || input::keyboard::is_key_pressed(ctx, KeyCode::RShift);
+        let shift_pressed = ctx.keyboard.is_key_pressed(VirtualKeyCode::LShift)
+            || ctx.keyboard.is_key_pressed(VirtualKeyCode::RShift);
         let move_mode = if shift_pressed {
             MoveScreenMode::Speed
         } else {
@@ -61,7 +58,7 @@ impl Engine {
         };
 
         // Move battle scene on the window according to user keys
-        if input::keyboard::is_key_pressed(ctx, KeyCode::Left) {
+        if ctx.keyboard.is_key_pressed(VirtualKeyCode::Left) {
             messages.push(Message::LocalState(
                 LocalStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
                     move_mode.to_pixels_offset(),
@@ -69,7 +66,7 @@ impl Engine {
                 )),
             ));
         }
-        if input::keyboard::is_key_pressed(ctx, KeyCode::Right) {
+        if ctx.keyboard.is_key_pressed(VirtualKeyCode::Right) {
             messages.push(Message::LocalState(
                 LocalStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
                     -move_mode.to_pixels_offset(),
@@ -77,7 +74,7 @@ impl Engine {
                 )),
             ));
         }
-        if input::keyboard::is_key_pressed(ctx, KeyCode::Up) {
+        if ctx.keyboard.is_key_pressed(VirtualKeyCode::Up) {
             messages.push(Message::LocalState(
                 LocalStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
                     0.,
@@ -85,7 +82,7 @@ impl Engine {
                 )),
             ));
         }
-        if input::keyboard::is_key_pressed(ctx, KeyCode::Down) {
+        if ctx.keyboard.is_key_pressed(VirtualKeyCode::Down) {
             messages.push(Message::LocalState(
                 LocalStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
                     0.,
@@ -97,16 +94,12 @@ impl Engine {
         messages
     }
 
-    pub fn collect_key_pressed(
-        &self,
-        _ctx: &mut Context,
-        keycode: KeyCode,
-        _keymods: KeyMods,
-        _repeat: bool,
-    ) -> Vec<Message> {
+    pub fn collect_key_pressed(&self, _ctx: &mut Context, input: KeyInput) -> Vec<Message> {
         let mut messages = vec![];
 
-        if keycode == KeyCode::LControl || keycode == KeyCode::RControl {
+        if input.keycode == Some(VirtualKeyCode::LControl)
+            || input.keycode == Some(VirtualKeyCode::RControl)
+        {
             messages.push(Message::LocalState(LocalStateMessage::SetControl(
                 Control::Map,
             )))
@@ -115,11 +108,11 @@ impl Engine {
         messages
     }
 
-    pub fn collect_key_released(&self, _ctx: &mut Context, keycode: KeyCode) -> Vec<Message> {
+    pub fn collect_key_released(&self, _ctx: &mut Context, input: KeyInput) -> Vec<Message> {
         let mut messages = vec![];
 
-        match keycode {
-            KeyCode::F12 => {
+        match input.keycode {
+            Some(VirtualKeyCode::F12) => {
                 let new_debug_level = match self.local_state.get_debug_level() {
                     DebugLevel::Debug0 => DebugLevel::Debug1,
                     DebugLevel::Debug1 => DebugLevel::Debug2,
@@ -130,7 +123,7 @@ impl Engine {
                     new_debug_level,
                 )));
             }
-            KeyCode::F11 => {
+            Some(VirtualKeyCode::F11) => {
                 let new_debug_terrain = match self.local_state.get_debug_terrain() {
                     DebugTerrain::None => DebugTerrain::Opacity,
                     DebugTerrain::Opacity => DebugTerrain::Tiles,
@@ -140,7 +133,7 @@ impl Engine {
                     new_debug_terrain,
                 )));
             }
-            KeyCode::F10 => {
+            Some(VirtualKeyCode::F10) => {
                 let new_debug_physics = match self.local_state.get_debug_physics() {
                     DebugPhysics::None => DebugPhysics::MosinNagantM1924GunFire,
                     DebugPhysics::MosinNagantM1924GunFire => DebugPhysics::BrandtMle2731Shelling,
@@ -160,10 +153,12 @@ impl Engine {
                     new_debug_physics,
                 )));
             }
-            KeyCode::F9 => messages.push(Message::LocalState(LocalStateMessage::ChangeSide)),
-            KeyCode::LControl | KeyCode::RControl => messages.push(Message::LocalState(
-                LocalStateMessage::SetControl(self.determine_controlling()),
-            )),
+            Some(VirtualKeyCode::F9) => {
+                messages.push(Message::LocalState(LocalStateMessage::ChangeSide))
+            }
+            Some(VirtualKeyCode::LControl) | Some(VirtualKeyCode::RControl) => messages.push(
+                Message::LocalState(LocalStateMessage::SetControl(self.determine_controlling())),
+            ),
             _ => {}
         };
 

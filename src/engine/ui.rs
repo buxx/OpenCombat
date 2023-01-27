@@ -1,7 +1,8 @@
 use ggez::{
-    event::KeyCode,
     graphics::{Color, DrawMode, MeshBuilder, Rect, StrokeOptions},
-    input, Context, GameResult,
+    input,
+    winit::event::VirtualKeyCode,
+    Context, GameResult,
 };
 use glam::Vec2;
 
@@ -312,8 +313,8 @@ impl Engine {
 
         // This is a pending order click
         if let Some(pending_order) = self.local_state.get_pending_order() {
-            let is_appending = input::keyboard::is_key_pressed(ctx, KeyCode::LShift)
-                || input::keyboard::is_key_pressed(ctx, KeyCode::RShift);
+            let is_appending = ctx.keyboard.is_key_pressed(VirtualKeyCode::LShift)
+                || ctx.keyboard.is_key_pressed(VirtualKeyCode::RShift);
 
             if is_appending {
                 messages.extend(vec![Message::LocalState(

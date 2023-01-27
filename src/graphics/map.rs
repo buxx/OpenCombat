@@ -1,17 +1,16 @@
-use std::path::Path;
-
 use ggez::{
-    graphics::{spritebatch::SpriteBatch, Color, DrawMode, DrawParam, Image, MeshBuilder, Rect},
+    graphics::{Color, DrawMode, DrawParam, Image, InstanceArray, MeshBuilder, Rect},
     Context, GameResult,
 };
 
 use crate::{map::Map, types::*};
 
-pub fn get_map_background_batch(ctx: &mut Context, map: &Map) -> GameResult<SpriteBatch> {
-    let map_background_image = Image::new(ctx, map.background_image_path().display().to_string())?;
-    let mut map_background_batch = SpriteBatch::new(map_background_image);
+pub fn get_map_background_batch(ctx: &mut Context, map: &Map) -> GameResult<InstanceArray> {
+    let map_background_image =
+        Image::from_path(ctx, map.background_image_path().display().to_string())?;
+    let mut map_background_batch = InstanceArray::new(ctx, map_background_image);
     // This batch will never change, add draw param once
-    map_background_batch.add(
+    map_background_batch.push(
         DrawParam::new()
             .src(Rect::new(0.0, 0.0, 1.0, 1.0))
             .dest(ScenePoint::new(0.0, 0.0).to_vec2()),
@@ -20,11 +19,12 @@ pub fn get_map_background_batch(ctx: &mut Context, map: &Map) -> GameResult<Spri
     Ok(map_background_batch)
 }
 
-pub fn get_map_interiors_batch(ctx: &mut Context, map: &Map) -> GameResult<SpriteBatch> {
-    let map_interiors_image = Image::new(ctx, map.interiors_image_path().display().to_string())?;
-    let mut map_interiors_batch = SpriteBatch::new(map_interiors_image);
+pub fn get_map_interiors_batch(ctx: &mut Context, map: &Map) -> GameResult<InstanceArray> {
+    let map_interiors_image =
+        Image::from_path(ctx, map.interiors_image_path().display().to_string())?;
+    let mut map_interiors_batch = InstanceArray::new(ctx, map_interiors_image);
     // This batch will never change, add draw param once
-    map_interiors_batch.add(
+    map_interiors_batch.push(
         DrawParam::new()
             .src(Rect::new(0.0, 0.0, 1.0, 1.0))
             .dest(ScenePoint::new(0.0, 0.0).to_vec2()),
@@ -33,11 +33,11 @@ pub fn get_map_interiors_batch(ctx: &mut Context, map: &Map) -> GameResult<Sprit
     Ok(map_interiors_batch)
 }
 
-pub fn get_map_decor_batch(ctx: &mut Context, map: &Map) -> GameResult<Vec<SpriteBatch>> {
+pub fn get_map_decor_batch(ctx: &mut Context, map: &Map) -> GameResult<Vec<InstanceArray>> {
     let mut map_decor_batches = vec![];
     for decor_image_path in map.decor().image_paths() {
-        let decor_image = Image::new(ctx, decor_image_path.display().to_string())?;
-        let batch = SpriteBatch::new(decor_image);
+        let decor_image = Image::from_path(ctx, decor_image_path.display().to_string())?;
+        let batch = InstanceArray::new(ctx, decor_image);
         map_decor_batches.push(batch);
     }
 
@@ -59,7 +59,7 @@ pub fn get_map_decor_batch(ctx: &mut Context, map: &Map) -> GameResult<Vec<Sprit
         let dest_x = tile.x as f32 * map.tile_width() as f32;
         let dest_y = (tile.y as f32 * map.tile_height() as f32) - dest_decal;
 
-        decor_batch.add(
+        decor_batch.push(
             DrawParam::new()
                 .src(Rect::new(
                     src_x,
@@ -74,18 +74,18 @@ pub fn get_map_decor_batch(ctx: &mut Context, map: &Map) -> GameResult<Vec<Sprit
     Ok(map_decor_batches)
 }
 
-pub fn create_debug_terrain_batch(ctx: &mut Context, map: &Map) -> GameResult<SpriteBatch> {
-    let mut batch = SpriteBatch::new(Image::new(
+pub fn create_debug_terrain_batch(ctx: &mut Context, map: &Map) -> GameResult<InstanceArray> {
+    let mut batch = InstanceArray::new(
         ctx,
-        map.terrain_image_path().display().to_string(),
-    )?);
+        Image::from_path(ctx, map.terrain_image_path().display().to_string())?,
+    );
 
     for tile in map.terrain_tiles() {
         let src_x = tile.tile_x as f32 * tile.relative_tile_width;
         let src_y = tile.tile_y as f32 * tile.relative_tile_height;
         let dest_x = tile.x as f32 * tile.tile_width as f32;
         let dest_y = tile.y as f32 * tile.tile_height as f32;
-        batch.add(
+        batch.push(
             DrawParam::new()
                 .src(Rect::new(
                     src_x,

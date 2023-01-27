@@ -1,6 +1,6 @@
-use ggez::event::{KeyCode, KeyMods, MouseButton};
-use ggez::graphics::{self, MeshBuilder};
-use ggez::timer::check_update_time;
+use ggez::event::MouseButton;
+use ggez::graphics::{self, Canvas, Color, MeshBuilder};
+use ggez::input::keyboard::KeyInput;
 use ggez::{event, GameError};
 use ggez::{Context, GameResult};
 
@@ -99,7 +99,7 @@ impl Engine {
 
 impl event::EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        while check_update_time(ctx, self.config.target_fps()) {
+        while ctx.time.check_update_time(self.config.target_fps()) {
             // First thing to do is to initialize the shared state.
             if self.local_state.is_first_frame() {
                 self.init(ctx)?;
@@ -118,25 +118,26 @@ impl event::EventHandler<ggez::GameError> for Engine {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        self.graphics.clear(ctx);
+        let mut canvas = Canvas::from_frame(ctx, Color::from((0.392, 0.584, 0.929)));
+
+        self.graphics.clear();
+        let scene_draw = graphics::DrawParam::new()
+            .dest(self.local_state.display_scene_offset.to_vec2())
+            .scale(self.local_state.display_scene_scale.to_vec2());
+        let decor = self.local_state.draw_decor;
 
         // Draw entire scene
         self.generate_map_sprites(self.local_state.draw_decor)?;
         self.generate_soldiers_sprites()?;
         self.generate_vehicles_sprites()?;
         self.generate_explosion_sprites()?;
-
-        let scene_draw_param = graphics::DrawParam::new()
-            .dest(self.local_state.display_scene_offset.to_vec2())
-            .scale(self.local_state.display_scene_scale.to_vec2());
-        self.graphics
-            .draw_scene(ctx, self.local_state.draw_decor, scene_draw_param)?;
+        self.graphics.draw_scene(&mut canvas, decor, scene_draw)?;
 
         // Draw ui
         let mut mesh_builder = MeshBuilder::new();
         self.generate_menu_sprites()?;
 
-        self.draw_debug_terrain(ctx, scene_draw_param)?;
+        self.draw_debug_terrain(ctx, &mut canvas, scene_draw)?;
         self.draw_physics(&mut mesh_builder)?;
         self.generate_debug_meshes(&mut mesh_builder)?;
         self.generate_selection_meshes(&mut mesh_builder)?;
@@ -145,45 +146,71 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.generate_orders_sprites()?;
 
         let ui_draw_param = graphics::DrawParam::new();
-        self.graphics.draw_ui(ctx, ui_draw_param, mesh_builder)?;
+        self.graphics
+            .draw_ui(ctx, &mut canvas, ui_draw_param, mesh_builder)?;
 
-        graphics::present(ctx)?;
+        canvas.finish(ctx)?;
+
         Ok(())
     }
 
-    fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, dx: f32, dy: f32) {
-        let messages = self.collect_mouse_motion(ctx, x, y, dx, dy);
-        self.react(messages);
-    }
-
-    fn mouse_button_down_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
+    fn mouse_button_down_event(
+        &mut self,
+        ctx: &mut Context,
+        button: MouseButton,
+        x: f32,
+        y: f32,
+    ) -> Result<(), GameError> {
         let messages = self.collect_mouse_down(ctx, button, x, y);
         self.react(messages);
+        GameResult::Ok(())
     }
 
-    fn mouse_button_up_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
+    fn mouse_button_up_event(
+        &mut self,
+        ctx: &mut Context,
+        button: MouseButton,
+        x: f32,
+        y: f32,
+    ) -> Result<(), GameError> {
         let messages = self.collect_mouse_up(ctx, button, x, y);
         self.react(messages);
+        GameResult::Ok(())
     }
 
-    fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
+    fn mouse_motion_event(
+        &mut self,
+        ctx: &mut Context,
+        x: f32,
+        y: f32,
+        dx: f32,
+        dy: f32,
+    ) -> Result<(), GameError> {
+        let messages = self.collect_mouse_motion(ctx, x, y, dx, dy);
+        self.react(messages);
+        GameResult::Ok(())
+    }
+
+    fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) -> Result<(), GameError> {
         let messages = self.collect_mouse_wheel(ctx, x, y);
         self.react(messages);
+        GameResult::Ok(())
     }
 
     fn key_down_event(
         &mut self,
         ctx: &mut Context,
-        keycode: KeyCode,
-        keymods: KeyMods,
-        repeat: bool,
-    ) {
-        let messages = self.collect_key_pressed(ctx, keycode, keymods, repeat);
+        input: KeyInput,
+        _repeated: bool,
+    ) -> Result<(), GameError> {
+        let messages = self.collect_key_pressed(ctx, input);
         self.react(messages);
+        GameResult::Ok(())
     }
 
-    fn key_up_event(&mut self, ctx: &mut Context, keycode: KeyCode, _keymod: KeyMods) {
-        let messages = self.collect_key_released(ctx, keycode);
+    fn key_up_event(&mut self, ctx: &mut Context, input: KeyInput) -> Result<(), GameError> {
+        let messages = self.collect_key_released(ctx, input);
         self.react(messages);
+        GameResult::Ok(())
     }
 }

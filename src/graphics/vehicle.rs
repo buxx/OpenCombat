@@ -7,8 +7,8 @@ use crate::{
 
 const SPRITE_SHEET_WIDTH: f32 = 256.;
 const SPRITE_SHEET_HEIGHT: f32 = 96.;
-const TILE_WIDTH: f32 = 64.;
-const TILE_HEIGHT: f32 = 96.;
+pub const TILE_WIDTH: f32 = 64.;
+pub const TILE_HEIGHT: f32 = 96.;
 
 pub struct VehicleGraphicInfos {
     chassis: SpriteInfo,

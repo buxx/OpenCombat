@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{self, DrawParam, MeshBuilder},
+    graphics::{self, Canvas, DrawParam, MeshBuilder},
     Context, GameResult,
 };
 
@@ -21,7 +21,7 @@ impl Engine {
             }
 
             for sprite in self.graphics.soldier_sprites(SoldierIndex(i), soldier) {
-                self.graphics.append_soldier_sprites_batch(sprite);
+                self.graphics.append_soldier_batch(sprite);
             }
         }
 
@@ -234,23 +234,17 @@ impl Engine {
     }
 
     pub fn draw_debug_terrain(
-        &self,
+        &mut self,
         ctx: &mut Context,
+        canvas: &mut Canvas,
         draw_param: graphics::DrawParam,
     ) -> GameResult {
-        match self.local_state.get_debug_terrain() {
-            DebugTerrain::Tiles => {
-                graphics::draw(ctx, self.graphics.debug_terrain_batch(), draw_param)?;
-            }
-            DebugTerrain::Opacity => {
-                let mesh = self
-                    .graphics
-                    .debug_terrain_opacity_mesh_builder()
-                    .build(ctx)?;
-                graphics::draw(ctx, &mesh, draw_param)?;
-            }
-            DebugTerrain::None => {}
-        };
+        self.graphics.draw_debug_terrain(
+            ctx,
+            canvas,
+            self.local_state.get_debug_terrain(),
+            draw_param,
+        )?;
 
         Ok(())
     }

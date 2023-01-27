@@ -2,11 +2,11 @@
 name = "opencombat"
 version = "0.1.0"
 authors = ["Sevajol Bastien <contact@bux.fr>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 rayon = "1"
-ggez = "0.8.1"
+ggez = { url = "https://github.com/ggez/ggez.git", revision = "f87f078346729737b4691b9618eab3f95d61c8ad" }
 glam = { version = "0.22.0", features = ["mint"]}
 rand = "0.8.5"
 structopt = "0.3.21"

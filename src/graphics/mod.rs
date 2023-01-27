@@ -1,14 +1,22 @@
 use std::collections::HashMap;
 
 use ggez::{
-    graphics::{self, spritebatch::SpriteBatch, DrawParam, FilterMode, Image, MeshBuilder, Rect},
+    graphics::{self, Canvas, DrawParam, Image, InstanceArray, Mesh, MeshBuilder, Rect},
     Context, GameResult,
 };
+use glam::Vec2;
 use keyframe::{AnimationSequence, EasingFunction};
 use keyframe_derive::CanTween;
 
 use crate::{
+    debug::DebugTerrain,
     entity::{soldier::Soldier, vehicle::Vehicle},
+    graphics::explosion::TILE_HEIGHT as EXPLOSION_TILE_WIDTH,
+    graphics::explosion::TILE_WIDTH as EXPLOSION_TILE_HEIGHT,
+    graphics::soldier::TILE_HEIGHT as SOLDIER_TILE_HEIGHT,
+    graphics::soldier::TILE_WIDTH as SOLDIER_TILE_WIDTH,
+    graphics::vehicle::TILE_HEIGHT as VEHICLE_TILE_HEIGHT,
+    graphics::vehicle::TILE_WIDTH as VEHICLE_TILE_WIDTH,
     map::Map,
     message::GraphicsMessage,
     types::*,
@@ -30,33 +38,34 @@ const UI_FILE_PATH: &'static str = "/ui.png";
 
 pub struct Graphics {
     // Sprites batches
-    soldiers_sprites_batch: SpriteBatch,
-    vehicles_sprites_batch: SpriteBatch,
-    explosions_sprites_batch: SpriteBatch,
+    soldiers_batch: InstanceArray,
+    vehicles_batch: InstanceArray,
+    explosions_batch: InstanceArray,
     // Squad menu, etc
-    ui_batch: SpriteBatch,
+    ui_batch: InstanceArray,
     // Map background sprite batch
-    map_background_batch: SpriteBatch,
+    map_background_batch: InstanceArray,
     // Map interiors sprite batch
-    map_interiors_batch: SpriteBatch,
+    map_interiors_batch: InstanceArray,
     // Map decor sprite batches
-    map_decor_batches: Vec<SpriteBatch>,
+    map_decor_batches: Vec<InstanceArray>,
     // Soldiers animations
     soldier_animation_sequences: HashMap<SoldierIndex, AnimationSequence<TweenableRect>>,
     // Explosion animations
     explosion_sequences: Vec<(WorldPoint, AnimationSequence<TweenableRect>)>,
     //
-    debug_terrain_batch: SpriteBatch,
+    debug_terrain_batch: InstanceArray,
     //
     debug_terrain_opacity_mesh_builder: MeshBuilder,
 }
 
 impl Graphics {
     pub fn new(ctx: &mut Context, map: &Map) -> GameResult<Graphics> {
-        let soldiers_sprites_batch = create_sprites_batch(SOLDIERS_FILE_PATH, ctx)?;
-        let vehicles_sprites_batch = create_sprites_batch(VEHICLES_FILE_PATH, ctx)?;
-        let explosions_sprites_batch = create_sprites_batch(EXPLOSIONS_FILE_PATH, ctx)?;
+        let soldiers_batch = create_batch(SOLDIERS_FILE_PATH, ctx)?;
+        let vehicles_batch = create_batch(VEHICLES_FILE_PATH, ctx)?;
+        let explosions_batch = create_batch(EXPLOSIONS_FILE_PATH, ctx)?;
         let ui_batch = create_ui_batch(ctx)?;
+        let ui_meshes_batch = create_ui_batch(ctx)?;
         let map_background_batch = map::get_map_background_batch(ctx, map)?;
         let map_interiors_batch = map::get_map_interiors_batch(ctx, map)?;
         let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
@@ -65,9 +74,9 @@ impl Graphics {
             map::create_debug_terrain_opacity_mesh_builder(map)?;
 
         Ok(Graphics {
-            soldiers_sprites_batch,
-            vehicles_sprites_batch,
-            explosions_sprites_batch,
+            soldiers_batch,
+            vehicles_batch,
+            explosions_batch,
             ui_batch,
             map_background_batch,
             map_interiors_batch,
@@ -79,24 +88,24 @@ impl Graphics {
         })
     }
 
-    pub fn append_soldier_sprites_batch(&mut self, sprite: graphics::DrawParam) {
-        self.soldiers_sprites_batch.add(sprite);
+    pub fn append_soldier_batch(&mut self, sprite: graphics::DrawParam) {
+        self.soldiers_batch.push(sprite);
     }
 
     pub fn append_vehicles_batch(&mut self, sprite: graphics::DrawParam) {
-        self.vehicles_sprites_batch.add(sprite);
+        self.vehicles_batch.push(sprite);
     }
 
     pub fn append_explosions_batch(&mut self, sprite: graphics::DrawParam) {
-        self.explosions_sprites_batch.add(sprite);
+        self.explosions_batch.push(sprite);
     }
 
     pub fn append_interior(&mut self, sprite: graphics::DrawParam) {
-        self.map_interiors_batch.add(sprite);
+        self.map_interiors_batch.push(sprite);
     }
 
     pub fn append_ui_batch(&mut self, sprite: graphics::DrawParam) {
-        self.ui_batch.add(sprite);
+        self.ui_batch.push(sprite);
     }
 
     pub fn extend_ui_batch(&mut self, sprites: Vec<graphics::DrawParam>) {
@@ -118,15 +127,15 @@ impl Graphics {
             .unwrap()
             .into();
 
-        // TODO depending of a lot of things like soldier type, physical behavior, etc
-        // let relative_start_x = 0. / config::SCENE_ITEMS_SPRITE_SHEET_WIDTH;
-        // let relative_start_y = 0. / config::SCENE_ITEMS_SPRITE_SHEET_HEIGHT;
-        // let relative_tile_width = 12. / config::SCENE_ITEMS_SPRITE_SHEET_WIDTH;
-        // let relative_tile_height = 12. / config::SCENE_ITEMS_SPRITE_SHEET_HEIGHT;
+        const SOLDIER_SPRITE_OFFSET: (f32, f32) = (
+            SOLDIER_TILE_WIDTH as f32 * 0.5,
+            SOLDIER_TILE_HEIGHT as f32 * 0.5,
+        );
+
         vec![graphics::DrawParam::new()
             .src(current_frame_src)
             .rotation(soldier.get_looking_direction().0)
-            .offset(Offset::new(0.5, 0.5).to_vec2())
+            .offset(Vec2::from(SOLDIER_SPRITE_OFFSET))
             .dest(soldier.get_world_point().to_vec2())]
     }
 
@@ -135,41 +144,60 @@ impl Graphics {
         _vehicle_index: VehicleIndex,
         vehicle: &Vehicle,
     ) -> Vec<graphics::DrawParam> {
-        let sprite_infos = VehicleGraphicInfos::from_type(vehicle.get_type());
-        let shadow_offset = RelativeOffset::new(0.05, 0.05).to_vec2();
+        let vehicle_sprite_infos = VehicleGraphicInfos::from_type(vehicle.get_type());
         let mut sprites = vec![];
 
+        const VEHICLE_SPRITE_OFFSET: (f32, f32) =
+            (VEHICLE_TILE_WIDTH * 0.5, VEHICLE_TILE_HEIGHT * 0.5);
+        const VEHICLE_SPRITE_SHADOW_OFFSET: (f32, f32) =
+            (VEHICLE_TILE_WIDTH * 0.05, VEHICLE_TILE_HEIGHT * 0.05);
+
         // Vehicle body shadow
-        let body_sprite = DrawParam::new()
-            .src(sprite_infos.chassis().shadow_version().to_rect())
-            .offset(Offset::new(0.5, 0.5).to_vec2())
-            .rotation(vehicle.get_chassis_orientation().0)
-            .dest(vehicle.get_world_point().to_vec2() + shadow_offset);
-        sprites.push(body_sprite);
+        let body_shadow_sprite = vehicle_sprite_infos.chassis().shadow_version();
+        let body_shadow_draw = DrawParam::new()
+            .offset(Vec2::from(VEHICLE_SPRITE_OFFSET))
+            .dest(vehicle.get_world_point().to_vec2() + Vec2::from(VEHICLE_SPRITE_SHADOW_OFFSET))
+            .src(body_shadow_sprite.relative_rect())
+            .rotation(vehicle.get_chassis_orientation().0);
+        sprites.push(body_shadow_draw);
 
         // Vehicle body
-        let body_sprite = DrawParam::new()
-            .src(sprite_infos.chassis().to_rect())
-            .offset(Offset::new(0.5, 0.5).to_vec2())
+        let body_sprite = vehicle_sprite_infos.chassis();
+        let body_draw = DrawParam::new()
+            .offset(Vec2::from(VEHICLE_SPRITE_OFFSET))
+            .src(body_sprite.relative_rect())
             .rotation(vehicle.get_chassis_orientation().0)
             .dest(vehicle.get_world_point().to_vec2());
-        sprites.push(body_sprite);
+        sprites.push(body_draw);
 
         // Main turret
-        if let Some((turret_offset, turret_sprite_info)) = sprite_infos.main_turret() {
-            let turret_shadow_sprite = DrawParam::new()
-                .src(turret_sprite_info.shadow_version().to_rect())
+        if let Some((turret_offset, turret_sprite_info)) = vehicle_sprite_infos.main_turret() {
+            let turret_shadow_sprite = turret_sprite_info.shadow_version();
+            let turret_shadow_draw = DrawParam::new()
+                .offset(
+                    Vec2::from(VEHICLE_SPRITE_OFFSET)
+                        + turret_offset
+                            .to_absolute_from_sprite(&turret_sprite_info)
+                            .to_vec2()
+                        + Vec2::from(VEHICLE_SPRITE_SHADOW_OFFSET),
+                )
+                .src(turret_shadow_sprite.relative_rect())
                 .dest(vehicle.get_world_point().to_vec2())
-                .rotation(vehicle.get_chassis_orientation().0)
-                .offset(Offset::new(0.5, 0.5).to_vec2() + turret_offset.to_vec2() + shadow_offset);
-            sprites.push(turret_shadow_sprite);
+                .rotation(vehicle.get_chassis_orientation().0);
+            sprites.push(turret_shadow_draw);
 
-            let turret_sprite = DrawParam::new()
-                .src(turret_sprite_info.to_rect())
+            let turret_sprite = turret_sprite_info;
+            let turret_draw = DrawParam::new()
+                .offset(
+                    Vec2::from(VEHICLE_SPRITE_OFFSET)
+                        + turret_offset
+                            .to_absolute_from_sprite(&turret_sprite_info)
+                            .to_vec2(),
+                )
+                .src(turret_sprite.relative_rect())
                 .dest(vehicle.get_world_point().to_vec2())
-                .rotation(vehicle.get_chassis_orientation().0)
-                .offset(Offset::new(0.5, 0.5).to_vec2() + turret_offset.to_vec2());
-            sprites.push(turret_sprite);
+                .rotation(vehicle.get_chassis_orientation().0);
+            sprites.push(turret_draw);
         }
 
         sprites
@@ -178,12 +206,17 @@ impl Graphics {
     pub fn explosion_sprites(&self) -> Vec<graphics::DrawParam> {
         let mut sprites = vec![];
 
+        const EXPLOSION_SPRITE_OFFSET: (f32, f32) = (
+            EXPLOSION_TILE_WIDTH as f32 * 0.5,
+            EXPLOSION_TILE_HEIGHT as f32 * 0.5,
+        );
+
         for (world_point, explosion_sequence) in &self.explosion_sequences {
             let current_frame_src: Rect = explosion_sequence.now_strict().unwrap().into();
             sprites.push(
                 graphics::DrawParam::new()
                     .src(current_frame_src)
-                    .offset(Offset::new(0.5, 0.5).to_vec2())
+                    .offset(Vec2::from(EXPLOSION_SPRITE_OFFSET))
                     .scale(Scale::new(0.25, 0.25).to_vec2())
                     .dest(world_point.to_vec2()),
             )
@@ -203,25 +236,25 @@ impl Graphics {
 
     pub fn draw_scene(
         &mut self,
-        ctx: &mut Context,
+        canvas: &mut Canvas,
         draw_decor: bool,
         draw_param: graphics::DrawParam,
     ) -> GameResult {
         // Map background sprites
-        graphics::draw(ctx, &self.map_background_batch, draw_param)?;
+        canvas.draw(&self.map_background_batch, draw_param);
 
         // Map interior sprites
-        graphics::draw(ctx, &self.map_interiors_batch, draw_param)?;
+        canvas.draw(&self.map_interiors_batch, draw_param);
 
         // Entities, explosions, etc. sprites
-        graphics::draw(ctx, &self.soldiers_sprites_batch, draw_param)?;
-        graphics::draw(ctx, &self.vehicles_sprites_batch, draw_param)?;
-        graphics::draw(ctx, &self.explosions_sprites_batch, draw_param)?;
+        canvas.draw(&self.soldiers_batch, draw_param);
+        canvas.draw(&self.vehicles_batch, draw_param);
+        canvas.draw(&self.explosions_batch, draw_param);
 
         // Draw decor like Trees
         if draw_decor {
             for decor_batch in self.map_decor_batches.iter() {
-                graphics::draw(ctx, decor_batch, draw_param)?;
+                canvas.draw(decor_batch, draw_param);
             }
         }
 
@@ -231,25 +264,23 @@ impl Graphics {
     pub fn draw_ui(
         &mut self,
         ctx: &mut Context,
+        canvas: &mut Canvas,
         draw_param: graphics::DrawParam,
         mesh_builder: MeshBuilder,
     ) -> GameResult {
         // Different meshes
-        if let Ok(mesh) = mesh_builder.build(ctx) {
-            graphics::draw(ctx, &mesh, draw_param)?;
-        };
+        canvas.draw(&Mesh::from_data(ctx, mesh_builder.build()), draw_param);
 
         // Squad menu, etc
-        graphics::draw(ctx, &self.ui_batch, draw_param)?;
+        canvas.draw(&self.ui_batch, draw_param);
 
         Ok(())
     }
 
-    pub fn clear(&mut self, ctx: &mut Context) {
-        graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
-        self.soldiers_sprites_batch.clear();
-        self.vehicles_sprites_batch.clear();
-        self.explosions_sprites_batch.clear();
+    pub fn clear(&mut self) {
+        self.soldiers_batch.clear();
+        self.vehicles_batch.clear();
+        self.explosions_batch.clear();
         self.ui_batch.clear();
     }
 
@@ -272,27 +303,39 @@ impl Graphics {
         }
     }
 
-    pub fn debug_terrain_batch(&self) -> &SpriteBatch {
-        &self.debug_terrain_batch
-    }
+    pub fn draw_debug_terrain(
+        &mut self,
+        ctx: &mut Context,
+        canvas: &mut Canvas,
+        debug: &DebugTerrain,
+        draw_param: graphics::DrawParam,
+    ) -> GameResult<()> {
+        match debug {
+            DebugTerrain::Tiles => {
+                canvas.draw(&self.debug_terrain_batch, draw_param);
+            }
+            DebugTerrain::Opacity => {
+                canvas.draw(
+                    &Mesh::from_data(ctx, self.debug_terrain_opacity_mesh_builder.build()),
+                    draw_param,
+                );
+            }
+            DebugTerrain::None => {}
+        };
 
-    pub fn debug_terrain_opacity_mesh_builder(&self) -> &MeshBuilder {
-        &self.debug_terrain_opacity_mesh_builder
+        GameResult::Ok(())
     }
 }
 
-pub fn create_sprites_batch(file_path: &str, ctx: &mut Context) -> GameResult<SpriteBatch> {
-    let sprites_image = Image::new(ctx, file_path)?;
-    let sprites_batch = SpriteBatch::new(sprites_image);
-
-    Ok(sprites_batch)
+pub fn create_batch(file_path: &str, ctx: &mut Context) -> GameResult<InstanceArray> {
+    let image = Image::from_path(ctx, file_path)?;
+    let batch = InstanceArray::new(ctx, image);
+    Ok(batch)
 }
 
-pub fn create_ui_batch(ctx: &mut Context) -> GameResult<SpriteBatch> {
-    let mut ui_image = Image::new(ctx, UI_FILE_PATH)?;
-    ui_image.set_filter(FilterMode::Nearest); // because pixel art
-    let ui_batch = SpriteBatch::new(ui_image);
-
+pub fn create_ui_batch(ctx: &mut Context) -> GameResult<InstanceArray> {
+    let image = Image::from_path(ctx, UI_FILE_PATH)?;
+    let ui_batch = InstanceArray::new(ctx, image);
     Ok(ui_batch)
 }
 
@@ -336,10 +379,14 @@ impl EasingFunction for AnimationFloor {
 }
 
 pub struct SpriteInfo {
-    relative_start_x: f32,
-    relative_start_y: f32,
-    relative_tile_width: f32,
-    relative_tile_height: f32,
+    pub start_x: f32,
+    pub start_y: f32,
+    pub tile_width: f32,
+    pub tile_height: f32,
+    pub relative_start_x: f32,
+    pub relative_start_y: f32,
+    pub relative_tile_width: f32,
+    pub relative_tile_height: f32,
 }
 
 impl SpriteInfo {
@@ -352,6 +399,10 @@ impl SpriteInfo {
         sprite_sheet_height: f32,
     ) -> Self {
         Self {
+            start_x,
+            start_y,
+            tile_width: width,
+            tile_height: height,
             relative_start_x: start_x / sprite_sheet_width,
             relative_start_y: start_y / sprite_sheet_height,
             relative_tile_width: width / sprite_sheet_width,
@@ -359,7 +410,7 @@ impl SpriteInfo {
         }
     }
 
-    pub fn to_rect(&self) -> Rect {
+    pub fn relative_rect(&self) -> Rect {
         Rect::new(
             self.relative_start_x,
             self.relative_start_y,
@@ -371,6 +422,10 @@ impl SpriteInfo {
     pub fn shadow_version(&self) -> Self {
         // Convention is shadow sprite is at right of regular sprite
         Self {
+            start_x: self.start_x + self.tile_width,
+            start_y: self.start_y + self.tile_height,
+            tile_width: self.tile_width,
+            tile_height: self.tile_height,
             relative_start_x: self.relative_start_x + self.relative_tile_width,
             relative_start_y: self.relative_start_y,
             relative_tile_width: self.relative_tile_width,

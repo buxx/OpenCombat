@@ -2,8 +2,8 @@ use super::animation::Sprite;
 
 const SPRITE_SHEET_WIDTH: usize = 2156;
 const SPRITE_SHEET_HEIGHT: usize = 190;
-const TILE_WIDTH: usize = 196;
-const TILE_HEIGHT: usize = 190;
+pub const TILE_WIDTH: usize = 196;
+pub const TILE_HEIGHT: usize = 190;
 
 #[derive(Debug)]
 pub enum ExplosionAnimationType {

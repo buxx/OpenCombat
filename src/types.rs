@@ -13,6 +13,7 @@ use glam::Vec2;
 
 use crate::{
     entity::vehicle::OnBoardPlace,
+    graphics::SpriteInfo,
     state::local::LocalState,
     utils::{apply_angle_on_point, rotated_rect},
 };
@@ -502,6 +503,55 @@ impl Offset {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+pub struct AbsoluteOffset {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl AbsoluteOffset {
+    pub fn new(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
+    pub fn zero() -> Self {
+        Self { x: 0., y: 0. }
+    }
+
+    pub fn half() -> Self {
+        Self { x: 0.5, y: 0.5 }
+    }
+
+    pub fn to_vec2(self) -> Vec2 {
+        Vec2::new(self.x, self.y)
+    }
+
+    pub fn from_vec2(vec: Vec2) -> Self {
+        Self::new(vec.x, vec.y)
+    }
+
+    pub fn to_absolute(&self, reference: Vec2) -> Self {
+        Self {
+            x: reference.x * self.x,
+            y: reference.y * self.y,
+        }
+    }
+
+    pub fn half_from_sprite(rect: &SpriteInfo) -> Self {
+        Self {
+            x: rect.tile_width / 2.,
+            y: rect.tile_height / 2.,
+        }
+    }
+
+    pub fn from_tuple(values: (f32, f32)) -> Self {
+        Self {
+            x: values.0,
+            y: values.1,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RelativeOffset {
     pub x: f32,
     pub y: f32,
@@ -521,6 +571,13 @@ impl RelativeOffset {
 
     pub fn to_vec2(self) -> Vec2 {
         Vec2::new(self.x, self.y)
+    }
+
+    pub fn to_absolute_from_sprite(&self, sprite: &SpriteInfo) -> AbsoluteOffset {
+        AbsoluteOffset {
+            x: sprite.tile_width * self.x,
+            y: sprite.tile_height * self.y,
+        }
     }
 }
 

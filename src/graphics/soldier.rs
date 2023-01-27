@@ -2,8 +2,8 @@ use super::animation::Sprite;
 
 const SPRITE_SHEET_WIDTH: usize = 256;
 const SPRITE_SHEET_HEIGHT: usize = 192;
-const TILE_WIDTH: usize = 32;
-const TILE_HEIGHT: usize = 32;
+pub const TILE_WIDTH: usize = 32;
+pub const TILE_HEIGHT: usize = 32;
 
 #[derive(Debug)]
 pub enum SoldierAnimationType {
