@@ -63,7 +63,11 @@ fn main() -> GameResult {
 
     let context_builder = ggez::ContextBuilder::new("OpenCombat", "Bastien Sevajol")
         .add_resource_path(path::PathBuf::from(format!("./{}", RESOURCE_PATH)))
-        .window_mode(WindowMode::default().dimensions(1024., 768.));
+        .window_mode(
+            WindowMode::default()
+                .dimensions(1024., 768.)
+                .resizable(true),
+        );
     let (mut context, event_loop) = context_builder.build()?;
 
     let map = map::reader::Reader::new("map1")?.build()?;
