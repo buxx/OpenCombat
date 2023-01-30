@@ -1,6 +1,7 @@
 use std::path;
 
 use game::Side;
+use ggez::conf::WindowMode;
 use ggez::event;
 use ggez::GameResult;
 use state::local::LocalState;
@@ -61,7 +62,8 @@ fn main() -> GameResult {
     let config = config::Config::new(&opt)?;
 
     let context_builder = ggez::ContextBuilder::new("OpenCombat", "Bastien Sevajol")
-        .add_resource_path(path::PathBuf::from(format!("./{}", RESOURCE_PATH)));
+        .add_resource_path(path::PathBuf::from(format!("./{}", RESOURCE_PATH)))
+        .window_mode(WindowMode::default().dimensions(1024., 768.));
     let (mut context, event_loop) = context_builder.build()?;
 
     let map = map::reader::Reader::new("map1")?.build()?;
