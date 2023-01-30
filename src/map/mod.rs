@@ -114,7 +114,7 @@ impl Map {
             let new_y = from.0.y + mod_y;
 
             // Don't care ifd outside map
-            if new_x < 0 || new_y < 0 {
+            if new_x < 0 || new_y < 0 || new_x > self.width as i32 || new_y > self.height as i32 {
                 continue;
             }
 

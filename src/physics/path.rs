@@ -155,6 +155,7 @@ impl Direction {
     }
 }
 
+// TODO : When "to" is unreachable (ex. for vehicle) do not search a path (it consume all path before stop)
 pub fn find_path(
     map: &Map,
     from: &GridPoint,
