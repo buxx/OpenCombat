@@ -9,6 +9,8 @@ use crate::{engine::Engine, message::Message};
 
 use super::egui_backend;
 
+const EGUI_SCALE: f32 = 1.5;
+
 impl Engine {
     pub fn update_debug_gui(&mut self, ctx: &mut Context) {
         let messages = self.debug_gui(ctx);
@@ -18,6 +20,10 @@ impl Engine {
     }
 
     pub fn debug_gui(&mut self, ctx: &mut Context) -> Vec<Message> {
+        let drawable_size = ctx.gfx.drawable_size();
+        egui_backend(ctx)
+            .input
+            .set_scale_factor(EGUI_SCALE, drawable_size);
         let egui_ctx = egui_backend(ctx).ctx();
         egui::Window::new("Debug").show(&egui_ctx, |ui| {
             if ui.button("print \"hello world\"").clicked() {
