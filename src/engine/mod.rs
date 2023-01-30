@@ -108,6 +108,9 @@ impl event::EventHandler<ggez::GameError> for Engine {
             // Execute "each frame" code
             self.tick(ctx);
 
+            // Debug window
+            self.update_debug_gui(ctx);
+
             // Increment the frame counter
             self.local_state.increment_frame_i();
         }
@@ -148,6 +151,8 @@ impl event::EventHandler<ggez::GameError> for Engine {
         let ui_draw_param = graphics::DrawParam::new();
         self.graphics
             .draw_ui(ctx, &mut canvas, ui_draw_param, mesh_builder)?;
+
+        self.draw_debug_gui(ctx, &mut canvas);
 
         canvas.finish(ctx)?;
 
