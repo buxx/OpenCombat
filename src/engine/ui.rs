@@ -1,6 +1,5 @@
 use ggez::{
     graphics::{Color, DrawMode, MeshBuilder, Rect, StrokeOptions},
-    input,
     winit::event::VirtualKeyCode,
     Context, GameResult,
 };
@@ -24,7 +23,7 @@ use super::{input::Control, Engine};
 
 impl Engine {
     pub fn generate_selected_entities_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        for squad_uuid in self.local_state.selected_squads() {
+        for squad_uuid in &self.local_state.selected_squads().1 {
             for soldier_index in self.shared_state.squad(*squad_uuid).members() {
                 let soldier = self.shared_state.soldier(*soldier_index);
                 let point = self
@@ -74,11 +73,13 @@ impl Engine {
         if soldier_indexes.len() > 0 {
             let squad_ids = self.squad_ids_from_entities(vec![soldier_indexes[0]]);
             return vec![Message::LocalState(LocalStateMessage::SetSelectedSquads(
+                Some(soldier_indexes[0]),
                 squad_ids,
             ))];
         };
 
         vec![Message::LocalState(LocalStateMessage::SetSelectedSquads(
+            None,
             vec![],
         ))]
     }
@@ -229,14 +230,16 @@ impl Engine {
                         let squad_id_ = self.squad_ids_from_entities(soldier_indexes.clone())[0];
                         squad_id = Some(squad_id_);
                         messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
+                            None,
                             vec![squad_id_],
                         )));
 
                     // Else, if squads already selected, keep only one
-                    } else if self.local_state.selected_squads().len() > 0 {
-                        squad_id = Some(self.local_state.selected_squads()[0]);
+                    } else if self.local_state.selected_squads().1.len() > 0 {
+                        squad_id = Some(self.local_state.selected_squads().1[0]);
                         messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
-                            vec![self.local_state.selected_squads()[0]],
+                            None,
+                            vec![self.local_state.selected_squads().1[0]],
                         )));
                     }
 
@@ -404,7 +407,7 @@ impl Engine {
                 self.filter_entities_by_side(soldier_indexes, self.local_state.side());
             let squad_ids = self.squad_ids_from_entities(soldier_indexes);
             messages.push(Message::LocalState(LocalStateMessage::SetSelectedSquads(
-                squad_ids,
+                None, squad_ids,
             )));
         }
 

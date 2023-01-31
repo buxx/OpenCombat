@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     audio::Sound,
     behavior::{gesture::Gesture, Behavior},
-    debug::{DebugLevel, DebugPhysics, DebugTerrain},
+    debug::{DebugPhysics, DebugTerrain},
     engine::input::Control,
     entity::soldier::WeaponClass,
     game::explosive::Type as ExplosiveType,
@@ -53,14 +53,13 @@ pub enum SharedStateMessage {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum LocalStateMessage {
-    SetDebugLevel(DebugLevel),
     SetDebugTerrain(DebugTerrain),
     SetDebugPhysics(DebugPhysics),
     SetCursorPoint(WindowPoint),
     SetLeftClickDown(Option<WindowPoint>),
     SetCurrentCursorVector(Option<(WindowPoint, WindowPoint)>),
     ApplyOnSceneDisplayOffset(Offset),
-    SetSelectedSquads(Vec<SquadUuid>),
+    SetSelectedSquads(Option<SoldierIndex>, Vec<SquadUuid>),
     SetSquadMenu(Option<(WindowPoint, SquadUuid)>),
     SetPendingOrder(Option<PendingOrder>),
     AddCachePointToPendingOrder(WorldPoint),
@@ -71,6 +70,8 @@ pub enum LocalStateMessage {
     ScaleUpdate(f32),
     SetControl(Control),
     SetVisibilities(HashMap<(SoldierIndex, SoldierIndex), Visibility>),
+    SetDebugGuiHovered(bool),
+    SetDisplayDebugGui(bool),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

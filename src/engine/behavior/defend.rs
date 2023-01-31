@@ -28,7 +28,7 @@ impl Engine {
             if let Some((cover_grid_point, debug_grid_points)) =
                 find_cover_grid_point(&grid_point, &self.map, &already_used_cover_grid_points)
             {
-                if self.local_state.get_debug_level().formation_positions() {
+                if self.local_state.debug_formation_positions {
                     for debug_grid_point in debug_grid_points.iter() {
                         debug_points.push(DebugPoint {
                             frame_i: self.local_state.get_frame_i() + 120,

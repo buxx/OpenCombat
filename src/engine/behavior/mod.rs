@@ -2,7 +2,7 @@ use super::Engine;
 use crate::{
     behavior::{Behavior, BehaviorMode, BehaviorPropagation},
     entity::soldier::Soldier,
-    message::{Message, SharedStateMessage, SoldierMessage},
+    message::{LocalStateMessage, Message, SharedStateMessage, SoldierMessage},
     order::Order,
     types::{Angle, SquadUuid, WorldPaths, WorldPoint},
     utils::DebugPoint,
@@ -115,6 +115,12 @@ impl Engine {
                     SoldierMessage::SetOrder(order),
                 ))]);
             }
+        }
+
+        for debug_point in debug_points {
+            messages.push(Message::LocalState(LocalStateMessage::PushDebugPoint(
+                debug_point,
+            )))
         }
 
         messages

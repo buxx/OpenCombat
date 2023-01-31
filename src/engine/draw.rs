@@ -109,27 +109,27 @@ impl Engine {
     }
 
     pub fn generate_debug_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        if self.local_state.get_debug_level().mouse() {
+        if self.local_state.debug_mouse {
             self.generate_debug_mouse_meshes(mesh_builder)?;
         }
 
-        if self.local_state.get_debug_level().move_paths() {
+        if self.local_state.debug_move_paths {
             self.generate_move_paths_meshes(mesh_builder)?
         }
 
-        if self.local_state.get_debug_level().formation_positions() {
+        if self.local_state.debug_formation_positions {
             self.generate_formation_positions_meshes(mesh_builder)?
         }
 
-        if self.local_state.get_debug_level().scene_item_circles() {
+        if self.local_state.debug_scene_item_circles {
             self.generate_scene_item_circles_meshes(mesh_builder)?
         }
 
-        if self.local_state.get_debug_level().areas() {
+        if self.local_state.debug_areas {
             self.generate_areas_meshes(mesh_builder)?
         }
 
-        if self.local_state.get_debug_level().visibilities() {
+        if self.local_state.debug_visibilities {
             self.generate_visibilities_meshes(mesh_builder)?
         }
 

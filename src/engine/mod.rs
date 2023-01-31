@@ -12,6 +12,8 @@ use crate::network::Network;
 use crate::state::local::LocalState;
 use crate::state::shared::SharedState;
 use crate::NetworkMode;
+
+use self::debug::gui::state::DebugGuiState;
 mod animate;
 mod behavior;
 mod client;
@@ -46,6 +48,8 @@ pub struct Engine {
     shared_state: SharedState,
     /// The current local state of the game. This struct is own by client and server and are not related
     local_state: LocalState,
+    // Debug gui
+    debug_gui: DebugGuiState,
 }
 
 impl Engine {
@@ -65,6 +69,7 @@ impl Engine {
             map,
             shared_state,
             local_state,
+            debug_gui: DebugGuiState::default(),
         };
         Ok(engine)
     }
@@ -108,12 +113,12 @@ impl event::EventHandler<ggez::GameError> for Engine {
             // Execute "each frame" code
             self.tick(ctx);
 
-            // Debug window
-            self.update_debug_gui(ctx);
-
             // Increment the frame counter
             self.local_state.increment_frame_i();
         }
+
+        // Debug window
+        self.update_debug_gui(ctx);
 
         self.graphics.tick(ctx);
 
@@ -166,8 +171,10 @@ impl event::EventHandler<ggez::GameError> for Engine {
         x: f32,
         y: f32,
     ) -> Result<(), GameError> {
-        let messages = self.collect_mouse_down(ctx, button, x, y);
-        self.react(messages);
+        if !self.local_state.debug_gui_hovered {
+            let messages = self.collect_mouse_down(ctx, button, x, y);
+            self.react(messages);
+        }
         GameResult::Ok(())
     }
 
@@ -178,8 +185,10 @@ impl event::EventHandler<ggez::GameError> for Engine {
         x: f32,
         y: f32,
     ) -> Result<(), GameError> {
-        let messages = self.collect_mouse_up(ctx, button, x, y);
-        self.react(messages);
+        if !self.local_state.debug_gui_hovered {
+            let messages = self.collect_mouse_up(ctx, button, x, y);
+            self.react(messages);
+        }
         GameResult::Ok(())
     }
 

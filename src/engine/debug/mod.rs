@@ -98,7 +98,7 @@ impl Engine {
         mesh_builder: &mut MeshBuilder,
     ) -> GameResult {
         // Display selected squad formation positions
-        for squad_id in self.local_state.selected_squads() {
+        for squad_id in &self.local_state.selected_squads().1 {
             let squad = self.shared_state.squad(*squad_id);
             for (_, point) in squad_positions(squad, Formation::Line, &self.shared_state) {
                 let window_point = self.local_state.window_point_from_world_point(point);
@@ -196,7 +196,7 @@ impl Engine {
 
     /// Draw selection areas
     pub fn generate_visibilities_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        for squad_uuid in self.local_state.selected_squads() {
+        for squad_uuid in &self.local_state.selected_squads().1 {
             let squad_composition = self.shared_state.squad(*squad_uuid);
             for soldier_index in squad_composition.members() {
                 let from_soldier = self.shared_state.soldier(*soldier_index);

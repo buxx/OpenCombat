@@ -11,7 +11,7 @@ pub enum Side {
     B,
 }
 
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 // any error type implementing Display is acceptable.
 type ParseError = &'static str;
@@ -23,6 +23,16 @@ impl FromStr for Side {
             "a" => Ok(Side::A),
             "b" => Ok(Side::B),
             _ => Err("Could not parse a side"),
+        }
+    }
+}
+
+impl Display for Side {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Side::All => f.write_str("All"),
+            Side::A => f.write_str("A"),
+            Side::B => f.write_str("B"),
         }
     }
 }

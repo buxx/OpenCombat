@@ -1,7 +1,7 @@
 use ggez::{event::MouseButton, input::keyboard::KeyInput, winit::event::VirtualKeyCode, Context};
 
 use crate::{
-    debug::{DebugLevel, DebugPhysics, DebugTerrain},
+    debug::{DebugPhysics, DebugTerrain},
     message::*,
     types::*,
 };
@@ -113,14 +113,8 @@ impl Engine {
 
         match input.keycode {
             Some(VirtualKeyCode::F12) => {
-                let new_debug_level = match self.local_state.get_debug_level() {
-                    DebugLevel::Debug0 => DebugLevel::Debug1,
-                    DebugLevel::Debug1 => DebugLevel::Debug2,
-                    DebugLevel::Debug2 => DebugLevel::Debug3,
-                    DebugLevel::Debug3 => DebugLevel::Debug0,
-                };
-                messages.push(Message::LocalState(LocalStateMessage::SetDebugLevel(
-                    new_debug_level,
+                messages.push(Message::LocalState(LocalStateMessage::SetDisplayDebugGui(
+                    !self.local_state.display_debug_gui(),
                 )));
             }
             Some(VirtualKeyCode::F11) => {
@@ -134,24 +128,11 @@ impl Engine {
                 )));
             }
             Some(VirtualKeyCode::F10) => {
-                let new_debug_physics = match self.local_state.get_debug_physics() {
-                    DebugPhysics::None => DebugPhysics::MosinNagantM1924GunFire,
-                    DebugPhysics::MosinNagantM1924GunFire => DebugPhysics::BrandtMle2731Shelling,
-                    DebugPhysics::BrandtMle2731Shelling => DebugPhysics::None,
-                };
-                println!("DEBUG :: physics : {:?}", &new_debug_physics);
-                if &new_debug_physics != &DebugPhysics::None {
-                    messages.push(Message::LocalState(LocalStateMessage::SetControl(
-                        Control::Physics,
-                    )));
-                } else {
-                    messages.push(Message::LocalState(LocalStateMessage::SetControl(
-                        Control::Soldiers,
-                    )));
-                }
-                messages.push(Message::LocalState(LocalStateMessage::SetDebugPhysics(
-                    new_debug_physics,
-                )));
+                let new_debug_physics = self.local_state.get_debug_physics().next();
+                messages.extend(vec![
+                    Message::LocalState(LocalStateMessage::SetControl(new_debug_physics.control())),
+                    Message::LocalState(LocalStateMessage::SetDebugPhysics(new_debug_physics)),
+                ]);
             }
             Some(VirtualKeyCode::F9) => {
                 messages.push(Message::LocalState(LocalStateMessage::ChangeSide))

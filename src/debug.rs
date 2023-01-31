@@ -1,4 +1,8 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
+
+use crate::engine::input::Control;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum DebugTerrain {
@@ -15,70 +19,29 @@ pub enum DebugPhysics {
     BrandtMle2731Shelling,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-pub enum DebugLevel {
-    Debug0,
-    Debug1,
-    Debug2,
-    Debug3,
+impl Display for DebugPhysics {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DebugPhysics::None => f.write_str("Normal"),
+            DebugPhysics::MosinNagantM1924GunFire => f.write_str("GunFire (MosinNagantM1924)"),
+            DebugPhysics::BrandtMle2731Shelling => f.write_str("Shelling (BrandtMle2731Shelling)"),
+        }
+    }
 }
 
-impl DebugLevel {
-    pub fn scene_item_circles(&self) -> bool {
+impl DebugPhysics {
+    pub fn next(&self) -> Self {
         match self {
-            DebugLevel::Debug0 => false,
-            DebugLevel::Debug1 => true,
-            DebugLevel::Debug2 => true,
-            DebugLevel::Debug3 => true,
+            DebugPhysics::None => DebugPhysics::MosinNagantM1924GunFire,
+            DebugPhysics::MosinNagantM1924GunFire => DebugPhysics::BrandtMle2731Shelling,
+            DebugPhysics::BrandtMle2731Shelling => DebugPhysics::None,
         }
     }
-    pub fn mouse(&self) -> bool {
+
+    pub fn control(&self) -> Control {
         match self {
-            DebugLevel::Debug0 => false,
-            DebugLevel::Debug1 => true,
-            DebugLevel::Debug2 => true,
-            DebugLevel::Debug3 => true,
-        }
-    }
-    pub fn areas(&self) -> bool {
-        match self {
-            DebugLevel::Debug0 => false,
-            DebugLevel::Debug1 => true,
-            DebugLevel::Debug2 => true,
-            DebugLevel::Debug3 => true,
-        }
-    }
-    pub fn formation_positions(&self) -> bool {
-        match self {
-            DebugLevel::Debug0 => false,
-            DebugLevel::Debug1 => false,
-            DebugLevel::Debug2 => false,
-            DebugLevel::Debug3 => true,
-        }
-    }
-    pub fn visibilities(&self) -> bool {
-        match self {
-            DebugLevel::Debug0 => false,
-            DebugLevel::Debug1 => false,
-            DebugLevel::Debug2 => true,
-            DebugLevel::Debug3 => true,
-        }
-    }
-    // TODO : import code from v1
-    // pub fn scene_items_text_infos(&self) -> bool {
-    //     match self {
-    //         DebugLevel::Debug0 => false,
-    //         DebugLevel::Debug1 => false,
-    //         DebugLevel::Debug2 => false,
-    //         DebugLevel::Debug3 => true,
-    //     }
-    // }
-    pub fn move_paths(&self) -> bool {
-        match self {
-            DebugLevel::Debug0 => false,
-            DebugLevel::Debug1 => false,
-            DebugLevel::Debug2 => false,
-            DebugLevel::Debug3 => true,
+            DebugPhysics::None => Control::Soldiers,
+            _ => Control::Physics,
         }
     }
 }

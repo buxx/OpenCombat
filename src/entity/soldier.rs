@@ -210,6 +210,10 @@ impl Soldier {
         &self.under_fire
     }
 
+    pub fn under_fire_mut(&mut self) -> &mut Feeling {
+        &mut self.under_fire
+    }
+
     pub fn increase_under_fire(&mut self, value: u32) {
         self.under_fire.increase(value)
     }

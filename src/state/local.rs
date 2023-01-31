@@ -10,7 +10,7 @@ use crate::physics::visibility::Visibilities;
 use crate::utils::DebugPoint;
 use crate::{message::*, types::*};
 
-use crate::debug::{DebugLevel, DebugPhysics, DebugTerrain};
+use crate::debug::{DebugPhysics, DebugTerrain};
 
 pub struct LocalState {
     /// Printed frames since start of program
@@ -23,12 +23,21 @@ pub struct LocalState {
     pub display_scene_scale: Scale,
     /// Display or not decor (trees, etc)
     pub draw_decor: bool,
-    /// Current debug level to apply
-    debug_level: DebugLevel,
+    /// Current debugs to apply
+    pub debug_mouse: bool,
+    pub debug_move_paths: bool,
+    pub debug_formation_positions: bool,
+    pub debug_scene_item_circles: bool,
+    pub debug_areas: bool,
+    pub debug_visibilities: bool,
     /// Current debug terrain to apply
-    debug_terrain: DebugTerrain,
+    pub debug_terrain: DebugTerrain,
     /// Current debug physics to apply
     debug_physics: DebugPhysics,
+    /// Should display debug window ?
+    display_debug_gui: bool,
+    /// Is debug window currently covered
+    pub debug_gui_hovered: bool,
     /// Current WindowPoint of mouse cursor
     current_cursor_point: WindowPoint,
     /// Last instant since cursor don't move
@@ -40,7 +49,7 @@ pub struct LocalState {
     /// Vector of UIEvent (will be consumed)
     ui_events: Vec<UIEvent>,
     /// Selected squad ids
-    selected_squads: Vec<SquadUuid>,
+    selected_squads: (Option<SoldierIndex>, Vec<SquadUuid>),
     /// Possible currently displayed menu
     squad_menu: Option<(WindowPoint, SquadUuid)>,
     /// Possible current player squad order
@@ -68,15 +77,22 @@ impl LocalState {
             display_scene_offset: Offset::new(0., 0.),
             display_scene_scale: Scale::new(1., 1.),
             draw_decor: true,
-            debug_level: DebugLevel::Debug0,
+            debug_mouse: false,
+            debug_move_paths: false,
+            debug_formation_positions: false,
+            debug_scene_item_circles: false,
+            debug_areas: false,
+            debug_visibilities: false,
             debug_terrain: DebugTerrain::None,
             debug_physics: DebugPhysics::None,
+            display_debug_gui: false,
+            debug_gui_hovered: false,
             current_cursor_point: WindowPoint::new(0., 0.),
             last_cursor_move_frame: 0,
             left_click_down: None,
             current_cursor_vector: None,
             ui_events: vec![],
-            selected_squads: vec![],
+            selected_squads: (None, vec![]),
             squad_menu: None,
             pending_order: None,
             display_paths: vec![],
@@ -111,10 +127,6 @@ impl LocalState {
             Side::B => &Side::A,
             _ => unreachable!(),
         }
-    }
-
-    pub fn get_debug_level(&self) -> &DebugLevel {
-        &self.debug_level
     }
 
     pub fn get_debug_terrain(&self) -> &DebugTerrain {
@@ -192,7 +204,7 @@ impl LocalState {
         )
     }
 
-    pub fn selected_squads(&self) -> &[SquadUuid] {
+    pub fn selected_squads(&self) -> &(Option<SoldierIndex>, Vec<SquadUuid>) {
         &self.selected_squads
     }
 
@@ -228,6 +240,10 @@ impl LocalState {
         &self.visibilities
     }
 
+    pub fn display_debug_gui(&self) -> bool {
+        self.display_debug_gui
+    }
+
     pub fn react(&mut self, local_state_message: LocalStateMessage) {
         match local_state_message {
             LocalStateMessage::SetCursorPoint(point) => {
@@ -239,10 +255,6 @@ impl LocalState {
                 //
                 self.display_scene_offset =
                     Offset::from_vec2(self.display_scene_offset.to_vec2() + offset.to_vec2());
-            }
-            LocalStateMessage::SetDebugLevel(level) => {
-                //
-                self.debug_level = level;
             }
             LocalStateMessage::SetDebugTerrain(value) => {
                 //
@@ -261,9 +273,9 @@ impl LocalState {
                 //
                 self.ui_events.push(event)
             }
-            LocalStateMessage::SetSelectedSquads(selected_squads) => {
+            LocalStateMessage::SetSelectedSquads(selected_soldier_index, selected_squads) => {
                 //
-                self.selected_squads = selected_squads
+                self.selected_squads = (selected_soldier_index, selected_squads)
             }
             LocalStateMessage::SetSquadMenu(squad_menu) => {
                 //
@@ -306,6 +318,14 @@ impl LocalState {
                 self.control = new_control;
             }
             LocalStateMessage::SetVisibilities(visibilities) => self.visibilities.set(visibilities),
+            LocalStateMessage::SetDebugGuiHovered(value) => {
+                //
+                self.debug_gui_hovered = value
+            }
+            LocalStateMessage::SetDisplayDebugGui(value) => {
+                //
+                self.display_debug_gui = value
+            }
         }
     }
 

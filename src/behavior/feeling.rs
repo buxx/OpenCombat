@@ -8,10 +8,10 @@ pub enum Feeling {
     UnderFire(u32),
 }
 
-const UNDER_FIRE_TICK: u32 = 10;
-const UNDER_FIRE_MAX: u32 = 200;
-const UNDER_FIRE_DANGER: u32 = 150;
-const UNDER_FIRE_WARNING: u32 = 100;
+pub const UNDER_FIRE_TICK: u32 = 10;
+pub const UNDER_FIRE_MAX: u32 = 200;
+pub const UNDER_FIRE_DANGER: u32 = 150;
+pub const UNDER_FIRE_WARNING: u32 = 100;
 
 impl Feeling {
     pub fn blast_increase_value(&self, distance: Meters) -> u32 {
@@ -81,6 +81,12 @@ impl Feeling {
     pub fn value(&self) -> u32 {
         match self {
             Feeling::UnderFire(value) => *value,
+        }
+    }
+
+    pub fn value_mut(&mut self) -> &mut u32 {
+        match self {
+            Feeling::UnderFire(value) => value,
         }
     }
 
