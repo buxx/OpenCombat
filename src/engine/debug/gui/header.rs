@@ -10,7 +10,7 @@ use crate::{
 impl Engine {
     pub fn debug_gui_header(
         &mut self,
-        _ctx: &mut Context,
+        ctx: &mut Context,
         _egui_ctx: &EguiContext,
         ui: &mut Ui,
     ) -> Vec<Message> {
@@ -30,6 +30,8 @@ impl Engine {
             ui.checkbox(&mut self.local_state.debug_scene_item_circles, "Soldier");
             ui.checkbox(&mut self.local_state.debug_areas, "Areas");
             ui.checkbox(&mut self.local_state.debug_visibilities, "Visibilities");
+
+            ui.label(format!("FPS : {:.2}", ctx.time.fps()));
         });
 
         ui.separator();

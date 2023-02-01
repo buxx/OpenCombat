@@ -2,11 +2,7 @@ use ggez::GameResult;
 
 use crate::{NetworkMode, Opt};
 
-// Width of sprite sheet
-pub const UI_SPRITE_SHEET_WIDTH: f32 = 800.0;
-// Height of sprite sheet
-pub const UI_SPRITE_SHEET_HEIGHT: f32 = 600.0;
-// Target FPS
+///
 pub const TARGET_FPS: u64 = 60;
 pub const SOLDIER_UPDATE_FREQ: u64 = 1;
 pub const SOLDIER_ANIMATE_FREQ: u64 = 20;
@@ -14,6 +10,13 @@ pub const INTERIORS_UPDATE_FREQ: u64 = 60;
 pub const VISIBILITY_UPDATE_FREQ: u64 = 60;
 pub const FEELING_DECREASING_FREQ: u64 = 60;
 pub const PHYSICS_UPDATE_FREQ: u64 = 1;
+///
+
+// Width of sprite sheet
+pub const UI_SPRITE_SHEET_WIDTH: f32 = 800.0;
+// Height of sprite sheet
+pub const UI_SPRITE_SHEET_HEIGHT: f32 = 600.0;
+// Target FPS
 // Velocity of move vector
 pub const MOVE_VELOCITY: f32 = 5.0 / TARGET_FPS as f32;
 // Velocity of move fast vector

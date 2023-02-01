@@ -15,6 +15,10 @@ impl Engine {
             .spacing([40.0, 4.0])
             .striped(true)
             .show(ui, |ui| {
+                ui.label("Decor");
+                ui.checkbox(&mut self.local_state.draw_decor, "");
+                ui.end_row();
+
                 ui.label("Draw");
                 ui.horizontal(|ui| {
                     ui.radio_value(

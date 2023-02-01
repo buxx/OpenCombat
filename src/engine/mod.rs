@@ -139,13 +139,15 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.generate_soldiers_sprites()?;
         self.generate_vehicles_sprites()?;
         self.generate_explosion_sprites()?;
-        self.graphics.draw_scene(&mut canvas, decor, scene_draw)?;
+        self.graphics.draw_map(&mut canvas, scene_draw)?;
+        self.draw_debug_terrain(ctx, &mut canvas, scene_draw)?;
+        self.graphics.draw_units(&mut canvas, scene_draw)?;
+        self.graphics.draw_decor(&mut canvas, decor, scene_draw)?;
 
         // Draw ui
         let mut mesh_builder = MeshBuilder::new();
         self.generate_menu_sprites()?;
 
-        self.draw_debug_terrain(ctx, &mut canvas, scene_draw)?;
         self.draw_physics(&mut mesh_builder)?;
         self.generate_debug_meshes(&mut mesh_builder)?;
         self.generate_selection_meshes(&mut mesh_builder)?;

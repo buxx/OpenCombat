@@ -234,29 +234,41 @@ impl Graphics {
         squad_menu_sprite_info().as_draw_params(&to_point, &cursor_point)
     }
 
-    pub fn draw_scene(
-        &mut self,
-        canvas: &mut Canvas,
-        draw_decor: bool,
-        draw_param: graphics::DrawParam,
-    ) -> GameResult {
+    pub fn draw_map(&mut self, canvas: &mut Canvas, draw_param: graphics::DrawParam) -> GameResult {
         // Map background sprites
         canvas.draw(&self.map_background_batch, draw_param);
 
         // Map interior sprites
         canvas.draw(&self.map_interiors_batch, draw_param);
 
-        // Entities, explosions, etc. sprites
-        canvas.draw(&self.soldiers_batch, draw_param);
-        canvas.draw(&self.vehicles_batch, draw_param);
-        canvas.draw(&self.explosions_batch, draw_param);
+        Ok(())
+    }
 
+    pub fn draw_decor(
+        &mut self,
+        canvas: &mut Canvas,
+        draw_decor: bool,
+        draw_param: graphics::DrawParam,
+    ) -> GameResult {
         // Draw decor like Trees
         if draw_decor {
             for decor_batch in self.map_decor_batches.iter() {
                 canvas.draw(decor_batch, draw_param);
             }
         }
+
+        Ok(())
+    }
+
+    pub fn draw_units(
+        &mut self,
+        canvas: &mut Canvas,
+        draw_param: graphics::DrawParam,
+    ) -> GameResult {
+        // Entities, explosions, etc. sprites
+        canvas.draw(&self.soldiers_batch, draw_param);
+        canvas.draw(&self.vehicles_batch, draw_param);
+        canvas.draw(&self.explosions_batch, draw_param);
 
         Ok(())
     }
