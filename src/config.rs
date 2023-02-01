@@ -2,28 +2,18 @@ use ggez::GameResult;
 
 use crate::{NetworkMode, Opt};
 
-#[derive(Debug, Clone)]
-pub struct Config {
-    network_mode: NetworkMode,
-    server_rep_address: String,
-    server_pub_address: String,
-    target_fps: u32,
-    soldier_update_freq: u64,
-    soldier_animate_freq: u64,
-    interiors_update_freq: u64,
-    visibility_update_freq: u64,
-    physics_update_freq: u64,
-    feeling_decreasing_freq: u64,
-}
-
-// FIXME : probmeme d'animation sur equipe quand cours
-
 // Width of sprite sheet
 pub const UI_SPRITE_SHEET_WIDTH: f32 = 800.0;
 // Height of sprite sheet
 pub const UI_SPRITE_SHEET_HEIGHT: f32 = 600.0;
 // Target FPS
-pub const TARGET_FPS: u32 = 60;
+pub const TARGET_FPS: u64 = 60;
+pub const SOLDIER_UPDATE_FREQ: u64 = 1;
+pub const SOLDIER_ANIMATE_FREQ: u64 = 20;
+pub const INTERIORS_UPDATE_FREQ: u64 = 60;
+pub const VISIBILITY_UPDATE_FREQ: u64 = 60;
+pub const FEELING_DECREASING_FREQ: u64 = 60;
+pub const PHYSICS_UPDATE_FREQ: u64 = 1;
 // Velocity of move vector
 pub const MOVE_VELOCITY: f32 = 5.0 / TARGET_FPS as f32;
 // Velocity of move fast vector
@@ -53,6 +43,19 @@ pub const VISIBILITY_FIRSTS: usize = 4;
 // When compute visibility, configure here each pixels step of line which me considered
 pub const VISIBILITY_PIXEL_STEPS: usize = 5;
 
+#[derive(Debug, Clone)]
+pub struct Config {
+    pub network_mode: NetworkMode,
+    pub server_rep_address: String,
+    pub server_pub_address: String,
+    pub target_fps: u64,
+    pub soldier_update_freq: u64,
+    pub soldier_animate_freq: u64,
+    pub interiors_update_freq: u64,
+    pub visibility_update_freq: u64,
+    pub physics_update_freq: u64,
+    pub feeling_decreasing_freq: u64,
+}
 impl Config {
     pub fn new(opt: &Opt) -> GameResult<Self> {
         let (network_mode, server_rep_address, server_pub_address) = (
@@ -73,23 +76,23 @@ impl Config {
             /// Frequency of soldier update :
             ///  - World pixel point according to movement
             ///  - ...
-            soldier_update_freq: 1,
+            soldier_update_freq: SOLDIER_UPDATE_FREQ,
             /// Frequency of soldier animation :
             ///  - Compute visibility with other soldiers
             ///  - Compute behavior against physics (explosions, gunfires, ...)
-            soldier_animate_freq: 20,
+            soldier_animate_freq: SOLDIER_ANIMATE_FREQ,
             /// Frequency of update buildings interiors visibility
-            interiors_update_freq: 60,
+            interiors_update_freq: INTERIORS_UPDATE_FREQ,
             /// Frequency of update visibility between soldiers
-            visibility_update_freq: 60,
+            visibility_update_freq: VISIBILITY_UPDATE_FREQ,
             ///
-            physics_update_freq: 1,
+            physics_update_freq: PHYSICS_UPDATE_FREQ,
             /// Frequency of decreasing feelings
-            feeling_decreasing_freq: 60,
+            feeling_decreasing_freq: FEELING_DECREASING_FREQ,
         })
     }
 
-    pub fn target_fps(&self) -> u32 {
+    pub fn target_fps(&self) -> u64 {
         self.target_fps
     }
 

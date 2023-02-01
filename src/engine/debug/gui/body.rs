@@ -19,6 +19,13 @@ impl Engine {
             ui.selectable_value(&mut self.debug_gui.panel, Panel::Soldiers, "Soldiers");
             ui.selectable_value(&mut self.debug_gui.panel, Panel::SharedState, "SharedState");
             ui.selectable_value(&mut self.debug_gui.panel, Panel::LocalState, "LocalState");
+            ui.selectable_value(
+                &mut self.debug_gui.panel,
+                Panel::GlobalConfig,
+                "GlobalConfig",
+            );
+            ui.selectable_value(&mut self.debug_gui.panel, Panel::TerrainConfig, "Terrain");
+            ui.selectable_value(&mut self.debug_gui.panel, Panel::FightConfig, "FightConfig");
         });
         ui.separator();
 
@@ -34,6 +41,15 @@ impl Engine {
             }
             Panel::LocalState => {
                 messages.extend(self.debug_gui_local_state(ctx, egui_ctx, ui));
+            }
+            Panel::GlobalConfig => {
+                messages.extend(self.debug_gui_global_config(ctx, egui_ctx, ui));
+            }
+            Panel::TerrainConfig => {
+                messages.extend(self.debug_gui_terrain_config(ctx, egui_ctx, ui));
+            }
+            Panel::FightConfig => {
+                messages.extend(self.debug_gui_fight_config(ctx, egui_ctx, ui));
             }
         }
 

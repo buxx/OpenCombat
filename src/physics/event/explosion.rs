@@ -26,8 +26,7 @@ impl Explosion {
 
     pub fn init(&mut self, start_frame_i: u64) {
         self.start = start_frame_i;
-        self.end =
-            start_frame_i + (self.explosive_type.sprite().duration() as u32 * TARGET_FPS) as u64;
+        self.end = start_frame_i + (self.explosive_type.sprite().duration() as u64 * TARGET_FPS);
     }
 
     pub fn point(&self) -> &WorldPoint {

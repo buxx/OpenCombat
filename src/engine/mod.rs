@@ -104,7 +104,7 @@ impl Engine {
 
 impl event::EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        while ctx.time.check_update_time(self.config.target_fps()) {
+        while ctx.time.check_update_time(self.config.target_fps() as u32) {
             // First thing to do is to initialize the shared state.
             if self.local_state.is_first_frame() {
                 self.init(ctx)?;

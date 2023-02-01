@@ -15,6 +15,7 @@ use super::egui_backend;
 const EGUI_SCALE: f32 = 1.5;
 
 pub mod body;
+pub mod config;
 pub mod header;
 pub mod meta;
 pub mod soldiers;
@@ -27,6 +28,9 @@ pub enum Panel {
     Soldiers,
     SharedState,
     LocalState,
+    GlobalConfig,
+    TerrainConfig,
+    FightConfig,
 }
 
 impl Default for Panel {
