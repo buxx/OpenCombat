@@ -62,13 +62,6 @@ impl Explosion {
             )));
         }
 
-        if frame_i >= self.end {
-            // TODO : Remove by self.point can remove other explosions. Find better methodology
-            messages.push(Message::Graphics(
-                GraphicsMessage::RemoveExplosionAnimation(self.point.clone()),
-            ))
-        }
-
         messages
     }
 }

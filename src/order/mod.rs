@@ -61,6 +61,19 @@ impl PendingOrder {
     }
 }
 
+impl Display for PendingOrder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PendingOrder::MoveTo(_, _, _) => f.write_str("MoveTo"),
+            PendingOrder::MoveFastTo(_, _, _) => f.write_str("MoveFastTo"),
+            PendingOrder::SneakTo(_, _, _) => f.write_str("SneakTo"),
+            PendingOrder::Defend(_) => f.write_str("Defend"),
+            PendingOrder::Hide(_) => f.write_str("Hide"),
+            PendingOrder::EngageOrFire(_) => f.write_str("EngageOrFire"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Order {
     Idle,

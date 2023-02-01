@@ -16,6 +16,7 @@ const EGUI_SCALE: f32 = 1.5;
 
 pub mod body;
 pub mod header;
+pub mod meta;
 pub mod soldiers;
 pub mod state;
 pub mod terrain;
@@ -24,6 +25,8 @@ pub mod terrain;
 pub enum Panel {
     Terrain,
     Soldiers,
+    SharedState,
+    LocalState,
 }
 
 impl Default for Panel {
@@ -37,7 +40,6 @@ impl Engine {
         let messages = self.debug_gui(ctx);
         let side_effects = self.react(messages);
         self.react_side_effects(side_effects, ctx);
-        self.local_state.remove_finished_physics();
     }
 
     pub fn debug_gui(&mut self, ctx: &mut Context) -> Vec<Message> {

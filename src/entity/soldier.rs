@@ -142,6 +142,22 @@ impl Soldier {
         &mut self.magazines
     }
 
+    pub fn alive(&self) -> bool {
+        self.alive
+    }
+
+    pub fn alive_mut(&mut self) -> &mut bool {
+        &mut self.alive
+    }
+
+    pub fn unconscious(&self) -> bool {
+        self.unconscious
+    }
+
+    pub fn unconscious_mut(&mut self) -> &mut bool {
+        &mut self.unconscious
+    }
+
     pub fn get_selection_rect(&self) -> Rect {
         Rect::new(
             self.world_point.x - SOLDIER_SELECTABLE_SQUARE_SIDE_HALF,

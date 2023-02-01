@@ -17,15 +17,23 @@ impl Engine {
         ui.horizontal(|ui| {
             ui.selectable_value(&mut self.debug_gui.panel, Panel::Terrain, "Terrain");
             ui.selectable_value(&mut self.debug_gui.panel, Panel::Soldiers, "Soldiers");
+            ui.selectable_value(&mut self.debug_gui.panel, Panel::SharedState, "SharedState");
+            ui.selectable_value(&mut self.debug_gui.panel, Panel::LocalState, "LocalState");
         });
         ui.separator();
 
         match self.debug_gui.panel {
             Panel::Terrain => {
-                self.debug_gui_terrain(ctx, egui_ctx, ui);
+                messages.extend(self.debug_gui_terrain(ctx, egui_ctx, ui));
             }
             Panel::Soldiers => {
-                self.debug_gui_soldiers(ctx, egui_ctx, ui);
+                messages.extend(self.debug_gui_soldiers(ctx, egui_ctx, ui));
+            }
+            Panel::SharedState => {
+                messages.extend(self.debug_gui_shared_state(ctx, egui_ctx, ui));
+            }
+            Panel::LocalState => {
+                messages.extend(self.debug_gui_local_state(ctx, egui_ctx, ui));
             }
         }
 

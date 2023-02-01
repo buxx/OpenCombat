@@ -2,10 +2,8 @@ use ggez::Context;
 use ggez_egui::egui::{Context as EguiContext, Grid, Slider, Ui};
 
 use crate::{
-    behavior::feeling::{Feeling, UNDER_FIRE_MAX},
-    engine::Engine,
-    message::Message,
-    types::SoldierIndex,
+    behavior::feeling::UNDER_FIRE_MAX, engine::Engine, entity::soldier::WeaponClass,
+    message::Message, types::SoldierIndex,
 };
 
 impl Engine {
@@ -59,6 +57,28 @@ impl Engine {
                 ui.label(format!("{}", soldier_index));
                 ui.end_row();
 
+                ui.label("Coordinates");
+                ui.label(format!(
+                    "{}x{} ({}x{})",
+                    soldier.get_world_point().x.floor(),
+                    soldier.get_world_point().y.floor(),
+                    self.map
+                        .grid_point_from_world_point(&soldier.get_world_point())
+                        .x,
+                    self.map
+                        .grid_point_from_world_point(&soldier.get_world_point())
+                        .y
+                ));
+                ui.end_row();
+
+                ui.label("Alive");
+                ui.checkbox(soldier.alive_mut(), "");
+                ui.end_row();
+
+                ui.label("Unconscious");
+                ui.checkbox(soldier.unconscious_mut(), "");
+                ui.end_row();
+
                 ui.label("Order");
                 ui.label(format!("{}", soldier.order()));
                 ui.end_row();
@@ -72,8 +92,26 @@ impl Engine {
                     soldier.under_fire_mut().value_mut(),
                     0..=UNDER_FIRE_MAX,
                 ));
+                ui.end_row();
 
-                println!("{:?}", soldier.under_fire());
+                ui.label("MainWeapon");
+                let weapon_text = if let Some(weapon) = soldier.weapon(&WeaponClass::Main) {
+                    format!("{}", weapon.name())
+                } else {
+                    "".to_string()
+                };
+                ui.label(weapon_text);
+                ui.end_row();
+
+                ui.label("Magazines");
+                let magazines_text = soldier
+                    .magazines()
+                    .iter()
+                    .map(|magazine| magazine.name())
+                    .collect::<Vec<&str>>()
+                    .join(", ");
+                ui.label(magazines_text);
+                ui.end_row();
             });
 
         vec![]

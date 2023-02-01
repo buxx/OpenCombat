@@ -82,7 +82,7 @@ impl Config {
             interiors_update_freq: 60,
             /// Frequency of update visibility between soldiers
             visibility_update_freq: 60,
-            /// Frequency of update visibility between soldiers
+            ///
             physics_update_freq: 1,
             /// Frequency of decreasing feelings
             feeling_decreasing_freq: 60,

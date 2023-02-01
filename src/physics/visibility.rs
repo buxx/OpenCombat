@@ -46,6 +46,10 @@ impl Visibilities {
             .filter(|v| v.to_soldier.is_some() && v.visible)
             .collect()
     }
+
+    pub fn len(&self) -> usize {
+        self.visibilities.len()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

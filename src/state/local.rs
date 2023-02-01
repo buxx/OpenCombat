@@ -137,6 +137,10 @@ impl LocalState {
         &self.debug_physics
     }
 
+    pub fn debug_physics_mut(&mut self) -> &mut DebugPhysics {
+        &mut self.debug_physics
+    }
+
     pub fn get_current_cursor_window_point(&self) -> &WindowPoint {
         &self.current_cursor_point
     }
@@ -354,8 +358,101 @@ impl LocalState {
     }
 
     pub fn remove_finished_physics(&mut self) {
-        let frame_i = self.frame_i;
-        self.bullet_fires.retain(|b| !b.finished(frame_i));
-        self.explosions.retain(|e| !e.finished(frame_i));
+        self.bullet_fires.retain(|b| !b.finished(self.frame_i));
+        self.explosions.retain(|e| !e.finished(self.frame_i));
+    }
+
+    pub fn debug_lines(&self) -> Vec<(String, String)> {
+        let mut lines = vec![];
+
+        lines.push(("FrameI".to_string(), self.frame_i.to_string()));
+
+        lines.push(("Side".to_string(), self.side.to_string()));
+
+        lines.push((
+            "DisplaySceneOffset".to_string(),
+            format!(
+                "{}x{}",
+                self.display_scene_offset.x.ceil(),
+                self.display_scene_offset.y.ceil()
+            ),
+        ));
+
+        lines.push((
+            "DisplaySceneScale".to_string(),
+            format!(
+                "{:.3}x{:.3}",
+                self.display_scene_scale.x, self.display_scene_scale.y
+            ),
+        ));
+
+        lines.push((
+            "CurrentCursorPoint".to_string(),
+            format!(
+                "{}x{}",
+                self.current_cursor_point.x.ceil(),
+                self.current_cursor_point.y.ceil()
+            ),
+        ));
+
+        lines.push((
+            "LastCursorMoveFrame".to_string(),
+            self.last_cursor_move_frame.to_string(),
+        ));
+
+        let current_cursor_vector_text =
+            if let Some(current_cursor_vector) = self.current_cursor_vector {
+                format!(
+                    "{}x{} -> {}x{}",
+                    current_cursor_vector.0.x.ceil(),
+                    current_cursor_vector.0.y.ceil(),
+                    current_cursor_vector.1.x.ceil(),
+                    current_cursor_vector.1.y.ceil()
+                )
+            } else {
+                "".to_string()
+            };
+        lines.push((
+            "CurrentCursorVector".to_string(),
+            current_cursor_vector_text,
+        ));
+
+        let squad_menu_text = if self.squad_menu.is_some() {
+            "Yes".to_string()
+        } else {
+            "No".to_string()
+        };
+        lines.push(("SquadMenu".to_string(), squad_menu_text));
+
+        let pending_order_text = if let Some(pending_order) = &self.pending_order {
+            pending_order.to_string()
+        } else {
+            "".to_string()
+        };
+        lines.push(("PendingOrder".to_string(), pending_order_text));
+
+        lines.push((
+            "DebugPoints (len)".to_string(),
+            self.debug_points.len().to_string(),
+        ));
+
+        lines.push(("Control".to_string(), self.control.to_string()));
+
+        lines.push((
+            "Visibilities (len)".to_string(),
+            self.visibilities.len().to_string(),
+        ));
+
+        lines.push((
+            "BulletFires (len)".to_string(),
+            self.bullet_fires.len().to_string(),
+        ));
+
+        lines.push((
+            "Explosions (len)".to_string(),
+            self.explosions.len().to_string(),
+        ));
+
+        lines
     }
 }

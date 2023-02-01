@@ -20,6 +20,6 @@ impl Engine {
 
         let side_effects = self.react(messages);
         self.react_side_effects(side_effects, ctx);
-        self.local_state.remove_finished_physics();
+        // self.local_state.remove_finished_physics();
     }
 }

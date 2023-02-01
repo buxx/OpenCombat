@@ -15,6 +15,12 @@ pub enum Magazine {
 }
 
 impl Magazine {
+    pub fn name(&self) -> &str {
+        match self {
+            Magazine::MosinNagant(_) => "Mosin Nagant",
+        }
+    }
+
     pub fn full(magazine: Self) -> Self {
         match magazine {
             Magazine::MosinNagant(_) => Magazine::MosinNagant(5),
@@ -51,6 +57,12 @@ pub enum Weapon {
 }
 
 impl Weapon {
+    pub fn name(&self) -> &str {
+        match self {
+            Weapon::MosinNagantM1924(_, _) => "Mosin Nagant M1924",
+        }
+    }
+
     pub fn fire_sounds(&self) -> Vec<Sound> {
         let pick_from = match self {
             Weapon::MosinNagantM1924(_, _) => vec![
@@ -136,7 +148,6 @@ impl Weapon {
                         }
 
                         if !magazine_.filled() {
-                            println!("plop");
                             *magazine = None;
                         }
                     }

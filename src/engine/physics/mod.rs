@@ -15,11 +15,13 @@ impl Engine {
         if self.local_state.get_frame_i() % self.config.physics_update_freq() == 0 {
             messages.extend(self.tick_bullet_fires());
             messages.extend(self.tick_explosions());
-
             messages.extend(self.fx_effects());
+
             if self.config.network_mode() == &NetworkMode::Server {
                 messages.extend(self.resolve_effects())
             }
+
+            self.local_state.remove_finished_physics();
         }
 
         messages

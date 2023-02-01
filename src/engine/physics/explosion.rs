@@ -3,7 +3,7 @@ use ggez::GameResult;
 
 use crate::engine::Engine;
 
-use crate::message::SharedStateMessage;
+use crate::message::{GraphicsMessage, SharedStateMessage};
 use crate::physics::effect::Effect;
 use crate::physics::utils::meters_between_scene_points;
 use crate::{message::Message, physics::event::explosion::Explosion, NetworkMode};
@@ -14,10 +14,17 @@ impl Engine {
         let frame_i = self.local_state.get_frame_i();
 
         for explosion in self.local_state.explosions() {
-            messages.extend(explosion.fx(self.local_state.get_frame_i()));
+            messages.extend(explosion.fx(frame_i));
 
             if self.config.network_mode() == &NetworkMode::Server && explosion.effective(frame_i) {
                 messages.extend(self.explosion_effects(explosion))
+            }
+
+            if explosion.finished(frame_i) {
+                // TODO : Remove by self.point can remove other explosions. Find better methodology
+                messages.push(Message::Graphics(
+                    GraphicsMessage::RemoveExplosionAnimation(explosion.point().clone()),
+                ))
             }
         }
 

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use ggez::{event::MouseButton, input::keyboard::KeyInput, winit::event::VirtualKeyCode, Context};
 
 use crate::{
@@ -14,6 +16,16 @@ pub enum Control {
     Soldiers,
     Map,
     Physics,
+}
+
+impl Display for Control {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Control::Soldiers => f.write_str("Soldiers"),
+            Control::Map => f.write_str("Map"),
+            Control::Physics => f.write_str("Physics"),
+        }
+    }
 }
 
 enum MoveScreenMode {

@@ -2,6 +2,7 @@ use ggez::Context;
 use ggez_egui::egui::{Context as EguiContext, Ui};
 
 use crate::{
+    debug::DebugPhysics,
     engine::Engine,
     message::{LocalStateMessage, Message},
 };
@@ -23,23 +24,46 @@ impl Engine {
 
             ui.separator();
 
-            let cursor_text = format!("Cursor {}", self.local_state.get_debug_physics());
-            if ui.button(&cursor_text).clicked() {
-                let new_debug_physics = self.local_state.get_debug_physics().next();
-                messages.extend(vec![
-                    Message::LocalState(LocalStateMessage::SetControl(new_debug_physics.control())),
-                    Message::LocalState(LocalStateMessage::SetDebugPhysics(new_debug_physics)),
-                ]);
-            }
-
-            ui.separator();
-
             ui.checkbox(&mut self.local_state.debug_mouse, "Cursor");
             ui.checkbox(&mut self.local_state.debug_move_paths, "Move");
             ui.checkbox(&mut self.local_state.debug_formation_positions, "Formation");
             ui.checkbox(&mut self.local_state.debug_scene_item_circles, "Soldier");
             ui.checkbox(&mut self.local_state.debug_areas, "Areas");
             ui.checkbox(&mut self.local_state.debug_visibilities, "Visibilities");
+        });
+
+        ui.separator();
+
+        ui.horizontal(|ui| {
+            ui.label("Cursor physics");
+            ui.horizontal(|ui| {
+                let changes = vec![
+                    ui.radio_value(
+                        self.local_state.debug_physics_mut(),
+                        DebugPhysics::None,
+                        "No",
+                    )
+                    .changed(),
+                    ui.radio_value(
+                        self.local_state.debug_physics_mut(),
+                        DebugPhysics::MosinNagantM1924GunFire,
+                        "MosinNagantM1924",
+                    )
+                    .changed(),
+                    ui.radio_value(
+                        self.local_state.debug_physics_mut(),
+                        DebugPhysics::BrandtMle2731Shelling,
+                        "BrandtMle2731",
+                    )
+                    .changed(),
+                ];
+
+                if changes.iter().any(|v| *v) {
+                    messages.extend(vec![Message::LocalState(LocalStateMessage::SetControl(
+                        self.local_state.get_debug_physics().control(),
+                    ))]);
+                }
+            });
         });
 
         ui.separator();

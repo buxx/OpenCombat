@@ -100,7 +100,7 @@ impl Graphics {
     }
 
     pub fn update(&mut self, ctx: &Context) {
-        let secs = ggez::timer::delta(ctx).as_secs_f64();
+        let secs = ctx.time.delta().as_secs_f64();
 
         for (_, animation) in self.soldier_animation_sequences.iter_mut() {
             animation.advance_and_maybe_wrap(secs);

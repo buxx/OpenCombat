@@ -203,4 +203,25 @@ impl SharedState {
 
         vec![]
     }
+
+    pub fn debug_lines(&self) -> Vec<(String, String)> {
+        let mut lines = vec![];
+
+        lines.push(("Initialized".to_string(), self.initialized.to_string()));
+        lines.push((
+            "Soldiers (len)".to_string(),
+            self.soldiers.len().to_string(),
+        ));
+        lines.push(("Squads (len)".to_string(), self.squads.len().to_string()));
+        lines.push((
+            "Vehicles (len)".to_string(),
+            self.vehicles.len().to_string(),
+        ));
+        lines.push((
+            "PhysicsEffects (len)".to_string(),
+            self.physics_effects.len().to_string(),
+        ));
+
+        lines
+    }
 }
