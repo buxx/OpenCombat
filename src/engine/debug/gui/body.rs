@@ -24,8 +24,13 @@ impl Engine {
                 Panel::GlobalConfig,
                 "GlobalConfig",
             );
-            ui.selectable_value(&mut self.debug_gui.panel, Panel::TerrainConfig, "Terrain");
+            ui.selectable_value(
+                &mut self.debug_gui.panel,
+                Panel::VisibilityConfig,
+                "VisibilityConfig",
+            );
             ui.selectable_value(&mut self.debug_gui.panel, Panel::FightConfig, "FightConfig");
+            ui.selectable_value(&mut self.debug_gui.panel, Panel::Textures, "Textures");
         });
         ui.separator();
 
@@ -45,11 +50,14 @@ impl Engine {
             Panel::GlobalConfig => {
                 messages.extend(self.debug_gui_global_config(ctx, egui_ctx, ui));
             }
-            Panel::TerrainConfig => {
-                messages.extend(self.debug_gui_terrain_config(ctx, egui_ctx, ui));
+            Panel::VisibilityConfig => {
+                messages.extend(self.debug_gui_visibility_config(ctx, egui_ctx, ui));
             }
             Panel::FightConfig => {
                 messages.extend(self.debug_gui_fight_config(ctx, egui_ctx, ui));
+            }
+            Panel::Textures => {
+                messages.extend(self.debug_gui_textures(ctx, egui_ctx, ui));
             }
         }
 

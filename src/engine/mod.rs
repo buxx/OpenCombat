@@ -94,11 +94,13 @@ impl Engine {
         Ok(())
     }
 
-    fn tick(&mut self, ctx: &mut Context) {
+    fn tick(&mut self, ctx: &mut Context) -> GameResult<()> {
         match self.config.network_mode() {
-            NetworkMode::Server => self.tick_as_server(ctx),
-            NetworkMode::Client => self.tick_as_client(ctx),
+            NetworkMode::Server => self.tick_as_server(ctx)?,
+            NetworkMode::Client => self.tick_as_client(ctx)?,
         }
+
+        Ok(())
     }
 }
 
@@ -111,14 +113,14 @@ impl event::EventHandler<ggez::GameError> for Engine {
             }
 
             // Execute "each frame" code
-            self.tick(ctx);
+            self.tick(ctx)?;
 
             // Increment the frame counter
             self.local_state.increment_frame_i();
         }
 
         // Debug window
-        self.update_debug_gui(ctx);
+        self.update_debug_gui(ctx)?;
 
         self.graphics.tick(ctx);
 
@@ -175,7 +177,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
     ) -> Result<(), GameError> {
         if !self.local_state.debug_gui_hovered {
             let messages = self.collect_mouse_down(ctx, button, x, y);
-            self.react(messages);
+            self.react(messages)?;
         }
         GameResult::Ok(())
     }
@@ -189,7 +191,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
     ) -> Result<(), GameError> {
         if !self.local_state.debug_gui_hovered {
             let messages = self.collect_mouse_up(ctx, button, x, y);
-            self.react(messages);
+            self.react(messages)?;
         }
         GameResult::Ok(())
     }
@@ -203,13 +205,13 @@ impl event::EventHandler<ggez::GameError> for Engine {
         dy: f32,
     ) -> Result<(), GameError> {
         let messages = self.collect_mouse_motion(ctx, x, y, dx, dy);
-        self.react(messages);
+        self.react(messages)?;
         GameResult::Ok(())
     }
 
     fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) -> Result<(), GameError> {
         let messages = self.collect_mouse_wheel(ctx, x, y);
-        self.react(messages);
+        self.react(messages)?;
         GameResult::Ok(())
     }
 
@@ -220,13 +222,13 @@ impl event::EventHandler<ggez::GameError> for Engine {
         _repeated: bool,
     ) -> Result<(), GameError> {
         let messages = self.collect_key_pressed(ctx, input);
-        self.react(messages);
+        self.react(messages)?;
         GameResult::Ok(())
     }
 
     fn key_up_event(&mut self, ctx: &mut Context, input: KeyInput) -> Result<(), GameError> {
         let messages = self.collect_key_released(ctx, input);
-        self.react(messages);
+        self.react(messages)?;
         GameResult::Ok(())
     }
 }

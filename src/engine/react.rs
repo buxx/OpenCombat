@@ -1,3 +1,5 @@
+use ggez::GameResult;
+
 use crate::{
     message::{Message, NetworkMessage, PhysicsMessage, SideEffect},
     sync::StateCopy,
@@ -6,7 +8,7 @@ use crate::{
 use super::Engine;
 
 impl Engine {
-    pub fn react(&mut self, messages: Vec<Message>) -> Vec<SideEffect> {
+    pub fn react(&mut self, messages: Vec<Message>) -> GameResult<Vec<SideEffect>> {
         let mut side_effects = vec![];
 
         for message in messages {
@@ -29,7 +31,8 @@ impl Engine {
                 },
                 Message::Graphics(graphics_message) => {
                     //
-                    self.graphics.react(graphics_message)
+                    self.graphics
+                        .react(graphics_message, &self.map, &self.config)?;
                 }
                 Message::Physics(physics_message) => match physics_message {
                     PhysicsMessage::PushBulletFire(mut bullet_fire) => {
@@ -46,7 +49,7 @@ impl Engine {
             }
         }
 
-        side_effects
+        GameResult::Ok(side_effects)
     }
 
     fn send_complete_sync(&self) {

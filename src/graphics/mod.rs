@@ -9,6 +9,7 @@ use keyframe::{AnimationSequence, EasingFunction};
 use keyframe_derive::CanTween;
 
 use crate::{
+    config::Config,
     debug::DebugTerrain,
     entity::{soldier::Soldier, vehicle::Vehicle},
     graphics::explosion::TILE_HEIGHT as EXPLOSION_TILE_WIDTH,
@@ -60,18 +61,17 @@ pub struct Graphics {
 }
 
 impl Graphics {
-    pub fn new(ctx: &mut Context, map: &Map) -> GameResult<Graphics> {
+    pub fn new(ctx: &mut Context, map: &Map, config: &Config) -> GameResult<Graphics> {
         let soldiers_batch = create_batch(SOLDIERS_FILE_PATH, ctx)?;
         let vehicles_batch = create_batch(VEHICLES_FILE_PATH, ctx)?;
         let explosions_batch = create_batch(EXPLOSIONS_FILE_PATH, ctx)?;
         let ui_batch = create_ui_batch(ctx)?;
-        let ui_meshes_batch = create_ui_batch(ctx)?;
         let map_background_batch = map::get_map_background_batch(ctx, map)?;
         let map_interiors_batch = map::get_map_interiors_batch(ctx, map)?;
         let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
         let debug_terrain_batch = map::create_debug_terrain_batch(ctx, map)?;
         let debug_terrain_opacity_mesh_builder =
-            map::create_debug_terrain_opacity_mesh_builder(map)?;
+            map::create_debug_terrain_opacity_mesh_builder(map, config)?;
 
         Ok(Graphics {
             soldiers_batch,
@@ -304,7 +304,12 @@ impl Graphics {
         self.update(ctx);
     }
 
-    pub fn react(&mut self, message: GraphicsMessage) {
+    pub fn react(
+        &mut self,
+        message: GraphicsMessage,
+        map: &Map,
+        config: &Config,
+    ) -> GameResult<()> {
         match message {
             GraphicsMessage::PushExplosionAnimation(point, type_) => {
                 self.push_explosion_animation(point, type_)
@@ -312,7 +317,13 @@ impl Graphics {
             GraphicsMessage::RemoveExplosionAnimation(point) => {
                 self.remove_explosion_animation(point)
             }
+            GraphicsMessage::RecomputeDebugTerrainOpacity => {
+                self.debug_terrain_opacity_mesh_builder =
+                    map::create_debug_terrain_opacity_mesh_builder(map, config)?;
+            }
         }
+
+        GameResult::Ok(())
     }
 
     pub fn draw_debug_terrain(

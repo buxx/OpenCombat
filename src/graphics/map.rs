@@ -3,7 +3,7 @@ use ggez::{
     Context, GameResult,
 };
 
-use crate::{map::Map, types::*};
+use crate::{config::Config, map::Map, types::*};
 
 pub fn get_map_background_batch(ctx: &mut Context, map: &Map) -> GameResult<InstanceArray> {
     let map_background_image =
@@ -100,12 +100,15 @@ pub fn create_debug_terrain_batch(ctx: &mut Context, map: &Map) -> GameResult<In
     Ok(batch)
 }
 
-pub fn create_debug_terrain_opacity_mesh_builder(map: &Map) -> GameResult<MeshBuilder> {
+pub fn create_debug_terrain_opacity_mesh_builder(
+    map: &Map,
+    config: &Config,
+) -> GameResult<MeshBuilder> {
     let mut debug_terrain_opacity_mesh = MeshBuilder::new();
     for tile in map.terrain_tiles() {
         let dest_x = tile.x as f32 * tile.tile_width as f32;
         let dest_y = tile.y as f32 * tile.tile_height as f32;
-        let color_modifier = 0.6 * tile.opacity * 3.0;
+        let color_modifier = config.terrain_tile_opacity(&tile.type_);
         debug_terrain_opacity_mesh.rectangle(
             DrawMode::fill(),
             Rect::new(

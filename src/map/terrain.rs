@@ -22,7 +22,6 @@ pub struct TerrainTile {
     pub y: u32,
     pub tile_x: u32,
     pub tile_y: u32,
-    pub opacity: f32,
     pub pedestrian_cost: i32,
     pub block_vehicle: bool,
 }
@@ -42,7 +41,6 @@ impl TerrainTile {
         GameResult::Ok(match id {
             "ShortGrass" => Self {
                 type_: TileType::ShortGrass,
-                opacity: 0.0,
                 tile_width,
                 tile_height,
                 relative_tile_width,
@@ -56,7 +54,6 @@ impl TerrainTile {
             },
             "MiddleGrass" => Self {
                 type_: TileType::MiddleGrass,
-                opacity: 0.025,
                 tile_width,
                 tile_height,
                 relative_tile_width,
@@ -70,7 +67,6 @@ impl TerrainTile {
             },
             "HighGrass" => Self {
                 type_: TileType::HighGrass,
-                opacity: 0.05,
                 tile_width,
                 tile_height,
                 relative_tile_width,
@@ -84,7 +80,6 @@ impl TerrainTile {
             },
             "Dirt" => Self {
                 type_: TileType::Dirt,
-                opacity: 0.0,
                 tile_width,
                 tile_height,
                 relative_tile_width,
@@ -98,7 +93,6 @@ impl TerrainTile {
             },
             "Mud" => Self {
                 type_: TileType::Mud,
-                opacity: 0.02,
                 tile_width,
                 tile_height,
                 relative_tile_width,
@@ -112,7 +106,6 @@ impl TerrainTile {
             },
             "Concrete" => Self {
                 type_: TileType::Concrete,
-                opacity: 0.0,
                 tile_width,
                 tile_height,
                 relative_tile_width,
@@ -126,7 +119,6 @@ impl TerrainTile {
             },
             "BrickWall" => Self {
                 type_: TileType::BrickWall,
-                opacity: 3.0,
                 tile_width,
                 tile_height,
                 relative_tile_width,

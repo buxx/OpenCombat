@@ -40,6 +40,7 @@ pub enum PhysicsMessage {
 pub enum GraphicsMessage {
     PushExplosionAnimation(WorldPoint, ExplosiveType),
     RemoveExplosionAnimation(WorldPoint),
+    RecomputeDebugTerrainOpacity,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

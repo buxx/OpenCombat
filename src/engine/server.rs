@@ -1,12 +1,12 @@
-use ggez::Context;
+use ggez::{Context, GameResult};
 
 use super::Engine;
 
 impl Engine {
-    pub fn tick_as_server(&mut self, ctx: &mut Context) {
+    pub fn tick_as_server(&mut self, ctx: &mut Context) -> GameResult<()> {
         // Grab and apply messages from clients
-        self.react(self.sync());
-        self.react(self.deal_with_sync_errors_as_server());
+        self.react(self.sync())?;
+        self.react(self.deal_with_sync_errors_as_server())?;
 
         let mut messages = vec![];
         messages.extend(self.tick_soldiers());
@@ -18,8 +18,9 @@ impl Engine {
         messages.extend(self.ui_events(ctx));
         self.dispatch_as_server(&messages);
 
-        let side_effects = self.react(messages);
+        let side_effects = self.react(messages)?;
         self.react_side_effects(side_effects, ctx);
-        // self.local_state.remove_finished_physics();
+
+        GameResult::Ok(())
     }
 }

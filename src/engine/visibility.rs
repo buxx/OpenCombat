@@ -83,6 +83,7 @@ impl Engine {
                 (soldier.uuid(), other_soldier.uuid()),
                 Visibility::between_soldiers(
                     self.local_state.get_frame_i(),
+                    &self.config,
                     soldier,
                     other_soldier,
                     &self.map,
@@ -118,6 +119,7 @@ impl Engine {
             .any(|s| {
                 Visibility::between_soldier_and_point(
                     self.local_state.get_frame_i(),
+                    &self.config,
                     s,
                     point,
                     &self.map,
@@ -129,6 +131,7 @@ impl Engine {
     pub fn point_is_visible_by_soldier(&self, soldier: &Soldier, point: &WorldPoint) -> bool {
         Visibility::between_soldier_and_point(
             self.local_state.get_frame_i(),
+            &self.config,
             soldier,
             point,
             &self.map,

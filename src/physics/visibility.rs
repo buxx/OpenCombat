@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     behavior::Behavior,
-    config::{VISIBILITY_FIRSTS, VISIBILITY_PIXEL_STEPS},
+    config::{Config, VISIBILITY_FIRSTS, VISIBILITY_PIXEL_STEPS},
     entity::soldier::Soldier,
     map::Map,
     types::{GridPath, Meters, SoldierIndex, WorldPoint},
@@ -68,6 +68,7 @@ pub struct Visibility {
 impl Visibility {
     pub fn between_soldiers(
         frame_i: u64,
+        config: &Config,
         from_soldier: &Soldier,
         to_soldier: &Soldier,
         map: &Map,
@@ -75,37 +76,20 @@ impl Visibility {
         let from_point = from_soldier.get_world_point();
         let to_point = to_soldier.get_world_point();
 
-        let by_behavior_modifier: f32 = match to_soldier.behavior() {
-            Behavior::Idle => 0.5,
-            // Behavior::EngageSoldier(_) => 0.5,
-            Behavior::Hide(_) => -0.3,
-            Behavior::Defend(_) => -0.3,
-            Behavior::MoveTo(_) => 1.0,
-            Behavior::MoveFastTo(_) => 2.0,
-            Behavior::SneakTo(_) => -0.3,
-            // TODO : What about vehicle ?
-            Behavior::DriveTo(_) => 0.5,
-            Behavior::RotateTo(_) => 0.5,
-            Behavior::SuppressFire(_) => 0.5,
-            Behavior::EngageSoldier(_) => 0.5,
-            // ItemBehavior::Dead => 0.0,
-            // ItemBehavior::Unconscious => 0.0,
-            // ItemBehavior::Standing => 0.5,
-            // ItemBehavior::HideTo(_, _) => -0.3,
-            // ItemBehavior::Hide => -0.5,
-            // ItemBehavior::MoveTo(_, _) => 1.0,
-            // ItemBehavior::MoveFastTo(_, _) => 2.0,
-            // ItemBehavior::EngageSceneItem(_, _) => 0.0,
-            // ItemBehavior::EngageGridPoint(_) => 0.0,
-            Behavior::Dead => 1000.0, // Always visible
-            Behavior::Unconscious => 1000.0,
-        };
+        let by_behavior_modifier: f32 = config.visibility_behavior_modifier(to_soldier.behavior());
 
         let (mut to_soldier_item_opacity, opacity_segments, path_final_opacity) =
-            Visibility::_between_points(frame_i, &from_point, &to_point, map, VISIBILITY_FIRSTS);
+            Visibility::_between_points(
+                frame_i,
+                config,
+                &from_point,
+                &to_point,
+                map,
+                config.visibility_firsts,
+            );
 
         to_soldier_item_opacity = to_soldier_item_opacity - by_behavior_modifier;
-        let visible = to_soldier_item_opacity < 0.5;
+        let visible = to_soldier_item_opacity < config.visible_starts_at;
 
         let distance = meters_between_scene_points(
             &from_soldier.get_world_point(),
@@ -126,6 +110,7 @@ impl Visibility {
 
     pub fn between_soldier_and_point(
         frame_i: u64,
+        config: &Config,
         from_soldier: &Soldier,
         to_point: &WorldPoint,
         map: &Map,
@@ -133,7 +118,14 @@ impl Visibility {
         let from_point = from_soldier.get_world_point();
 
         let (to_soldier_item_opacity, opacity_segments, path_final_opacity) =
-            Visibility::_between_points(frame_i, &from_point, &to_point, map, VISIBILITY_FIRSTS);
+            Visibility::_between_points(
+                frame_i,
+                config,
+                &from_point,
+                &to_point,
+                map,
+                VISIBILITY_FIRSTS,
+            );
 
         let visible = to_soldier_item_opacity < 0.5;
         let distance = meters_between_scene_points(&from_point, &to_point);
@@ -153,6 +145,7 @@ impl Visibility {
     // TODO : Optimize performances here
     fn _between_points(
         _frame_i: u64,
+        config: &Config,
         from_point: &WorldPoint,
         to_point: &WorldPoint,
         map: &Map,
@@ -163,6 +156,7 @@ impl Visibility {
         let mut path_final_opacity: f32 = 0.0;
         let mut to_opacity: f32 = 0.0;
         let _visible_by_bullet_fire = false;
+        // FIXME BS NOW : fire remove firsts tiles
         // let visible_by_bullet_fire =
         //     if let Some(last_bullet_fire_frame_i) = to_scene_item.last_bullet_fire {
         //         frame_i - last_bullet_fire_frame_i < 240
@@ -207,7 +201,7 @@ impl Visibility {
                 let grid_point_opacity = if grid_path.len() <= exclude_firsts {
                     0.0
                 } else {
-                    terrain_tile.opacity
+                    config.terrain_tile_opacity(&terrain_tile.type_)
                 };
                 path_final_opacity += grid_point_opacity;
                 to_opacity += grid_point_opacity;

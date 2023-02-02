@@ -71,7 +71,7 @@ fn main() -> GameResult {
     let (mut context, event_loop) = context_builder.build()?;
 
     let map = map::reader::Reader::new("map1")?.build()?;
-    let graphics = graphics::Graphics::new(&mut context, &map)?;
+    let graphics = graphics::Graphics::new(&mut context, &map, &config)?;
     let shared_state = match config.network_mode() {
         NetworkMode::Server => {
             let (soldiers, vehicles, boards) = hardcode::shared_state_fixtures();

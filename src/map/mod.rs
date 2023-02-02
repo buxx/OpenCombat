@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use self::{decor::Decor, interior::Interior, terrain::TerrainTile};
 use crate::{
-    config::COVER_DISTANCE,
+    config::{Config, COVER_DISTANCE},
     physics::path::{Direction, PathMode},
     types::{GridPoint, VehicleSize, WorldPoint},
     utils::grid_points_for_square,
@@ -186,6 +186,7 @@ impl Map {
 }
 
 pub fn find_cover_grid_point(
+    config: &Config,
     from_grid_point: &GridPoint,
     map: &Map,
     exclude_grid_points: &Vec<GridPoint>,
@@ -207,7 +208,12 @@ pub fn find_cover_grid_point(
             tiles.push((grid_point, tile))
         }
     }
-    tiles.sort_by(|(_, tile_a), (_, tile_b)| tile_a.opacity.partial_cmp(&tile_b.opacity).unwrap());
+    tiles.sort_by(|(_, tile_a), (_, tile_b)| {
+        config
+            .terrain_tile_opacity(&tile_a.type_)
+            .partial_cmp(&config.terrain_tile_opacity(&tile_b.type_))
+            .unwrap()
+    });
 
     for (grid_point, _) in tiles.iter().rev() {
         if !exclude_grid_points.contains(grid_point) {

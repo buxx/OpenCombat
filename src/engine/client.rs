@@ -1,11 +1,11 @@
-use ggez::Context;
+use ggez::{Context, GameResult};
 
 use crate::message::*;
 
 use super::Engine;
 
 impl Engine {
-    pub fn tick_as_client(&mut self, ctx: &mut Context) {
+    pub fn tick_as_client(&mut self, ctx: &mut Context) -> GameResult<()> {
         // Client require a complete sync as first
         if self.local_state.is_first_frame() {
             self.network
@@ -13,8 +13,8 @@ impl Engine {
         }
 
         // Grab and apply messages from server
-        self.react(self.sync());
-        self.react(self.deal_with_sync_errors_as_client());
+        self.react(self.sync())?;
+        self.react(self.deal_with_sync_errors_as_client())?;
 
         // Collect player activity and react according to
         let mut messages = vec![];
@@ -24,8 +24,9 @@ impl Engine {
         messages.extend(self.tick_physics());
         self.dispatch_as_client(&messages);
 
-        let side_effects = self.react(messages);
+        let side_effects = self.react(messages)?;
         self.react_side_effects(side_effects, ctx);
-        // self.local_state.remove_finished_physics();
+
+        Ok(())
     }
 }

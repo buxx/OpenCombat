@@ -25,9 +25,12 @@ impl Engine {
         {
             let soldier = self.shared_state.soldier(member_id);
             let grid_point = self.grid_point_from_world_point(formation_position);
-            if let Some((cover_grid_point, debug_grid_points)) =
-                find_cover_grid_point(&grid_point, &self.map, &already_used_cover_grid_points)
-            {
+            if let Some((cover_grid_point, debug_grid_points)) = find_cover_grid_point(
+                &self.config,
+                &grid_point,
+                &self.map,
+                &already_used_cover_grid_points,
+            ) {
                 if self.local_state.debug_formation_positions {
                     for debug_grid_point in debug_grid_points.iter() {
                         debug_points.push(DebugPoint {

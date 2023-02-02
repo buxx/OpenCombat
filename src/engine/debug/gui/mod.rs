@@ -1,8 +1,8 @@
 use ggez::{
     graphics::{Canvas, DrawParam},
-    Context,
+    Context, GameResult,
 };
-use ggez_egui::egui;
+use ggez_egui::egui::{self, ScrollArea};
 use glam::Vec2;
 
 use crate::{
@@ -21,6 +21,7 @@ pub mod meta;
 pub mod soldiers;
 pub mod state;
 pub mod terrain;
+pub mod textures;
 
 #[derive(PartialEq, Eq)]
 pub enum Panel {
@@ -29,8 +30,9 @@ pub enum Panel {
     SharedState,
     LocalState,
     GlobalConfig,
-    TerrainConfig,
+    VisibilityConfig,
     FightConfig,
+    Textures,
 }
 
 impl Default for Panel {
@@ -40,10 +42,11 @@ impl Default for Panel {
 }
 
 impl Engine {
-    pub fn update_debug_gui(&mut self, ctx: &mut Context) {
+    pub fn update_debug_gui(&mut self, ctx: &mut Context) -> GameResult<()> {
         let messages = self.debug_gui(ctx);
-        let side_effects = self.react(messages);
+        let side_effects = self.react(messages)?;
         self.react_side_effects(side_effects, ctx);
+        Ok(())
     }
 
     pub fn debug_gui(&mut self, ctx: &mut Context) -> Vec<Message> {
@@ -61,15 +64,16 @@ impl Engine {
         let mut messages = vec![];
 
         egui::Window::new("Debug").show(&egui_ctx, |ui| {
-            messages.extend(self.debug_gui_header(ctx, &egui_ctx, ui));
-            messages.extend(self.debug_gui_body(ctx, &egui_ctx, ui));
+            ScrollArea::vertical().show(ui, |ui| {
+                messages.extend(self.debug_gui_header(ctx, &egui_ctx, ui));
+                messages.extend(self.debug_gui_body(ctx, &egui_ctx, ui));
+            })
         });
 
         messages.push(Message::LocalState(LocalStateMessage::SetDebugGuiHovered(
             egui_ctx.is_pointer_over_area(),
         )));
 
-        // FIXME BS NOW : If debug window not displayed, SetDebugGuiHovered(false)
         egui_backend(ctx).update(ctx);
         messages
     }
