@@ -44,7 +44,7 @@ impl Default for Panel {
 impl Engine {
     pub fn update_debug_gui(&mut self, ctx: &mut Context) -> GameResult<()> {
         let messages = self.debug_gui(ctx);
-        let side_effects = self.react(messages)?;
+        let side_effects = self.react(messages, ctx)?;
         self.react_side_effects(side_effects, ctx);
         Ok(())
     }

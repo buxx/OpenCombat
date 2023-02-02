@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fs};
 
 use ggez::{
     graphics::{self, Canvas, DrawParam, Image, InstanceArray, Mesh, MeshBuilder, Rect},
-    Context, GameResult,
+    Context, GameError, GameResult,
 };
 use glam::Vec2;
 use keyframe::{AnimationSequence, EasingFunction};
@@ -22,6 +22,7 @@ use crate::{
     message::GraphicsMessage,
     types::*,
     ui::menu::squad_menu_sprite_info,
+    RESOURCE_PATH,
 };
 
 use self::vehicle::VehicleGraphicInfos;
@@ -32,18 +33,39 @@ mod map;
 pub mod soldier;
 pub mod vehicle;
 
-const SOLDIERS_FILE_PATH: &'static str = "/soldiers.png";
-const VEHICLES_FILE_PATH: &'static str = "/vehicles.png";
-const EXPLOSIONS_FILE_PATH: &'static str = "/explosions.png";
-const UI_FILE_PATH: &'static str = "/ui.png";
+pub enum AssetsType {
+    Soldiers,
+    Vehicles,
+    Explosions,
+    Ui,
+}
+
+impl AssetsType {
+    pub fn prefix(&self) -> &str {
+        match self {
+            AssetsType::Soldiers => "/soldiers",
+            AssetsType::Vehicles => "/vehicles",
+            AssetsType::Explosions => "/explosions",
+            AssetsType::Ui => "/ui",
+        }
+    }
+}
 
 pub struct Graphics {
     // Sprites batches
     soldiers_batch: InstanceArray,
+    soldiers_files: Vec<String>,
+    soldiers_file: String,
     vehicles_batch: InstanceArray,
+    vehicles_files: Vec<String>,
+    vehicles_file: String,
     explosions_batch: InstanceArray,
+    explosions_files: Vec<String>,
+    explosions_file: String,
     // Squad menu, etc
     ui_batch: InstanceArray,
+    ui_files: Vec<String>,
+    ui_file: String,
     // Map background sprite batch
     map_background_batch: InstanceArray,
     // Map interiors sprite batch
@@ -62,10 +84,22 @@ pub struct Graphics {
 
 impl Graphics {
     pub fn new(ctx: &mut Context, map: &Map, config: &Config) -> GameResult<Graphics> {
-        let soldiers_batch = create_batch(SOLDIERS_FILE_PATH, ctx)?;
-        let vehicles_batch = create_batch(VEHICLES_FILE_PATH, ctx)?;
-        let explosions_batch = create_batch(EXPLOSIONS_FILE_PATH, ctx)?;
-        let ui_batch = create_ui_batch(ctx)?;
+        let soldiers_file = AssetsType::Soldiers.prefix().to_string() + ".png";
+        let soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
+        let soldiers_batch = create_batch(&soldiers_file, ctx)?;
+
+        let vehicles_file = AssetsType::Vehicles.prefix().to_string() + ".png";
+        let vehicles_files = collect_resources_by_prefix(AssetsType::Vehicles.prefix())?;
+        let vehicles_batch = create_batch(&vehicles_file, ctx)?;
+
+        let explosions_file = AssetsType::Explosions.prefix().to_string() + ".png";
+        let explosions_files = collect_resources_by_prefix(AssetsType::Explosions.prefix())?;
+        let explosions_batch = create_batch(&explosions_file, ctx)?;
+
+        let ui_file = AssetsType::Ui.prefix().to_string() + ".png";
+        let ui_files = collect_resources_by_prefix(AssetsType::Ui.prefix())?;
+        let ui_batch = create_batch(&ui_file, ctx)?;
+
         let map_background_batch = map::get_map_background_batch(ctx, map)?;
         let map_interiors_batch = map::get_map_interiors_batch(ctx, map)?;
         let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
@@ -75,9 +109,17 @@ impl Graphics {
 
         Ok(Graphics {
             soldiers_batch,
+            soldiers_files,
+            soldiers_file,
             vehicles_batch,
+            vehicles_files,
+            vehicles_file,
             explosions_batch,
+            explosions_files,
+            explosions_file,
             ui_batch,
+            ui_files,
+            ui_file,
             map_background_batch,
             map_interiors_batch,
             map_decor_batches,
@@ -112,6 +154,38 @@ impl Graphics {
         for sprite in sprites {
             self.append_ui_batch(sprite)
         }
+    }
+
+    pub fn soldiers_file_mut(&mut self) -> &mut String {
+        &mut self.soldiers_file
+    }
+
+    pub fn soldiers_files(&self) -> &Vec<String> {
+        &self.soldiers_files
+    }
+
+    pub fn vehicles_file_mut(&mut self) -> &mut String {
+        &mut self.vehicles_file
+    }
+
+    pub fn vehicles_files(&self) -> &Vec<String> {
+        &self.vehicles_files
+    }
+
+    pub fn explosions_file_mut(&mut self) -> &mut String {
+        &mut self.explosions_file
+    }
+
+    pub fn explosions_files(&self) -> &Vec<String> {
+        &self.explosions_files
+    }
+
+    pub fn ui_file_mut(&mut self) -> &mut String {
+        &mut self.ui_file
+    }
+
+    pub fn ui_files(&self) -> &Vec<String> {
+        &self.ui_files
     }
 
     pub fn soldier_sprites(
@@ -309,6 +383,7 @@ impl Graphics {
         message: GraphicsMessage,
         map: &Map,
         config: &Config,
+        ctx: &mut Context,
     ) -> GameResult<()> {
         match message {
             GraphicsMessage::PushExplosionAnimation(point, type_) => {
@@ -320,6 +395,18 @@ impl Graphics {
             GraphicsMessage::RecomputeDebugTerrainOpacity => {
                 self.debug_terrain_opacity_mesh_builder =
                     map::create_debug_terrain_opacity_mesh_builder(map, config)?;
+            }
+            GraphicsMessage::ReloadSoldiersAsset => {
+                self.soldiers_batch = create_batch(&self.soldiers_file, ctx)?;
+            }
+            GraphicsMessage::ReloadVehiclesAsset => {
+                self.vehicles_batch = create_batch(&self.vehicles_file, ctx)?;
+            }
+            GraphicsMessage::ReloadExplosionsAsset => {
+                self.explosions_batch = create_batch(&self.explosions_file, ctx)?;
+            }
+            GraphicsMessage::ReloadUiAsset => {
+                self.ui_batch = create_batch(&self.ui_file, ctx)?;
             }
         }
 
@@ -348,6 +435,25 @@ impl Graphics {
 
         GameResult::Ok(())
     }
+
+    pub fn reload_map(&mut self, ctx: &mut Context, map: &Map) -> GameResult<()> {
+        self.map_background_batch = map::get_map_background_batch(ctx, map)?;
+        Ok(())
+    }
+
+    pub fn update_resources(&mut self) -> GameResult<()> {
+        let soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
+        let vehicles_files = collect_resources_by_prefix(AssetsType::Vehicles.prefix())?;
+        let explosions_files = collect_resources_by_prefix(AssetsType::Explosions.prefix())?;
+        let ui_files = collect_resources_by_prefix(AssetsType::Ui.prefix())?;
+
+        self.soldiers_files = soldiers_files;
+        self.vehicles_files = vehicles_files;
+        self.explosions_files = explosions_files;
+        self.ui_files = ui_files;
+
+        Ok(())
+    }
 }
 
 pub fn create_batch(file_path: &str, ctx: &mut Context) -> GameResult<InstanceArray> {
@@ -356,10 +462,53 @@ pub fn create_batch(file_path: &str, ctx: &mut Context) -> GameResult<InstanceAr
     Ok(batch)
 }
 
-pub fn create_ui_batch(ctx: &mut Context) -> GameResult<InstanceArray> {
-    let image = Image::from_path(ctx, UI_FILE_PATH)?;
-    let ui_batch = InstanceArray::new(ctx, image);
-    Ok(ui_batch)
+pub fn collect_resources_by_prefix(prefix: &str) -> GameResult<Vec<String>> {
+    let mut resources = vec![];
+    let prefix = match prefix.strip_prefix("/") {
+        Some(prefix) => prefix,
+        None => {
+            return GameResult::Err(GameError::ResourceLoadError(format!(
+                "Given prefix must start with '/' but is not : {}",
+                prefix
+            )))
+        }
+    };
+
+    for path in match fs::read_dir(RESOURCE_PATH) {
+        Ok(paths) => paths,
+        Err(error) => {
+            return GameResult::Err(GameError::ResourceLoadError(format!(
+                "Error when trying to read resources folder : {}",
+                error
+            )))
+        }
+    } {
+        match path {
+            Ok(path) => {
+                let file_name = path.file_name();
+                let file_name = match file_name.to_str() {
+                    Some(file_name) => file_name,
+                    None => {
+                        return GameResult::Err(GameError::ResourceLoadError(format!(
+                            "Error when trying to read resource : {:?}",
+                            file_name
+                        )))
+                    }
+                };
+                if file_name.starts_with(prefix) && file_name.ends_with(".png") {
+                    resources.push("/".to_string() + file_name)
+                }
+            }
+            Err(error) => {
+                return GameResult::Err(GameError::ResourceLoadError(format!(
+                    "Error when trying to read path of resources folder : {}",
+                    error
+                )))
+            }
+        }
+    }
+
+    GameResult::Ok(resources)
 }
 
 #[derive(CanTween, Clone, Copy, Debug)]

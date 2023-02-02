@@ -3,6 +3,7 @@ use ggez::graphics::{self, Canvas, Color, MeshBuilder};
 use ggez::input::keyboard::KeyInput;
 use ggez::{event, GameError};
 use ggez::{Context, GameResult};
+use inotify::{Inotify, WatchMask};
 
 use crate::audio::player::Player;
 use crate::config::Config;
@@ -11,7 +12,7 @@ use crate::map::Map;
 use crate::network::Network;
 use crate::state::local::LocalState;
 use crate::state::shared::SharedState;
-use crate::NetworkMode;
+use crate::{NetworkMode, RESOURCE_PATH};
 
 use self::debug::gui::state::DebugGuiState;
 mod animate;
@@ -29,6 +30,7 @@ mod network;
 mod order;
 mod physics;
 mod react;
+mod resources;
 mod server;
 mod side;
 mod soldier;
@@ -50,6 +52,8 @@ pub struct Engine {
     local_state: LocalState,
     // Debug gui
     debug_gui: DebugGuiState,
+    resources_watcher: Inotify,
+    map_watcher: Inotify,
 }
 
 impl Engine {
@@ -61,6 +65,50 @@ impl Engine {
         map: Map,
     ) -> GameResult<Engine> {
         let network = Network::new(config.clone())?;
+
+        let mut resources_watcher = match Inotify::init() {
+            Ok(resources_watcher) => resources_watcher,
+            Err(error) => {
+                return GameResult::Err(GameError::ResourceLoadError(format!(
+                    "Error when initializing inotify resources watcher : {}",
+                    error
+                )))
+            }
+        };
+
+        let mut map_watcher = match Inotify::init() {
+            Ok(map_watcher) => map_watcher,
+            Err(error) => {
+                return GameResult::Err(GameError::ResourceLoadError(format!(
+                    "Error when initializing inotify for map watcher : {}",
+                    error
+                )))
+            }
+        };
+
+        match resources_watcher.add_watch(RESOURCE_PATH, WatchMask::ALL_EVENTS) {
+            Err(error) => {
+                return GameResult::Err(GameError::ResourceLoadError(format!(
+                    "Error when configure inotify for resources watcher : {}",
+                    error
+                )));
+            }
+            _ => {}
+        };
+
+        match map_watcher.add_watch(
+            RESOURCE_PATH.to_string() + map.background_image_path().display().to_string().as_str(),
+            WatchMask::MODIFY,
+        ) {
+            Err(error) => {
+                return GameResult::Err(GameError::ResourceLoadError(format!(
+                    "Error when configure inotify for map watcher : {}",
+                    error
+                )));
+            }
+            _ => {}
+        };
+
         let engine = Engine {
             config,
             network,
@@ -69,7 +117,9 @@ impl Engine {
             map,
             shared_state,
             local_state,
-            debug_gui: DebugGuiState::default(),
+            debug_gui: DebugGuiState::new()?,
+            resources_watcher,
+            map_watcher,
         };
         Ok(engine)
     }
@@ -119,8 +169,8 @@ impl event::EventHandler<ggez::GameError> for Engine {
             self.local_state.increment_frame_i();
         }
 
-        // Debug window
         self.update_debug_gui(ctx)?;
+        self.update_resources(ctx)?;
 
         self.graphics.tick(ctx);
 
@@ -177,7 +227,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
     ) -> Result<(), GameError> {
         if !self.local_state.debug_gui_hovered {
             let messages = self.collect_mouse_down(ctx, button, x, y);
-            self.react(messages)?;
+            self.react(messages, ctx)?;
         }
         GameResult::Ok(())
     }
@@ -191,7 +241,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
     ) -> Result<(), GameError> {
         if !self.local_state.debug_gui_hovered {
             let messages = self.collect_mouse_up(ctx, button, x, y);
-            self.react(messages)?;
+            self.react(messages, ctx)?;
         }
         GameResult::Ok(())
     }
@@ -205,13 +255,13 @@ impl event::EventHandler<ggez::GameError> for Engine {
         dy: f32,
     ) -> Result<(), GameError> {
         let messages = self.collect_mouse_motion(ctx, x, y, dx, dy);
-        self.react(messages)?;
+        self.react(messages, ctx)?;
         GameResult::Ok(())
     }
 
     fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) -> Result<(), GameError> {
         let messages = self.collect_mouse_wheel(ctx, x, y);
-        self.react(messages)?;
+        self.react(messages, ctx)?;
         GameResult::Ok(())
     }
 
@@ -222,13 +272,13 @@ impl event::EventHandler<ggez::GameError> for Engine {
         _repeated: bool,
     ) -> Result<(), GameError> {
         let messages = self.collect_key_pressed(ctx, input);
-        self.react(messages)?;
+        self.react(messages, ctx)?;
         GameResult::Ok(())
     }
 
     fn key_up_event(&mut self, ctx: &mut Context, input: KeyInput) -> Result<(), GameError> {
         let messages = self.collect_key_released(ctx, input);
-        self.react(messages)?;
+        self.react(messages, ctx)?;
         GameResult::Ok(())
     }
 }

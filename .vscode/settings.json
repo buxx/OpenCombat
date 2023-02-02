@@ -10,6 +10,8 @@
                 "ggez",
                 "gids",
                 "incapacited",
+                "inotify",
+                "Inotify",
                 "keymod",
                 "keymods",
                 "Mosin",

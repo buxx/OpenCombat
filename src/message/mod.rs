@@ -41,6 +41,10 @@ pub enum GraphicsMessage {
     PushExplosionAnimation(WorldPoint, ExplosiveType),
     RemoveExplosionAnimation(WorldPoint),
     RecomputeDebugTerrainOpacity,
+    ReloadSoldiersAsset,
+    ReloadVehiclesAsset,
+    ReloadExplosionsAsset,
+    ReloadUiAsset,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

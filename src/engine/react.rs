@@ -1,4 +1,4 @@
-use ggez::GameResult;
+use ggez::{Context, GameResult};
 
 use crate::{
     message::{Message, NetworkMessage, PhysicsMessage, SideEffect},
@@ -8,7 +8,11 @@ use crate::{
 use super::Engine;
 
 impl Engine {
-    pub fn react(&mut self, messages: Vec<Message>) -> GameResult<Vec<SideEffect>> {
+    pub fn react(
+        &mut self,
+        messages: Vec<Message>,
+        ctx: &mut Context,
+    ) -> GameResult<Vec<SideEffect>> {
         let mut side_effects = vec![];
 
         for message in messages {
@@ -32,7 +36,7 @@ impl Engine {
                 Message::Graphics(graphics_message) => {
                     //
                     self.graphics
-                        .react(graphics_message, &self.map, &self.config)?;
+                        .react(graphics_message, &self.map, &self.config, ctx)?;
                 }
                 Message::Physics(physics_message) => match physics_message {
                     PhysicsMessage::PushBulletFire(mut bullet_fire) => {
