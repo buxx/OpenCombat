@@ -78,12 +78,6 @@ impl Feeling {
         }
     }
 
-    pub fn value(&self) -> u32 {
-        match self {
-            Feeling::UnderFire(value) => *value,
-        }
-    }
-
     pub fn value_mut(&mut self) -> &mut u32 {
         match self {
             Feeling::UnderFire(value) => value,

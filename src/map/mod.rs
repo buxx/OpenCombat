@@ -15,7 +15,7 @@ pub mod reader;
 pub mod terrain;
 
 pub struct Map {
-    name: String,
+    _name: String,
     background_image_path: PathBuf,
     interiors_image_path: PathBuf,
     terrain_image_path: PathBuf,
@@ -43,7 +43,7 @@ impl Map {
         decor: Decor,
     ) -> Self {
         Self {
-            name,
+            _name: name,
             background_image_path,
             interiors_image_path,
             terrain_image_path,
@@ -55,10 +55,6 @@ impl Map {
             tile_height,
             decor,
         }
-    }
-
-    pub fn name(&self) -> &str {
-        &self.name
     }
 
     pub fn background_image_path(&self) -> &PathBuf {

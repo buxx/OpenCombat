@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
-use ggez::{Context, GameError, GameResult};
+use ggez::{GameError, GameResult};
 use tiled::{
     FiniteTileLayer, Image, ImageLayer, Layer, LayerType, Loader, Map as TiledMap, ObjectLayer,
     TileLayer, Tileset,

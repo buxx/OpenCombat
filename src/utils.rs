@@ -169,67 +169,6 @@ pub struct DebugPoint {
     pub point: WorldPoint,
 }
 
-pub fn rotated_rect<T: Xy>(rect: (&T, f32, f32), rotation: (Angle, Offset)) -> (T, T, T, T) {
-    let (origin_top_left, origin_top_right, origin_bottom_right, origin_bottom_left) =
-        rect_to_points(rect);
-
-    let angle = rotation.0;
-    let reference = origin_top_left.apply(rotation.1.x, rotation.1.y);
-    let after_top_left = apply_angle_on_point(&origin_top_left, &reference, &angle);
-    let after_top_right = apply_angle_on_point(&origin_top_right, &reference, &angle);
-    let after_bottom_right = apply_angle_on_point(&origin_bottom_right, &reference, &angle);
-    let after_bottom_left = apply_angle_on_point(&origin_bottom_left, &reference, &angle);
-
-    (
-        after_top_left,
-        after_top_right,
-        after_bottom_right,
-        after_bottom_left,
-    )
-}
-
-pub fn rotated_rect_draw_points<T: Xy>(rect: (&T, f32, f32), rotation: (Angle, Offset)) -> Vec<T> {
-    let (after_top_left, after_top_right, after_bottom_right, after_bottom_left) =
-        rotated_rect(rect, rotation);
-
-    vec![
-        after_top_left.apply(0., 0.),
-        after_top_right,
-        after_bottom_right,
-        after_bottom_left,
-        after_top_left,
-    ]
-}
-
-pub fn rect_to_points<T: Xy>(rect: (&T, f32, f32)) -> (T, T, T, T) {
-    (
-        rect.0.apply(0., 0.),
-        rect.0.apply(rect.1, 0.),
-        rect.0.apply(rect.1, rect.2),
-        rect.0.apply(0., rect.2),
-    )
-}
-
-pub fn rect_contains(rect: &Rect, rotation: (Angle, Offset), point: Vec2) -> bool {
-    let rect_orig = Point::new(rect.x, rect.y);
-    let (after_top_left, after_top_right, after_bottom_right, after_bottom_left) =
-        rotated_rect((&rect_orig, rect.w, rect.h), (rotation.0, rotation.1));
-
-    let triangle1 = Triangle::new(
-        coord! { x: after_top_left.x, y: after_top_left.y },
-        coord! { x: after_top_right.x, y: after_top_right.y },
-        coord! { x: after_bottom_left.x, y: after_bottom_left.y },
-    );
-    let triangle2 = Triangle::new(
-        coord! { x: after_bottom_right.x, y: after_bottom_right.y },
-        coord! { x: after_bottom_left.x, y: after_bottom_left.y },
-        coord! { x: after_top_right.x, y: after_top_right.y },
-    );
-
-    triangle1.contains(&coord! { x: point.x, y: point.y })
-        || triangle2.contains(&coord! { x: point.x, y: point.y })
-}
-
 pub struct WorldShape {
     pub top_left: WorldPoint,
     pub top_right: WorldPoint,

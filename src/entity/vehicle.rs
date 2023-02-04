@@ -21,7 +21,7 @@ impl VehicleType {
         }
     }
 
-    pub fn main_turret_rotation_speed(&self) -> Angle {
+    pub fn _main_turret_rotation_speed(&self) -> Angle {
         match self {
             VehicleType::T26 => Angle(0.00255),
         }
@@ -102,7 +102,7 @@ impl Vehicle {
         self.chassis_orientation = orientation
     }
 
-    pub fn set_main_turret_relative_orientation(&mut self, orientation: Angle) {
+    pub fn _set_main_turret_relative_orientation(&mut self, orientation: Angle) {
         self.main_turret_relative_orientation = orientation
     }
 

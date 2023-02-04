@@ -132,28 +132,12 @@ impl Soldier {
         &self.main_weapon
     }
 
-    pub fn main_weapon_mut(&mut self) -> &mut Option<Weapon> {
-        &mut self.main_weapon
-    }
-
     pub fn magazines(&self) -> &Vec<Magazine> {
         &self.magazines
     }
 
-    pub fn magazines_mut(&mut self) -> &mut Vec<Magazine> {
-        &mut self.magazines
-    }
-
-    pub fn alive(&self) -> bool {
-        self.alive
-    }
-
     pub fn alive_mut(&mut self) -> &mut bool {
         &mut self.alive
-    }
-
-    pub fn unconscious(&self) -> bool {
-        self.unconscious
     }
 
     pub fn unconscious_mut(&mut self) -> &mut bool {

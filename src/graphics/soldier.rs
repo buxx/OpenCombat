@@ -9,7 +9,6 @@ pub const TILE_HEIGHT: usize = 32;
 pub enum SoldierAnimationType {
     Idle,
     Walking,
-    Running,
     Crawling,
     LyingDown,
     DeadWithSideBlood,
@@ -35,7 +34,6 @@ impl Sprite for SoldierAnimationType {
         let row = match self {
             SoldierAnimationType::Idle => 0,
             SoldierAnimationType::Walking => 1,
-            SoldierAnimationType::Running => 1,
             SoldierAnimationType::Crawling => 2,
             SoldierAnimationType::LyingDown => 3,
             SoldierAnimationType::DeadWithSideBlood => 4,
@@ -48,7 +46,6 @@ impl Sprite for SoldierAnimationType {
         match self {
             SoldierAnimationType::Idle => 2,
             SoldierAnimationType::Walking => 8,
-            SoldierAnimationType::Running => 2,
             SoldierAnimationType::Crawling => 8,
             SoldierAnimationType::LyingDown => 2,
             SoldierAnimationType::DeadWithSideBlood => 2,
@@ -67,7 +64,6 @@ impl Sprite for SoldierAnimationType {
         match self {
             SoldierAnimationType::Idle => 1.,
             SoldierAnimationType::Walking => 4.,
-            SoldierAnimationType::Running => 2.,
             SoldierAnimationType::Crawling => 4.,
             SoldierAnimationType::LyingDown => 1.,
             SoldierAnimationType::DeadWithSideBlood => 1.,

@@ -5,18 +5,11 @@ use std::{
     ops::{Add, Neg},
 };
 
-use geo::{coord, Contains, Triangle};
-use ggez::graphics::Rect;
 use serde::{Deserialize, Serialize};
 
 use glam::Vec2;
 
-use crate::{
-    entity::vehicle::OnBoardPlace,
-    graphics::SpriteInfo,
-    state::local::LocalState,
-    utils::{apply_angle_on_point, rotated_rect},
-};
+use crate::{entity::vehicle::OnBoardPlace, graphics::SpriteInfo};
 
 pub trait Xy {
     fn from_xy(x: f32, y: f32) -> Self;
@@ -29,15 +22,6 @@ pub trait Xy {
 pub struct Point {
     pub x: f32,
     pub y: f32,
-}
-impl Point {
-    pub fn new(x: f32, y: f32) -> Self {
-        Self { x, y }
-    }
-
-    pub fn to_vec2(&self) -> Vec2 {
-        Vec2::new(self.x, self.y)
-    }
 }
 
 impl Xy for Point {
@@ -80,13 +64,6 @@ impl WorldPoint {
         Self {
             x: self.x + raw.x,
             y: self.y + raw.y,
-        }
-    }
-
-    pub fn factor(self, raw: Vec2) -> Self {
-        Self {
-            x: self.x * raw.x,
-            y: self.y * raw.y,
         }
     }
 
@@ -237,23 +214,6 @@ pub struct Velocity {
     pub y: f32,
 }
 
-impl Velocity {
-    pub fn new(x: f32, y: f32) -> Self {
-        Self { x, y }
-    }
-
-    pub fn apply(self, raw: Vec2) -> Self {
-        Self {
-            x: self.x + raw.x,
-            y: self.y + raw.y,
-        }
-    }
-
-    pub fn to_vec2(self) -> Vec2 {
-        Vec2::new(self.x, self.y)
-    }
-}
-
 impl From<Vec2> for Velocity {
     fn from(p: Vec2) -> Self {
         Self { x: p.x, y: p.y }
@@ -301,14 +261,6 @@ impl WorldPath {
             None
         } else {
             Some(self.points[self.points.len() - 1])
-        }
-    }
-
-    pub fn first_point(&self) -> Option<WorldPoint> {
-        if self.points.is_empty() {
-            None
-        } else {
-            Some(self.points[0])
         }
     }
 }
@@ -454,10 +406,6 @@ impl Scale {
     pub fn to_vec2(self) -> Vec2 {
         Vec2::new(self.x, self.y)
     }
-
-    pub fn from_vec2(vec: Vec2) -> Self {
-        Self::new(vec.x, vec.y)
-    }
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
@@ -469,10 +417,6 @@ pub struct Offset {
 impl Offset {
     pub fn new(x: f32, y: f32) -> Self {
         Self { x, y }
-    }
-
-    pub fn zero() -> Self {
-        Self { x: 0., y: 0. }
     }
 
     pub fn half() -> Self {
@@ -493,13 +437,6 @@ impl Offset {
     pub fn from_vec2(vec: Vec2) -> Self {
         Self::new(vec.x, vec.y)
     }
-
-    pub fn to_absolute(&self, reference: Vec2) -> Self {
-        Self {
-            x: reference.x * self.x,
-            y: reference.y * self.y,
-        }
-    }
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
@@ -509,45 +446,8 @@ pub struct AbsoluteOffset {
 }
 
 impl AbsoluteOffset {
-    pub fn new(x: f32, y: f32) -> Self {
-        Self { x, y }
-    }
-
-    pub fn zero() -> Self {
-        Self { x: 0., y: 0. }
-    }
-
-    pub fn half() -> Self {
-        Self { x: 0.5, y: 0.5 }
-    }
-
     pub fn to_vec2(self) -> Vec2 {
         Vec2::new(self.x, self.y)
-    }
-
-    pub fn from_vec2(vec: Vec2) -> Self {
-        Self::new(vec.x, vec.y)
-    }
-
-    pub fn to_absolute(&self, reference: Vec2) -> Self {
-        Self {
-            x: reference.x * self.x,
-            y: reference.y * self.y,
-        }
-    }
-
-    pub fn half_from_sprite(rect: &SpriteInfo) -> Self {
-        Self {
-            x: rect.tile_width / 2.,
-            y: rect.tile_height / 2.,
-        }
-    }
-
-    pub fn from_tuple(values: (f32, f32)) -> Self {
-        Self {
-            x: values.0,
-            y: values.1,
-        }
     }
 }
 
@@ -560,17 +460,6 @@ pub struct RelativeOffset {
 impl RelativeOffset {
     pub fn new(x: f32, y: f32) -> Self {
         Self { x, y }
-    }
-
-    pub fn relative(self, dimensions: Vec2) -> Self {
-        Self {
-            x: self.x / dimensions.x,
-            y: self.y / dimensions.y,
-        }
-    }
-
-    pub fn to_vec2(self) -> Vec2 {
-        Vec2::new(self.x, self.y)
     }
 
     pub fn to_absolute_from_sprite(&self, sprite: &SpriteInfo) -> AbsoluteOffset {
