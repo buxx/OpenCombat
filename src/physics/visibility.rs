@@ -8,7 +8,7 @@ use crate::{
     config::{Config, VISIBILITY_FIRSTS, VISIBILITY_PIXEL_STEPS},
     entity::soldier::Soldier,
     map::Map,
-    types::{GridPath, Meters, SoldierIndex, WorldPoint},
+    types::{GridPath, GridPoint, Meters, SoldierIndex, WorldPoint},
 };
 
 use super::utils::meters_between_scene_points;
@@ -75,17 +75,26 @@ impl Visibility {
     ) -> Self {
         let from_point = from_soldier.get_world_point();
         let to_point = to_soldier.get_world_point();
+        let last_shoot_frame_i = to_soldier.last_shoot_frame_i();
 
         let by_behavior_modifier: f32 = config.visibility_behavior_modifier(to_soldier.behavior());
 
+        let exclude_lasts = if last_shoot_frame_i + config.visibility_by_last_frame_shoot >= frame_i
+        {
+            config.visibility_by_last_frame_shoot_distance
+        } else {
+            0
+        };
+
         let (mut to_soldier_item_opacity, opacity_segments, path_final_opacity) =
-            Visibility::_between_points(
+            Visibility::between_points(
                 frame_i,
                 config,
                 &from_point,
                 &to_point,
                 map,
                 config.visibility_firsts,
+                exclude_lasts,
             );
 
         to_soldier_item_opacity = to_soldier_item_opacity - by_behavior_modifier;
@@ -118,13 +127,14 @@ impl Visibility {
         let from_point = from_soldier.get_world_point();
 
         let (to_soldier_item_opacity, opacity_segments, path_final_opacity) =
-            Visibility::_between_points(
+            Visibility::between_points(
                 frame_i,
                 config,
                 &from_point,
                 &to_point,
                 map,
                 VISIBILITY_FIRSTS,
+                0,
             );
 
         let visible = to_soldier_item_opacity < 0.5;
@@ -143,39 +153,19 @@ impl Visibility {
     }
 
     // TODO : Optimize performances here
-    fn _between_points(
+    fn between_points(
         _frame_i: u64,
         config: &Config,
         from_point: &WorldPoint,
         to_point: &WorldPoint,
         map: &Map,
         exclude_firsts: usize,
+        exclude_lasts: usize,
     ) -> (f32, Vec<(WorldPoint, f32)>, f32) {
         let mut opacity_segments: Vec<(WorldPoint, f32)> = vec![];
-        let mut grid_path: GridPath = GridPath::new();
         let mut path_final_opacity: f32 = 0.0;
         let mut to_opacity: f32 = 0.0;
         let _visible_by_bullet_fire = false;
-        // FIXME BS NOW : fire remove firsts tiles
-        // let visible_by_bullet_fire =
-        //     if let Some(last_bullet_fire_frame_i) = to_scene_item.last_bullet_fire {
-        //         frame_i - last_bullet_fire_frame_i < 240
-        //     } else {
-        //         false
-        //     };
-
-        // Disable to_scene_item firsts if seen because firing
-        // if visible_by_bullet_fire {
-        //     let start_from = grid_path.len() - cmp::min(grid_path.len(), VISIBILITY_FIRSTS);
-        //     for grid_point in grid_path[start_from..].iter() {
-        //         let terrain_tile = map
-        //             .terrain
-        //             .tiles
-        //             .get(&(grid_point.x as u32, grid_point.y as u32))
-        //             .expect("Work with path only in map !");
-        //         to_scene_item_opacity -= terrain_tile.opacity;
-        //     }
-        // }
 
         // Compute line pixels
         let pixels = Bresenham::new(
@@ -183,7 +173,8 @@ impl Visibility {
             (to_point.x as isize, to_point.y as isize),
         );
 
-        // Compute opacity segments
+        let mut grid_path: GridPath = GridPath::new();
+        let mut other: Vec<(WorldPoint, f32)> = vec![];
         for (pixel_x, pixel_y) in pixels.step_by(VISIBILITY_PIXEL_STEPS) {
             let grid_point =
                 map.grid_point_from_world_point(&WorldPoint::new(pixel_x as f32, pixel_y as f32));
@@ -197,20 +188,30 @@ impl Visibility {
                         continue;
                     }
                 };
-                // Firsts tiles opacity are ignored
                 let grid_point_opacity = if grid_path.len() <= exclude_firsts {
                     0.0
                 } else {
                     config.terrain_tile_opacity(&terrain_tile.type_)
                 };
-                path_final_opacity += grid_point_opacity;
-                to_opacity += grid_point_opacity;
                 grid_path.push(grid_point);
-                opacity_segments.push((
+                other.push((
                     WorldPoint::new(pixel_x as f32, pixel_y as f32),
-                    path_final_opacity,
+                    grid_point_opacity,
                 ));
             }
+        }
+
+        let exclude_opacity_starts_at = grid_path.len() - exclude_lasts;
+        for (i, (_, (world_point, opacity))) in grid_path.points.iter().zip(other).enumerate() {
+            // Disable to_scene_item firsts if seen because firing
+            let opacity = if i < exclude_opacity_starts_at {
+                opacity
+            } else {
+                0.
+            };
+            path_final_opacity += opacity;
+            to_opacity += opacity;
+            opacity_segments.push((world_point, path_final_opacity));
         }
 
         (to_opacity, opacity_segments, path_final_opacity)

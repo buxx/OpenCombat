@@ -30,6 +30,9 @@ pub const TILE_TYPE_OPACITY_DIRT: f32 = 0.0;
 pub const TILE_TYPE_OPACITY_CONCRETE: f32 = 0.0;
 pub const TILE_TYPE_OPACITY_MUD: f32 = 0.02;
 pub const TILE_TYPE_OPACITY_BRICK_WALL: f32 = 1.0;
+//
+pub const VISIBILITY_BY_LAST_FRAME_SHOOT: u64 = 180;
+pub const VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE: usize = 4;
 
 // Width of sprite sheet
 pub const UI_SPRITE_SHEET_WIDTH: f32 = 800.0;
@@ -98,6 +101,8 @@ pub struct Config {
     pub tile_type_opacity_concrete: f32,
     pub tile_type_opacity_mud: f32,
     pub tile_type_opacity_brick_wall: f32,
+    pub visibility_by_last_frame_shoot: u64,
+    pub visibility_by_last_frame_shoot_distance: usize,
 }
 impl Config {
     pub fn new(opt: &Opt) -> GameResult<Self> {
@@ -147,6 +152,8 @@ impl Config {
             visibility_engage_modifier: VISIBILITY_ENGAGE_MODIFIER,
             visibility_dead_modifier: VISIBILITY_DEAD_MODIFIER,
             visibility_unconscious_modifier: VISIBILITY_UNCONSCIOUS_MODIFIER,
+            visibility_by_last_frame_shoot: VISIBILITY_BY_LAST_FRAME_SHOOT,
+            visibility_by_last_frame_shoot_distance: VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE,
 
             tile_type_opacity_short_grass: TILE_TYPE_OPACITY_SHORT_GRASS,
             tile_type_opacity_middle_grass: TILE_TYPE_OPACITY_MIDDLE_GRASS,

@@ -39,6 +39,7 @@ impl SharedState {
             SoldierMessage::SetOrder(order) => soldier.set_order(order),
             SoldierMessage::ReloadWeapon(class) => soldier.reload_weapon(&class),
             SoldierMessage::WeaponShot(class) => soldier.weapon_shot(&class),
+            SoldierMessage::SetLastShootFrameI(frame_i) => soldier.set_last_shoot_frame_i(frame_i),
         }
 
         vec![]

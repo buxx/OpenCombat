@@ -6,7 +6,8 @@ use crate::{
         FEELING_DECREASING_FREQ, INTERIORS_UPDATE_FREQ, SOLDIER_ANIMATE_FREQ, SOLDIER_UPDATE_FREQ,
         TARGET_FPS, TILE_TYPE_OPACITY_BRICK_WALL, TILE_TYPE_OPACITY_CONCRETE,
         TILE_TYPE_OPACITY_DIRT, TILE_TYPE_OPACITY_HIGH_GRASS, TILE_TYPE_OPACITY_MIDDLE_GRASS,
-        TILE_TYPE_OPACITY_MUD, TILE_TYPE_OPACITY_SHORT_GRASS, VISIBILITY_DEAD_MODIFIER,
+        TILE_TYPE_OPACITY_MUD, TILE_TYPE_OPACITY_SHORT_GRASS, VISIBILITY_BY_LAST_FRAME_SHOOT,
+        VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE, VISIBILITY_DEAD_MODIFIER,
         VISIBILITY_DEFEND_MODIFIER, VISIBILITY_ENGAGE_MODIFIER, VISIBILITY_FIRSTS,
         VISIBILITY_HIDE_MODIFIER, VISIBILITY_IDLE_MODIFIER, VISIBILITY_IN_VEHICLE_MODIFIER,
         VISIBILITY_MOVE_FAST_TO_MODIFIER, VISIBILITY_MOVE_TO_MODIFIER,
@@ -240,7 +241,27 @@ impl Engine {
             .num_columns(2)
             .spacing([40.0, 4.0])
             .striped(true)
-            .show(ui, |ui| ui.label("TODO"));
+            .show(ui, |ui| {
+                ui.label("VISIBILITY_BY_LAST_FRAME_SHOOT");
+                if ui.button("reset").clicked() {
+                    self.config.visibility_by_last_frame_shoot = VISIBILITY_BY_LAST_FRAME_SHOOT;
+                }
+                ui.add(Slider::new(
+                    &mut self.config.visibility_by_last_frame_shoot,
+                    0..=600,
+                ));
+                ui.end_row();
+
+                ui.label("VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE");
+                if ui.button("reset").clicked() {
+                    self.config.visibility_by_last_frame_shoot_distance =
+                        VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE;
+                }
+                ui.add(Slider::new(
+                    &mut self.config.visibility_by_last_frame_shoot_distance,
+                    0..=30,
+                ))
+            });
 
         vec![]
     }

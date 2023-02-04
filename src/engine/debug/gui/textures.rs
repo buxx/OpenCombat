@@ -39,7 +39,7 @@ impl Engine {
                 ui.end_row();
 
                 let vehicles_files = self.graphics.vehicles_files().clone();
-                ui.label("v=Vehicles");
+                ui.label("Vehicles");
                 ui.horizontal(|ui| {
                     for resource in vehicles_files {
                         if ui

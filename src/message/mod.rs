@@ -52,7 +52,6 @@ pub enum SharedStateMessage {
     Soldier(SoldierIndex, SoldierMessage),
     Vehicle(VehicleIndex, VehicleMessage),
     PushPhysicsEffect(Effect),
-    // TODO : Why this is a shared state message ? It should be only local no ?
     PushSoundToPlay(Sound),
 }
 
@@ -93,6 +92,7 @@ pub enum SoldierMessage {
     DecreaseUnderFire,
     ReloadWeapon(WeaponClass),
     WeaponShot(WeaponClass),
+    SetLastShootFrameI(u64),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

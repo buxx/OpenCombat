@@ -110,6 +110,10 @@ impl Engine {
                     target.clone(),
                     weapon.ammunition(),
                 ))),
+                Message::SharedState(SharedStateMessage::Soldier(
+                    soldier.uuid(),
+                    SoldierMessage::SetLastShootFrameI(self.local_state.get_frame_i()),
+                )),
             ],
             // FIXME BS NOW : faire varier de quelque ms le début du son OR le temps de recharge
             weapon

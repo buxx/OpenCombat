@@ -79,6 +79,15 @@ impl Engine {
                 ui.checkbox(soldier.unconscious_mut(), "");
                 ui.end_row();
 
+                ui.label("LastShootFrameI");
+                ui.horizontal(|ui| {
+                    if ui.button("set").clicked() {
+                        soldier.set_last_shoot_frame_i(self.local_state.get_frame_i())
+                    }
+                    ui.label(format!("{}", soldier.last_shoot_frame_i()));
+                });
+                ui.end_row();
+
                 ui.label("Order");
                 ui.label(format!("{}", soldier.order()));
                 ui.end_row();

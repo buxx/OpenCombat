@@ -27,6 +27,7 @@ pub struct Soldier {
     under_fire: Feeling,
     main_weapon: Option<Weapon>,
     magazines: Vec<Magazine>,
+    last_shoot_frame_i: u64,
 }
 
 impl Soldier {
@@ -52,6 +53,7 @@ impl Soldier {
             under_fire: Feeling::UnderFire(0),
             main_weapon,
             magazines,
+            last_shoot_frame_i: 0,
         }
     }
 
@@ -236,6 +238,14 @@ impl Soldier {
 
     pub fn decrease_under_fire(&mut self) {
         self.under_fire.decrease()
+    }
+
+    pub fn set_last_shoot_frame_i(&mut self, value: u64) {
+        self.last_shoot_frame_i = value
+    }
+
+    pub fn last_shoot_frame_i(&self) -> &u64 {
+        &self.last_shoot_frame_i
     }
 
     pub fn weapon(&self, class: &WeaponClass) -> &Option<Weapon> {
