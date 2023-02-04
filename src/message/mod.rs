@@ -45,6 +45,7 @@ pub enum GraphicsMessage {
     ReloadVehiclesAsset,
     ReloadExplosionsAsset,
     ReloadUiAsset,
+    ReloadAll,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

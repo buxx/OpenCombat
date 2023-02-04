@@ -15,6 +15,10 @@ impl Engine {
     ) -> Vec<Message> {
         let mut messages = vec![];
 
+        if ui.button("Reload files").clicked() {
+            messages.push(Message::Graphics(GraphicsMessage::ReloadAll))
+        }
+
         Grid::new(&format!("textures"))
             .num_columns(2)
             .spacing([40.0, 4.0])

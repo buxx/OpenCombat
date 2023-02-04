@@ -408,6 +408,27 @@ impl Graphics {
             GraphicsMessage::ReloadUiAsset => {
                 self.ui_batch = create_batch(&self.ui_file, ctx)?;
             }
+            GraphicsMessage::ReloadAll => {
+                self.soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
+                self.soldiers_batch = create_batch(&self.soldiers_file, ctx)?;
+
+                self.vehicles_files = collect_resources_by_prefix(AssetsType::Vehicles.prefix())?;
+                self.vehicles_batch = create_batch(&self.vehicles_file, ctx)?;
+
+                self.explosions_files =
+                    collect_resources_by_prefix(AssetsType::Explosions.prefix())?;
+                self.explosions_batch = create_batch(&self.explosions_file, ctx)?;
+
+                self.ui_files = collect_resources_by_prefix(AssetsType::Ui.prefix())?;
+                self.ui_batch = create_batch(&self.ui_file, ctx)?;
+
+                self.map_background_batch = map::get_map_background_batch(ctx, map)?;
+                self.map_interiors_batch = map::get_map_interiors_batch(ctx, map)?;
+                self.map_decor_batches = map::get_map_decor_batch(ctx, map)?;
+                self.debug_terrain_batch = map::create_debug_terrain_batch(ctx, map)?;
+                self.debug_terrain_opacity_mesh_builder =
+                    map::create_debug_terrain_opacity_mesh_builder(map, config)?;
+            }
         }
 
         GameResult::Ok(())
@@ -434,25 +455,6 @@ impl Graphics {
         };
 
         GameResult::Ok(())
-    }
-
-    pub fn reload_map(&mut self, ctx: &mut Context, map: &Map) -> GameResult<()> {
-        self.map_background_batch = map::get_map_background_batch(ctx, map)?;
-        Ok(())
-    }
-
-    pub fn update_resources(&mut self) -> GameResult<()> {
-        let soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
-        let vehicles_files = collect_resources_by_prefix(AssetsType::Vehicles.prefix())?;
-        let explosions_files = collect_resources_by_prefix(AssetsType::Explosions.prefix())?;
-        let ui_files = collect_resources_by_prefix(AssetsType::Ui.prefix())?;
-
-        self.soldiers_files = soldiers_files;
-        self.vehicles_files = vehicles_files;
-        self.explosions_files = explosions_files;
-        self.ui_files = ui_files;
-
-        Ok(())
     }
 }
 
