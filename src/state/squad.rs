@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::{entity::soldier::Soldier, types::*};
+use crate::types::*;
 
 use super::shared::SharedState;
 
@@ -50,16 +50,6 @@ impl SharedState {
             .enumerate()
             .filter(|(_, e)| e.squad_uuid() == squad_uuid)
             .map(|(i, _)| SoldierIndex(i))
-            .collect()
-    }
-
-    pub fn squad_subordinates(&self, squad_index: &SquadUuid) -> Vec<&Soldier> {
-        let squad_leader = self.squad(*squad_index).leader();
-        self.squad(*squad_index)
-            .members()
-            .iter()
-            .map(|i| self.soldier(*i))
-            .filter(|s| s.uuid() != squad_leader)
             .collect()
     }
 }

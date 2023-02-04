@@ -4,11 +4,10 @@ use bresenham::Bresenham;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    behavior::Behavior,
     config::{Config, VISIBILITY_FIRSTS, VISIBILITY_PIXEL_STEPS},
     entity::soldier::Soldier,
     map::Map,
-    types::{GridPath, GridPoint, Meters, SoldierIndex, WorldPoint},
+    types::{GridPath, Meters, SoldierIndex, WorldPoint},
 };
 
 use super::utils::meters_between_scene_points;

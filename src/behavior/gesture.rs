@@ -33,7 +33,5 @@ impl Gesture {
 
 pub enum GestureContext {
     Idle,
-    Reloading,
-    Aiming,
     Firing(WorldPoint, Option<(SoldierIndex, Precision)>),
 }

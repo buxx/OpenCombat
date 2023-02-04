@@ -1,7 +1,4 @@
-use ggez::{GameError, GameResult};
-use inotify::{Inotify, WatchMask};
-
-use crate::RESOURCE_PATH;
+use ggez::GameResult;
 
 use super::Panel;
 

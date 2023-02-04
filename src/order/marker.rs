@@ -1,6 +1,5 @@
 use crate::config::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
 use crate::types::*;
-use crate::utils::rect_contains;
 use ggez::graphics::{self, Rect};
 
 const ORDER_MARKER_START_X: f32 = 0.0;
@@ -149,15 +148,6 @@ impl OrderMarkerSpriteInfo {
             .offset(offset.to_vec2())
     }
 
-    pub fn rectangle(&self, from_point: &WindowPoint) -> graphics::Rect {
-        graphics::Rect::new(
-            from_point.x - self.half_width,
-            from_point.y - self.half_height,
-            self.width,
-            self.height,
-        )
-    }
-
     pub fn selection_rect(&self, from: WorldPoint) -> Rect {
         Rect::new(
             from.x - self.half_width,
@@ -165,18 +155,5 @@ impl OrderMarkerSpriteInfo {
             self.width,
             self.height,
         )
-    }
-
-    // pub fn get_selection_rect2(&self, from: WorldPoint) -> Rect {
-    //     Rect::new(from.x, from.y, self.width, self.height)
-    // }
-
-    pub fn contains(
-        &self,
-        draw_to: &WindowPoint,
-        rotation: (Angle, Offset),
-        cursor: &WindowPoint,
-    ) -> bool {
-        rect_contains(&self.rectangle(draw_to), rotation, cursor.to_vec2())
     }
 }

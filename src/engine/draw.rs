@@ -4,7 +4,6 @@ use ggez::{
 };
 
 use crate::{
-    debug::DebugTerrain,
     entity::soldier::Soldier,
     order::{marker::OrderMarker, Order, PendingOrder},
     types::*,
