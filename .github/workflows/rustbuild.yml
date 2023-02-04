@@ -16,7 +16,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-cc mingw-w64-x86_64-rust mingw-w64-x86_64-zeromq mingw-w64-x86_64-pkg-config msys2-runtime --needed
+          install: git mingw-w64-x86_64-cc mingw-w64-x86_64-rust mingw-w64-x86_64-zeromq mingw-w64-x86_64-pkg-config --needed
       - name: CI-Build
         run: cargo build --release
       - name: Upload a Build Artifact
