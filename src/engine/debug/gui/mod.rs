@@ -1,8 +1,8 @@
+use ggegui::egui::{self, ScrollArea};
 use ggez::{
     graphics::{Canvas, DrawParam},
     Context, GameResult,
 };
-use ggez_egui::egui::{self, ScrollArea};
 use glam::Vec2;
 
 use crate::{

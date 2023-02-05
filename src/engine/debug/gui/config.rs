@@ -1,5 +1,5 @@
+use ggegui::egui::{Context as EguiContext, Grid, Slider, Ui};
 use ggez::Context;
-use ggez_egui::egui::{Context as EguiContext, Grid, Slider, Ui};
 
 use crate::{
     config::{

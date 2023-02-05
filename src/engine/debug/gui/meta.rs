@@ -1,5 +1,5 @@
+use ggegui::egui::{Context as EguiContext, Grid, Ui};
 use ggez::Context;
-use ggez_egui::egui::{Context as EguiContext, Grid, Ui};
 
 use crate::{engine::Engine, message::Message};
 

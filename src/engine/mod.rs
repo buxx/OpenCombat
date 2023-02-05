@@ -13,7 +13,7 @@ use crate::state::local::LocalState;
 use crate::state::shared::SharedState;
 use crate::NetworkMode;
 
-use self::debug::gui::state::DebugGuiState;
+// use self::debug::gui::state::DebugGuiState;
 mod animate;
 mod behavior;
 mod client;
@@ -49,7 +49,7 @@ pub struct Engine {
     /// The current local state of the game. This struct is own by client and server and are not related
     local_state: LocalState,
     // Debug gui
-    debug_gui: DebugGuiState,
+    // debug_gui: DebugGuiState,
 }
 
 impl Engine {
@@ -70,7 +70,7 @@ impl Engine {
             map,
             shared_state,
             local_state,
-            debug_gui: DebugGuiState::new()?,
+            // debug_gui: DebugGuiState::new()?,
         };
         Ok(engine)
     }
@@ -120,7 +120,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
             self.local_state.increment_frame_i();
         }
 
-        self.update_debug_gui(ctx)?;
+        // self.update_debug_gui(ctx)?;
 
         self.graphics.tick(ctx);
 
@@ -161,7 +161,7 @@ impl event::EventHandler<ggez::GameError> for Engine {
         self.graphics
             .draw_ui(ctx, &mut canvas, ui_draw_param, mesh_builder)?;
 
-        self.draw_debug_gui(ctx, &mut canvas);
+        // self.draw_debug_gui(ctx, &mut canvas);
 
         canvas.finish(ctx)?;
 

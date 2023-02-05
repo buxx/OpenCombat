@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 rayon = "1"
-ggez = { url = "https://github.com/ggez/ggez.git", revision = "f87f078346729737b4691b9618eab3f95d61c8ad" }
+ggez = { git = "https://github.com/ggez/ggez.git", rev = "81544de231c1f9dcce530a2b0aa09d4b1f423ed7" }
 glam = { version = "0.22.0", features = ["mint"]}
 rand = "0.8.5"
 structopt = "0.3.21"
@@ -22,4 +22,5 @@ bresenham = "0.1.1"
 strum = "0.24"
 strum_macros = "0.24"
 geo = "0.23.1"
-ggez-egui = "0.3.1"
+# ggegui = { git = "https://github.com/buxx/ggegui.git", rev = "8bf9bc69215699ee1663ccb4415550bc5820c983" }
+# ggegui = { path = "../ggegui" }
