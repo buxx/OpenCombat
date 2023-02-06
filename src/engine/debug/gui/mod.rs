@@ -10,8 +10,6 @@ use crate::{
     message::{LocalStateMessage, Message},
 };
 
-use super::egui_backend;
-
 const EGUI_SCALE: f32 = 1.5;
 
 pub mod body;
@@ -57,10 +55,10 @@ impl Engine {
         }
 
         let drawable_size = ctx.gfx.drawable_size();
-        egui_backend(ctx)
+        self.egui_backend
             .input
             .set_scale_factor(EGUI_SCALE, drawable_size);
-        let egui_ctx = egui_backend(ctx).ctx();
+        let egui_ctx = self.egui_backend.ctx();
         let mut messages = vec![];
 
         egui::Window::new("Debug").show(&egui_ctx, |ui| {
@@ -74,12 +72,14 @@ impl Engine {
             egui_ctx.is_pointer_over_area(),
         )));
 
-        egui_backend(ctx).update(ctx);
+        self.egui_backend.update(ctx);
         messages
     }
 
-    pub fn draw_debug_gui(&mut self, ctx: &mut Context, canvas: &mut Canvas) {
-        let egui_backend = egui_backend(ctx);
-        canvas.draw(egui_backend, DrawParam::default().dest(Vec2::new(0., 0.)));
+    pub fn draw_debug_gui(&mut self, _ctx: &mut Context, canvas: &mut Canvas) {
+        canvas.draw(
+            &self.egui_backend,
+            DrawParam::default().dest(Vec2::new(0., 0.)),
+        );
     }
 }

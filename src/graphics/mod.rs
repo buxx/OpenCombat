@@ -310,10 +310,14 @@ impl Graphics {
 
     pub fn draw_map(&mut self, canvas: &mut Canvas, draw_param: graphics::DrawParam) -> GameResult {
         // Map background sprites
-        canvas.draw(&self.map_background_batch, draw_param);
+        if self.map_background_batch.instances().len() > 0 {
+            canvas.draw(&self.map_background_batch, draw_param);
+        }
 
         // Map interior sprites
-        canvas.draw(&self.map_interiors_batch, draw_param);
+        if self.map_interiors_batch.instances().len() > 0 {
+            canvas.draw(&self.map_interiors_batch, draw_param);
+        }
 
         Ok(())
     }
@@ -340,9 +344,15 @@ impl Graphics {
         draw_param: graphics::DrawParam,
     ) -> GameResult {
         // Entities, explosions, etc. sprites
-        canvas.draw(&self.soldiers_batch, draw_param);
-        canvas.draw(&self.vehicles_batch, draw_param);
-        canvas.draw(&self.explosions_batch, draw_param);
+        if self.soldiers_batch.instances().len() > 0 {
+            canvas.draw(&self.soldiers_batch, draw_param);
+        }
+        if self.vehicles_batch.instances().len() > 0 {
+            canvas.draw(&self.vehicles_batch, draw_param);
+        }
+        if self.explosions_batch.instances().len() > 0 {
+            canvas.draw(&self.explosions_batch, draw_param);
+        }
 
         Ok(())
     }
@@ -358,7 +368,9 @@ impl Graphics {
         canvas.draw(&Mesh::from_data(ctx, mesh_builder.build()), draw_param);
 
         // Squad menu, etc
-        canvas.draw(&self.ui_batch, draw_param);
+        if self.ui_batch.instances().len() > 0 {
+            canvas.draw(&self.ui_batch, draw_param);
+        }
 
         Ok(())
     }

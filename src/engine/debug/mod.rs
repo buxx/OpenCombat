@@ -1,7 +1,6 @@
-// use ggegui::Gui;
 use ggez::{
     graphics::{Color, DrawMode, MeshBuilder},
-    Context, GameResult,
+    GameResult,
 };
 
 use crate::{
@@ -20,18 +19,7 @@ use crate::{
 };
 
 use super::Engine;
-// pub mod gui;
-
-// static mut EGUI_BACKEND: Option<Gui> = None;
-
-// fn egui_backend(ctx: &mut Context) -> &'static mut Gui {
-//     unsafe {
-//         if EGUI_BACKEND.is_none() {
-//             EGUI_BACKEND = Some(Gui::new(ctx));
-//         }
-//         EGUI_BACKEND.as_mut().unwrap()
-//     }
-// }
+pub mod gui;
 
 impl Engine {
     pub fn generate_debug_mouse_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
