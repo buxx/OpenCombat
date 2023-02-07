@@ -6,6 +6,7 @@ use super::Engine;
 
 impl Engine {
     pub fn react_side_effects(&mut self, side_effects: Vec<SideEffect>, ctx: &mut Context) {
+        puffin::profile_scope!("react_side_effects");
         for side_effect in side_effects {
             match side_effect {
                 SideEffect::RefreshEntityAnimation(soldier_index) => {

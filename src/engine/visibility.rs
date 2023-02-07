@@ -15,6 +15,7 @@ use super::Engine;
 
 impl Engine {
     pub fn tick_visibilities(&self) -> Vec<Message> {
+        puffin::profile_scope!("tick_visibilities");
         let mut messages = vec![];
         let tick_visibility =
             self.local_state.get_frame_i() % self.config.visibility_update_freq() == 0;

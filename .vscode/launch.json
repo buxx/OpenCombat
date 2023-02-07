@@ -24,7 +24,8 @@
                 "--server-rep-address",
                 "tcp://0.0.0.0:4255",
                 "--server-bind-address",
-                "tcp://0.0.0.0:4256"
+                "tcp://0.0.0.0:4256",
+                "--debug"
             ],
             "cwd": "${workspaceFolder}",
             "env": {
@@ -52,7 +53,8 @@
                 "--server-rep-address",
                 "tcp://0.0.0.0:4255",
                 "--server-bind-address",
-                "tcp://0.0.0.0:4256"
+                "tcp://0.0.0.0:4256",
+                "--debug"
             ],
             "cwd": "${workspaceFolder}",
             "env": {
@@ -63,6 +65,33 @@
             "type": "lldb",
             "request": "launch",
             "name": "Client",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=opencombat",
+                    "--package=opencombat",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "opencombat",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "Client",
+                "--server-rep-address",
+                "tcp://127.0.0.1:4255",
+                "--server-bind-address",
+                "tcp://127.0.0.1:4256",
+                "--side",
+                "b"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Client (release)",
             "cargo": {
                 "args": [
                     "build",

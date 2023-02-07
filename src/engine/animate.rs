@@ -5,6 +5,7 @@ impl Engine {
     ///  - Compute visibility with other soldiers
     ///  - Compute behavior against physics (explosions, gunfires, ...)
     pub fn animate_soldier(&self, soldier_index: SoldierIndex) -> Vec<Message> {
+        puffin::profile_scope!("animate_soldier", format!("{}", soldier_index));
         let soldier = self.shared_state.soldier(soldier_index);
         if !soldier.can_be_animated() {
             return vec![];

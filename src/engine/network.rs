@@ -5,10 +5,12 @@ use super::Engine;
 impl Engine {
     /// Retrieve server or clients messages.
     pub fn sync(&self) -> Vec<Message> {
+        puffin::profile_scope!("sync");
         self.network.incoming_messages()
     }
 
     pub fn dispatch_as_server(&self, messages: &Vec<Message>) {
+        puffin::profile_scope!("dispatch_as_server");
         let mut dispatch_messages: Vec<Message> = vec![];
 
         for message in messages {
@@ -44,6 +46,7 @@ impl Engine {
     }
 
     pub fn deal_with_sync_errors_as_server(&self) -> Vec<Message> {
+        puffin::profile_scope!("deal_with_sync_errors_as_server");
         let messages: Vec<Message> = vec![];
 
         for error in self.network.errors() {

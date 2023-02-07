@@ -55,11 +55,24 @@ pub struct Opt {
 
     #[structopt(short = "s", long = "side", default_value = "a")]
     side: Side,
+
+    #[structopt(long = "debug")]
+    debug: bool,
 }
 
 fn main() -> GameResult {
     let opt = Opt::from_args();
     let config = config::Config::new(&opt)?;
+
+    // We must keep server object to avoid its destruction
+    let _puffin_server = if opt.debug {
+        let server_addr = format!("0.0.0.0:{}", puffin_http::DEFAULT_PORT);
+        let puffin_server = puffin_http::Server::new(&server_addr).unwrap();
+        puffin::set_scopes_on(true);
+        Some(puffin_server)
+    } else {
+        None
+    };
 
     let context_builder = ggez::ContextBuilder::new("OpenCombat", "Bastien Sevajol")
         .add_resource_path(path::PathBuf::from(format!("./{}", RESOURCE_PATH)))

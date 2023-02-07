@@ -10,6 +10,7 @@ mod explosion;
 
 impl Engine {
     pub fn tick_physics(&mut self) -> Vec<Message> {
+        puffin::profile_scope!("tick_physics");
         let mut messages = vec![];
 
         if self.local_state.get_frame_i() % self.config.physics_update_freq() == 0 {

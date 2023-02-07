@@ -20,6 +20,7 @@ mod weapon;
 
 impl Engine {
     pub fn soldier_gesture(&self, soldier: &Soldier) -> Vec<Message> {
+        puffin::profile_scope!("soldier_gesture");
         let new_gesture = match soldier.behavior() {
             Behavior::SuppressFire(point) => {
                 //

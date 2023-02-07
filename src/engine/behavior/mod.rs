@@ -29,6 +29,7 @@ impl Engine {
     }
 
     pub fn soldier_behavior(&self, soldier: &Soldier) -> Vec<Message> {
+        puffin::profile_scope!("soldier_behavior");
         let mut messages = vec![];
         let soldier = self.shared_state.soldier(soldier.uuid());
 

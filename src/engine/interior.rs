@@ -6,6 +6,7 @@ use super::Engine;
 
 impl Engine {
     pub fn tick_interiors(&mut self) -> Vec<Message> {
+        puffin::profile_scope!("tick_interiors");
         let messages = vec![];
         let tick_update = self.local_state.get_frame_i() % self.config.interiors_update_freq() == 0;
 

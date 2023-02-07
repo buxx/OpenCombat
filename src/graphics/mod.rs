@@ -387,6 +387,7 @@ impl Graphics {
     }
 
     pub fn tick(&mut self, ctx: &Context) {
+        puffin::profile_scope!("tick_graphics");
         self.update(ctx);
     }
 

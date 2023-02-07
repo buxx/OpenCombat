@@ -100,6 +100,8 @@ impl Engine {
     }
 
     fn tick(&mut self, ctx: &mut Context) -> GameResult<()> {
+        puffin::profile_scope!("tick");
+
         match self.config.network_mode() {
             NetworkMode::Server => self.tick_as_server(ctx)?,
             NetworkMode::Client => self.tick_as_client(ctx)?,
@@ -111,6 +113,10 @@ impl Engine {
 
 impl event::EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
+        let frame_i = self.local_state.get_frame_i();
+        puffin::profile_scope!("update", format!("frame {frame_i}"));
+        puffin::GlobalProfiler::lock().new_frame();
+
         while ctx.time.check_update_time(self.config.target_fps() as u32) {
             // First thing to do is to initialize the shared state.
             if self.local_state.is_first_frame() {

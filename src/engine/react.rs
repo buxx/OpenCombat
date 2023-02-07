@@ -13,6 +13,7 @@ impl Engine {
         messages: Vec<Message>,
         ctx: &mut Context,
     ) -> GameResult<Vec<SideEffect>> {
+        puffin::profile_scope!("react");
         let mut side_effects = vec![];
 
         for message in messages {

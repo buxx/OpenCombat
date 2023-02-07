@@ -6,6 +6,7 @@ impl Engine {
     ///  - World pixel point according to movement
     ///  - ...
     pub fn update_soldier(&self, i: SoldierIndex) -> Vec<Message> {
+        puffin::profile_scope!("update_soldier", format!("{}", i));
         let mut messages = vec![];
 
         messages.extend(self.orientation_update(i));

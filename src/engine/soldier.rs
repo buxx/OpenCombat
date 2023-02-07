@@ -6,6 +6,7 @@ use super::Engine;
 impl Engine {
     // FIXME BS NOW : Soldiers in vehicles must be managed differently than ground soldiers
     pub fn tick_soldiers(&self) -> Vec<Message> {
+        puffin::profile_scope!("tick_soldiers");
         let mut messages = vec![];
         let tick_animate = self.local_state.get_frame_i() % self.config.soldier_animate_freq() == 0;
         let tick_update = self.local_state.get_frame_i() % self.config.soldier_update_freq() == 0;
@@ -14,7 +15,8 @@ impl Engine {
         if tick_animate {
             messages.extend(
                 (0..self.shared_state.soldiers().len())
-                    .into_par_iter()
+                    // TODO : For now, parallel iter cost more than serial
+                    // .into_par_iter()
                     .flat_map(|i| self.animate_soldier(SoldierIndex(i)))
                     .collect::<Vec<Message>>(),
             );
@@ -23,7 +25,8 @@ impl Engine {
         // Entities updates
         if tick_update {
             let soldier_messages: Vec<Message> = (0..self.shared_state.soldiers().len())
-                .into_par_iter()
+                // TODO : For now, parallel iter cost more than serial
+                // .into_par_iter()
                 .flat_map(|i| self.update_soldier(SoldierIndex(i)))
                 .collect();
             messages.extend(soldier_messages);
@@ -33,6 +36,7 @@ impl Engine {
     }
 
     pub fn tick_feeling_decreasing_soldiers(&self) -> Vec<Message> {
+        puffin::profile_scope!("tick_feeling_decreasing_soldiers");
         let mut messages = vec![];
         let tick_feeling_decreasing =
             self.local_state.get_frame_i() % self.config.feeling_decreasing_freq() == 0;

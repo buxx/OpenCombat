@@ -196,6 +196,7 @@ impl Engine {
     }
 
     pub fn ui_events(&mut self, ctx: &Context) -> Vec<Message> {
+        puffin::profile_scope!("ui_events");
         let mut messages = vec![];
 
         while let Some(event) = self.local_state.pop_ui_event() {

@@ -44,6 +44,7 @@ impl MoveScreenMode {
 
 impl Engine {
     pub fn collect_player_inputs(&self, ctx: &mut Context) -> Vec<Message> {
+        puffin::profile_scope!("collect_player_inputs");
         let mut messages = vec![];
 
         messages.extend(self.collect_keyboard_inputs(ctx));
