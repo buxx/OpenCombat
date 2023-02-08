@@ -20,6 +20,8 @@ impl Engine {
 
             if self.config.network_mode() == &NetworkMode::Server {
                 messages.extend(self.resolve_effects())
+            } else {
+                self.shared_state.physics_effects_mut().clear();
             }
 
             self.local_state.remove_finished_physics();
