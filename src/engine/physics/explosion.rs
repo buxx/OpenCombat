@@ -10,6 +10,7 @@ use crate::{message::Message, physics::event::explosion::Explosion, NetworkMode}
 
 impl Engine {
     pub fn tick_explosions(&self) -> Vec<Message> {
+        puffin::profile_scope!("tick_explosions");
         let mut messages = vec![];
         let frame_i = self.local_state.get_frame_i();
 
@@ -33,6 +34,10 @@ impl Engine {
 
     // FIXME : find algorithm kill/injure about explosives + terrain + position
     fn explosion_effects(&self, explosion: &Explosion) -> Vec<Message> {
+        puffin::profile_scope!(
+            "explosion_effects",
+            format!("start={} end={}", explosion.start(), explosion.end())
+        );
         let mut messages = vec![];
         let point = explosion.point();
         let explosive_type = explosion.type_();

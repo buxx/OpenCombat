@@ -63,4 +63,12 @@ impl Explosion {
 
         messages
     }
+
+    pub fn start(&self) -> u64 {
+        self.start
+    }
+
+    pub fn end(&self) -> u64 {
+        self.end
+    }
 }

@@ -13,6 +13,7 @@ impl Engine {
         for effect in self.shared_state.physics_effects() {
             match effect {
                 Effect::KillingBlast(soldier_index) => {
+                    puffin::profile_scope!("KillingBlast", soldier_index.to_string());
                     let soldier = self.shared_state.soldier(*soldier_index);
                     if soldier.can_produce_sound() {
                         let pick_from = vec![
@@ -37,11 +38,15 @@ impl Engine {
                         )))
                     }
                 }
-                Effect::StunningBlast(_soldier_index) => {
+                Effect::StunningBlast(soldier_index) => {
+                    puffin::profile_scope!("StunningBlast", soldier_index.to_string());
                     // TODO
                 }
-                Effect::ProximityBlast(_, _) => {}
+                Effect::ProximityBlast(soldier_index, _) => {
+                    puffin::profile_scope!("ProximityBlast", soldier_index.to_string());
+                }
                 Effect::KillingBullet(soldier_index) => {
+                    puffin::profile_scope!("KillingBullet", soldier_index.to_string());
                     let soldier = self.shared_state.soldier(*soldier_index);
                     if soldier.can_produce_sound() {
                         let pick_from = vec![
@@ -69,6 +74,7 @@ impl Engine {
                     }
                 }
                 Effect::InjuringBullet(soldier_index) => {
+                    puffin::profile_scope!("InjuringBullet", soldier_index.to_string());
                     let soldier = self.shared_state.soldier(*soldier_index);
                     if soldier.can_produce_sound() {
                         let pick_from = vec![
@@ -90,10 +96,12 @@ impl Engine {
                         )))
                     }
                 }
-                Effect::ProximityBullet(_, _) => {
+                Effect::ProximityBullet(soldier_index, _) => {
+                    puffin::profile_scope!("ProximityBullet", soldier_index.to_string());
                     // TODO (bullet impact sometimes)
                 }
-                Effect::VehicleShellImpact(_, _) => {
+                Effect::VehicleShellImpact(vehicle_index, _) => {
+                    puffin::profile_scope!("VehicleShellImpact", vehicle_index.to_string());
                     let pick_from = vec![Sound::MetalHit1];
                     messages.push(Message::SharedState(SharedStateMessage::PushSoundToPlay(
                         *pick_from

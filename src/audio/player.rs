@@ -23,6 +23,8 @@ impl Player {
     }
 
     pub fn play(&mut self, sound: Sound, ctx: &mut Context) -> GameResult {
+        puffin::profile_scope!("play_sound", sound.to_string());
+
         match self.sounds.get_mut(&sound) {
             Some(source) => {
                 source.play_detached(ctx)?;

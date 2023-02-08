@@ -11,6 +11,7 @@ use crate::{message::Message, physics::event::bullet::BulletFire, utils::GREY, N
 
 impl Engine {
     pub fn tick_bullet_fires(&self) -> Vec<Message> {
+        puffin::profile_scope!("tick_bullet_fires");
         let mut messages = vec![];
         let frame_i = self.local_state.get_frame_i();
 
@@ -28,6 +29,10 @@ impl Engine {
 
     // FIXME : find algorithm kill/injure about bullet + terrain + position
     fn bullet_fire_effects(&self, bullet_fire: &BulletFire) -> Vec<Message> {
+        puffin::profile_scope!(
+            "bullet_fire_effects",
+            format!("start={} end={}", bullet_fire.start(), bullet_fire.end())
+        );
         let mut messages = vec![];
         let point = bullet_fire.point();
 

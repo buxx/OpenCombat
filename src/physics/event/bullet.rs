@@ -64,4 +64,12 @@ impl BulletFire {
     pub fn to(&self) -> &WorldPoint {
         &self.to
     }
+
+    pub fn start(&self) -> u64 {
+        self.start
+    }
+
+    pub fn end(&self) -> u64 {
+        self.end
+    }
 }

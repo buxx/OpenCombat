@@ -58,6 +58,9 @@ pub struct Opt {
 
     #[structopt(long = "debug")]
     debug: bool,
+
+    #[structopt(long = "--profile-address", default_value = "0.0.0.0:8585")]
+    profile_address: String,
 }
 
 fn main() -> GameResult {
@@ -66,8 +69,7 @@ fn main() -> GameResult {
 
     // We must keep server object to avoid its destruction
     let _puffin_server = if opt.debug {
-        let server_addr = format!("0.0.0.0:{}", puffin_http::DEFAULT_PORT);
-        let puffin_server = puffin_http::Server::new(&server_addr).unwrap();
+        let puffin_server = puffin_http::Server::new(&opt.profile_address).unwrap();
         puffin::set_scopes_on(true);
         Some(puffin_server)
     } else {
