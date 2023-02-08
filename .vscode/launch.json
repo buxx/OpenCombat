@@ -25,7 +25,9 @@
                 "tcp://0.0.0.0:4255",
                 "--server-bind-address",
                 "tcp://0.0.0.0:4256",
-                "--debug"
+                "--debug",
+                "--profile-address",
+                "0.0.0.0:8585"
             ],
             "cwd": "${workspaceFolder}",
             "env": {
@@ -54,7 +56,9 @@
                 "tcp://0.0.0.0:4255",
                 "--server-bind-address",
                 "tcp://0.0.0.0:4256",
-                "--debug"
+                "--debug",
+                "--profile-address",
+                "0.0.0.0:8585"
             ],
             "cwd": "${workspaceFolder}",
             "env": {
@@ -84,7 +88,10 @@
                 "--server-bind-address",
                 "tcp://127.0.0.1:4256",
                 "--side",
-                "b"
+                "b",
+                "--debug",
+                "--profile-address",
+                "0.0.0.0:8586"
             ],
             "cwd": "${workspaceFolder}"
         },
@@ -110,7 +117,9 @@
                 "--server-bind-address",
                 "tcp://127.0.0.1:4256",
                 "--side",
-                "b"
+                "b",
+                "--profile-address",
+                "0.0.0.0:8586"
             ],
             "cwd": "${workspaceFolder}"
         },
