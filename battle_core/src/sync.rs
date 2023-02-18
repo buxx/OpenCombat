@@ -9,9 +9,11 @@ use crate::{
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct BattleStateCopy {
+    // FIXME BS NOW : add map
     soldiers: Vec<Soldier>,
     vehicles: Vec<Vehicle>,
     soldier_on_board: SoldiersOnBoard,
+    // FIXME BS NOW : squads is computed, no in copy
     squads: HashMap<SquadUuid, SquadComposition>,
 }
 

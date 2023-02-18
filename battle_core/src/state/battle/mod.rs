@@ -202,19 +202,6 @@ impl BattleState {
 
     pub fn react(&mut self, state_message: &BattleStateMessage, frame_i: u64) -> Vec<SideEffect> {
         match state_message {
-            BattleStateMessage::LoadFromCopy(copy) => {
-                self.soldiers = copy.soldiers().clone();
-                self.vehicles = copy.vehicles().clone();
-                self.soldier_on_board = copy.soldier_on_board().clone();
-                self.squads = copy.squads().clone();
-                self.resolve();
-
-                return self
-                    .soldiers
-                    .iter()
-                    .map(|soldier| SideEffect::RefreshEntityAnimation(soldier.uuid()))
-                    .collect();
-            }
             BattleStateMessage::Soldier(soldier_index, soldier_message) => {
                 return self.react_soldier_message(soldier_index, soldier_message);
             }

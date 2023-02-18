@@ -48,9 +48,6 @@ impl Runner {
                         Side::All,
                         OutputMessage::BattleState(battle_state_message.clone()),
                     )),
-                    BattleStateMessage::LoadFromCopy(_) => {
-                        println!("ERROR : Server should never receive a BattleStateMessage::LoadFromCopy input message")
-                    }
                 },
                 RunnerMessage::ClientsState(client_state_message) => outputs.push((
                     Side::All,

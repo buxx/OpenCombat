@@ -2,17 +2,20 @@ use std::fmt::Display;
 use std::path::PathBuf;
 use std::thread;
 
-use battle_core::channel::Channel;
 use battle_core::config::{ServerConfig, DEFAULT_SERVER_PUB_ADDRESS, DEFAULT_SERVER_REP_ADDRESS};
+use battle_core::message::{InputMessage, OutputMessage};
+use battle_core::network::error::NetworkError;
 use battle_core::network::server::Server;
 use battle_core::state::battle::builder::{BattleStateBuilder, BattleStateBuilderError};
 use battle_server::runner::Runner;
+use crossbeam_channel::{unbounded, Receiver, Sender};
 
 #[derive(Debug)]
 pub enum EmbeddedServerError {
     MissingMapName,
     MissingSituationName,
     StateBuilderError(BattleStateBuilderError),
+    Network(NetworkError),
 }
 
 impl From<BattleStateBuilderError> for EmbeddedServerError {
@@ -29,6 +32,9 @@ impl Display for EmbeddedServerError {
             EmbeddedServerError::StateBuilderError(error) => {
                 f.write_str(&format!("State builder error : {}", error))
             }
+            EmbeddedServerError::Network(error) => {
+                f.write_str(&format!("Network serve error : {}", error))
+            }
         }
     }
 }
@@ -39,18 +45,24 @@ pub struct EmbeddedServer {
     situation_name: Option<String>,
     server_rep_address: String,
     server_pub_address: String,
-    server: bool,
+    gui_input_receiver: Receiver<Vec<InputMessage>>,
+    gui_output_sender: Sender<Vec<OutputMessage>>,
 }
 
 impl EmbeddedServer {
-    pub fn new(resources: &PathBuf) -> Self {
+    pub fn new(
+        resources: &PathBuf,
+        gui_input_receiver: Receiver<Vec<InputMessage>>,
+        gui_output_sender: Sender<Vec<OutputMessage>>,
+    ) -> Self {
         Self {
             resources: resources.clone(),
             map_name: None,
             situation_name: None,
             server_rep_address: DEFAULT_SERVER_REP_ADDRESS.to_string(),
             server_pub_address: DEFAULT_SERVER_PUB_ADDRESS.to_string(),
-            server: false,
+            gui_input_receiver,
+            gui_output_sender,
         }
     }
 
@@ -74,12 +86,13 @@ impl EmbeddedServer {
         self
     }
 
-    pub fn server(mut self, value: bool) -> Self {
-        self.server = value;
-        self
-    }
+    fn start_runner(
+        &self,
+    ) -> Result<(Sender<Vec<InputMessage>>, Receiver<Vec<OutputMessage>>), EmbeddedServerError>
+    {
+        let (runner_input_sender, runner_input_receiver) = unbounded();
+        let (runner_output_sender, runner_output_receiver) = unbounded();
 
-    pub fn start(&self, channel: &Channel) -> Result<(), EmbeddedServerError> {
         let map_name = self
             .map_name
             .as_ref()
@@ -93,34 +106,83 @@ impl EmbeddedServer {
             .situation(&situation_name)
             .build();
 
-        if self.server {
-            let server_rep_address = self.server_rep_address.clone();
-            let server_pub_address = self.server_pub_address.clone();
-            let server_channel = channel.clone();
-            thread::spawn(move || {
-                println!("Start server");
-                match Server::new(server_rep_address, server_pub_address, &server_channel).serve() {
+        thread::Builder::new()
+            .name("runner".to_string())
+            .spawn(|| {
+                println!("Start runner");
+                match Runner::new(config, runner_input_receiver, runner_output_sender, state).run()
+                {
                     Ok(_) => {
-                        println!("Server finished to serve")
+                        println!("Runner finished to run")
                     }
-                    Err(error) => println!("ERROR : Server fail to serve : {}", error),
-                }
-            });
-        }
+                    Err(error) => {
+                        println!("ERROR : Runner fail to run : {}", error)
+                    }
+                };
+            })
+            .unwrap();
 
-        let runner_input = channel.input_receiver();
-        let runner_output = channel.output_sender();
-        thread::spawn(|| {
-            println!("Start runner");
-            match Runner::new(config, runner_input, runner_output, state).run() {
-                Ok(_) => {
-                    println!("Runner finished to run")
+        Ok((runner_input_sender, runner_output_receiver))
+    }
+
+    fn start_server(
+        &self,
+    ) -> Result<(Sender<Vec<OutputMessage>>, Receiver<Vec<InputMessage>>), EmbeddedServerError>
+    {
+        let server_rep_address = self.server_rep_address.clone();
+        let server_pub_address = self.server_pub_address.clone();
+        let (server_input_sender, server_input_receiver) = unbounded();
+        let (server_output_sender, server_output_receiver) = unbounded();
+
+        println!("Start server");
+        if let Err(error) = Server::new(
+            server_rep_address,
+            server_pub_address,
+            server_output_receiver,
+            server_input_sender,
+        )
+        .serve()
+        {
+            return Err(EmbeddedServerError::Network(error));
+        };
+
+        Ok((server_output_sender, server_input_receiver))
+    }
+
+    pub fn start(&self) -> Result<(), EmbeddedServerError> {
+        let (runner_input_sender, runner_output_receiver) = self.start_runner()?;
+        let (server_output_sender, server_input_receiver) = self.start_server()?;
+
+        let gui_input_receiver_ = self.gui_input_receiver.clone();
+        let runner_input_sender_ = runner_input_sender.clone();
+        thread::Builder::new()
+            .name("emb_gui_inputs_bridge".to_string())
+            .spawn(move || {
+                while let Ok(messages) = gui_input_receiver_.recv() {
+                    runner_input_sender_.send(messages).expect("TODO")
                 }
-                Err(error) => {
-                    println!("ERROR : Runner fail to run : {}", error)
+            })
+            .unwrap();
+
+        let gui_output_sender_ = self.gui_output_sender.clone();
+        thread::Builder::new()
+            .name("emb_runner_outputs_bridge".to_string())
+            .spawn(move || {
+                while let Ok(messages) = runner_output_receiver.recv() {
+                    gui_output_sender_.send(messages.clone()).expect("TODO");
+                    server_output_sender.send(messages).expect("TODO");
                 }
-            };
-        });
+            })
+            .unwrap();
+
+        thread::Builder::new()
+            .name("emb_server_inputs_bridge".to_string())
+            .spawn(move || {
+                while let Ok(messages) = server_input_receiver.recv() {
+                    runner_input_sender.send(messages).expect("TODO")
+                }
+            })
+            .unwrap();
 
         Ok(())
     }

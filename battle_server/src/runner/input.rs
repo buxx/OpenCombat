@@ -22,10 +22,9 @@ impl Runner {
             for input in inputs {
                 match input {
                     InputMessage::RequireCompleteSync => {
+                        println!("RequireCompleteSync!");
                         self.output
-                            .send(vec![OutputMessage::BattleState(
-                                BattleStateMessage::LoadFromCopy(self.battle_state.copy()),
-                            )])
+                            .send(vec![OutputMessage::LoadFromCopy(self.battle_state.copy())])
                             .expect("FIXME From chelou");
                     }
                     InputMessage::BattleState(battle_state_message) => {

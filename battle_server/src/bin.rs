@@ -1,7 +1,7 @@
+use crossbeam_channel::unbounded;
 use env_logger::Env;
 use std::path::PathBuf;
 
-use battle_core::channel::Channel;
 use battle_core::config::ServerConfig;
 use battle_core::network::error::NetworkError;
 use battle_core::network::server::Server;
@@ -34,9 +34,15 @@ fn main() -> Result<(), Error> {
     let map_name = "map1";
     let situation = "hardcode";
 
-    let channel = Channel::new();
-    let network = Server::new(opt.rep_address.clone(), opt.pub_address.clone(), &channel);
-    network.serve()?;
+    let (server_input_sender, server_input_receiver) = unbounded();
+    let (server_output_sender, server_output_receiver) = unbounded();
+    let server = Server::new(
+        opt.rep_address.clone(),
+        opt.pub_address.clone(),
+        server_output_receiver,
+        server_input_sender,
+    );
+    server.serve()?;
 
     let config = ServerConfig::new();
     let battle_state = BattleStateBuilder::new(map_name, &resources)?
@@ -44,8 +50,8 @@ fn main() -> Result<(), Error> {
         .build();
     let mut runner = Runner::new(
         config,
-        channel.input_receiver(),
-        channel.output_sender(),
+        server_input_receiver,
+        server_output_sender,
         battle_state,
     );
 

@@ -16,7 +16,6 @@ use crate::{
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum BattleStateMessage {
-    LoadFromCopy(BattleStateCopy),
     Soldier(SoldierIndex, SoldierMessage),
     Vehicle(VehicleIndex, VehicleMessage),
     PushBulletFire(BulletFire),

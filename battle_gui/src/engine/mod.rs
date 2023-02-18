@@ -1,4 +1,6 @@
-use battle_core::channel::Channel;
+use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
+
 use battle_core::config::GuiConfig;
 use battle_core::game::Side;
 use battle_core::message::{InputMessage, OutputMessage};
@@ -43,6 +45,7 @@ pub struct Engine {
     battle_state: BattleState,
     /// The current local state of the game.
     gui_state: GuiState,
+    sync_required: Arc<AtomicBool>,
     // Debug gui
     debug_gui: DebugGuiState,
     egui_backend: Gui,
@@ -53,18 +56,21 @@ impl Engine {
         ctx: &mut Context,
         side: &Side,
         config: GuiConfig,
-        channel: &Channel,
+        input_sender: Sender<Vec<InputMessage>>,
+        output_receiver: Receiver<Vec<OutputMessage>>,
         graphics: Graphics,
         battle_state: BattleState,
+        sync_required: Arc<AtomicBool>,
     ) -> GameResult<Engine> {
         let engine = Engine {
             config,
             graphics,
-            input: channel.output_receiver(),
-            output: channel.input_sender(),
+            input: output_receiver, // Gui input is server output
+            output: input_sender,   // Gui output is server input
             player: Player::new(ctx)?,
             battle_state,
             gui_state: GuiState::new(side.clone()),
+            sync_required,
             debug_gui: DebugGuiState::new()?,
             egui_backend: Gui::default(),
         };

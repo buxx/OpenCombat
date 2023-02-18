@@ -2,8 +2,9 @@ use std::error::Error;
 use std::fmt::Display;
 use std::path;
 use std::path::PathBuf;
+use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 
-use battle_core::channel::Channel;
 use battle_core::config::GuiConfig;
 use battle_core::config::DEFAULT_SERVER_PUB_ADDRESS;
 use battle_core::config::DEFAULT_SERVER_REP_ADDRESS;
@@ -14,6 +15,7 @@ use battle_core::message::InputMessage;
 use battle_core::network::client::Client;
 use battle_core::network::error::NetworkError;
 use battle_core::state::battle::BattleState;
+use crossbeam_channel::unbounded;
 use crossbeam_channel::SendError;
 use ggez::conf::WindowMode;
 use ggez::event;
@@ -58,12 +60,12 @@ pub struct Opt {
 
 fn main() -> Result<(), GuiError> {
     let opt = Opt::from_args();
-    let channel = Channel::new();
-
+    /// FIXME BS NOW : Déplacer LoadFromCopy pour un message au niveau plus haut + bool qui dit que l'on attends une sync globale + quand ce bool == true, desactiver tout les usages de battle state
     // Hardcoded values (will be dynamic)
     let map_name = "map1";
     let situation_name = "hardcoded";
     let resources = PathBuf::from("./resources");
+    let sync_required = Arc::new(AtomicBool::new(true));
 
     // Profiling server
     // NOTE : We must keep server object to avoid its destruction
@@ -75,26 +77,37 @@ fn main() -> Result<(), GuiError> {
         None
     };
 
-    // Battle server (if embedded)
-    if opt.embedded_server {
-        EmbeddedServer::new(&resources)
+    let (input_sender, output_receiver) = if opt.embedded_server {
+        let (input_sender, input_receiver) = unbounded();
+        let (output_sender, output_receiver) = unbounded();
+
+        EmbeddedServer::new(&resources, input_receiver, output_sender)
             .map_name(map_name)
             .situation_name(situation_name)
             .server_rep_address(&opt.server_rep_address)
             .server_pub_address(&opt.server_pub_address)
-            .server(true)
-            .start(&channel)?
+            .start()?;
+
+        (input_sender, output_receiver)
     } else {
-        let _client = Client::new(
+        let (input_sender, input_receiver) = unbounded();
+        let (output_sender, output_receiver) = unbounded();
+
+        Client::new(
             opt.server_rep_address.clone(),
             opt.server_pub_address.clone(),
-            &channel,
+            input_sender.clone(),
+            input_receiver,
+            output_sender,
+            output_receiver.clone(),
+            sync_required.clone(),
         )
         .connect()?;
-    }
-    channel
-        .input_sender()
-        .send(vec![InputMessage::RequireCompleteSync])?;
+
+        (input_sender, output_receiver)
+    };
+
+    input_sender.send(vec![InputMessage::RequireCompleteSync])?;
 
     let context_builder = ggez::ContextBuilder::new("Open Combat", "Bastien Sevajol")
         .add_resource_path(path::PathBuf::from(format!("./{}", RESOURCE_PATH)))
@@ -114,9 +127,11 @@ fn main() -> Result<(), GuiError> {
         &mut context,
         &opt.side,
         config,
-        &channel,
+        input_sender,
+        output_receiver,
         graphics,
         battle_state,
+        sync_required,
     )?;
 
     println!("Start Gui");

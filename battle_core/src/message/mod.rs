@@ -1,6 +1,9 @@
 use serde_derive::{Deserialize, Serialize};
 
-use crate::state::{battle::message::BattleStateMessage, client::ClientStateMessage};
+use crate::{
+    state::{battle::message::BattleStateMessage, client::ClientStateMessage},
+    sync::BattleStateCopy,
+};
 
 use self::network::NetworkMessage;
 
@@ -21,6 +24,7 @@ pub enum InputMessage {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum OutputMessage {
+    LoadFromCopy(BattleStateCopy),
     BattleState(BattleStateMessage),
     ClientState(ClientStateMessage),
 }
