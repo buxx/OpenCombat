@@ -14,13 +14,17 @@ To be able to compile, please install (Debian packages example)
 
 ### Start
 
-To start server (or solo) game :
+To start Gui with embedded server :
 
-    cargo run Server --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256
+    cargo run --bin battle_gui -- --embedded-server --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a
 
-To start client (after server) : 
+To start only client :
 
-    cargo run Client --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side b
+    cargo run --bin battle_gui -- --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a
+
+To start standalone server :
+
+    cargo run --bin battle_server -- --bind-address 'tcp://0.0.0.0:4255' --rep-address 'tcp://0.0.0.0:4256'
 
 ### Profile
 
