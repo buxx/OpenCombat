@@ -1,0 +1,28 @@
+[package]
+name = "battle_server"
+version = "0.2.0"
+authors = ["Sevajol Bastien <contact@bux.fr>"]
+edition = "2021"
+
+[lib]
+name = "battle_server"
+path = "src/lib.rs"
+
+[[bin]]
+name = "battle_server"
+path = "src/bin.rs"
+
+
+[dependencies]
+battle_core = { path = "../battle_core" }
+crossbeam-channel = "0.5.6"
+serde = "1.0.136"
+serde_derive = "1.0.152"
+structopt = "0.3.21"
+glam = { version = "0.22.0", features = ["mint"]}
+rayon = "1"
+puffin_http = "0.11.1"
+puffin = "0.14.2"
+rand = "0.8.5"
+log = "0.4.13"
+env_logger = "0.10.0"

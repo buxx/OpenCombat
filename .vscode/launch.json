@@ -7,27 +7,109 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Server",
+            "name": "Server (standalone)",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=opencombat",
-                    "--package=opencombat"
+                    "--bin=battle_server",
+                    "--package=battle_server"
                 ],
                 "filter": {
-                    "name": "opencombat",
+                    "name": "battle_server",
                     "kind": "bin"
                 }
             },
             "args": [
-                "Server",
+                "--rep-address",
+                "tcp://0.0.0.0:4255",
+                "--bind-address",
+                "tcp://0.0.0.0:4256"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Gui (server embedded)",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--embedded-server",
                 "--server-rep-address",
                 "tcp://0.0.0.0:4255",
                 "--server-bind-address",
                 "tcp://0.0.0.0:4256",
-                "--debug",
-                "--profile-address",
-                "0.0.0.0:8585"
+                "--side",
+                "a"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG": "DEBUG"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Gui a",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "a"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Gui b",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "b"
             ],
             "cwd": "${workspaceFolder}",
             "env": {

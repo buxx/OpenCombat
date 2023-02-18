@@ -21,6 +21,7 @@
                 "Nagant",
                 "opencombat",
                 "pathfinding",
+                "recv",
                 "rustbuild",
                 "spritebatch",
                 "tilecount",
@@ -28,6 +29,7 @@
                 "tilesets",
                 "Tweenable",
                 "uuids",
+                "winit",
                 "zeromq"
         ]
 }
