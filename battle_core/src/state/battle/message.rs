@@ -53,6 +53,4 @@ pub enum SideEffect {
     // FIXME Systematic gui side
     RefreshEntityAnimation(SoldierIndex),
     SoldierFinishHisBehavior(SoldierIndex),
-    // FIXME : Should not be required now
-    // PlaySound(Sound),
 }

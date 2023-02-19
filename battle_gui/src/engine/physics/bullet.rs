@@ -19,7 +19,6 @@ impl Engine {
     }
 
     pub fn bullet_fire_fx(&self, bullet_fire: &BulletFire) -> Vec<EngineMessage> {
-        // FIXME BS NOW : son produit ici uniquement (check cote server en enlever) !
         let mut messages = vec![];
 
         if bullet_fire.start() == self.gui_state.get_frame_i() {

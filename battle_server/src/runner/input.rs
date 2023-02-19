@@ -28,6 +28,12 @@ impl Runner {
                         side_effects
                             .extend(self.battle_state.react(&battle_state_message, self.frame_i));
                     }
+                    InputMessage::ChangeConfig(change_config) => {
+                        self.output
+                            .send(vec![OutputMessage::ChangeConfig(change_config.clone())])
+                            .expect("FIXME From chelou");
+                        self.config.react(&change_config);
+                    }
                 };
             }
         }

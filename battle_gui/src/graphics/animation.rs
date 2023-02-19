@@ -8,8 +8,6 @@ use keyframe::{
 use super::{AnimationFloor, Graphics, TweenableRect};
 
 impl Graphics {
-    // FIXME BS NOW : Clarify when animations are refreshed
-    // Maybe prepare all animations for each behaviors ?
     pub fn refresh_soldier_animation(&mut self, soldier: &Soldier) {
         let animation = self.soldier_animation(soldier);
         self.soldier_animation_sequences

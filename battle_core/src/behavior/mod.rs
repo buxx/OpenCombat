@@ -60,7 +60,6 @@ impl Behavior {
 
     pub fn reach_step(&mut self) -> bool {
         match self {
-            // FIXME BS NOW : Look like client reach it when client started before server
             Behavior::MoveTo(paths)
             | Behavior::MoveFastTo(paths)
             | Behavior::SneakTo(paths)

@@ -64,7 +64,7 @@ impl VehicleGraphicInfos {
                             SPRITE_SHEET_HEIGHT,
                         ),
                     ),
-                    // FIXME BS NOW : These positions must strictly match with board_composition (check it at startup ?)
+                    // TODO : These positions must strictly match with board_composition (check it at startup ?)
                     vec![
                         (OnBoardPlace::Driver, Offset::new(8., -16.)),
                         (OnBoardPlace::MainTurretGunner, Offset::new(-3., 0.)),

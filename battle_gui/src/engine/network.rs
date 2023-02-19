@@ -6,6 +6,7 @@ use battle_core::{
         battle::{message::SideEffect, BattleState},
         client::ClientStateMessage,
     },
+    utils::DebugPoint,
 };
 use ggez::{Context, GameResult};
 
@@ -15,13 +16,13 @@ impl Engine {
     pub fn sync(&mut self, ctx: &mut Context) -> GameResult {
         puffin::profile_scope!("sync");
         let mut side_effects = vec![];
+        let frame_i = self.gui_state.get_frame_i();
 
         while let Ok(messages) = self.input.try_recv() {
             for message in &messages {
                 match message {
                     OutputMessage::LoadFromCopy(copy) => {
                         let mut battle_state = BattleState::new(
-                            // FIXME BS NOW : map must be in copy
                             self.battle_state.map().clone(),
                             copy.soldiers().clone(),
                             copy.vehicles().clone(),
@@ -42,16 +43,17 @@ impl Engine {
                     }
                     OutputMessage::BattleState(battle_state_message) => {
                         if !self.sync_required.load(Ordering::Relaxed) {
-                            side_effects.extend(
-                                self.battle_state
-                                    .react(battle_state_message, self.gui_state.get_frame_i()),
-                            );
+                            side_effects
+                                .extend(self.battle_state.react(battle_state_message, frame_i));
                         }
                     }
                     OutputMessage::ClientState(client_state_message) => {
                         match client_state_message {
                             ClientStateMessage::PushDebugPoint(debug_point) => {
-                                self.gui_state.debug_points_mut().push(debug_point.clone())
+                                self.gui_state.debug_points_mut().push(DebugPoint {
+                                    frame_i: frame_i + 120,
+                                    point: debug_point.point,
+                                })
                             }
                             ClientStateMessage::PlayInterfaceSound(sound) => {
                                 self.player.play(sound, ctx)?
@@ -60,6 +62,9 @@ impl Engine {
                                 self.player.play(sound, ctx)?
                             }
                         }
+                    }
+                    OutputMessage::ChangeConfig(change_config) => {
+                        self.server_config.react(change_config);
                     }
                 }
             }

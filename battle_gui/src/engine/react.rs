@@ -40,6 +40,11 @@ impl Engine {
                     &self.config,
                     ctx,
                 )?,
+                EngineMessage::ChangeServerConfig(change_config_message) => {
+                    self.output
+                        .send(vec![InputMessage::ChangeConfig(change_config_message)])
+                        .expect("TODO");
+                }
             }
         }
 

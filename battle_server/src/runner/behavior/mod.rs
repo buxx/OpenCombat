@@ -7,7 +7,7 @@ use battle_core::{
         client::ClientStateMessage,
     },
     types::{Angle, SquadUuid, WorldPaths, WorldPoint},
-    utils::DebugPoint,
+    utils::NewDebugPoint,
 };
 
 use super::{message::RunnerMessage, Runner};
@@ -66,7 +66,7 @@ impl Runner {
     pub fn propagate_behavior(&self, leader: &Soldier, behavior: &Behavior) -> Vec<RunnerMessage> {
         assert!(self.soldier_is_squad_leader(leader.uuid()));
         let mut messages = vec![];
-        let mut debug_points: Vec<DebugPoint> = vec![];
+        let mut debug_points: Vec<NewDebugPoint> = vec![];
 
         let orders: Vec<(&Soldier, Order)> = match behavior {
             Behavior::MoveTo(_) | Behavior::MoveFastTo(_) | Behavior::SneakTo(_) => {

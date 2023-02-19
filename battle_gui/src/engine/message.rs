@@ -2,6 +2,7 @@ use serde_derive::{Deserialize, Serialize};
 
 use battle_core::{
     audio::Sound,
+    config::ChangeConfigMessage,
     order::PendingOrder,
     state::battle::message::BattleStateMessage,
     types::{Offset, SoldierIndex, SquadUuid, WindowPoint, WorldPaths, WorldPoint},
@@ -21,6 +22,7 @@ pub enum EngineMessage {
     GuiState(GuiStateMessage),
     Graphics(GraphicsMessage),
     PlaySound(Sound),
+    ChangeServerConfig(ChangeConfigMessage),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

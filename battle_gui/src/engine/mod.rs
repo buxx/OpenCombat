@@ -1,7 +1,7 @@
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
-use battle_core::config::GuiConfig;
+use battle_core::config::{GuiConfig, ServerConfig};
 use battle_core::game::Side;
 use battle_core::message::{InputMessage, OutputMessage};
 use battle_core::state::battle::BattleState;
@@ -37,6 +37,8 @@ mod utils;
 
 pub struct Engine {
     config: GuiConfig,
+    // Mirror of server config used to live debug window
+    server_config: ServerConfig,
     graphics: Graphics,
     input: Receiver<Vec<OutputMessage>>,
     output: Sender<Vec<InputMessage>>,
@@ -64,6 +66,7 @@ impl Engine {
     ) -> GameResult<Engine> {
         let engine = Engine {
             config,
+            server_config: ServerConfig::new(),
             graphics,
             input: output_receiver, // Gui input is server output
             output: input_sender,   // Gui output is server input

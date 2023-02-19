@@ -8,7 +8,6 @@ mod bullet;
 mod explosion;
 
 impl Engine {
-    // FIXME BS NOW : as GUI only !
     pub fn tick_physics(&mut self) -> Vec<EngineMessage> {
         puffin::profile_scope!("tick_physics");
         let mut messages = vec![];

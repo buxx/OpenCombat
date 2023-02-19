@@ -1,3 +1,4 @@
+use battle_core::config::ChangeConfigMessage;
 use ggegui::egui::{Context as EguiContext, Ui};
 use ggez::Context;
 
@@ -28,7 +29,14 @@ impl Engine {
 
             ui.checkbox(&mut self.gui_state.debug_mouse, "Cursor");
             ui.checkbox(&mut self.gui_state.debug_move_paths, "Move");
-            ui.checkbox(&mut self.gui_state.debug_formation_positions, "Formation");
+            if ui
+                .checkbox(&mut self.gui_state.debug_formation_positions, "Formation")
+                .changed()
+            {
+                messages.push(EngineMessage::ChangeServerConfig(
+                    ChangeConfigMessage::SendDebugPoints(self.gui_state.debug_formation_positions),
+                ));
+            };
             ui.checkbox(&mut self.gui_state.debug_scene_item_circles, "Soldier");
             ui.checkbox(&mut self.gui_state.debug_areas, "Areas");
             ui.checkbox(&mut self.gui_state.debug_visibilities, "Visibilities");

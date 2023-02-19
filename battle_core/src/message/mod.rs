@@ -1,6 +1,7 @@
 use serde_derive::{Deserialize, Serialize};
 
 use crate::{
+    config::ChangeConfigMessage,
     state::{battle::message::BattleStateMessage, client::ClientStateMessage},
     sync::BattleStateCopy,
 };
@@ -20,6 +21,7 @@ pub enum Message {
 pub enum InputMessage {
     RequireCompleteSync,
     BattleState(BattleStateMessage),
+    ChangeConfig(ChangeConfigMessage),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -27,4 +29,5 @@ pub enum OutputMessage {
     LoadFromCopy(BattleStateCopy),
     BattleState(BattleStateMessage),
     ClientState(ClientStateMessage),
+    ChangeConfig(ChangeConfigMessage),
 }

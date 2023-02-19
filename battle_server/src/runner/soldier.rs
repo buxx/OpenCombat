@@ -6,7 +6,7 @@ use battle_core::{
 use super::{message::RunnerMessage, Runner};
 
 impl Runner {
-    // FIXME BS NOW : Soldiers in vehicles must be managed differently than ground soldiers
+    // TODO : Soldiers in vehicles must be managed differently than ground soldiers
     pub fn tick_soldiers(&self) -> Vec<RunnerMessage> {
         puffin::profile_scope!("tick_soldiers");
         let mut messages = vec![];

@@ -1,4 +1,5 @@
 use crate::{behavior::Behavior, map::terrain::TileType};
+use serde_derive::{Deserialize, Serialize};
 
 pub const DEFAULT_SERVER_REP_ADDRESS: &str = "tcp://0.0.0.0:4255";
 pub const DEFAULT_SERVER_PUB_ADDRESS: &str = "tcp://0.0.0.0:4256";
@@ -76,6 +77,7 @@ pub enum ConfigError {}
 
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
+    pub send_debug_points: bool,
     pub soldier_update_freq: u64,
     pub soldier_animate_freq: u64,
     pub interiors_update_freq: u64,
@@ -107,9 +109,9 @@ pub struct ServerConfig {
 }
 
 impl ServerConfig {
-    // FIXME BS NOW: Errors types
     pub fn new() -> Self {
         Self {
+            send_debug_points: false,
             /// Frequency of soldier update :
             ///  - World pixel point according to movement
             ///  - ...
@@ -211,6 +213,12 @@ impl ServerConfig {
             Behavior::EngageSoldier(_) => None,
         }
     }
+
+    pub fn react(&mut self, message: &ChangeConfigMessage) {
+        match message {
+            ChangeConfigMessage::SendDebugPoints(value) => self.send_debug_points = *value,
+        }
+    }
 }
 
 pub struct GuiConfig {
@@ -267,4 +275,9 @@ impl TerrainTileOpacity for ServerConfig {
             TileType::BrickWall => self.tile_type_opacity_brick_wall,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum ChangeConfigMessage {
+    SendDebugPoints(bool),
 }
