@@ -60,8 +60,6 @@ pub struct Opt {
 
 fn main() -> Result<(), GuiError> {
     let opt = Opt::from_args();
-    /// FIXME BS NOW : Déplacer LoadFromCopy pour un message au niveau plus haut + bool qui dit que l'on attends une sync globale + quand ce bool == true, desactiver tout les usages de battle state
-    // Hardcoded values (will be dynamic)
     let map_name = "map1";
     let situation_name = "hardcoded";
     let resources = PathBuf::from("./resources");

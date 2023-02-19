@@ -10,7 +10,6 @@ use crate::{
         event::{bullet::BulletFire, explosion::Explosion},
         visibility::Visibility,
     },
-    sync::BattleStateCopy,
     types::{Angle, SoldierIndex, VehicleIndex, WorldPoint},
 };
 

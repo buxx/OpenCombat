@@ -247,7 +247,6 @@ impl BattleState {
             self.soldiers.clone(),
             self.vehicles.clone(),
             self.soldier_on_board.clone(),
-            self.squads.clone(),
         )
     }
 }

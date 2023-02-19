@@ -1,7 +1,4 @@
-use battle_core::{
-    message::{InputMessage, OutputMessage},
-    state::battle::message::BattleStateMessage,
-};
+use battle_core::message::{InputMessage, OutputMessage};
 use crossbeam_channel::TryRecvError;
 
 use super::{Runner, RunnerError};
