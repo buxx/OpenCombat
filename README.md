@@ -33,9 +33,9 @@ Install [puffin_viewer](https://github.com/EmbarkStudios/puffin/tree/main/puffin
 
     cargo install puffin_viewer
 
-Start server or client with `--debug` flag. Example :
+Start server or client with `--profile` flag. Example :
 
-    cargo run Server --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --debug
+    cargo run --bin battle_server -- --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --profile
 
 Start puffin viewer :
 

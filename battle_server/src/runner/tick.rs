@@ -2,6 +2,8 @@ use super::{Runner, RunnerError};
 
 impl Runner {
     pub fn tick(&mut self) -> Result<(), RunnerError> {
+        let frame_i = self.frame_i;
+        puffin::profile_scope!("tick", format!("frame {frame_i}"));
         self.inputs()?;
 
         let mut messages = vec![];

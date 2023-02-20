@@ -56,6 +56,10 @@ impl Runner {
 
     pub fn run(&mut self) -> Result<(), RunnerError> {
         loop {
+            let frame_i = self.frame_i;
+            puffin::profile_scope!("run", format!("frame {frame_i}"));
+            puffin::GlobalProfiler::lock().new_frame();
+
             thread::sleep(self.sleep_duration());
             self.last = Instant::now();
             self.tick()?;

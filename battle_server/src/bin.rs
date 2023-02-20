@@ -18,12 +18,12 @@ pub struct Opt {
 
     #[structopt(long = "bind-address")]
     pub_address: String,
-    // FIXME BS NOW : re-enable it
-    // #[structopt(long = "profile")]
-    // profile: bool,
 
-    // #[structopt(long = "--profile-address", default_value = "0.0.0.0:8585")]
-    // profile_address: String,
+    #[structopt(long = "profile")]
+    profile: bool,
+
+    #[structopt(long = "--profile-address", default_value = "0.0.0.0:8585")]
+    profile_address: String,
 }
 
 fn main() -> Result<(), Error> {
@@ -33,6 +33,14 @@ fn main() -> Result<(), Error> {
     let resources = PathBuf::from("./resources");
     let map_name = "map1";
     let situation = "hardcode";
+
+    let _puffin_server = if opt.profile {
+        let puffin_server = puffin_http::Server::new(&opt.profile_address).unwrap();
+        puffin::set_scopes_on(true);
+        Some(puffin_server)
+    } else {
+        None
+    };
 
     let (server_input_sender, server_input_receiver) = unbounded();
     let (server_output_sender, server_output_receiver) = unbounded();

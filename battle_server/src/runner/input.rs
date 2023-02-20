@@ -5,6 +5,7 @@ use super::{Runner, RunnerError};
 
 impl Runner {
     pub fn inputs(&mut self) -> Result<(), RunnerError> {
+        puffin::profile_scope!("inputs");
         loop {
             let inputs = match self.input.try_recv() {
                 Ok(message) => message,
