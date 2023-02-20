@@ -236,8 +236,6 @@ version = "0.1.1"
 dependencies = [
  "battle_core",
  "battle_server",
- "bincode",
- "bresenham",
  "crossbeam-channel",
  "geo",
  "ggegui",
@@ -245,7 +243,6 @@ dependencies = [
  "glam",
  "keyframe",
  "keyframe_derive",
- "pathfinding",
  "puffin",
  "puffin_http",
  "rand",
@@ -255,7 +252,6 @@ dependencies = [
  "structopt",
  "strum",
  "strum_macros",
- "zmq",
 ]
 
 [[package]]
