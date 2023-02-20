@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs};
 
 use battle_core::{
-    config::{GuiConfig, TerrainTileOpacity},
+    config::ServerConfig,
     entity::{soldier::Soldier, vehicle::Vehicle},
     graphics::vehicle::VehicleGraphicInfos,
     map::Map,
@@ -84,7 +84,7 @@ pub struct Graphics {
 }
 
 impl Graphics {
-    pub fn new(ctx: &mut Context, map: &Map, config: &GuiConfig) -> GameResult<Graphics> {
+    pub fn new(ctx: &mut Context, map: &Map, config: &ServerConfig) -> GameResult<Graphics> {
         let soldiers_file = AssetsType::Soldiers.prefix().to_string() + ".png";
         let soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
         let soldiers_batch = create_batch(&soldiers_file, ctx)?;
@@ -392,7 +392,7 @@ impl Graphics {
         &mut self,
         message: GraphicsMessage,
         map: &Map,
-        config: &impl TerrainTileOpacity,
+        config: &ServerConfig,
         ctx: &mut Context,
     ) -> GameResult<()> {
         match message {

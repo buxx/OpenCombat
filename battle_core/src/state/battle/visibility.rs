@@ -1,5 +1,5 @@
 use crate::{
-    config::TerrainTileOpacity,
+    config::ServerConfig,
     entity::soldier::Soldier,
     game::Side,
     physics::visibility::Visibility,
@@ -26,7 +26,7 @@ impl BattleState {
 
     pub fn point_is_visible_by_squad(
         &self,
-        config: &impl TerrainTileOpacity,
+        config: &ServerConfig,
         point: &WorldPoint,
         squad_index: &SquadUuid,
     ) -> bool {
@@ -39,7 +39,7 @@ impl BattleState {
 
     pub fn point_is_visible_by_soldier(
         &self,
-        config: &impl TerrainTileOpacity,
+        config: &ServerConfig,
         soldier: &Soldier,
         point: &WorldPoint,
     ) -> bool {

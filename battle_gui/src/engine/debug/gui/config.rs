@@ -1,85 +1,119 @@
-use ggegui::egui::{Context as EguiContext, Ui};
+use ggegui::egui::{Context as EguiContext, Grid, Slider, Ui};
 use ggez::Context;
 
-// use battle_core::config::{
-//     FEELING_DECREASING_FREQ, INTERIORS_UPDATE_FREQ, SOLDIER_ANIMATE_FREQ, SOLDIER_UPDATE_FREQ,
-//     TARGET_FPS, TILE_TYPE_OPACITY_BRICK_WALL, TILE_TYPE_OPACITY_CONCRETE, TILE_TYPE_OPACITY_DIRT,
-//     TILE_TYPE_OPACITY_HIGH_GRASS, TILE_TYPE_OPACITY_MIDDLE_GRASS, TILE_TYPE_OPACITY_MUD,
-//     TILE_TYPE_OPACITY_SHORT_GRASS, VISIBILITY_BY_LAST_FRAME_SHOOT,
-//     VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE, VISIBILITY_DEAD_MODIFIER, VISIBILITY_DEFEND_MODIFIER,
-//     VISIBILITY_ENGAGE_MODIFIER, VISIBILITY_FIRSTS, VISIBILITY_HIDE_MODIFIER,
-//     VISIBILITY_IDLE_MODIFIER, VISIBILITY_IN_VEHICLE_MODIFIER, VISIBILITY_MOVE_FAST_TO_MODIFIER,
-//     VISIBILITY_MOVE_TO_MODIFIER, VISIBILITY_SNEAK_TO_MODIFIER, VISIBILITY_SUPPRESS_FIRE_MODIFIER,
-//     VISIBILITY_UNCONSCIOUS_MODIFIER, VISIBILITY_UPDATE_FREQ, VISIBLE_STARTS_AT,
-// };
+use battle_core::config::{
+    ChangeConfigMessage, FEELING_DECREASING_FREQ, INTERIORS_UPDATE_FREQ, SOLDIER_ANIMATE_FREQ,
+    SOLDIER_UPDATE_FREQ, TARGET_FPS, TILE_TYPE_OPACITY_BRICK_WALL, TILE_TYPE_OPACITY_CONCRETE,
+    TILE_TYPE_OPACITY_DIRT, TILE_TYPE_OPACITY_HIGH_GRASS, TILE_TYPE_OPACITY_MIDDLE_GRASS,
+    TILE_TYPE_OPACITY_MUD, TILE_TYPE_OPACITY_SHORT_GRASS, VISIBILITY_BY_LAST_FRAME_SHOOT,
+    VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE, VISIBILITY_DEAD_MODIFIER, VISIBILITY_DEFEND_MODIFIER,
+    VISIBILITY_ENGAGE_MODIFIER, VISIBILITY_FIRSTS, VISIBILITY_HIDE_MODIFIER,
+    VISIBILITY_IDLE_MODIFIER, VISIBILITY_IN_VEHICLE_MODIFIER, VISIBILITY_MOVE_FAST_TO_MODIFIER,
+    VISIBILITY_MOVE_TO_MODIFIER, VISIBILITY_SNEAK_TO_MODIFIER, VISIBILITY_SUPPRESS_FIRE_MODIFIER,
+    VISIBILITY_UNCONSCIOUS_MODIFIER, VISIBILITY_UPDATE_FREQ, VISIBLE_STARTS_AT,
+};
 
-use crate::engine::{message::EngineMessage, Engine};
+use crate::{
+    engine::{message::EngineMessage, Engine},
+    graphics::message::GraphicsMessage,
+};
 
 impl Engine {
-    pub fn debug_gui_global_config(
+    pub fn debug_gui_server_config(
         &mut self,
         _ctx: &mut Context,
         _egui_ctx: &EguiContext,
-        _ui: &mut Ui,
+        ui: &mut Ui,
     ) -> Vec<EngineMessage> {
-        // FIXME : find a way to permit it !
-        // Grid::new("meta")
-        //     .num_columns(3)
-        //     .spacing([40.0, 4.0])
-        //     .striped(true)
-        //     .show(ui, |ui| {
-        //         for (name, value, min, max, default) in [
-        //             (
-        //                 "TARGET_FPS",
-        //                 &mut self.config.target_fps,
-        //                 1,
-        //                 1500,
-        //                 TARGET_FPS,
-        //             ),
-        //             (
-        //                 "SOLDIER_UPDATE_FREQ",
-        //                 &mut self.config.soldier_update_freq,
-        //                 1,
-        //                 120,
-        //                 SOLDIER_UPDATE_FREQ,
-        //             ),
-        //             (
-        //                 "SOLDIER_ANIMATE_FREQ",
-        //                 &mut self.config.soldier_animate_freq,
-        //                 1,
-        //                 120,
-        //                 SOLDIER_ANIMATE_FREQ,
-        //             ),
-        //             (
-        //                 "INTERIORS_UPDATE_FREQ",
-        //                 &mut self.config.interiors_update_freq,
-        //                 1,
-        //                 120,
-        //                 INTERIORS_UPDATE_FREQ,
-        //             ),
-        //             (
-        //                 "VISIBILITY_UPDATE_FREQ",
-        //                 &mut self.config.visibility_update_freq,
-        //                 1,
-        //                 120,
-        //                 VISIBILITY_UPDATE_FREQ,
-        //             ),
-        //             (
-        //                 "FEELING_DECREASING_FREQ",
-        //                 &mut self.config.feeling_decreasing_freq,
-        //                 1,
-        //                 120,
-        //                 FEELING_DECREASING_FREQ,
-        //             ),
-        //         ] {
-        //             ui.label(name);
-        //             if ui.button("reset").clicked() {
-        //                 *value = default;
-        //             };
-        //             ui.add(Slider::new(value, min..=max));
-        //             ui.end_row();
-        //         }
-        //     });
+        let mut messages = vec![];
+
+        Grid::new("meta")
+            .num_columns(3)
+            .spacing([40.0, 4.0])
+            .striped(true)
+            .show(ui, |ui| {
+                for (name, value, min, max, default, message) in [
+                    (
+                        "SOLDIER_UPDATE_FREQ",
+                        &mut self.server_config.soldier_update_freq,
+                        1,
+                        120,
+                        SOLDIER_UPDATE_FREQ,
+                        ChangeConfigMessage::SoldierUpdateFreq,
+                    ),
+                    (
+                        "SOLDIER_ANIMATE_FREQ",
+                        &mut self.server_config.soldier_animate_freq,
+                        1,
+                        120,
+                        SOLDIER_ANIMATE_FREQ,
+                        ChangeConfigMessage::SoldierAnimateFreq,
+                    ),
+                    (
+                        "INTERIORS_UPDATE_FREQ",
+                        &mut self.server_config.interiors_update_freq,
+                        1,
+                        120,
+                        INTERIORS_UPDATE_FREQ,
+                        ChangeConfigMessage::InteriorsUpdateFreq,
+                    ),
+                    (
+                        "VISIBILITY_UPDATE_FREQ",
+                        &mut self.server_config.visibility_update_freq,
+                        1,
+                        120,
+                        VISIBILITY_UPDATE_FREQ,
+                        ChangeConfigMessage::VisibilityUpdateFreq,
+                    ),
+                    (
+                        "FEELING_DECREASING_FREQ",
+                        &mut self.server_config.feeling_decreasing_freq,
+                        1,
+                        120,
+                        FEELING_DECREASING_FREQ,
+                        ChangeConfigMessage::FeelingDecreasingFreq,
+                    ),
+                ]
+                    as [(_, _, _, _, _, fn(_) -> _); 5]
+                {
+                    ui.label(name);
+                    if ui.button("reset").clicked() {
+                        *value = default;
+                    };
+                    if ui.add(Slider::new(value, min..=max)).changed() {
+                        messages.push(EngineMessage::ChangeServerConfig(message(*value)));
+                    };
+                    ui.end_row();
+                }
+            });
+
+        messages
+    }
+    pub fn debug_gui_gui_config(
+        &mut self,
+        _ctx: &mut Context,
+        _egui_ctx: &EguiContext,
+        ui: &mut Ui,
+    ) -> Vec<EngineMessage> {
+        Grid::new("meta")
+            .num_columns(3)
+            .spacing([40.0, 4.0])
+            .striped(true)
+            .show(ui, |ui| {
+                ui.label("TARGET_FPS");
+                if ui.button("reset").clicked() {
+                    *&mut self.config.target_fps = TARGET_FPS as u32;
+                };
+                ui.add(Slider::new(&mut self.config.target_fps, 1..=3000));
+                ui.end_row();
+
+                ui.label("INTERIORS_UPDATE_FREQ");
+                if ui.button("reset").clicked() {
+                    *&mut self.config.interiors_update_freq = INTERIORS_UPDATE_FREQ;
+                };
+                ui.add(Slider::new(&mut self.config.interiors_update_freq, 0..=300));
+                ui.end_row();
+            });
 
         vec![]
     }
@@ -88,144 +122,188 @@ impl Engine {
         &mut self,
         _ctx: &mut Context,
         _egui_ctx: &EguiContext,
-        _ui: &mut Ui,
+        ui: &mut Ui,
     ) -> Vec<EngineMessage> {
-        let messages = vec![];
+        let mut messages = vec![];
 
-        // FIXME : find a way to permit it !
-        // Grid::new("meta")
-        //     .num_columns(2)
-        //     .spacing([40.0, 4.0])
-        //     .striped(true)
-        //     .show(ui, |ui| {
-        //         ui.label("VISIBILITY_FIRSTS");
-        //         if ui.button("reset").clicked() {
-        //             *&mut self.config.visibility_firsts = VISIBILITY_FIRSTS;
-        //         };
-        //         ui.add(Slider::new(&mut self.config.visibility_firsts, 0..=10));
-        //         ui.end_row();
+        Grid::new("meta")
+            .num_columns(2)
+            .spacing([40.0, 4.0])
+            .striped(true)
+            .show(ui, |ui| {
+                ui.label("VISIBILITY_FIRSTS");
+                if ui.button("reset").clicked() {
+                    *&mut self.server_config.visibility_firsts = VISIBILITY_FIRSTS;
+                };
+                if ui
+                    .add(Slider::new(
+                        &mut self.server_config.visibility_firsts,
+                        0..=10,
+                    ))
+                    .changed()
+                {
+                    messages.push(EngineMessage::ChangeServerConfig(
+                        ChangeConfigMessage::VisibilityFirsts(self.server_config.visibility_firsts),
+                    ));
+                };
+                ui.end_row();
 
-        //         ui.label("VISIBLE_STARTS_AT");
-        //         if ui.button("reset").clicked() {
-        //             *&mut self.config.visible_starts_at = VISIBLE_STARTS_AT;
-        //         };
-        //         ui.add(Slider::new(&mut self.config.visible_starts_at, (0.)..=1.));
-        //         ui.end_row();
+                ui.label("VISIBLE_STARTS_AT");
+                if ui.button("reset").clicked() {
+                    *&mut self.server_config.visible_starts_at = VISIBLE_STARTS_AT;
+                };
+                if ui
+                    .add(Slider::new(
+                        &mut self.server_config.visible_starts_at,
+                        (0.)..=1.,
+                    ))
+                    .changed()
+                {
+                    messages.push(EngineMessage::ChangeServerConfig(
+                        ChangeConfigMessage::VisibleStartsAt(self.server_config.visible_starts_at),
+                    ));
+                };
+                ui.end_row();
 
-        //         for (name, value, default) in [
-        //             (
-        //                 "IDLE",
-        //                 &mut self.config.visibility_idle_modifier,
-        //                 VISIBILITY_IDLE_MODIFIER,
-        //             ),
-        //             (
-        //                 "MOVE_TO",
-        //                 &mut self.config.visibility_move_to_modifier,
-        //                 VISIBILITY_MOVE_TO_MODIFIER,
-        //             ),
-        //             (
-        //                 "MOVE_FAST_TO",
-        //                 &mut self.config.visibility_move_fast_to_modifier,
-        //                 VISIBILITY_MOVE_FAST_TO_MODIFIER,
-        //             ),
-        //             (
-        //                 "SNEAK_TO",
-        //                 &mut self.config.visibility_sneak_to_modifier,
-        //                 VISIBILITY_SNEAK_TO_MODIFIER,
-        //             ),
-        //             (
-        //                 "DEFEND",
-        //                 &mut self.config.visibility_defend_modifier,
-        //                 VISIBILITY_DEFEND_MODIFIER,
-        //             ),
-        //             (
-        //                 "HIDE",
-        //                 &mut self.config.visibility_hide_modifier,
-        //                 VISIBILITY_HIDE_MODIFIER,
-        //             ),
-        //             (
-        //                 "IN_VEHICLE",
-        //                 &mut self.config.visibility_in_vehicle_modifier,
-        //                 VISIBILITY_IN_VEHICLE_MODIFIER,
-        //             ),
-        //             (
-        //                 "SUPPRESS_FIRE",
-        //                 &mut self.config.visibility_suppress_fire_modifier,
-        //                 VISIBILITY_SUPPRESS_FIRE_MODIFIER,
-        //             ),
-        //             (
-        //                 "ENGAGE",
-        //                 &mut self.config.visibility_engage_modifier,
-        //                 VISIBILITY_ENGAGE_MODIFIER,
-        //             ),
-        //             (
-        //                 "DEAD",
-        //                 &mut self.config.visibility_dead_modifier,
-        //                 VISIBILITY_DEAD_MODIFIER,
-        //             ),
-        //             (
-        //                 "UNCONSCIOUS",
-        //                 &mut self.config.visibility_unconscious_modifier,
-        //                 VISIBILITY_UNCONSCIOUS_MODIFIER,
-        //             ),
-        //         ] {
-        //             ui.label(format!("VISIBILITY_BEHAVIOR_MODIFIER__{}", name));
-        //             if ui.button("reset").clicked() {
-        //                 *value = default;
-        //             };
-        //             ui.add(Slider::new(value, (-5.)..=5.));
-        //             ui.end_row();
-        //         }
+                for (name, value, default, message) in [
+                    (
+                        "IDLE",
+                        &mut self.server_config.visibility_idle_modifier,
+                        VISIBILITY_IDLE_MODIFIER,
+                        ChangeConfigMessage::VisibilityIdleModifier,
+                    ),
+                    (
+                        "MOVE_TO",
+                        &mut self.server_config.visibility_move_to_modifier,
+                        VISIBILITY_MOVE_TO_MODIFIER,
+                        ChangeConfigMessage::VisibilityMoveModifier,
+                    ),
+                    (
+                        "MOVE_FAST_TO",
+                        &mut self.server_config.visibility_move_fast_to_modifier,
+                        VISIBILITY_MOVE_FAST_TO_MODIFIER,
+                        ChangeConfigMessage::VisibilityMoveFastModifier,
+                    ),
+                    (
+                        "SNEAK_TO",
+                        &mut self.server_config.visibility_sneak_to_modifier,
+                        VISIBILITY_SNEAK_TO_MODIFIER,
+                        ChangeConfigMessage::VisibilitySneakToModifier,
+                    ),
+                    (
+                        "DEFEND",
+                        &mut self.server_config.visibility_defend_modifier,
+                        VISIBILITY_DEFEND_MODIFIER,
+                        ChangeConfigMessage::VisibilityDefendModifier,
+                    ),
+                    (
+                        "HIDE",
+                        &mut self.server_config.visibility_hide_modifier,
+                        VISIBILITY_HIDE_MODIFIER,
+                        ChangeConfigMessage::VisibilityHideModifier,
+                    ),
+                    (
+                        "IN_VEHICLE",
+                        &mut self.server_config.visibility_in_vehicle_modifier,
+                        VISIBILITY_IN_VEHICLE_MODIFIER,
+                        ChangeConfigMessage::VisibilityInVehicleModifier,
+                    ),
+                    (
+                        "SUPPRESS_FIRE",
+                        &mut self.server_config.visibility_suppress_fire_modifier,
+                        VISIBILITY_SUPPRESS_FIRE_MODIFIER,
+                        ChangeConfigMessage::VisibilitySuppressFireModifier,
+                    ),
+                    (
+                        "ENGAGE",
+                        &mut self.server_config.visibility_engage_modifier,
+                        VISIBILITY_ENGAGE_MODIFIER,
+                        ChangeConfigMessage::VisibilityEngageModifier,
+                    ),
+                    (
+                        "DEAD",
+                        &mut self.server_config.visibility_dead_modifier,
+                        VISIBILITY_DEAD_MODIFIER,
+                        ChangeConfigMessage::VisibilityDeadModifier,
+                    ),
+                    (
+                        "UNCONSCIOUS",
+                        &mut self.server_config.visibility_unconscious_modifier,
+                        VISIBILITY_UNCONSCIOUS_MODIFIER,
+                        ChangeConfigMessage::VisibilityUnconsciousModifier,
+                    ),
+                ]
+                    as [(_, _, _, fn(_) -> _); 11]
+                {
+                    ui.label(format!("VISIBILITY_BEHAVIOR_MODIFIER__{}", name));
+                    if ui.button("reset").clicked() {
+                        *value = default;
+                    };
+                    if ui.add(Slider::new(value, (-5.)..=5.)).changed() {
+                        messages.push(EngineMessage::ChangeServerConfig(message(*value)));
+                    };
+                    ui.end_row();
+                }
 
-        //         for (name, value, default) in [
-        //             (
-        //                 "SHORT_GRASS",
-        //                 &mut self.config.tile_type_opacity_short_grass,
-        //                 TILE_TYPE_OPACITY_SHORT_GRASS,
-        //             ),
-        //             (
-        //                 "MIDDLE_GRASS",
-        //                 &mut self.config.tile_type_opacity_middle_grass,
-        //                 TILE_TYPE_OPACITY_MIDDLE_GRASS,
-        //             ),
-        //             (
-        //                 "HIGH_GRASS",
-        //                 &mut self.config.tile_type_opacity_high_grass,
-        //                 TILE_TYPE_OPACITY_HIGH_GRASS,
-        //             ),
-        //             (
-        //                 "DIRT",
-        //                 &mut self.config.tile_type_opacity_dirt,
-        //                 TILE_TYPE_OPACITY_DIRT,
-        //             ),
-        //             (
-        //                 "CONCRETE",
-        //                 &mut self.config.tile_type_opacity_concrete,
-        //                 TILE_TYPE_OPACITY_CONCRETE,
-        //             ),
-        //             (
-        //                 "MUD",
-        //                 &mut self.config.tile_type_opacity_mud,
-        //                 TILE_TYPE_OPACITY_MUD,
-        //             ),
-        //             (
-        //                 "WALL",
-        //                 &mut self.config.tile_type_opacity_brick_wall,
-        //                 TILE_TYPE_OPACITY_BRICK_WALL,
-        //             ),
-        //         ] {
-        //             ui.label(format!("TILE_TYPE_OPACITY_{}", name));
-        //             if ui.button("reset").clicked() {
-        //                 *value = default;
-        //             };
-        //             if ui.add(Slider::new(value, (0.)..=1.)).changed() {
-        //                 messages.push(EngineMessage::Graphics(
-        //                     GraphicsMessage::RecomputeDebugTerrainOpacity,
-        //                 ))
-        //             };
-        //             ui.end_row();
-        //         }
-        //     });
+                for (name, value, default, message) in [
+                    (
+                        "SHORT_GRASS",
+                        &mut self.server_config.tile_type_opacity_short_grass,
+                        TILE_TYPE_OPACITY_SHORT_GRASS,
+                        ChangeConfigMessage::TileTypeOpacityShortGrass,
+                    ),
+                    (
+                        "MIDDLE_GRASS",
+                        &mut self.server_config.tile_type_opacity_middle_grass,
+                        TILE_TYPE_OPACITY_MIDDLE_GRASS,
+                        ChangeConfigMessage::TileTypeOpacityMiddleGrass,
+                    ),
+                    (
+                        "HIGH_GRASS",
+                        &mut self.server_config.tile_type_opacity_high_grass,
+                        TILE_TYPE_OPACITY_HIGH_GRASS,
+                        ChangeConfigMessage::TileTypeOpacityHighGrass,
+                    ),
+                    (
+                        "DIRT",
+                        &mut self.server_config.tile_type_opacity_dirt,
+                        TILE_TYPE_OPACITY_DIRT,
+                        ChangeConfigMessage::TileTypeOpacityDirt,
+                    ),
+                    (
+                        "CONCRETE",
+                        &mut self.server_config.tile_type_opacity_concrete,
+                        TILE_TYPE_OPACITY_CONCRETE,
+                        ChangeConfigMessage::TileTypeOpacityConcrete,
+                    ),
+                    (
+                        "MUD",
+                        &mut self.server_config.tile_type_opacity_mud,
+                        TILE_TYPE_OPACITY_MUD,
+                        ChangeConfigMessage::TileTypeOpacityMud,
+                    ),
+                    (
+                        "WALL",
+                        &mut self.server_config.tile_type_opacity_brick_wall,
+                        TILE_TYPE_OPACITY_BRICK_WALL,
+                        ChangeConfigMessage::TileTypeOpacityBrickWall,
+                    ),
+                ]
+                    as [(_, _, _, fn(_) -> _); 7]
+                {
+                    ui.label(format!("TILE_TYPE_OPACITY_{}", name));
+                    if ui.button("reset").clicked() {
+                        *value = default;
+                    };
+                    if ui.add(Slider::new(value, (0.)..=1.)).changed() {
+                        messages.push(EngineMessage::Graphics(
+                            GraphicsMessage::RecomputeDebugTerrainOpacity,
+                        ));
+                        messages.push(EngineMessage::ChangeServerConfig(message(*value)))
+                    };
+                    ui.end_row();
+                }
+            });
 
         messages
     }
@@ -234,35 +312,55 @@ impl Engine {
         &mut self,
         _ctx: &mut Context,
         _egui_ctx: &EguiContext,
-        _ui: &mut Ui,
+        ui: &mut Ui,
     ) -> Vec<EngineMessage> {
-        // FIXME : find a way to permit it !
-        // Grid::new("meta")
-        //     .num_columns(2)
-        //     .spacing([40.0, 4.0])
-        //     .striped(true)
-        //     .show(ui, |ui| {
-        //         ui.label("VISIBILITY_BY_LAST_FRAME_SHOOT");
-        //         if ui.button("reset").clicked() {
-        //             self.config.visibility_by_last_frame_shoot = VISIBILITY_BY_LAST_FRAME_SHOOT;
-        //         }
-        //         ui.add(Slider::new(
-        //             &mut self.config.visibility_by_last_frame_shoot,
-        //             0..=600,
-        //         ));
-        //         ui.end_row();
+        let mut messages = vec![];
 
-        //         ui.label("VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE");
-        //         if ui.button("reset").clicked() {
-        //             self.config.visibility_by_last_frame_shoot_distance =
-        //                 VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE;
-        //         }
-        //         ui.add(Slider::new(
-        //             &mut self.config.visibility_by_last_frame_shoot_distance,
-        //             0..=30,
-        //         ))
-        //     });
+        Grid::new("meta")
+            .num_columns(2)
+            .spacing([40.0, 4.0])
+            .striped(true)
+            .show(ui, |ui| {
+                ui.label("VISIBILITY_BY_LAST_FRAME_SHOOT");
+                if ui.button("reset").clicked() {
+                    self.server_config.visibility_by_last_frame_shoot =
+                        VISIBILITY_BY_LAST_FRAME_SHOOT;
+                }
+                if ui
+                    .add(Slider::new(
+                        &mut self.server_config.visibility_by_last_frame_shoot,
+                        0..=600,
+                    ))
+                    .changed()
+                {
+                    messages.push(EngineMessage::ChangeServerConfig(
+                        ChangeConfigMessage::VisibilityByLastFrameShot(
+                            self.server_config.visibility_by_last_frame_shoot,
+                        ),
+                    ));
+                };
+                ui.end_row();
 
-        vec![]
+                ui.label("VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE");
+                if ui.button("reset").clicked() {
+                    self.server_config.visibility_by_last_frame_shoot_distance =
+                        VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE;
+                }
+                if ui
+                    .add(Slider::new(
+                        &mut self.server_config.visibility_by_last_frame_shoot_distance,
+                        0..=30,
+                    ))
+                    .changed()
+                {
+                    messages.push(EngineMessage::ChangeServerConfig(
+                        ChangeConfigMessage::VisibilityByLastFrameShotDistance(
+                            self.server_config.visibility_by_last_frame_shoot_distance,
+                        ),
+                    ));
+                }
+            });
+
+        messages
     }
 }

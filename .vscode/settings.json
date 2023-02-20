@@ -23,6 +23,7 @@
                 "pathfinding",
                 "recv",
                 "rustbuild",
+                "rustfmt",
                 "spritebatch",
                 "tilecount",
                 "tileset",

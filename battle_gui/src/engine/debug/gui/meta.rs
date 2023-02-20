@@ -25,7 +25,7 @@ impl Engine {
         vec![]
     }
 
-    pub fn debug_gui_local_state(
+    pub fn debug_gui_gui_state(
         &mut self,
         _ctx: &mut Context,
         _egui_ctx: &EguiContext,

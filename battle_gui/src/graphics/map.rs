@@ -1,5 +1,5 @@
 use battle_core::{
-    config::TerrainTileOpacity,
+    config::ServerConfig,
     map::Map,
     types::{ScenePoint, WorldPoint},
 };
@@ -105,7 +105,7 @@ pub fn create_debug_terrain_batch(ctx: &mut Context, map: &Map) -> GameResult<In
 
 pub fn create_debug_terrain_opacity_mesh_builder(
     map: &Map,
-    config: &impl TerrainTileOpacity,
+    config: &ServerConfig,
 ) -> GameResult<MeshBuilder> {
     let mut debug_terrain_opacity_mesh = MeshBuilder::new();
     for tile in map.terrain_tiles() {

@@ -70,11 +70,6 @@ pub const VISIBLE_STARTS_AT: f32 = 0.5;
 // When compute visibility, configure here each pixels step of line which me considered
 pub const VISIBILITY_PIXEL_STEPS: usize = 5;
 
-pub trait TerrainTileOpacity {
-    fn terrain_tile_opacity(&self, tile_type: &TileType) -> f32;
-}
-pub enum ConfigError {}
-
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
     pub send_debug_points: bool,
@@ -214,9 +209,49 @@ impl ServerConfig {
         }
     }
 
+    pub fn terrain_tile_opacity(&self, tile_type: &TileType) -> f32 {
+        match tile_type {
+            TileType::ShortGrass => self.tile_type_opacity_short_grass,
+            TileType::MiddleGrass => self.tile_type_opacity_middle_grass,
+            TileType::HighGrass => self.tile_type_opacity_middle_grass,
+            TileType::Dirt => self.tile_type_opacity_dirt,
+            TileType::Concrete => self.tile_type_opacity_concrete,
+            TileType::Mud => self.tile_type_opacity_mud,
+            TileType::BrickWall => self.tile_type_opacity_brick_wall,
+        }
+    }
+
+    #[rustfmt::skip]
     pub fn react(&mut self, message: &ChangeConfigMessage) {
         match message {
-            ChangeConfigMessage::SendDebugPoints(value) => self.send_debug_points = *value,
+            ChangeConfigMessage::SendDebugPoints(v) => self.send_debug_points = *v,
+            ChangeConfigMessage::SoldierUpdateFreq(v) => self.soldier_update_freq = *v,
+            ChangeConfigMessage::SoldierAnimateFreq(v) => self.soldier_animate_freq = *v,
+            ChangeConfigMessage::InteriorsUpdateFreq(v) => self.interiors_update_freq = *v,
+            ChangeConfigMessage::VisibilityUpdateFreq(v) => self.visibility_update_freq = *v,
+            ChangeConfigMessage::FeelingDecreasingFreq(v) => self.feeling_decreasing_freq = *v,
+            ChangeConfigMessage::VisibilityFirsts(v) => self.visibility_firsts = *v,
+            ChangeConfigMessage::VisibleStartsAt(v) => self.visible_starts_at = *v,
+            ChangeConfigMessage::VisibilityIdleModifier(v) => self.visibility_idle_modifier = *v,
+            ChangeConfigMessage::VisibilityMoveModifier(v) => self.visibility_move_to_modifier = *v,
+            ChangeConfigMessage::VisibilityMoveFastModifier(v) => self.visibility_move_fast_to_modifier = *v,
+            ChangeConfigMessage::VisibilitySneakToModifier(v) => self.visibility_sneak_to_modifier = *v,
+            ChangeConfigMessage::VisibilityDefendModifier(v) => self.visibility_defend_modifier = *v,
+            ChangeConfigMessage::VisibilityHideModifier(v) => self.visibility_hide_modifier = *v,
+            ChangeConfigMessage::VisibilityInVehicleModifier(v) => self.visibility_in_vehicle_modifier = *v,
+            ChangeConfigMessage::VisibilitySuppressFireModifier(v) => self.visibility_suppress_fire_modifier = *v,
+            ChangeConfigMessage::VisibilityEngageModifier(v) => self.visibility_engage_modifier = *v,
+            ChangeConfigMessage::VisibilityDeadModifier(v) => self.visibility_dead_modifier = *v,
+            ChangeConfigMessage::VisibilityUnconsciousModifier(v) => self.visibility_unconscious_modifier = *v,
+            ChangeConfigMessage::TileTypeOpacityShortGrass(v) => self.tile_type_opacity_short_grass = *v,
+            ChangeConfigMessage::TileTypeOpacityMiddleGrass(v) => self.tile_type_opacity_middle_grass = *v,
+            ChangeConfigMessage::TileTypeOpacityHighGrass(v) => self.tile_type_opacity_high_grass = *v,
+            ChangeConfigMessage::TileTypeOpacityDirt(v) => self.tile_type_opacity_dirt = *v,
+            ChangeConfigMessage::TileTypeOpacityConcrete(v) => self.tile_type_opacity_concrete = *v,
+            ChangeConfigMessage::TileTypeOpacityMud(v) => self.tile_type_opacity_mud = *v,
+            ChangeConfigMessage::TileTypeOpacityBrickWall(v) => self.tile_type_opacity_brick_wall = *v,
+            ChangeConfigMessage::VisibilityByLastFrameShot(v) => self.visibility_by_last_frame_shoot = *v,
+            ChangeConfigMessage::VisibilityByLastFrameShotDistance(v) => self.visibility_by_last_frame_shoot_distance = *v,
         }
     }
 }
@@ -224,13 +259,6 @@ impl ServerConfig {
 pub struct GuiConfig {
     pub target_fps: u32,
     pub interiors_update_freq: u64,
-    pub tile_type_opacity_short_grass: f32,
-    pub tile_type_opacity_middle_grass: f32,
-    pub tile_type_opacity_high_grass: f32,
-    pub tile_type_opacity_dirt: f32,
-    pub tile_type_opacity_concrete: f32,
-    pub tile_type_opacity_mud: f32,
-    pub tile_type_opacity_brick_wall: f32,
 }
 
 impl GuiConfig {
@@ -238,41 +266,6 @@ impl GuiConfig {
         Self {
             target_fps: TARGET_FPS as u32,
             interiors_update_freq: INTERIORS_UPDATE_FREQ,
-            tile_type_opacity_short_grass: TILE_TYPE_OPACITY_SHORT_GRASS,
-            tile_type_opacity_middle_grass: TILE_TYPE_OPACITY_MIDDLE_GRASS,
-            tile_type_opacity_high_grass: TILE_TYPE_OPACITY_HIGH_GRASS,
-            tile_type_opacity_dirt: TILE_TYPE_OPACITY_DIRT,
-            tile_type_opacity_concrete: TILE_TYPE_OPACITY_CONCRETE,
-            tile_type_opacity_mud: TILE_TYPE_OPACITY_MUD,
-            tile_type_opacity_brick_wall: TILE_TYPE_OPACITY_BRICK_WALL,
-        }
-    }
-}
-
-impl TerrainTileOpacity for GuiConfig {
-    fn terrain_tile_opacity(&self, tile_type: &TileType) -> f32 {
-        match tile_type {
-            TileType::ShortGrass => self.tile_type_opacity_short_grass,
-            TileType::MiddleGrass => self.tile_type_opacity_middle_grass,
-            TileType::HighGrass => self.tile_type_opacity_middle_grass,
-            TileType::Dirt => self.tile_type_opacity_dirt,
-            TileType::Concrete => self.tile_type_opacity_concrete,
-            TileType::Mud => self.tile_type_opacity_mud,
-            TileType::BrickWall => self.tile_type_opacity_brick_wall,
-        }
-    }
-}
-
-impl TerrainTileOpacity for ServerConfig {
-    fn terrain_tile_opacity(&self, tile_type: &TileType) -> f32 {
-        match tile_type {
-            TileType::ShortGrass => self.tile_type_opacity_short_grass,
-            TileType::MiddleGrass => self.tile_type_opacity_middle_grass,
-            TileType::HighGrass => self.tile_type_opacity_middle_grass,
-            TileType::Dirt => self.tile_type_opacity_dirt,
-            TileType::Concrete => self.tile_type_opacity_concrete,
-            TileType::Mud => self.tile_type_opacity_mud,
-            TileType::BrickWall => self.tile_type_opacity_brick_wall,
         }
     }
 }
@@ -280,4 +273,31 @@ impl TerrainTileOpacity for ServerConfig {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ChangeConfigMessage {
     SendDebugPoints(bool),
+    SoldierUpdateFreq(u64),
+    SoldierAnimateFreq(u64),
+    InteriorsUpdateFreq(u64),
+    VisibilityUpdateFreq(u64),
+    FeelingDecreasingFreq(u64),
+    VisibilityFirsts(usize),
+    VisibleStartsAt(f32),
+    VisibilityIdleModifier(f32),
+    VisibilityMoveModifier(f32),
+    VisibilityMoveFastModifier(f32),
+    VisibilitySneakToModifier(f32),
+    VisibilityDefendModifier(f32),
+    VisibilityHideModifier(f32),
+    VisibilityInVehicleModifier(f32),
+    VisibilitySuppressFireModifier(f32),
+    VisibilityEngageModifier(f32),
+    VisibilityDeadModifier(f32),
+    VisibilityUnconsciousModifier(f32),
+    TileTypeOpacityShortGrass(f32),
+    TileTypeOpacityMiddleGrass(f32),
+    TileTypeOpacityHighGrass(f32),
+    TileTypeOpacityDirt(f32),
+    TileTypeOpacityConcrete(f32),
+    TileTypeOpacityMud(f32),
+    TileTypeOpacityBrickWall(f32),
+    VisibilityByLastFrameShot(u64),
+    VisibilityByLastFrameShotDistance(usize),
 }

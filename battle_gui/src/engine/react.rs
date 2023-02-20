@@ -37,7 +37,7 @@ impl Engine {
                 EngineMessage::Graphics(graphics_message) => self.graphics.react(
                     graphics_message,
                     self.battle_state.map(),
-                    &self.config,
+                    &self.server_config,
                     ctx,
                 )?,
                 EngineMessage::ChangeServerConfig(change_config_message) => {

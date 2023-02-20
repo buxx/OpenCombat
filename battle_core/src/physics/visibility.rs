@@ -4,7 +4,7 @@ use bresenham::Bresenham;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    config::{ServerConfig, TerrainTileOpacity, VISIBILITY_FIRSTS, VISIBILITY_PIXEL_STEPS},
+    config::{ServerConfig, VISIBILITY_FIRSTS, VISIBILITY_PIXEL_STEPS},
     entity::soldier::Soldier,
     map::Map,
     types::{GridPath, Meters, SoldierIndex, WorldPoint},
@@ -116,7 +116,7 @@ impl Visibility {
     }
 
     pub fn between_soldier_and_point(
-        config: &impl TerrainTileOpacity,
+        config: &ServerConfig,
         from_soldier: &Soldier,
         to_point: &WorldPoint,
         map: &Map,
@@ -143,7 +143,7 @@ impl Visibility {
 
     // TODO : Optimize performances here
     fn between_points(
-        config: &impl TerrainTileOpacity,
+        config: &ServerConfig,
         from_point: &WorldPoint,
         to_point: &WorldPoint,
         map: &Map,

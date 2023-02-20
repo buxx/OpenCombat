@@ -58,6 +58,7 @@ impl Engine {
         ctx: &mut Context,
         side: &Side,
         config: GuiConfig,
+        server_config: ServerConfig,
         input_sender: Sender<Vec<InputMessage>>,
         output_receiver: Receiver<Vec<OutputMessage>>,
         graphics: Graphics,
@@ -66,7 +67,7 @@ impl Engine {
     ) -> GameResult<Engine> {
         let engine = Engine {
             config,
-            server_config: ServerConfig::new(),
+            server_config,
             graphics,
             input: output_receiver, // Gui input is server output
             output: input_sender,   // Gui output is server input

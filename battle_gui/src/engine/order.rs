@@ -77,10 +77,11 @@ impl Engine {
         {
             return Some(Order::EngageSquad(soldier.squad_uuid()));
         } else {
-            if self
-                .battle_state
-                .point_is_visible_by_squad(&self.config, &world_point, squad_id)
-            {
+            if self.battle_state.point_is_visible_by_squad(
+                &self.server_config,
+                &world_point,
+                squad_id,
+            ) {
                 return Some(Order::SuppressFire(world_point));
             }
         }

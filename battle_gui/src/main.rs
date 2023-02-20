@@ -6,6 +6,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 use battle_core::config::GuiConfig;
+use battle_core::config::ServerConfig;
 use battle_core::config::DEFAULT_SERVER_PUB_ADDRESS;
 use battle_core::config::DEFAULT_SERVER_REP_ADDRESS;
 use battle_core::game::Side;
@@ -119,12 +120,14 @@ fn main() -> Result<(), GuiError> {
     // TODO : If remote server, download map before read it
     let map = MapReader::new(map_name, &resources)?.build()?;
     let config = GuiConfig::new();
-    let graphics = graphics::Graphics::new(&mut context, &map, &config)?;
+    let server_config = ServerConfig::new();
+    let graphics = graphics::Graphics::new(&mut context, &map, &server_config)?;
     let battle_state = BattleState::empty(&map);
     let engine = engine::Engine::new(
         &mut context,
         &opt.side,
         config,
+        server_config,
         input_sender,
         output_receiver,
         graphics,
