@@ -1,6 +1,6 @@
 use battle_core::{
     order::marker::OrderMarker,
-    types::{Angle, Offset, WindowPoint, WorldPoint},
+    types::{Angle, WindowPoint, WorldPoint},
 };
 use ggez::graphics::{DrawParam, Rect};
 
@@ -12,7 +12,6 @@ impl Graphics {
         order_marker: &OrderMarker,
         draw_to: WindowPoint,
         angle: Angle,
-        offset: Offset,
     ) -> DrawParam {
         let sprite_info = order_marker.sprite_info();
         DrawParam::new()
@@ -24,7 +23,7 @@ impl Graphics {
             ))
             .dest(draw_to.to_vec2())
             .rotation(angle.0)
-            .offset(offset.to_vec2())
+            .offset(sprite_info.offset().to_vec2())
     }
 
     pub fn order_marker_selection_rect(

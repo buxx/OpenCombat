@@ -127,3 +127,12 @@ pub struct OrderMarkerSpriteInfo {
     pub half_width: f32,
     pub half_height: f32,
 }
+
+impl OrderMarkerSpriteInfo {
+    pub fn offset(&self) -> AbsoluteOffset {
+        AbsoluteOffset {
+            x: self.half_width,
+            y: self.half_height,
+        }
+    }
+}

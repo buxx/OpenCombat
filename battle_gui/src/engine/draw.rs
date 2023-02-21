@@ -154,24 +154,14 @@ impl Engine {
                     let point = self.gui_state.window_point_from_world_point(*cached_point);
                     draw_params.push(
                         self.graphics
-                            .order_marker_draw_params(
-                                &pending_order_marker,
-                                point,
-                                Angle(0.),
-                                Offset::half(),
-                            )
+                            .order_marker_draw_params(&pending_order_marker, point, Angle(0.))
                             .scale(self.gui_state.display_scene_scale.to_vec2()),
                     )
                 }
                 let cursor_point = self.gui_state.get_current_cursor_window_point();
                 draw_params.push(
                     self.graphics
-                        .order_marker_draw_params(
-                            &pending_order_marker,
-                            *cursor_point,
-                            Angle(0.),
-                            Offset::half(),
-                        )
+                        .order_marker_draw_params(&pending_order_marker, *cursor_point, Angle(0.))
                         .scale(self.gui_state.display_scene_scale.to_vec2()),
                 );
             }
@@ -188,7 +178,6 @@ impl Engine {
                             &pending_order_marker,
                             point,
                             Angle::from_points(&to_point, &from_point),
-                            Offset::half(),
                         )
                         // Defend/Hide sprite are scaled
                         .scale(self.gui_state.display_scene_scale.to_vec2()),
@@ -201,7 +190,6 @@ impl Engine {
                     &pending_order_marker,
                     *to_point,
                     Angle(0.),
-                    Offset::half(),
                 ))
             }
         }
@@ -246,7 +234,7 @@ impl Engine {
         let angle = order.angle().unwrap_or(Angle(0.));
         vec![self
             .graphics
-            .order_marker_draw_params(order_marker, point, angle, Offset::half())
+            .order_marker_draw_params(order_marker, point, angle)
             // Defend/Hide sprite must be scaled
             .scale(self.gui_state.display_scene_scale.to_vec2())]
     }
