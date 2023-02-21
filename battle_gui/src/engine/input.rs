@@ -309,9 +309,11 @@ impl Engine {
     pub fn collect_mouse_wheel(&self, _ctx: &mut Context, _x: f32, y: f32) -> Vec<EngineMessage> {
         let mut messages = vec![];
 
-        messages.push(EngineMessage::GuiState(GuiStateMessage::ScaleUpdate(
-            y / 10.0,
-        )));
+        if !self.gui_state.debug_gui_hovered {
+            messages.push(EngineMessage::GuiState(GuiStateMessage::ScaleUpdate(
+                y / 10.0,
+            )));
+        }
 
         messages
     }
