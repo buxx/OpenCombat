@@ -1,6 +1,6 @@
 [package]
 name = "battle_core"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Sevajol Bastien <contact@bux.fr>"]
 edition = "2021"
 

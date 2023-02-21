@@ -23,4 +23,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: opencombat
-          path: target/release/opencombat.exe
+          path: target/release/battle_gui.exe
