@@ -5,7 +5,7 @@ use battle_core::types::{
 };
 use battle_core::utils::{DebugPoint, WindowShape, WorldShape};
 use ggez::graphics::Rect;
-use glam::Vec2;
+use ggez::Context;
 
 use crate::debug::{DebugPhysics, DebugTerrain};
 
@@ -246,17 +246,21 @@ impl GuiState {
         self.display_debug_gui
     }
 
-    pub fn react(&mut self, message: &GuiStateMessage) {
+    pub fn react(&mut self, message: &GuiStateMessage, _ctx: &mut Context) {
         match message {
             GuiStateMessage::SetCursorPoint(point) => {
                 //
                 self.current_cursor_point = point.clone();
                 self.last_cursor_move_frame = self.frame_i;
             }
-            GuiStateMessage::ApplyOnSceneDisplayOffset(offset) => {
+            GuiStateMessage::ApplyOnDisplaySceneOffset(offset) => {
                 //
                 self.display_scene_offset =
                     Offset::from_vec2(self.display_scene_offset.to_vec2() + offset.to_vec2());
+            }
+            GuiStateMessage::SetDisplaySceneOffset(offset) => {
+                //
+                self.display_scene_offset = offset.clone();
             }
             GuiStateMessage::SetDebugTerrain(value) => {
                 //
@@ -311,9 +315,9 @@ impl GuiState {
                 Side::B => self.side = Side::A,
                 Side::All => unreachable!("Side All is excluded from ChangeSide"),
             },
-            GuiStateMessage::ScaleUpdate(factor) => {
+            GuiStateMessage::SetScale(scale) => {
                 //
-                self.display_scene_scale.apply(Vec2::new(*factor, *factor))
+                self.display_scene_scale = scale.clone();
             }
             GuiStateMessage::SetControl(new_control) => {
                 //

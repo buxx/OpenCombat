@@ -22,7 +22,9 @@ pub struct Map {
     terrain_image_path: PathBuf,
     interiors: Vec<Interior>,
     width: u32,
+    visual_width: u32,
     height: u32,
+    visual_height: u32,
     terrain_tiles: Vec<TerrainTile>,
     tile_width: u32,
     tile_height: u32,
@@ -50,7 +52,9 @@ impl Map {
             terrain_image_path,
             interiors,
             width,
+            visual_width: width * tile_width,
             height,
+            visual_height: height * tile_height,
             terrain_tiles,
             tile_width,
             tile_height,
@@ -76,6 +80,14 @@ impl Map {
 
     pub fn width(&self) -> u32 {
         self.width
+    }
+
+    pub fn visual_width(&self) -> u32 {
+        self.visual_width
+    }
+
+    pub fn visual_height(&self) -> u32 {
+        self.visual_height
     }
 
     pub fn height(&self) -> u32 {

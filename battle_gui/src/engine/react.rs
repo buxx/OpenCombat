@@ -31,7 +31,7 @@ impl Engine {
                 }
                 EngineMessage::GuiState(gui_state_message) => {
                     //
-                    self.gui_state.react(&gui_state_message)
+                    self.gui_state.react(&gui_state_message, ctx)
                 }
                 EngineMessage::PlaySound(sound) => self.player.play(&sound, ctx)?,
                 EngineMessage::Graphics(graphics_message) => self.graphics.react(

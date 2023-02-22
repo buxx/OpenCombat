@@ -1,7 +1,8 @@
 use std::fmt::Display;
 
-use battle_core::types::{Offset, WindowPoint};
+use battle_core::types::{Offset, Scale, WindowPoint};
 use ggez::{event::MouseButton, input::keyboard::KeyInput, winit::event::VirtualKeyCode, Context};
+use glam::Vec2;
 
 use crate::{
     debug::{DebugPhysics, DebugTerrain},
@@ -73,7 +74,7 @@ impl Engine {
         // Move battle scene on the window according to user keys
         if ctx.keyboard.is_key_pressed(VirtualKeyCode::Left) {
             messages.push(EngineMessage::GuiState(
-                GuiStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
+                GuiStateMessage::ApplyOnDisplaySceneOffset(Offset::new(
                     move_mode.to_pixels_offset(),
                     0.,
                 )),
@@ -81,7 +82,7 @@ impl Engine {
         }
         if ctx.keyboard.is_key_pressed(VirtualKeyCode::Right) {
             messages.push(EngineMessage::GuiState(
-                GuiStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
+                GuiStateMessage::ApplyOnDisplaySceneOffset(Offset::new(
                     -move_mode.to_pixels_offset(),
                     0.,
                 )),
@@ -89,7 +90,7 @@ impl Engine {
         }
         if ctx.keyboard.is_key_pressed(VirtualKeyCode::Up) {
             messages.push(EngineMessage::GuiState(
-                GuiStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
+                GuiStateMessage::ApplyOnDisplaySceneOffset(Offset::new(
                     0.,
                     move_mode.to_pixels_offset(),
                 )),
@@ -97,7 +98,7 @@ impl Engine {
         }
         if ctx.keyboard.is_key_pressed(VirtualKeyCode::Down) {
             messages.push(EngineMessage::GuiState(
-                GuiStateMessage::ApplyOnSceneDisplayOffset(Offset::new(
+                GuiStateMessage::ApplyOnDisplaySceneOffset(Offset::new(
                     0.,
                     -move_mode.to_pixels_offset(),
                 )),
@@ -199,7 +200,7 @@ impl Engine {
                 if self.gui_state.is_controlling(&Control::Map) {
                     let last_cursor_point = self.gui_state.get_current_cursor_window_point();
                     messages.push(EngineMessage::GuiState(
-                        GuiStateMessage::ApplyOnSceneDisplayOffset(Offset::from_vec2(
+                        GuiStateMessage::ApplyOnDisplaySceneOffset(Offset::from_vec2(
                             cursor_point.to_vec2() - last_cursor_point.to_vec2(),
                         )),
                     ))
@@ -306,13 +307,33 @@ impl Engine {
         messages
     }
 
-    pub fn collect_mouse_wheel(&self, _ctx: &mut Context, _x: f32, y: f32) -> Vec<EngineMessage> {
+    pub fn collect_mouse_wheel(&self, ctx: &mut Context, _x: f32, y: f32) -> Vec<EngineMessage> {
         let mut messages = vec![];
 
         if !self.gui_state.debug_gui_hovered {
-            messages.push(EngineMessage::GuiState(GuiStateMessage::ScaleUpdate(
-                y / 10.0,
+            let modifier = Vec2::new(y / 10.0, y / 10.0);
+            let new_scale = Scale::from(self.gui_state.display_scene_scale.to_vec2() + modifier);
+
+            let half_screen_width = ctx.gfx.drawable_size().0 / 2.;
+            let half_screen_height = ctx.gfx.drawable_size().1 / 2.;
+            let world_point = self
+                .gui_state
+                .world_point_from_window_point(WindowPoint::new(
+                    half_screen_width,
+                    half_screen_height,
+                ));
+
+            let half_screen_width = ctx.gfx.drawable_size().0 / 2.;
+            let half_screen_height = ctx.gfx.drawable_size().1 / 2.;
+            let new_offset_x = -(world_point.x * new_scale.x) + half_screen_width;
+            let new_offset_y = -(world_point.y * new_scale.y) + half_screen_height;
+
+            messages.push(EngineMessage::GuiState(GuiStateMessage::SetScale(
+                new_scale,
             )));
+            messages.push(EngineMessage::GuiState(
+                GuiStateMessage::SetDisplaySceneOffset(Offset::new(new_offset_x, new_offset_y)),
+            ));
         }
 
         messages

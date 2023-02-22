@@ -414,6 +414,15 @@ impl Scale {
     }
 }
 
+impl From<Vec2> for Scale {
+    fn from(value: Vec2) -> Self {
+        Self {
+            x: value.x,
+            y: value.y,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Offset {
     pub x: f32,

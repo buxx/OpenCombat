@@ -135,6 +135,7 @@ fn main() -> Result<(), GuiError> {
         sync_required,
     )?;
 
+    // FIXME BS NOW : Closing GUI don't close thread correctly and keep process running
     println!("Start Gui");
     event::run(context, event_loop, engine)
 }

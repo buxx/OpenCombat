@@ -5,7 +5,7 @@ use battle_core::{
     config::ChangeConfigMessage,
     order::PendingOrder,
     state::battle::message::BattleStateMessage,
-    types::{Offset, SoldierIndex, SquadUuid, WindowPoint, WorldPaths, WorldPoint},
+    types::{Offset, Scale, SoldierIndex, SquadUuid, WindowPoint, WorldPaths, WorldPoint},
     utils::DebugPoint,
 };
 
@@ -30,7 +30,8 @@ pub enum GuiStateMessage {
     SetCursorPoint(WindowPoint),
     SetLeftClickDown(Option<WindowPoint>),
     SetCurrentCursorVector(Option<(WindowPoint, WindowPoint)>),
-    ApplyOnSceneDisplayOffset(Offset),
+    ApplyOnDisplaySceneOffset(Offset),
+    SetDisplaySceneOffset(Offset),
     SetSelectedSquads(Option<SoldierIndex>, Vec<SquadUuid>),
     SetSquadMenu(Option<(WindowPoint, SquadUuid)>),
     SetPendingOrder(Option<PendingOrder>),
@@ -41,7 +42,7 @@ pub enum GuiStateMessage {
     SetDebugPhysics(DebugPhysics),
     PushUIEvent(UIEvent),
     ChangeSide,
-    ScaleUpdate(f32),
+    SetScale(Scale),
     SetControl(Control),
     SetDebugGuiHovered(bool),
     SetDisplayDebugGui(bool),
