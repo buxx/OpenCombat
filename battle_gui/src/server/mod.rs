@@ -159,30 +159,62 @@ impl EmbeddedServer {
             .name("emb_gui_inputs_bridge".to_string())
             .spawn(move || {
                 while let Ok(messages) = gui_input_receiver_.recv() {
-                    runner_input_sender_.send(messages).expect("TODO")
+                    match runner_input_sender_.send(messages) {
+                        Err(error) => {
+                            println!(
+                                "Error during transmit gui input messages to runner : {}",
+                                error
+                            )
+                        }
+                        _ => {}
+                    }
                 }
             })
-            .unwrap();
+            .expect("Thread must be builded correctly");
 
         let gui_output_sender_ = self.gui_output_sender.clone();
         thread::Builder::new()
             .name("emb_runner_outputs_bridge".to_string())
             .spawn(move || {
                 while let Ok(messages) = runner_output_receiver.recv() {
-                    gui_output_sender_.send(messages.clone()).expect("TODO");
-                    server_output_sender.send(messages).expect("TODO");
+                    match gui_output_sender_.send(messages.clone()) {
+                        Err(error) => {
+                            println!(
+                                "Error during transmit runner output messages to gui : {}",
+                                error
+                            )
+                        }
+                        _ => {}
+                    };
+                    match server_output_sender.send(messages) {
+                        Err(error) => {
+                            println!(
+                                "Error during transmit runner output messages to server : {}",
+                                error
+                            )
+                        }
+                        _ => {}
+                    };
                 }
             })
-            .unwrap();
+            .expect("Thread must be builded correctly");
 
         thread::Builder::new()
             .name("emb_server_inputs_bridge".to_string())
             .spawn(move || {
                 while let Ok(messages) = server_input_receiver.recv() {
-                    runner_input_sender.send(messages).expect("TODO")
+                    match runner_input_sender.send(messages) {
+                        Err(error) => {
+                            println!(
+                                "Error during transmit server input messages to runner : {}",
+                                error
+                            )
+                        }
+                        _ => {}
+                    }
                 }
             })
-            .unwrap();
+            .expect("Thread must be builded correctly");
 
         Ok(())
     }

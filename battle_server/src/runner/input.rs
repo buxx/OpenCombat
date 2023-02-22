@@ -21,8 +21,7 @@ impl Runner {
                 match input {
                     InputMessage::RequireCompleteSync => {
                         self.output
-                            .send(vec![OutputMessage::LoadFromCopy(self.battle_state.copy())])
-                            .expect("FIXME From chelou");
+                            .send(vec![OutputMessage::LoadFromCopy(self.battle_state.copy())])?;
                     }
                     InputMessage::BattleState(battle_state_message) => {
                         side_effects
@@ -30,8 +29,7 @@ impl Runner {
                     }
                     InputMessage::ChangeConfig(change_config) => {
                         self.output
-                            .send(vec![OutputMessage::ChangeConfig(change_config.clone())])
-                            .expect("FIXME From chelou");
+                            .send(vec![OutputMessage::ChangeConfig(change_config.clone())])?;
                         self.config.react(&change_config);
                     }
                 };
