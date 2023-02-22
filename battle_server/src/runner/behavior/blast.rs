@@ -1,7 +1,7 @@
 use battle_core::{
     behavior::{feeling::Feeling, Behavior},
     state::battle::message::{BattleStateMessage, SoldierMessage},
-    types::{Meters, SoldierIndex},
+    types::{Distance, SoldierIndex},
 };
 
 use crate::runner::{message::RunnerMessage, Runner};
@@ -24,7 +24,7 @@ impl Runner {
     pub fn soldier_blast(
         &self,
         soldier_index: SoldierIndex,
-        distance: Meters,
+        distance: Distance,
     ) -> Vec<RunnerMessage> {
         vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
             soldier_index,

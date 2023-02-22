@@ -84,7 +84,9 @@ impl Runner {
         let mut rng = rand::thread_rng();
         // TODO : change precision according to weapon, stress, distance, etc
         let range = 10.0
-            * (meters_between_world_points(&soldier.get_world_point(), target_point).0 / 500.0);
+            * (meters_between_world_points(&soldier.get_world_point(), target_point).meters()
+                as f32
+                / 500.);
         let x_change = rng.gen_range(-range..range);
         let y_change = rng.gen_range(-range..range);
         WorldPoint::from(target_point.apply(Vec2::new(x_change, y_change)))

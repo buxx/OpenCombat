@@ -6,7 +6,7 @@ use battle_core::physics::event::explosion::Explosion;
 use battle_core::physics::utils::meters_between_world_points;
 use battle_core::state::client::ClientStateMessage;
 
-use battle_core::types::Meters;
+use battle_core::types::Distance;
 use rand::seq::SliceRandom;
 
 use crate::runner::message::RunnerMessage;
@@ -53,11 +53,11 @@ impl Runner {
 
             let distance = meters_between_world_points(&soldier.get_world_point(), point);
 
-            if distance.0 < 4.0 {
+            if distance.meters() < 4 {
                 messages.extend(self.killing_blast_effects(soldier));
-            } else if distance.0 < 7.0 {
+            } else if distance.meters() < 7 {
                 messages.extend(self.stunning_blast_effects(soldier));
-            } else if distance.0 < 75.0 {
+            } else if distance.meters() < 75 {
                 messages.extend(self.proximity_blast_effects(soldier, distance));
             }
         }
@@ -108,7 +108,7 @@ impl Runner {
         self.soldier_blast_stunned(soldier.uuid())
     }
 
-    fn proximity_blast_effects(&self, soldier: &Soldier, distance: Meters) -> Vec<RunnerMessage> {
+    fn proximity_blast_effects(&self, soldier: &Soldier, distance: Distance) -> Vec<RunnerMessage> {
         puffin::profile_scope!("proximity_blast_effects", soldier.uuid().to_string());
         self.soldier_blast(soldier.uuid(), distance)
     }

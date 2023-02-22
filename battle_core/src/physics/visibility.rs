@@ -7,7 +7,7 @@ use crate::{
     config::{ServerConfig, VISIBILITY_FIRSTS, VISIBILITY_PIXEL_STEPS},
     entity::soldier::Soldier,
     map::Map,
-    types::{GridPath, Meters, SoldierIndex, WorldPoint},
+    types::{Distance, GridPath, SoldierIndex, WorldPoint},
 };
 
 use super::utils::meters_between_world_points;
@@ -61,7 +61,7 @@ pub struct Visibility {
     pub to_scene_item_opacity: f32,
     pub opacity_segments: Vec<(WorldPoint, f32)>,
     pub visible: bool,
-    pub distance: Meters,
+    pub distance: Distance,
 }
 
 impl Visibility {

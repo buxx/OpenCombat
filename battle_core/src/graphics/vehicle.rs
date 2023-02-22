@@ -71,7 +71,7 @@ impl VehicleGraphicInfos {
                     ],
                     // TODO : compute this value according to map grid size (meters)
                     VehicleSize(10),
-                    WorldShape::from_meters(Meters(11.), Meters(21.)),
+                    WorldShape::from_distance(Distance::from_meters(11), Distance::from_meters(21)),
                 )
             }
         }

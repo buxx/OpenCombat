@@ -3,7 +3,7 @@ use battle_core::{
     entity::soldier::Soldier,
     physics::{event::bullet::BulletFire, utils::meters_between_world_points},
     state::client::ClientStateMessage,
-    types::Meters,
+    types::Distance,
 };
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -49,7 +49,7 @@ impl Runner {
 
             let distance = meters_between_world_points(&soldier.get_world_point(), point);
 
-            if distance.0 < 0.5 {
+            if distance.millimeters() < 500 {
                 let mut rng = rand::thread_rng();
                 let value: u8 = rng.gen();
                 if value < 10 {
@@ -135,7 +135,7 @@ impl Runner {
     pub fn proximity_bullet_effects(
         &self,
         soldier: &Soldier,
-        distance: Meters,
+        distance: Distance,
     ) -> Vec<RunnerMessage> {
         puffin::profile_scope!("ProximityBullet", soldier.uuid().to_string());
         self.soldier_proximity_bullet(soldier.uuid(), distance)

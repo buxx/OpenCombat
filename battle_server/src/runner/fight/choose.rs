@@ -25,8 +25,12 @@ impl Runner {
             })
         }
 
-        // TODO : Use Millimeters as default unit instead Meters ?
-        visibles.sort_by(|a, b| (a.distance.0 as u32).cmp(&(b.distance.0 as u32)));
+        visibles.sort_by(|a, b| {
+            a.distance
+                .millimeters()
+                .partial_cmp(&b.distance.millimeters())
+                .expect("Must be i64")
+        });
 
         if let Some(visibility) = visibles.first() {
             return Some(

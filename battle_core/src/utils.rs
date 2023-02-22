@@ -188,9 +188,9 @@ impl WorldShape {
         }
     }
 
-    pub fn from_meters(width: Meters, height: Meters) -> Self {
-        let width_ = width.0 / DISTANCE_TO_METERS_COEFFICIENT;
-        let height_ = height.0 / DISTANCE_TO_METERS_COEFFICIENT;
+    pub fn from_distance(width: Distance, height: Distance) -> Self {
+        let width_ = (width.millimeters() as f32 / DISTANCE_TO_METERS_COEFFICIENT) / 1000.;
+        let height_ = (height.millimeters() as f32 / DISTANCE_TO_METERS_COEFFICIENT) / 1000.;
 
         Self {
             top_left: WorldPoint::new(0., 0.),

@@ -508,7 +508,29 @@ impl Neg for Angle {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Meters(pub f32);
+pub struct Distance {
+    millimeters: i64,
+}
+
+impl Distance {
+    pub fn from_meters(meters: i64) -> Self {
+        Self {
+            millimeters: meters * 1000,
+        }
+    }
+
+    pub fn from_millimeters(millimeters: i64) -> Self {
+        Self { millimeters }
+    }
+
+    pub fn millimeters(&self) -> i64 {
+        self.millimeters
+    }
+
+    pub fn meters(&self) -> i64 {
+        self.millimeters / 1000
+    }
+}
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BlastPower(pub u8);
