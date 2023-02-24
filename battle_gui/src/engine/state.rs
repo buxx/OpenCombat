@@ -1,7 +1,8 @@
 use battle_core::game::Side;
 use battle_core::order::PendingOrder;
+use battle_core::physics::utils::DISTANCE_TO_METERS_COEFFICIENT;
 use battle_core::types::{
-    Offset, Scale, SoldierIndex, SquadUuid, WindowPoint, WorldPaths, WorldPoint,
+    Distance, Offset, Scale, SoldierIndex, SquadUuid, WindowPoint, WorldPaths, WorldPoint,
 };
 use battle_core::utils::{DebugPoint, WindowShape, WorldShape};
 use ggez::graphics::Rect;
@@ -31,6 +32,7 @@ pub struct GuiState {
     pub debug_scene_item_circles: bool,
     pub debug_areas: bool,
     pub debug_visibilities: bool,
+    pub debug_physics_areas: bool,
     /// Current debug terrain to apply
     pub debug_terrain: DebugTerrain,
     /// Current debug physics to apply
@@ -79,6 +81,7 @@ impl GuiState {
             debug_scene_item_circles: false,
             debug_areas: false,
             debug_visibilities: false,
+            debug_physics_areas: false,
             debug_terrain: DebugTerrain::None,
             debug_physics: DebugPhysics::None,
             display_debug_gui: false,
@@ -244,6 +247,10 @@ impl GuiState {
 
     pub fn display_debug_gui(&self) -> bool {
         self.display_debug_gui
+    }
+
+    pub fn distance_pixels(&self, distance: &Distance) -> f32 {
+        ((distance.millimeters() as f32) / 1000.) / DISTANCE_TO_METERS_COEFFICIENT
     }
 
     pub fn react(&mut self, message: &GuiStateMessage, _ctx: &mut Context) {

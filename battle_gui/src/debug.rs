@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use battle_core::game::explosive::ExplosiveType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -33,6 +34,15 @@ impl DebugPhysics {
             DebugPhysics::None => DebugPhysics::MosinNagantM1924GunFire,
             DebugPhysics::MosinNagantM1924GunFire => DebugPhysics::BrandtMle2731Shelling,
             DebugPhysics::BrandtMle2731Shelling => DebugPhysics::None,
+        }
+    }
+
+    /// Give arbitrary chosen explosive for
+    pub fn explosive(&self) -> Option<ExplosiveType> {
+        match self {
+            DebugPhysics::None => None,
+            DebugPhysics::MosinNagantM1924GunFire => None,
+            DebugPhysics::BrandtMle2731Shelling => Some(ExplosiveType::FA19241927),
         }
     }
 }

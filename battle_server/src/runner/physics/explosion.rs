@@ -35,7 +35,6 @@ impl Runner {
         let mut messages = vec![];
         let point = explosion.point();
         let explosive_type = explosion.type_();
-        let _blast = explosive_type.blast();
 
         for soldier in self.battle_state.soldiers() {
             if !soldier.can_feel_explosion() {

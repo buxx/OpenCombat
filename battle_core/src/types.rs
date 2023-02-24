@@ -532,9 +532,6 @@ impl Distance {
     }
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
-pub struct BlastPower(pub u8);
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Precision(u8);
 

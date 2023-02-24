@@ -7,9 +7,12 @@ use ggez::{
 use battle_core::{
     behavior::Behavior,
     game::{explosive::ExplosiveType, weapon::Weapon, Side},
-    physics::event::{bullet::BulletFire, explosion::Explosion},
+    physics::{
+        event::{bullet::BulletFire, explosion::Explosion},
+        utils::DISTANCE_TO_METERS_COEFFICIENT,
+    },
     state::battle::message::BattleStateMessage,
-    types::WorldPoint,
+    types::{WindowPoint, WorldPoint},
 };
 
 use crate::{
@@ -272,5 +275,116 @@ impl Engine {
         };
 
         messages
+    }
+
+    pub fn generate_physics_areas_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
+        if let Some(explosive) = &self.gui_state.get_debug_physics().explosive() {
+            let explosion = Explosion::new(
+                self.gui_state.get_current_cursor_world_point(),
+                explosive.clone(),
+            );
+            self.generate_explosive_areas_meshes(mesh_builder, &explosion)?;
+        };
+
+        for explosion in self.battle_state.explosions() {
+            self.generate_explosive_areas_meshes(mesh_builder, explosion)?;
+        }
+
+        for bullet in self.battle_state.bullet_fires() {
+            self.generate_bullet_areas_meshes(mesh_builder, bullet)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn generate_explosive_areas_meshes(
+        &self,
+        mesh_builder: &mut MeshBuilder,
+        explosion: &Explosion,
+    ) -> GameResult {
+        if let (
+            Some(direct_death_perimeters),
+            Some(regressive_death_perimeter),
+            Some(regressive_injured_perimeter),
+        ) = (
+            self.server_config
+                .explosive_direct_death_perimeters
+                .get(explosion.type_()),
+            self.server_config
+                .explosive_regressive_death_perimeter
+                .get(explosion.type_()),
+            self.server_config
+                .explosive_regressive_injured_perimeter
+                .get(explosion.type_()),
+        ) {
+            let point = self
+                .gui_state
+                .window_point_from_world_point(*explosion.point());
+            let direct_death_radius = self.gui_state.distance_pixels(&direct_death_perimeters) / 2.;
+            mesh_builder.circle(
+                DrawMode::stroke(1.0),
+                point.to_vec2(),
+                direct_death_radius * self.gui_state.display_scene_scale.x,
+                1.0,
+                RED,
+            )?;
+
+            let regressive_death_radius =
+                self.gui_state.distance_pixels(regressive_death_perimeter) / 2.;
+            let part = regressive_death_radius / 10.;
+            for i in 1..=10 {
+                let radius_ = part * i as f32;
+                if radius_ > direct_death_radius {
+                    mesh_builder.circle(
+                        DrawMode::stroke(1.0),
+                        point.to_vec2(),
+                        radius_ * self.gui_state.display_scene_scale.x,
+                        1.0,
+                        Color {
+                            r: 1.0,
+                            g: 0.1,
+                            b: 0.0,
+                            a: 1.0 - (i as f32 / 15.),
+                        },
+                    )?;
+                }
+            }
+
+            let regressive_injured_radius =
+                self.gui_state.distance_pixels(regressive_injured_perimeter) / 2.;
+            let part = regressive_injured_radius / 10.;
+            for i in 1..=10 {
+                let radius_ = part * i as f32;
+                if radius_ > direct_death_radius {
+                    mesh_builder.circle(
+                        DrawMode::stroke(1.0),
+                        point.to_vec2(),
+                        radius_ * self.gui_state.display_scene_scale.x,
+                        1.0,
+                        Color {
+                            r: 1.0,
+                            g: 1.0,
+                            b: 0.0,
+                            a: 1.0 - (i as f32 / 10.),
+                        },
+                    )?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn generate_bullet_areas_meshes(
+        &self,
+        mesh_builder: &mut MeshBuilder,
+        bullet: &BulletFire,
+    ) -> GameResult {
+        let point = self
+            .gui_state
+            .window_point_from_world_point(*bullet.point());
+        mesh_builder.circle(DrawMode::stroke(1.0), point.to_vec2(), 2., 1.0, RED)?;
+
+        Ok(())
     }
 }

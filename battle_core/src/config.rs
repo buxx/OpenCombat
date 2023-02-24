@@ -1,5 +1,10 @@
-use crate::{behavior::Behavior, map::terrain::TileType};
+use std::collections::HashMap;
+
+use crate::{
+    behavior::Behavior, game::explosive::ExplosiveType, map::terrain::TileType, types::Distance,
+};
 use serde_derive::{Deserialize, Serialize};
+use strum::IntoEnumIterator;
 
 pub const DEFAULT_SERVER_REP_ADDRESS: &str = "tcp://0.0.0.0:4255";
 pub const DEFAULT_SERVER_PUB_ADDRESS: &str = "tcp://0.0.0.0:4256";
@@ -101,10 +106,26 @@ pub struct ServerConfig {
     pub tile_type_opacity_brick_wall: f32,
     pub visibility_by_last_frame_shoot: u64,
     pub visibility_by_last_frame_shoot_distance: usize,
+    pub explosive_direct_death_perimeters: HashMap<ExplosiveType, Distance>,
+    pub explosive_regressive_death_perimeter: HashMap<ExplosiveType, Distance>,
+    pub explosive_regressive_injured_perimeter: HashMap<ExplosiveType, Distance>,
 }
 
 impl ServerConfig {
     pub fn new() -> Self {
+        let mut explosive_direct_death_perimeters = HashMap::new();
+        let mut explosive_regressive_death_perimeter = HashMap::new();
+        let mut explosive_regressive_injured_perimeter = HashMap::new();
+
+        for explosive in ExplosiveType::iter() {
+            explosive_direct_death_perimeters
+                .insert(explosive.clone(), explosive.direct_death_perimeter());
+            explosive_regressive_death_perimeter
+                .insert(explosive.clone(), explosive.regressive_death_perimeter());
+            explosive_regressive_injured_perimeter
+                .insert(explosive.clone(), explosive.regressive_injured_perimeter());
+        }
+
         Self {
             send_debug_points: false,
             /// Frequency of soldier update :
@@ -148,6 +169,10 @@ impl ServerConfig {
             tile_type_opacity_concrete: TILE_TYPE_OPACITY_CONCRETE,
             tile_type_opacity_mud: TILE_TYPE_OPACITY_MUD,
             tile_type_opacity_brick_wall: TILE_TYPE_OPACITY_BRICK_WALL,
+
+            explosive_direct_death_perimeters,
+            explosive_regressive_death_perimeter,
+            explosive_regressive_injured_perimeter,
         }
     }
 
