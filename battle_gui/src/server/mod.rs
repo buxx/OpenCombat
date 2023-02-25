@@ -1,5 +1,7 @@
 use std::fmt::Display;
 use std::path::PathBuf;
+use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 use std::thread;
 
 use battle_core::config::{ServerConfig, DEFAULT_SERVER_PUB_ADDRESS, DEFAULT_SERVER_REP_ADDRESS};
@@ -47,6 +49,7 @@ pub struct EmbeddedServer {
     server_pub_address: String,
     gui_input_receiver: Receiver<Vec<InputMessage>>,
     gui_output_sender: Sender<Vec<OutputMessage>>,
+    stop_required: Arc<AtomicBool>,
 }
 
 impl EmbeddedServer {
@@ -54,6 +57,7 @@ impl EmbeddedServer {
         resources: &PathBuf,
         gui_input_receiver: Receiver<Vec<InputMessage>>,
         gui_output_sender: Sender<Vec<OutputMessage>>,
+        stop_required: Arc<AtomicBool>,
     ) -> Self {
         Self {
             resources: resources.clone(),
@@ -63,6 +67,7 @@ impl EmbeddedServer {
             server_pub_address: DEFAULT_SERVER_PUB_ADDRESS.to_string(),
             gui_input_receiver,
             gui_output_sender,
+            stop_required,
         }
     }
 
@@ -106,11 +111,19 @@ impl EmbeddedServer {
             .situation(&situation_name)
             .build();
 
+        let stop_required_ = self.stop_required.clone();
         thread::Builder::new()
             .name("runner".to_string())
             .spawn(|| {
                 println!("Start runner");
-                match Runner::new(config, runner_input_receiver, runner_output_sender, state).run()
+                match Runner::new(
+                    config,
+                    runner_input_receiver,
+                    runner_output_sender,
+                    stop_required_,
+                    state,
+                )
+                .run()
                 {
                     Ok(_) => {
                         println!("Runner finished to run")
@@ -140,6 +153,7 @@ impl EmbeddedServer {
             server_pub_address,
             server_output_receiver,
             server_input_sender,
+            self.stop_required.clone(),
         )
         .serve()
         {
@@ -169,6 +183,8 @@ impl EmbeddedServer {
                         _ => {}
                     }
                 }
+
+                println!("Gui input bridge finished");
             })
             .expect("Thread must be builded correctly");
 
@@ -196,6 +212,8 @@ impl EmbeddedServer {
                         _ => {}
                     };
                 }
+
+                println!("Runner output bridge finished");
             })
             .expect("Thread must be builded correctly");
 
@@ -213,6 +231,8 @@ impl EmbeddedServer {
                         _ => {}
                     }
                 }
+
+                println!("Server input bridge finished");
             })
             .expect("Thread must be builded correctly");
 

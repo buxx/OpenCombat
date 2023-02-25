@@ -1,4 +1,4 @@
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use battle_core::config::{GuiConfig, ServerConfig};
@@ -48,6 +48,7 @@ pub struct Engine {
     /// The current local state of the game.
     gui_state: GuiState,
     sync_required: Arc<AtomicBool>,
+    stop_required: Arc<AtomicBool>,
     // Debug gui
     debug_gui: DebugGuiState,
     egui_backend: Gui,
@@ -64,6 +65,7 @@ impl Engine {
         graphics: Graphics,
         battle_state: BattleState,
         sync_required: Arc<AtomicBool>,
+        stop_required: Arc<AtomicBool>,
     ) -> GameResult<Engine> {
         let engine = Engine {
             config,
@@ -75,6 +77,7 @@ impl Engine {
             battle_state,
             gui_state: GuiState::new(side.clone()),
             sync_required,
+            stop_required,
             debug_gui: DebugGuiState::new()?,
             egui_backend: Gui::default(),
         };
@@ -205,5 +208,10 @@ impl EventHandler<ggez::GameError> for Engine {
         let messages = self.collect_key_released(ctx, input);
         self.react(messages, ctx)?;
         GameResult::Ok(())
+    }
+
+    fn quit_event(&mut self, _ctx: &mut Context) -> Result<bool, ggez::GameError> {
+        self.stop_required.store(true, Ordering::Relaxed);
+        Ok(false)
     }
 }

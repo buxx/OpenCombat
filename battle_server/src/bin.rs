@@ -1,6 +1,8 @@
 use crossbeam_channel::unbounded;
 use env_logger::Env;
 use std::path::PathBuf;
+use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 
 use battle_core::config::ServerConfig;
 use battle_core::network::error::NetworkError;
@@ -29,6 +31,7 @@ pub struct Opt {
 fn main() -> Result<(), Error> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
+    let stop_required = Arc::new(AtomicBool::new(false));
     let opt = Opt::from_args();
     let resources = PathBuf::from("./resources");
     let map_name = "map1";
@@ -52,6 +55,7 @@ fn main() -> Result<(), Error> {
     );
     server.serve()?;
 
+    let stop_required_ = stop_required.clone();
     let config = ServerConfig::new();
     let battle_state = BattleStateBuilder::new(map_name, &resources)?
         .situation(situation)
@@ -60,6 +64,7 @@ fn main() -> Result<(), Error> {
         config,
         server_input_receiver,
         server_output_sender,
+        stop_required_,
         battle_state,
     );
 

@@ -6,6 +6,10 @@ use battle_core::{
 use crossbeam_channel::{Receiver, SendError, Sender};
 use std::{
     fmt::Display,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
     thread,
     time::{Duration, Instant},
 };
@@ -32,6 +36,7 @@ pub struct Runner {
     config: ServerConfig,
     input: Receiver<Vec<InputMessage>>,
     output: Sender<Vec<OutputMessage>>,
+    stop_required: Arc<AtomicBool>,
     last: Instant,
     battle_state: BattleState,
     frame_i: u64,
@@ -42,12 +47,14 @@ impl Runner {
         config: ServerConfig,
         input: Receiver<Vec<InputMessage>>,
         output: Sender<Vec<OutputMessage>>,
+        stop_required: Arc<AtomicBool>,
         state: BattleState,
     ) -> Self {
         Self {
             config,
             input,
             output,
+            stop_required,
             last: Instant::now(),
             battle_state: state,
             frame_i: 0,
@@ -56,6 +63,11 @@ impl Runner {
 
     pub fn run(&mut self) -> Result<(), RunnerError> {
         loop {
+            if self.stop_required.load(Ordering::Relaxed) {
+                println!("Stopping runner ...");
+                break;
+            }
+
             let frame_i = self.frame_i;
             puffin::profile_scope!("run", format!("frame {frame_i}"));
             puffin::GlobalProfiler::lock().new_frame();
@@ -65,6 +77,8 @@ impl Runner {
             self.tick()?;
             self.frame_i += 1;
         }
+
+        Ok(())
     }
 
     fn sleep_duration(&self) -> Duration {

@@ -65,6 +65,7 @@ fn main() -> Result<(), GuiError> {
     let situation_name = "hardcoded";
     let resources = PathBuf::from("./resources");
     let sync_required = Arc::new(AtomicBool::new(true));
+    let stop_required = Arc::new(AtomicBool::new(false));
 
     // Profiling server
     // NOTE : We must keep server object to avoid its destruction
@@ -80,12 +81,17 @@ fn main() -> Result<(), GuiError> {
         let (input_sender, input_receiver) = unbounded();
         let (output_sender, output_receiver) = unbounded();
 
-        EmbeddedServer::new(&resources, input_receiver, output_sender)
-            .map_name(map_name)
-            .situation_name(situation_name)
-            .server_rep_address(&opt.server_rep_address)
-            .server_pub_address(&opt.server_pub_address)
-            .start()?;
+        EmbeddedServer::new(
+            &resources,
+            input_receiver,
+            output_sender,
+            stop_required.clone(),
+        )
+        .map_name(map_name)
+        .situation_name(situation_name)
+        .server_rep_address(&opt.server_rep_address)
+        .server_pub_address(&opt.server_pub_address)
+        .start()?;
 
         (input_sender, output_receiver)
     } else {
@@ -133,6 +139,7 @@ fn main() -> Result<(), GuiError> {
         graphics,
         battle_state,
         sync_required,
+        stop_required.clone(),
     )?;
 
     // FIXME BS NOW : Closing GUI don't close thread correctly and keep process running

@@ -7,12 +7,9 @@ use ggez::{
 use battle_core::{
     behavior::Behavior,
     game::{explosive::ExplosiveType, weapon::Weapon, Side},
-    physics::{
-        event::{bullet::BulletFire, explosion::Explosion},
-        utils::DISTANCE_TO_METERS_COEFFICIENT,
-    },
+    physics::event::{bullet::BulletFire, explosion::Explosion},
     state::battle::message::BattleStateMessage,
-    types::{WindowPoint, WorldPoint},
+    types::WorldPoint,
 };
 
 use crate::{
