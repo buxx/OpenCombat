@@ -10,7 +10,7 @@ Open source close combat inspired game. Presentation available [here](http://www
 
 To be able to compile, please install (Debian packages example)
 
-    libudev-dev libzmq3-dev
+    build-essential libudev-dev libzmq3-dev
 
 ### Run
 
