@@ -1,5 +1,7 @@
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
+use std::string::ToString;
+use strum_macros::Display;
 use strum_macros::EnumIter;
 
 use crate::{
@@ -8,7 +10,7 @@ use crate::{
     types::Distance,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, EnumIter, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, EnumIter, PartialEq, Eq, Hash, Display)]
 pub enum ExplosiveType {
     FA19241927,
 }
@@ -32,19 +34,19 @@ impl ExplosiveType {
         Box::new(animation_type)
     }
 
-    pub fn direct_death_perimeter(&self) -> Distance {
+    pub fn direct_death_rayon(&self) -> Distance {
         match self {
             ExplosiveType::FA19241927 => Distance::from_meters(1),
         }
     }
 
-    pub fn regressive_death_perimeter(&self) -> Distance {
+    pub fn regressive_death_rayon(&self) -> Distance {
         match self {
             ExplosiveType::FA19241927 => Distance::from_meters(3),
         }
     }
 
-    pub fn regressive_injured_perimeter(&self) -> Distance {
+    pub fn regressive_injured_rayon(&self) -> Distance {
         match self {
             ExplosiveType::FA19241927 => Distance::from_meters(6),
         }

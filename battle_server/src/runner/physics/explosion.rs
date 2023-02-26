@@ -8,6 +8,7 @@ use battle_core::state::client::ClientStateMessage;
 
 use battle_core::types::Distance;
 use rand::seq::SliceRandom;
+use rand::Rng;
 
 use crate::runner::message::RunnerMessage;
 use crate::runner::Runner;
@@ -52,12 +53,50 @@ impl Runner {
 
             let distance = meters_between_world_points(&soldier.get_world_point(), point);
 
-            if distance.meters() < 4 {
-                messages.extend(self.killing_blast_effects(soldier));
-            } else if distance.meters() < 7 {
-                messages.extend(self.stunning_blast_effects(soldier));
-            } else if distance.meters() < 75 {
-                messages.extend(self.proximity_blast_effects(soldier, distance));
+            // TODO : Move into dedicated struct ?
+            if let (
+                Some(direct_death_rayons),
+                Some(regressive_death_rayon),
+                Some(regressive_injured_rayon),
+            ) = (
+                self.config
+                    .explosive_direct_death_rayon
+                    .get(explosion.type_()),
+                self.config
+                    .explosive_regressive_death_rayon
+                    .get(explosion.type_()),
+                self.config
+                    .explosive_regressive_injured_rayon
+                    .get(explosion.type_()),
+            ) {
+                if &distance < direct_death_rayons {
+                    messages.extend(self.killing_blast_effects(soldier));
+                } else if &distance <= regressive_death_rayon
+                    || &distance <= regressive_injured_rayon
+                {
+                    let mut rng = rand::thread_rng();
+                    let percent = 1.0
+                        - (distance.millimeters() as f32
+                            / regressive_death_rayon.millimeters() as f32);
+                    let roll = rng.gen_range(0.0..1.0);
+
+                    if roll <= percent {
+                        messages.extend(self.killing_blast_effects(soldier));
+                    } else {
+                        let percent = 1.0
+                            - (distance.millimeters() as f32
+                                / regressive_injured_rayon.millimeters() as f32);
+                        let roll = rng.gen_range(0.0..1.0);
+
+                        if roll <= percent {
+                            messages.extend(self.stunning_blast_effects(soldier));
+                        } else {
+                            messages.extend(self.proximity_blast_effects(soldier, distance));
+                        }
+                    }
+                } else if distance.meters() < 100 {
+                    messages.extend(self.proximity_blast_effects(soldier, distance));
+                }
             }
         }
 

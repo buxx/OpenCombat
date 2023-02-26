@@ -14,6 +14,7 @@ const EGUI_SCALE: f32 = 1.5;
 
 pub mod body;
 pub mod config;
+pub mod explosives;
 pub mod header;
 pub mod meta;
 pub mod soldiers;
@@ -32,6 +33,7 @@ pub enum Panel {
     VisibilityConfig,
     FightConfig,
     Textures,
+    Explosives,
 }
 
 impl Default for Panel {

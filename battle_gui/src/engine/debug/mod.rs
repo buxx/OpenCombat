@@ -300,24 +300,24 @@ impl Engine {
         explosion: &Explosion,
     ) -> GameResult {
         if let (
-            Some(direct_death_perimeters),
-            Some(regressive_death_perimeter),
-            Some(regressive_injured_perimeter),
+            Some(direct_death_rayons),
+            Some(regressive_death_rayon),
+            Some(regressive_injured_rayon),
         ) = (
             self.server_config
-                .explosive_direct_death_perimeters
+                .explosive_direct_death_rayon
                 .get(explosion.type_()),
             self.server_config
-                .explosive_regressive_death_perimeter
+                .explosive_regressive_death_rayon
                 .get(explosion.type_()),
             self.server_config
-                .explosive_regressive_injured_perimeter
+                .explosive_regressive_injured_rayon
                 .get(explosion.type_()),
         ) {
             let point = self
                 .gui_state
                 .window_point_from_world_point(*explosion.point());
-            let direct_death_radius = self.gui_state.distance_pixels(&direct_death_perimeters) / 2.;
+            let direct_death_radius = self.gui_state.distance_pixels(&direct_death_rayons);
             mesh_builder.circle(
                 DrawMode::stroke(1.0),
                 point.to_vec2(),
@@ -326,8 +326,7 @@ impl Engine {
                 RED,
             )?;
 
-            let regressive_death_radius =
-                self.gui_state.distance_pixels(regressive_death_perimeter) / 2.;
+            let regressive_death_radius = self.gui_state.distance_pixels(regressive_death_rayon);
             let part = regressive_death_radius / 10.;
             for i in 1..=10 {
                 let radius_ = part * i as f32;
@@ -348,7 +347,7 @@ impl Engine {
             }
 
             let regressive_injured_radius =
-                self.gui_state.distance_pixels(regressive_injured_perimeter) / 2.;
+                self.gui_state.distance_pixels(regressive_injured_rayon);
             let part = regressive_injured_radius / 10.;
             for i in 1..=10 {
                 let radius_ = part * i as f32;

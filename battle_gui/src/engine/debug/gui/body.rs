@@ -33,6 +33,9 @@ impl Engine {
             ui.selectable_value(&mut self.debug_gui.panel, Panel::FightConfig, "FightConfig");
             ui.selectable_value(&mut self.debug_gui.panel, Panel::Textures, "Textures");
         });
+        ui.horizontal(|ui| {
+            ui.selectable_value(&mut self.debug_gui.panel, Panel::Explosives, "Explosives");
+        });
         ui.separator();
 
         match self.debug_gui.panel {
@@ -62,6 +65,9 @@ impl Engine {
             }
             Panel::Textures => {
                 messages.extend(self.debug_gui_textures(ctx, egui_ctx, ui));
+            }
+            Panel::Explosives => {
+                messages.extend(self.debug_gui_explosives(ctx, egui_ctx, ui));
             }
         }
 

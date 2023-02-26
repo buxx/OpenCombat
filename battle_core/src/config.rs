@@ -106,24 +106,23 @@ pub struct ServerConfig {
     pub tile_type_opacity_brick_wall: f32,
     pub visibility_by_last_frame_shoot: u64,
     pub visibility_by_last_frame_shoot_distance: usize,
-    pub explosive_direct_death_perimeters: HashMap<ExplosiveType, Distance>,
-    pub explosive_regressive_death_perimeter: HashMap<ExplosiveType, Distance>,
-    pub explosive_regressive_injured_perimeter: HashMap<ExplosiveType, Distance>,
+    pub explosive_direct_death_rayon: HashMap<ExplosiveType, Distance>,
+    pub explosive_regressive_death_rayon: HashMap<ExplosiveType, Distance>,
+    pub explosive_regressive_injured_rayon: HashMap<ExplosiveType, Distance>,
 }
 
 impl ServerConfig {
     pub fn new() -> Self {
-        let mut explosive_direct_death_perimeters = HashMap::new();
-        let mut explosive_regressive_death_perimeter = HashMap::new();
-        let mut explosive_regressive_injured_perimeter = HashMap::new();
+        let mut explosive_direct_death_rayon = HashMap::new();
+        let mut explosive_regressive_death_rayon = HashMap::new();
+        let mut explosive_regressive_injured_rayon = HashMap::new();
 
         for explosive in ExplosiveType::iter() {
-            explosive_direct_death_perimeters
-                .insert(explosive.clone(), explosive.direct_death_perimeter());
-            explosive_regressive_death_perimeter
-                .insert(explosive.clone(), explosive.regressive_death_perimeter());
-            explosive_regressive_injured_perimeter
-                .insert(explosive.clone(), explosive.regressive_injured_perimeter());
+            explosive_direct_death_rayon.insert(explosive.clone(), explosive.direct_death_rayon());
+            explosive_regressive_death_rayon
+                .insert(explosive.clone(), explosive.regressive_death_rayon());
+            explosive_regressive_injured_rayon
+                .insert(explosive.clone(), explosive.regressive_injured_rayon());
         }
 
         Self {
@@ -170,9 +169,9 @@ impl ServerConfig {
             tile_type_opacity_mud: TILE_TYPE_OPACITY_MUD,
             tile_type_opacity_brick_wall: TILE_TYPE_OPACITY_BRICK_WALL,
 
-            explosive_direct_death_perimeters,
-            explosive_regressive_death_perimeter,
-            explosive_regressive_injured_perimeter,
+            explosive_direct_death_rayon,
+            explosive_regressive_death_rayon,
+            explosive_regressive_injured_rayon,
         }
     }
 
@@ -277,6 +276,21 @@ impl ServerConfig {
             ChangeConfigMessage::TileTypeOpacityBrickWall(v) => self.tile_type_opacity_brick_wall = *v,
             ChangeConfigMessage::VisibilityByLastFrameShot(v) => self.visibility_by_last_frame_shoot = *v,
             ChangeConfigMessage::VisibilityByLastFrameShotDistance(v) => self.visibility_by_last_frame_shoot_distance = *v,
+            ChangeConfigMessage::ExplosiveDirectDeathRayon(explosive, new_distance) => {
+                if let Some(distance) = self.explosive_direct_death_rayon.get_mut(&explosive) {
+                    distance.millimeters = new_distance.millimeters()
+                }
+            },
+            ChangeConfigMessage::ExplosiveRegressiveDeathRayon(explosive, new_distance) => {
+                if let Some(distance) = self.explosive_regressive_death_rayon.get_mut(&explosive) {
+                    distance.millimeters = new_distance.millimeters()
+                }
+            },
+            ChangeConfigMessage::ExplosiveRegressiveInjuredRayon(explosive, new_distance) => {
+                if let Some(distance) = self.explosive_regressive_injured_rayon.get_mut(&explosive) {
+                    distance.millimeters = new_distance.millimeters()
+                }
+            },
         }
     }
 }
@@ -325,4 +339,7 @@ pub enum ChangeConfigMessage {
     TileTypeOpacityBrickWall(f32),
     VisibilityByLastFrameShot(u64),
     VisibilityByLastFrameShotDistance(usize),
+    ExplosiveDirectDeathRayon(ExplosiveType, Distance),
+    ExplosiveRegressiveDeathRayon(ExplosiveType, Distance),
+    ExplosiveRegressiveInjuredRayon(ExplosiveType, Distance),
 }

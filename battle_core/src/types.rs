@@ -507,9 +507,9 @@ impl Neg for Angle {
     }
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, PartialOrd)]
 pub struct Distance {
-    millimeters: i64,
+    pub millimeters: i64,
 }
 
 impl Distance {
