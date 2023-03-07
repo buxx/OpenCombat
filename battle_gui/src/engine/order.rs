@@ -59,7 +59,7 @@ impl Engine {
 
     pub fn create_hide_order(&self, squad_id: SquadUuid) -> Option<Order> {
         let angle = self.angle_from_cursor_and_squad(squad_id);
-        return Some(Order::Defend(angle));
+        return Some(Order::Hide(angle));
     }
 
     pub fn create_engage_order(&self, squad_id: &SquadUuid) -> Option<Order> {
