@@ -48,6 +48,12 @@ impl Runner {
                         Side::All,
                         OutputMessage::BattleState(battle_state_message.clone()),
                     )),
+                    BattleStateMessage::SetPhase(_) => {
+                        outputs.push((
+                            Side::All,
+                            OutputMessage::BattleState(battle_state_message.clone()),
+                        ));
+                    }
                 },
                 RunnerMessage::ClientsState(client_state_message) => outputs.push((
                     Side::All,

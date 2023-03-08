@@ -1,4 +1,7 @@
-use battle_core::config::ChangeConfigMessage;
+use battle_core::{
+    config::ChangeConfigMessage,
+    state::battle::{message::BattleStateMessage, phase::Phase},
+};
 use ggegui::egui::{Context as EguiContext, Ui};
 use ggez::Context;
 
@@ -9,6 +12,7 @@ use crate::{
         Engine,
     },
 };
+use strum::IntoEnumIterator;
 
 impl Engine {
     pub fn debug_gui_header(
@@ -43,6 +47,23 @@ impl Engine {
             ui.checkbox(&mut self.gui_state.debug_physics_areas, "Physics");
 
             ui.label(format!("FPS : {:.2}", ctx.time.fps()));
+        });
+
+        ui.separator();
+
+        ui.horizontal(|ui| {
+            ui.label("Phase");
+            for phase in Phase::iter() {
+                let text = phase.to_string();
+                if ui
+                    .radio_value(self.battle_state.phase_mut(), phase.clone(), text)
+                    .changed()
+                {
+                    messages.push(EngineMessage::BattleState(BattleStateMessage::SetPhase(
+                        phase.clone(),
+                    )));
+                }
+            }
         });
 
         ui.separator();

@@ -47,11 +47,13 @@ fn main() -> Result<(), Error> {
 
     let (server_input_sender, server_input_receiver) = unbounded();
     let (server_output_sender, server_output_receiver) = unbounded();
+    let stop_required_ = stop_required.clone();
     let server = Server::new(
         opt.rep_address.clone(),
         opt.pub_address.clone(),
         server_output_receiver,
         server_input_sender,
+        stop_required_,
     );
     server.serve()?;
 

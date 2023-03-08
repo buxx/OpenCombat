@@ -13,6 +13,8 @@ use crate::{
     types::{Angle, SoldierIndex, VehicleIndex, WorldPoint},
 };
 
+use super::phase::Phase;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum BattleStateMessage {
     Soldier(SoldierIndex, SoldierMessage),
@@ -20,6 +22,7 @@ pub enum BattleStateMessage {
     PushBulletFire(BulletFire),
     PushExplosion(Explosion),
     SetVisibilities(HashMap<(SoldierIndex, SoldierIndex), Visibility>),
+    SetPhase(Phase),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

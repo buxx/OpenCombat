@@ -19,11 +19,15 @@ use crate::{
     utils::vehicle_board_from_soldiers_on_board,
 };
 
-use self::message::{BattleStateMessage, SideEffect};
+use self::{
+    message::{BattleStateMessage, SideEffect},
+    phase::Phase,
+};
 
 pub mod builder;
 pub mod message;
 pub mod order;
+pub mod phase;
 pub mod soldier;
 pub mod squad;
 pub mod vehicle;
@@ -31,6 +35,7 @@ pub mod visibility;
 
 pub struct BattleState {
     map: Map,
+    phase: Phase,
     soldiers: Vec<Soldier>,
     vehicles: Vec<Vehicle>,
     soldier_on_board: SoldiersOnBoard,
@@ -51,6 +56,7 @@ impl BattleState {
         let vehicle_board = vehicle_board_from_soldiers_on_board(&soldier_on_board);
         Self {
             map,
+            phase: Phase::Placement,
             soldiers,
             vehicles,
             soldier_on_board,
@@ -65,6 +71,7 @@ impl BattleState {
     pub fn empty(map: &Map) -> Self {
         Self {
             map: map.clone(),
+            phase: Phase::Placement,
             soldiers: vec![],
             vehicles: vec![],
             soldier_on_board: HashMap::new(),
@@ -221,6 +228,7 @@ impl BattleState {
             BattleStateMessage::SetVisibilities(visibilities) => {
                 self.visibilities.set(visibilities.clone())
             }
+            BattleStateMessage::SetPhase(phase) => self.phase = phase.clone(),
         };
 
         vec![]
@@ -248,6 +256,18 @@ impl BattleState {
             self.vehicles.clone(),
             self.soldier_on_board.clone(),
         )
+    }
+
+    pub fn phase(&self) -> &Phase {
+        &self.phase
+    }
+
+    pub fn phase_mut(&mut self) -> &mut Phase {
+        &mut self.phase
+    }
+
+    pub fn set_phase(&mut self, phase: Phase) {
+        self.phase = phase;
     }
 }
 
