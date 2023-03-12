@@ -12,9 +12,11 @@ use battle_core::{
         PENDING_ORDER_PATH_FINDING_DRAW_FRAMES,
     },
     entity::soldier::Soldier,
+    game::cover::find_cover_points,
     order::{Order, PendingOrder},
     state::battle::message::{BattleStateMessage, SoldierMessage},
     types::*,
+    utils::DebugPoint,
 };
 
 use crate::{engine::event::UIEvent, ui::menu::squad_menu_sprite_info, utils::GREEN};
@@ -47,6 +49,10 @@ impl Engine {
     }
 
     pub fn generate_select_rectangle_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
+        if self.gui_state.dragged_squad().is_some() {
+            return Ok(());
+        }
+
         if let Some((start, end)) = self.gui_state.current_cursor_vector_window_points() {
             mesh_builder.rectangle(
                 DrawMode::stroke(1.0),
@@ -56,11 +62,6 @@ impl Engine {
         }
 
         Ok(())
-    }
-
-    pub fn get_side_entities_at_point(&self, point: WorldPoint) -> Vec<SoldierIndex> {
-        let soldier_indexes = self.get_soldiers_at_point(point);
-        self.filter_entities_by_side(soldier_indexes, self.gui_state.side())
     }
 
     pub fn get_opponent_soldiers_at_point(&self, point: WorldPoint) -> Vec<&Soldier> {
@@ -73,7 +74,7 @@ impl Engine {
 
     fn digest_scene_select_by_click(&self, point: WindowPoint) -> Vec<EngineMessage> {
         let world_point = self.gui_state.world_point_from_window_point(point);
-        let soldier_indexes = self.get_side_entities_at_point(world_point);
+        let soldier_indexes = self.get_soldiers_at_point(world_point);
         if soldier_indexes.len() > 0 {
             let squad_ids = self.squad_ids_from_entities(vec![soldier_indexes[0]]);
             return vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
@@ -227,7 +228,7 @@ impl Engine {
                 }
                 UIEvent::FinishedCursorRightClick(point) => {
                     let world_point = self.gui_state.world_point_from_window_point(point);
-                    let soldier_indexes = self.get_side_entities_at_point(world_point);
+                    let soldier_indexes = self.get_soldiers_at_point(world_point);
                     let mut squad_id: Option<SquadUuid> = None;
 
                     // If squad under cursor, select it
@@ -294,6 +295,9 @@ impl Engine {
                     messages.push(EngineMessage::GuiState(GuiStateMessage::SetDisplayPaths(
                         vec![],
                     )));
+                }
+                UIEvent::DropSquad(squad_index, world_point) => {
+                    messages.extend(self.drop_squad_to(&squad_index, &world_point))
                 }
             }
         }
@@ -424,5 +428,40 @@ impl Engine {
         let world_start = self.gui_state.world_point_from_window_point(start);
         let world_end = self.gui_state.world_point_from_window_point(end);
         self.generate_debug_physics(world_start, world_end)
+    }
+
+    fn drop_squad_to(&self, squad_index: &SquadUuid, point: &WorldPoint) -> Vec<EngineMessage> {
+        let mut messages = vec![];
+        let squad = self.battle_state.squad(*squad_index);
+        let leader = self.battle_state.soldier(squad.leader());
+        let (moves, debug_points) = find_cover_points(
+            squad,
+            leader,
+            &self.battle_state,
+            &self.server_config,
+            Some(point.clone()),
+        );
+
+        messages.push(EngineMessage::BattleState(BattleStateMessage::Soldier(
+            squad.leader(),
+            SoldierMessage::SetWorldPosition(*point),
+        )));
+        for (member_id, _, cover_world_point) in moves {
+            messages.push(EngineMessage::BattleState(BattleStateMessage::Soldier(
+                member_id,
+                SoldierMessage::SetWorldPosition(cover_world_point),
+            )))
+        }
+
+        for new_debug_point in debug_points {
+            messages.push(EngineMessage::GuiState(GuiStateMessage::PushDebugPoint(
+                DebugPoint {
+                    frame_i: self.gui_state.get_frame_i() + 120,
+                    point: new_debug_point.point,
+                },
+            )))
+        }
+
+        messages
     }
 }

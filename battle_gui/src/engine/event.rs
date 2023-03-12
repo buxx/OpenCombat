@@ -9,4 +9,5 @@ pub enum UIEvent {
     CursorMove(WindowPoint),
     ImmobileCursorSince(u64),
     DrawPathFinding(SquadUuid, Option<OrderMarkerIndex>, Vec<WorldPoint>),
+    DropSquad(SquadUuid, WorldPoint),
 }

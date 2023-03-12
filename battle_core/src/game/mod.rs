@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+pub mod cover;
 pub mod explosive;
+pub mod squad;
 pub mod weapon;
 
 #[derive(Debug, Copy, Serialize, Deserialize, Clone, PartialEq)]

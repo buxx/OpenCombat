@@ -5,7 +5,7 @@ use ggez::{event::MouseButton, input::keyboard::KeyInput, winit::event::VirtualK
 use glam::Vec2;
 
 use crate::{
-    debug::{DebugPhysics, DebugTerrain},
+    debug::DebugPhysics,
     engine::{event::UIEvent, message::GuiStateMessage},
 };
 use serde::{Deserialize, Serialize};
@@ -131,28 +131,6 @@ impl Engine {
                     GuiStateMessage::SetDisplayDebugGui(!self.gui_state.display_debug_gui()),
                 ));
             }
-            Some(VirtualKeyCode::F11) => {
-                let new_debug_terrain = match self.gui_state.get_debug_terrain() {
-                    DebugTerrain::None => DebugTerrain::Opacity,
-                    DebugTerrain::Opacity => DebugTerrain::Tiles,
-                    DebugTerrain::Tiles => DebugTerrain::None,
-                };
-                messages.push(EngineMessage::GuiState(GuiStateMessage::SetDebugTerrain(
-                    new_debug_terrain,
-                )));
-            }
-            Some(VirtualKeyCode::F10) => {
-                let new_debug_physics = self.gui_state.get_debug_physics().next();
-                messages.extend(vec![
-                    EngineMessage::GuiState(GuiStateMessage::SetControl(
-                        self.physics_control(&new_debug_physics),
-                    )),
-                    EngineMessage::GuiState(GuiStateMessage::SetDebugPhysics(new_debug_physics)),
-                ]);
-            }
-            Some(VirtualKeyCode::F9) => {
-                messages.push(EngineMessage::GuiState(GuiStateMessage::ChangeSide))
-            }
             Some(VirtualKeyCode::LControl) | Some(VirtualKeyCode::RControl) => messages.push(
                 EngineMessage::GuiState(GuiStateMessage::SetControl(self.determine_controlling())),
             ),
@@ -251,6 +229,18 @@ impl Engine {
                             ));
                         }
                     }
+
+                    if self.battle_state.phase().placement() {
+                        let world_point = self.gui_state.get_current_cursor_world_point();
+                        if let Some(soldier_index) = self.get_soldiers_at_point(world_point).first()
+                        {
+                            let squad_index =
+                                self.battle_state.soldier(*soldier_index).squad_uuid();
+                            messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(
+                                Some(squad_index),
+                            )));
+                        }
+                    }
                 }
             }
             _ => {}
@@ -295,6 +285,15 @@ impl Engine {
                         UIEvent::FinishedCursorLeftClick(end_point),
                     )));
                 }
+
+                if let Some(squad_index) = self.gui_state.dragged_squad() {
+                    let world_end_point = self.gui_state.world_point_from_window_point(end_point);
+                    messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
+                        UIEvent::DropSquad(*squad_index, world_end_point),
+                    )));
+                }
+
+                messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(None)))
             }
             MouseButton::Right => {
                 messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(

@@ -65,6 +65,8 @@ pub struct GuiState {
     debug_points: Vec<DebugPoint>,
     /// Contains current control mode
     control: Control,
+    ///
+    dragged_squad: Option<SquadUuid>,
 }
 
 impl GuiState {
@@ -98,6 +100,7 @@ impl GuiState {
             last_computed_path_point: None,
             debug_points: vec![],
             control: Control::Soldiers,
+            dragged_squad: None,
         }
     }
 
@@ -338,6 +341,10 @@ impl GuiState {
                 //
                 self.display_debug_gui = *value
             }
+            GuiStateMessage::SetDragSquad(squad_index) => {
+                //
+                self.dragged_squad = squad_index.clone();
+            }
         }
     }
 
@@ -426,5 +433,9 @@ impl GuiState {
         lines.push(("Control".to_string(), self.control.to_string()));
 
         lines
+    }
+
+    pub fn dragged_squad(&self) -> &Option<SquadUuid> {
+        &self.dragged_squad
     }
 }

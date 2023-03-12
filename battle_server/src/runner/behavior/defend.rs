@@ -1,17 +1,13 @@
 use battle_core::{
     behavior::Behavior,
-    config::COVER_DISTANCE,
     entity::soldier::Soldier,
-    map::find_cover_grid_point,
+    game::cover::find_cover_points,
     order::Order,
-    types::{GridPoint, SquadUuid, WorldPath, WorldPaths},
+    types::{SquadUuid, WorldPath, WorldPaths},
     utils::NewDebugPoint,
 };
 
-use crate::{
-    game::squad::{squad_positions, Formation},
-    runner::Runner,
-};
+use crate::runner::Runner;
 
 impl Runner {
     pub fn propagate_defend(
@@ -22,41 +18,16 @@ impl Runner {
         let squad = self.battle_state.squad(squad_uuid);
         let leader = self.battle_state.soldier(squad.leader());
         let mut orders = vec![];
-        let mut debug_points = vec![];
-        let mut already_used_cover_grid_points: Vec<GridPoint> = vec![];
-        let map = self.battle_state.map();
 
-        for (member_id, formation_position) in squad_positions(squad, Formation::Line, leader) {
-            let soldier = self.battle_state.soldier(member_id);
-            let grid_point = map.grid_point_from_world_point(&formation_position);
-            if let Some((cover_grid_point, debug_grid_points)) = find_cover_grid_point(
-                &self.config,
-                &grid_point,
-                &map,
-                &already_used_cover_grid_points,
-                COVER_DISTANCE,
-            ) {
-                if self.config.send_debug_points {
-                    for debug_grid_point in debug_grid_points.iter() {
-                        debug_points.push(NewDebugPoint {
-                            point: self
-                                .battle_state
-                                .map()
-                                .world_point_from_grid_point(*debug_grid_point),
-                        })
-                    }
-                }
+        let (moves, debug_points) =
+            find_cover_points(squad, leader, &self.battle_state, &self.config, None);
 
-                let from_world_point = soldier.get_world_point();
-                let cover_world_point = map.world_point_from_grid_point(cover_grid_point);
-                already_used_cover_grid_points.push(cover_grid_point);
-
-                let order = Order::MoveFastTo(WorldPaths::new(vec![WorldPath::new(vec![
-                    from_world_point,
-                    cover_world_point,
-                ])]));
-                orders.push((soldier, order));
-            }
+        for (member_id, from_world_point, cover_world_point) in moves {
+            let order = Order::MoveFastTo(WorldPaths::new(vec![WorldPath::new(vec![
+                from_world_point,
+                cover_world_point,
+            ])]));
+            orders.push((self.battle_state.soldier(member_id), order));
         }
 
         (orders, debug_points)

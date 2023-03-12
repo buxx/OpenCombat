@@ -5,6 +5,7 @@ use ggez::{
 
 use battle_core::{
     entity::soldier::Soldier,
+    game::squad::{squad_positions, Formation},
     order::{marker::OrderMarker, Order, PendingOrder},
     types::*,
 };
@@ -13,14 +14,41 @@ use super::{input::Control, Engine};
 
 impl Engine {
     pub fn generate_soldiers_sprites(&mut self) -> GameResult {
+        // All soldier ...
         for (i, soldier) in self.battle_state.soldiers().iter().enumerate() {
             // TODO : don't generate sprites of non visible soldiers (hidden enemy, outside screen, etc)
             if !self.is_soldier_drawable(SoldierIndex(i)) {
                 continue;
             }
 
-            for sprite in self.graphics.soldier_sprites(SoldierIndex(i), soldier) {
+            for sprite in self.graphics.soldier_sprites(soldier, None) {
                 self.graphics.append_soldier_batch(sprite);
+            }
+        }
+
+        // Dragged soldiers
+        if let Some(squad_index) = &self.gui_state.dragged_squad() {
+            let cursor = self.gui_state.get_current_cursor_world_point();
+            let squad = self.battle_state.squad(*squad_index);
+            let leader = self.battle_state.soldier(squad.leader());
+            for sprite in self.graphics.soldier_sprites(leader, Some(&cursor)) {
+                self.graphics.append_soldier_batch(sprite);
+            }
+
+            let cursor_immobile_since =
+                self.gui_state.get_frame_i() - self.gui_state.get_last_cursor_move_frame();
+            if cursor_immobile_since >= 15 {
+                for (member_id, formation_position) in
+                    squad_positions(squad, Formation::Line, leader, Some(cursor))
+                {
+                    let soldier = self.battle_state.soldier(member_id);
+                    for sprite in self
+                        .graphics
+                        .soldier_sprites(soldier, Some(&formation_position))
+                    {
+                        self.graphics.append_soldier_batch(sprite);
+                    }
+                }
             }
         }
 

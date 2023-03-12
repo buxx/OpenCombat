@@ -1,4 +1,3 @@
-use battle_server::game::squad::{squad_positions, Formation};
 use ggez::{
     graphics::{Color, DrawMode, MeshBuilder},
     GameResult,
@@ -6,7 +5,12 @@ use ggez::{
 
 use battle_core::{
     behavior::Behavior,
-    game::{explosive::ExplosiveType, weapon::Weapon, Side},
+    game::{
+        explosive::ExplosiveType,
+        squad::{squad_positions, Formation},
+        weapon::Weapon,
+        Side,
+    },
     physics::event::{bullet::BulletFire, explosion::Explosion},
     state::battle::message::BattleStateMessage,
     types::WorldPoint,
@@ -88,7 +92,7 @@ impl Engine {
         for squad_id in &self.gui_state.selected_squads().1 {
             let squad = self.battle_state.squad(*squad_id);
             let leader = self.battle_state.soldier(squad.leader());
-            for (_, point) in squad_positions(squad, Formation::Line, leader) {
+            for (_, point) in squad_positions(squad, Formation::Line, leader, None) {
                 let window_point = self.gui_state.window_point_from_world_point(point);
                 mesh_builder.circle(DrawMode::fill(), window_point.to_vec2(), 2.0, 2.0, YELLOW)?;
             }

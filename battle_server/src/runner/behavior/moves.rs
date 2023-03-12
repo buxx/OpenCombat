@@ -1,15 +1,13 @@
 use battle_core::{
     behavior::Behavior,
     entity::{soldier::Soldier, vehicle::OnBoardPlace},
+    game::squad::{squad_positions, Formation},
     order::Order,
     physics::path::{find_path, PathMode},
     types::{SquadUuid, WorldPath, WorldPaths},
 };
 
-use crate::{
-    game::squad::{squad_positions, Formation},
-    runner::Runner,
-};
+use crate::runner::Runner;
 
 impl Runner {
     pub fn propagate_move(
@@ -21,7 +19,7 @@ impl Runner {
         let squad = self.battle_state.squad(squad_uuid);
         let leader = self.battle_state.soldier(squad.leader());
 
-        for (soldier_index, point) in squad_positions(squad, Formation::Line, leader) {
+        for (soldier_index, point) in squad_positions(squad, Formation::Line, leader, None) {
             let soldier = self.battle_state.soldier(soldier_index);
             let map = self.battle_state.map();
             if let Some(grid_path) = find_path(

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use battle_core::{
+use crate::{
     entity::soldier::Soldier,
     types::{SoldierIndex, SquadComposition, WorldPoint},
     utils::apply_angle_on_point,
@@ -14,9 +14,10 @@ pub fn squad_positions(
     squad: &SquadComposition,
     formation: Formation,
     leader: &Soldier,
+    point: Option<WorldPoint>,
 ) -> HashMap<SoldierIndex, WorldPoint> {
     let mut positions = HashMap::new();
-    let ref_point = leader.get_world_point();
+    let ref_point = point.unwrap_or(leader.get_world_point());
     let ref_angle = leader.get_looking_direction();
 
     match formation {

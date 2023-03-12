@@ -191,12 +191,12 @@ impl Graphics {
 
     pub fn soldier_sprites(
         &self,
-        soldier_index: SoldierIndex,
         soldier: &Soldier,
+        draw_to: Option<&WorldPoint>,
     ) -> Vec<graphics::DrawParam> {
         let current_frame_src: Rect = self
             .soldier_animation_sequences
-            .get(&soldier_index)
+            .get(&soldier.uuid())
             .expect("Shared state must be consistent")
             .now_strict()
             .unwrap()
@@ -211,7 +211,11 @@ impl Graphics {
             .src(current_frame_src)
             .rotation(soldier.get_looking_direction().0)
             .offset(Vec2::from(SOLDIER_SPRITE_OFFSET))
-            .dest(soldier.get_world_point().to_vec2())]
+            .dest(
+                draw_to
+                    .and_then(|p| Some(p.to_vec2()))
+                    .unwrap_or(soldier.get_world_point().to_vec2()),
+            )]
     }
 
     pub fn vehicle_sprites(
