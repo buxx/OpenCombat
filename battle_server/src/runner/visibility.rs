@@ -20,7 +20,8 @@ impl Runner {
     pub fn tick_visibilities(&self) -> Vec<RunnerMessage> {
         puffin::profile_scope!("tick_visibilities");
         let mut messages = vec![];
-        let tick_visibility = self.frame_i % self.config.visibility_update_freq() == 0;
+        let tick_visibility = self.frame_i % self.config.visibility_update_freq() == 0
+            && self.battle_state.phase().battle();
 
         if tick_visibility {
             messages.extend(self.update_visibilities());

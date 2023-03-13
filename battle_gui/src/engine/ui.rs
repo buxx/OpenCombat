@@ -12,7 +12,7 @@ use battle_core::{
         PENDING_ORDER_PATH_FINDING_DRAW_FRAMES,
     },
     entity::soldier::Soldier,
-    game::cover::find_cover_points,
+    game::cover::CoverFinder,
     order::{Order, PendingOrder},
     state::battle::message::{BattleStateMessage, SoldierMessage},
     types::*,
@@ -434,13 +434,11 @@ impl Engine {
         let mut messages = vec![];
         let squad = self.battle_state.squad(*squad_index);
         let leader = self.battle_state.soldier(squad.leader());
-        let (moves, debug_points) = find_cover_points(
-            squad,
-            leader,
-            &self.battle_state,
-            &self.server_config,
-            Some(point.clone()),
-        );
+        let cursor_grid_point = self.battle_state.map().grid_point_from_world_point(&point);
+        let (moves, debug_points) = CoverFinder::new(&self.battle_state, &self.server_config)
+            .point(Some(point.clone()))
+            .exclude_grid_points(vec![cursor_grid_point])
+            .find_cover_points(squad, leader);
 
         messages.push(EngineMessage::BattleState(BattleStateMessage::Soldier(
             squad.leader(),

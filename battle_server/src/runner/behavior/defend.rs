@@ -1,7 +1,7 @@
 use battle_core::{
     behavior::Behavior,
     entity::soldier::Soldier,
-    game::cover::find_cover_points,
+    game::cover::CoverFinder,
     order::Order,
     types::{SquadUuid, WorldPath, WorldPaths},
     utils::NewDebugPoint,
@@ -20,7 +20,7 @@ impl Runner {
         let mut orders = vec![];
 
         let (moves, debug_points) =
-            find_cover_points(squad, leader, &self.battle_state, &self.config, None);
+            CoverFinder::new(&self.battle_state, &self.config).find_cover_points(squad, leader);
 
         for (member_id, from_world_point, cover_world_point) in moves {
             let order = Order::MoveFastTo(WorldPaths::new(vec![WorldPath::new(vec![

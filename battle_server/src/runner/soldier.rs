@@ -10,7 +10,8 @@ impl Runner {
     pub fn tick_soldiers(&self) -> Vec<RunnerMessage> {
         puffin::profile_scope!("tick_soldiers");
         let mut messages = vec![];
-        let tick_animate = self.frame_i % self.config.soldier_animate_freq() == 0;
+        let tick_animate = self.frame_i % self.config.soldier_animate_freq() == 0
+            && self.battle_state.phase().battle();
         let tick_update = self.frame_i % self.config.soldier_update_freq() == 0;
 
         // Entities animation
@@ -40,7 +41,8 @@ impl Runner {
     pub fn tick_feeling_decreasing_soldiers(&self) -> Vec<RunnerMessage> {
         puffin::profile_scope!("tick_feeling_decreasing_soldiers");
         let mut messages = vec![];
-        let tick_feeling_decreasing = self.frame_i % self.config.feeling_decreasing_freq() == 0;
+        let tick_feeling_decreasing = self.frame_i % self.config.feeling_decreasing_freq() == 0
+            && self.battle_state.phase().battle();
 
         if tick_feeling_decreasing {
             messages.extend((0..self.battle_state.soldiers().len()).map(|i| {

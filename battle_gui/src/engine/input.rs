@@ -183,6 +183,17 @@ impl Engine {
                         )),
                     ))
                 }
+
+                if self.battle_state.phase().placement() && self.gui_state.dragged_squad().is_none()
+                {
+                    let world_point = self.gui_state.get_current_cursor_world_point();
+                    if let Some(soldier_index) = self.get_soldiers_at_point(world_point).first() {
+                        let squad_index = self.battle_state.soldier(*soldier_index).squad_uuid();
+                        messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(
+                            Some(squad_index),
+                        )));
+                    }
+                }
             }
         }
 
@@ -227,18 +238,6 @@ impl Engine {
                             messages.push(EngineMessage::GuiState(
                                 GuiStateMessage::SetPendingOrder(Some(pending_order)),
                             ));
-                        }
-                    }
-
-                    if self.battle_state.phase().placement() {
-                        let world_point = self.gui_state.get_current_cursor_world_point();
-                        if let Some(soldier_index) = self.get_soldiers_at_point(world_point).first()
-                        {
-                            let squad_index =
-                                self.battle_state.soldier(*soldier_index).squad_uuid();
-                            messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(
-                                Some(squad_index),
-                            )));
                         }
                     }
                 }
