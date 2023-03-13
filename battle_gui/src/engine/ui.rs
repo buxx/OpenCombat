@@ -13,8 +13,9 @@ use battle_core::{
     },
     entity::soldier::Soldier,
     game::cover::CoverFinder,
+    graphics::vehicle::VehicleGraphicInfos,
     order::{Order, PendingOrder},
-    state::battle::message::{BattleStateMessage, SoldierMessage},
+    state::battle::message::{BattleStateMessage, SoldierMessage, VehicleMessage},
     types::*,
     utils::DebugPoint,
 };
@@ -431,6 +432,30 @@ impl Engine {
     }
 
     fn drop_squad_to(&self, squad_index: &SquadUuid, point: &WorldPoint) -> Vec<EngineMessage> {
+        let squad = self.battle_state.squad(*squad_index);
+        if let Some(vehicle_index) = self.battle_state.soldier_vehicle(squad.leader()) {
+            self.drop_vehicle_to(&vehicle_index, point)
+        } else {
+            self.drop_pedestrian_squad_to(squad_index, point)
+        }
+    }
+
+    fn drop_vehicle_to(
+        &self,
+        vehicle_index: &VehicleIndex,
+        point: &WorldPoint,
+    ) -> Vec<EngineMessage> {
+        vec![EngineMessage::BattleState(BattleStateMessage::Vehicle(
+            *vehicle_index,
+            VehicleMessage::SetWorldPosition(point.clone()),
+        ))]
+    }
+
+    fn drop_pedestrian_squad_to(
+        &self,
+        squad_index: &SquadUuid,
+        point: &WorldPoint,
+    ) -> Vec<EngineMessage> {
         let mut messages = vec![];
         let squad = self.battle_state.squad(*squad_index);
         let leader = self.battle_state.soldier(squad.leader());
