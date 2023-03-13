@@ -13,7 +13,6 @@ use battle_core::{
     },
     entity::soldier::Soldier,
     game::cover::CoverFinder,
-    graphics::vehicle::VehicleGraphicInfos,
     order::{Order, PendingOrder},
     state::battle::message::{BattleStateMessage, SoldierMessage, VehicleMessage},
     types::*,

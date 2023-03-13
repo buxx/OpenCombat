@@ -187,11 +187,17 @@ impl Engine {
                 if self.battle_state.phase().placement() && self.gui_state.dragged_squad().is_none()
                 {
                     let world_point = self.gui_state.get_current_cursor_world_point();
-                    if let Some(soldier_index) = self.get_soldiers_at_point(world_point).first() {
-                        let squad_index = self.battle_state.soldier(*soldier_index).squad_uuid();
-                        messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(
-                            Some(squad_index),
-                        )));
+                    if let (Some(started_with_soldier_index), Some(soldier_index)) = (
+                        self.gui_state.begin_click_on_soldier(),
+                        self.get_soldiers_at_point(world_point).first(),
+                    ) {
+                        if started_with_soldier_index == started_with_soldier_index {
+                            let squad_index =
+                                self.battle_state.soldier(*soldier_index).squad_uuid();
+                            messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(
+                                Some(squad_index),
+                            )));
+                        }
                     }
                 }
             }
@@ -237,6 +243,16 @@ impl Engine {
                             );
                             messages.push(EngineMessage::GuiState(
                                 GuiStateMessage::SetPendingOrder(Some(pending_order)),
+                            ));
+                        }
+                    }
+
+                    if self.battle_state.phase().placement() {
+                        let world_point = self.gui_state.get_current_cursor_world_point();
+                        if let Some(soldier_index) = self.get_soldiers_at_point(world_point).first()
+                        {
+                            messages.push(EngineMessage::GuiState(
+                                GuiStateMessage::SetBeginClickOnSoldier(Some(*soldier_index)),
                             ));
                         }
                     }
@@ -292,7 +308,10 @@ impl Engine {
                     )));
                 }
 
-                messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(None)))
+                messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(None)));
+                messages.push(EngineMessage::GuiState(
+                    GuiStateMessage::SetBeginClickOnSoldier(None),
+                ))
             }
             MouseButton::Right => {
                 messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(

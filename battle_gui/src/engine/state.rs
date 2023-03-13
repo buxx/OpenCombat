@@ -66,6 +66,7 @@ pub struct GuiState {
     /// Contains current control mode
     control: Control,
     ///
+    begin_click_on_soldier: Option<SoldierIndex>,
     dragged_squad: Option<SquadUuid>,
 }
 
@@ -100,6 +101,7 @@ impl GuiState {
             last_computed_path_point: None,
             debug_points: vec![],
             control: Control::Soldiers,
+            begin_click_on_soldier: None,
             dragged_squad: None,
         }
     }
@@ -345,6 +347,9 @@ impl GuiState {
                 //
                 self.dragged_squad = squad_index.clone();
             }
+            GuiStateMessage::SetBeginClickOnSoldier(soldier_index) => {
+                self.begin_click_on_soldier = *soldier_index
+            }
         }
     }
 
@@ -437,5 +442,9 @@ impl GuiState {
 
     pub fn dragged_squad(&self) -> &Option<SquadUuid> {
         &self.dragged_squad
+    }
+
+    pub fn begin_click_on_soldier(&self) -> Option<SoldierIndex> {
+        self.begin_click_on_soldier
     }
 }

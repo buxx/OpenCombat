@@ -46,5 +46,6 @@ pub enum GuiStateMessage {
     SetControl(Control),
     SetDebugGuiHovered(bool),
     SetDisplayDebugGui(bool),
+    SetBeginClickOnSoldier(Option<SoldierIndex>),
     SetDragSquad(Option<SquadUuid>),
 }
