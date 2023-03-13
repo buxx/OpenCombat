@@ -176,7 +176,7 @@ impl Map {
         WorldPoint::new(x as f32, y as f32)
     }
 
-    fn point_allow_vehicle(&self, point: &GridPoint, size: &VehicleSize) -> bool {
+    pub fn point_allow_vehicle(&self, point: &GridPoint, size: &VehicleSize) -> bool {
         let half = (size.0 / 2) as i32;
         let start_x = point.x - half;
         let end_x = point.x + half;

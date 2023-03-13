@@ -13,6 +13,7 @@ use battle_core::{
     },
     entity::soldier::Soldier,
     game::cover::CoverFinder,
+    graphics::vehicle::VehicleGraphicInfos,
     order::{Order, PendingOrder},
     state::battle::message::{BattleStateMessage, SoldierMessage, VehicleMessage},
     types::*,
@@ -444,10 +445,22 @@ impl Engine {
         vehicle_index: &VehicleIndex,
         point: &WorldPoint,
     ) -> Vec<EngineMessage> {
-        vec![EngineMessage::BattleState(BattleStateMessage::Vehicle(
-            *vehicle_index,
-            VehicleMessage::SetWorldPosition(point.clone()),
-        ))]
+        let vehicle = self.battle_state.vehicle(*vehicle_index);
+        let grid_point = self.battle_state.map().grid_point_from_world_point(point);
+        let vehicle_graphics = VehicleGraphicInfos::from_type(vehicle.get_type());
+        let chassis_size = vehicle_graphics.size();
+        if !self
+            .battle_state
+            .map()
+            .point_allow_vehicle(&grid_point, chassis_size)
+        {
+            vec![EngineMessage::PlaySound(Sound::Bip1)]
+        } else {
+            vec![EngineMessage::BattleState(BattleStateMessage::Vehicle(
+                *vehicle_index,
+                VehicleMessage::SetWorldPosition(point.clone()),
+            ))]
+        }
     }
 
     fn drop_pedestrian_squad_to(
