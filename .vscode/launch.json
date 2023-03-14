@@ -52,7 +52,11 @@
                 "--server-bind-address",
                 "tcp://0.0.0.0:4256",
                 "--side",
-                "a"
+                "a",
+                "--side-a-control",
+                "W",
+                "--side-b-control",
+                "SE"
             ],
             "cwd": "${workspaceFolder}",
             "env": {

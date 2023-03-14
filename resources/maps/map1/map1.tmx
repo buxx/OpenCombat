@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.6.0" orientation="orthogonal" renderorder="right-down" width="112" height="64" tilewidth="5" tileheight="5" infinite="0" nextlayerid="7" nextobjectid="16">
+<map version="1.10" tiledversion="1.10.0" orientation="orthogonal" renderorder="right-down" width="112" height="64" tilewidth="5" tileheight="5" infinite="0" nextlayerid="8" nextobjectid="26">
  <tileset firstgid="1" source="terrain.tsx"/>
  <tileset firstgid="2001" source="trees_64x64.tsx"/>
  <tileset firstgid="2010" source="trees_32x32.tsx"/>
@@ -145,12 +145,22 @@
 2010,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="4" name="interiors_zones">
+ <objectgroup id="4" name="interiors_zones" visible="0">
   <object id="9" x="24.6667" y="108.667" width="72.6667" height="61.3333"/>
   <object id="10" x="278" y="13.3333" width="197.333" height="78.6667"/>
   <object id="11" x="438.667" y="170" width="69.3333" height="92"/>
   <object id="12" x="367.333" y="171.333" width="66" height="57.3333"/>
   <object id="13" x="117.333" y="230.667" width="176" height="88"/>
   <object id="15" x="278.667" y="170" width="86" height="120.667"/>
+ </objectgroup>
+ <objectgroup id="7" name="spawn_zones">
+  <object id="18" name="NW" x="0" y="0" width="148.4" height="109.2"/>
+  <object id="19" name="W" x="0" y="108.8" width="116.2" height="85.6"/>
+  <object id="20" name="SW" x="0" y="194.4" width="105.6" height="125.8"/>
+  <object id="21" name="S" x="101.782" y="179" width="262.818" height="141.109"/>
+  <object id="22" name="N" x="148.8" y="0.8" width="339.2" height="104.8"/>
+  <object id="23" name="SE" x="366.4" y="179.2" width="193.491" height="140.8"/>
+  <object id="24" name="E" x="364" y="104.8" width="196.218" height="73.6"/>
+  <object id="25" name="NE" x="487.2" y="0" width="72.8" height="104.4"/>
  </objectgroup>
 </map>

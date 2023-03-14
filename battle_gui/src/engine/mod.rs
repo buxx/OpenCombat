@@ -13,6 +13,7 @@ use ggez::graphics::{self, Canvas, Color, MeshBuilder};
 use ggez::input::keyboard::KeyInput;
 use ggez::GameError;
 use ggez::{Context, GameResult};
+use oc_core::utils::SpawnZoneName;
 
 use crate::audio::player::Player;
 use crate::graphics::Graphics;
@@ -23,6 +24,7 @@ use self::state::GuiState;
 mod debug;
 mod draw;
 mod event;
+mod game;
 mod input;
 mod interior;
 mod message;
@@ -52,6 +54,9 @@ pub struct Engine {
     // Debug gui
     debug_gui: DebugGuiState,
     egui_backend: Gui,
+    ///
+    a_control: Vec<SpawnZoneName>,
+    b_control: Vec<SpawnZoneName>,
 }
 
 impl Engine {
@@ -66,6 +71,8 @@ impl Engine {
         battle_state: BattleState,
         sync_required: Arc<AtomicBool>,
         stop_required: Arc<AtomicBool>,
+        a_control: Vec<SpawnZoneName>,
+        b_control: Vec<SpawnZoneName>,
     ) -> GameResult<Engine> {
         let engine = Engine {
             config,
@@ -80,6 +87,8 @@ impl Engine {
             stop_required,
             debug_gui: DebugGuiState::new()?,
             egui_backend: Gui::default(),
+            a_control,
+            b_control,
         };
         Ok(engine)
     }

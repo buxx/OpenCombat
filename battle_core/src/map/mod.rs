@@ -1,17 +1,19 @@
 use std::path::PathBuf;
 
-use self::{decor::Decor, interior::Interior, terrain::TerrainTile};
+use self::{decor::Decor, interior::Interior, spawn::SpawnZone, terrain::TerrainTile};
 use crate::{
     config::ServerConfig,
     physics::path::{Direction, PathMode},
     types::{GridPoint, VehicleSize, WorldPoint},
     utils::grid_points_for_square,
 };
+use oc_core::utils::SpawnZoneName;
 use strum::IntoEnumIterator;
 
 pub mod decor;
 pub mod interior;
 pub mod reader;
+pub mod spawn;
 pub mod terrain;
 
 #[derive(Clone)]
@@ -21,6 +23,7 @@ pub struct Map {
     interiors_image_path: PathBuf,
     terrain_image_path: PathBuf,
     interiors: Vec<Interior>,
+    spawn_zones: Vec<SpawnZone>,
     width: u32,
     visual_width: u32,
     height: u32,
@@ -38,6 +41,7 @@ impl Map {
         interiors_image_path: PathBuf,
         terrain_image_path: PathBuf,
         interiors: Vec<Interior>,
+        spawn_zones: Vec<SpawnZone>,
         width: u32,
         height: u32,
         terrain_tiles: Vec<TerrainTile>,
@@ -51,6 +55,7 @@ impl Map {
             interiors_image_path,
             terrain_image_path,
             interiors,
+            spawn_zones,
             width,
             visual_width: width * tile_width,
             height,
@@ -197,6 +202,26 @@ impl Map {
         }
 
         return true;
+    }
+
+    pub fn point_in_spawn_zones(
+        &self,
+        point: &WorldPoint,
+        allowed_zone_names: &Vec<SpawnZoneName>,
+    ) -> bool {
+        for spawn_zone in &self.spawn_zones {
+            if allowed_zone_names.contains(spawn_zone.name()) {
+                if point.x >= spawn_zone.x()
+                    && point.x <= spawn_zone.x() + spawn_zone.width()
+                    && point.y >= spawn_zone.y()
+                    && point.y <= spawn_zone.y() + spawn_zone.height()
+                {
+                    return true;
+                }
+            }
+        }
+
+        false
     }
 }
 

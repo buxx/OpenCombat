@@ -1,5 +1,6 @@
-use std::{collections::HashMap, fmt::Display, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, fmt::Display, path::PathBuf, str::FromStr, sync::Arc};
 
+use oc_core::utils::{ParseOriginDirectionError, SpawnZoneName};
 use tiled::{
     FiniteTileLayer, Image, ImageLayer, Layer, LayerType, Loader, Map as TiledMap, ObjectLayer,
     TileLayer, Tileset,
@@ -8,6 +9,7 @@ use tiled::{
 use super::{
     decor::{Decor, DecorTile},
     interior::Interior,
+    spawn::SpawnZone,
     terrain::{TerrainTile, TerrainTileError},
     Map,
 };
@@ -15,6 +17,7 @@ use super::{
 const BACKGROUND_IMAGE_LAYER_NAME: &'static str = "background_image";
 const INTERIORS_IMAGE_LAYER_NAME: &'static str = "interiors_image";
 const INTERIORS_ZONES_LAYER_NAME: &'static str = "interiors_zones";
+const SPAWN_ZONES_LAYER_NAME: &'static str = "spawn_zones";
 const DECOR_LAYER_NAME: &'static str = "decor";
 const TERRAIN_LAYER_NAME: &'static str = "terrain";
 const TERRAIN_TILESET_NAME: &'static str = "terrain";
@@ -34,6 +37,12 @@ pub enum MapReaderError {
 impl From<TerrainTileError> for MapReaderError {
     fn from(error: TerrainTileError) -> Self {
         Self::TerrainTileError(error)
+    }
+}
+
+impl From<ParseOriginDirectionError> for MapReaderError {
+    fn from(value: ParseOriginDirectionError) -> Self {
+        Self::InvalidLayer(format!("Invalid origin direction : '{}'", value))
     }
 }
 
@@ -157,6 +166,16 @@ impl MapReader {
         }
     }
 
+    fn spawn_zones_layer(&self) -> Result<ObjectLayer, MapReaderError> {
+        match self.layer(SPAWN_ZONES_LAYER_NAME)?.layer_type() {
+            LayerType::ObjectLayer(layer) => Ok(layer),
+            _ => Result::Err(MapReaderError::InvalidLayer(format!(
+                "Layer '{}' in map {} is not an object layer",
+                SPAWN_ZONES_LAYER_NAME, self.name,
+            ))),
+        }
+    }
+
     fn interiors(&self) -> Result<Vec<Interior>, MapReaderError> {
         let interiors_image = self.interiors_image()?;
         let mut interiors = vec![];
@@ -181,6 +200,40 @@ impl MapReader {
         }
 
         Ok(interiors)
+    }
+
+    fn spawn_zones(&self) -> Result<Vec<SpawnZone>, MapReaderError> {
+        let mut spawn_zones = vec![];
+
+        for object in self.spawn_zones_layer()?.objects() {
+            let spawn_zone_name = SpawnZoneName::from_str(&object.name)?;
+            if !spawn_zone_name.allowed_for_zone_object() {
+                return Err(MapReaderError::InvalidLayer(format!(
+                    "Spawn zone name is not allowed : '{}'",
+                    &object.name
+                )));
+            }
+
+            spawn_zones.push(match object.shape {
+                tiled::ObjectShape::Rect { width, height } => SpawnZone::new(
+                    spawn_zone_name,
+                    object.x,
+                    object.y,
+                    width,
+                    height,
+                    self.map.width as f32,
+                    self.map.height as f32,
+                ),
+                _ => {
+                    return Result::Err(MapReaderError::InvalidLayer(format!(
+                        "Layer '{}' in map {} contains non Rect shapes, this is not supported now",
+                        INTERIORS_ZONES_LAYER_NAME, self.name,
+                    )))
+                }
+            })
+        }
+
+        Ok(spawn_zones)
     }
 
     fn terrain_layer(&self) -> Result<FiniteTileLayer, MapReaderError> {
@@ -471,6 +524,7 @@ impl MapReader {
         );
 
         let interiors = self.interiors()?;
+        let spawn_zones = self.spawn_zones()?;
         let width = self.width()?;
         let height = self.height()?;
         let tile_width = self.tile_width()?;
@@ -484,6 +538,7 @@ impl MapReader {
             interiors_image_path,
             terrain_image_path,
             interiors,
+            spawn_zones,
             width,
             height,
             terrain_tiles,

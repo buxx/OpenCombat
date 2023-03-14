@@ -21,6 +21,7 @@ use crossbeam_channel::SendError;
 use ggez::conf::WindowMode;
 use ggez::event;
 use ggez::GameError;
+use oc_core::utils::SpawnZoneName;
 use server::EmbeddedServer;
 
 mod audio;
@@ -57,6 +58,12 @@ pub struct Opt {
 
     #[structopt(long = "--profile-address", default_value = "0.0.0.0:8585")]
     profile_address: String,
+
+    #[structopt(long = "side-a-control")]
+    a_control: Vec<SpawnZoneName>,
+
+    #[structopt(long = "side-b-control")]
+    b_control: Vec<SpawnZoneName>,
 }
 
 fn main() -> Result<(), GuiError> {
@@ -140,6 +147,8 @@ fn main() -> Result<(), GuiError> {
         battle_state,
         sync_required,
         stop_required.clone(),
+        opt.a_control.clone(),
+        opt.b_control.clone(),
     )?;
 
     // FIXME BS NOW : Closing GUI don't close thread correctly and keep process running

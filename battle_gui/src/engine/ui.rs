@@ -342,13 +342,13 @@ impl Engine {
                         .battle_state
                         .squad(*pending_order.squad_index())
                         .leader();
-                    messages.extend(vec![
-                        EngineMessage::BattleState(BattleStateMessage::Soldier(
-                            squad_leader,
-                            SoldierMessage::SetOrder(order),
-                        )),
-                        EngineMessage::PlaySound(Sound::Clac1),
-                    ])
+                    messages.extend(
+                        [
+                            vec![EngineMessage::PlaySound(Sound::Clac1)],
+                            self.define_order(&squad_leader, &order),
+                        ]
+                        .concat(),
+                    )
                 } else {
                     messages.push(EngineMessage::PlaySound(Sound::Bip1))
                 }
@@ -391,13 +391,13 @@ impl Engine {
                     .battle_state
                     .squad(*pending_order.squad_index())
                     .leader();
-                messages.extend(vec![
-                    EngineMessage::BattleState(BattleStateMessage::Soldier(
-                        squad_leader,
-                        SoldierMessage::SetOrder(order_),
-                    )),
-                    EngineMessage::PlaySound(Sound::Clac1),
-                ])
+                messages.extend(
+                    [
+                        vec![EngineMessage::PlaySound(Sound::Clac1)],
+                        self.define_order(&squad_leader, &order_),
+                    ]
+                    .concat(),
+                )
             } else {
                 messages.push(EngineMessage::PlaySound(Sound::Bip1))
             }
@@ -432,6 +432,10 @@ impl Engine {
     }
 
     fn drop_squad_to(&self, squad_index: &SquadUuid, point: &WorldPoint) -> Vec<EngineMessage> {
+        if !self.allowed_drop_point(point) {
+            return vec![EngineMessage::PlaySound(Sound::Bip1)];
+        }
+
         let squad = self.battle_state.squad(*squad_index);
         if let Some(vehicle_index) = self.battle_state.soldier_vehicle(squad.leader()) {
             self.drop_vehicle_to(&vehicle_index, point)
