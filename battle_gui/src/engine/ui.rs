@@ -297,7 +297,7 @@ impl Engine {
                         vec![],
                     )));
                 }
-                UIEvent::DropSquad(squad_index, world_point) => {
+                UIEvent::DropSquadTo(squad_index, world_point) => {
                     messages.extend(self.drop_squad_to(&squad_index, &world_point))
                 }
             }

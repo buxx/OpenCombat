@@ -304,7 +304,7 @@ impl Engine {
                 if let Some(squad_index) = self.gui_state.dragged_squad() {
                     let world_end_point = self.gui_state.world_point_from_window_point(end_point);
                     messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
-                        UIEvent::DropSquad(*squad_index, world_end_point),
+                        UIEvent::DropSquadTo(*squad_index, world_end_point),
                     )));
                 }
 
