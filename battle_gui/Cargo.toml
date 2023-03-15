@@ -24,3 +24,6 @@ geo = "0.23.1"
 ggegui = { git = "https://github.com/buxx/ggegui.git", rev = "958323241f358bd6dbc2278ce33dcd92bc37bf7c" }
 puffin_http = "0.11.1"
 puffin = "0.14.2"
+image = "0.24.5"
+anyhow = "1.0.69"
+thiserror = "1.0.39"

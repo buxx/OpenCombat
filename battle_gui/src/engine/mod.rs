@@ -13,7 +13,7 @@ use ggez::graphics::{self, Canvas, Color, MeshBuilder};
 use ggez::input::keyboard::KeyInput;
 use ggez::GameError;
 use ggez::{Context, GameResult};
-use oc_core::utils::SpawnZoneName;
+use oc_core::spawn::SpawnZoneName;
 
 use crate::audio::player::Player;
 use crate::graphics::Graphics;

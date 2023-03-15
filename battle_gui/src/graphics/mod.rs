@@ -23,8 +23,9 @@ use battle_core::{
     graphics::vehicle::TILE_HEIGHT as VEHICLE_TILE_HEIGHT,
     graphics::vehicle::TILE_WIDTH as VEHICLE_TILE_WIDTH,
 };
+use oc_core::resources::RESOURCE_PATH;
 
-use crate::{debug::DebugTerrain, ui::menu::squad_menu_sprite_info, RESOURCE_PATH};
+use crate::{debug::DebugTerrain, ui::menu::squad_menu_sprite_info};
 
 use self::message::GraphicsMessage;
 
@@ -69,6 +70,8 @@ pub struct Graphics {
     ui_file: String,
     // Map background sprite batch
     map_background_batch: InstanceArray,
+    map_dark_background_batch: InstanceArray,
+    map_dark_background_first: bool,
     // Map interiors sprite batch
     map_interiors_batch: InstanceArray,
     // Map decor sprite batches
@@ -102,6 +105,7 @@ impl Graphics {
         let ui_batch = create_batch(&ui_file, ctx)?;
 
         let map_background_batch = map::get_map_background_batch(ctx, map)?;
+        let map_dark_background_batch = map::get_map_dark_background_batch(ctx, map)?;
         let map_interiors_batch = map::get_map_interiors_batch(ctx, map)?;
         let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
         let debug_terrain_batch = map::create_debug_terrain_batch(ctx, map)?;
@@ -122,6 +126,8 @@ impl Graphics {
             ui_files,
             ui_file,
             map_background_batch,
+            map_dark_background_batch,
+            map_dark_background_first: false,
             map_interiors_batch,
             map_decor_batches,
             soldier_animation_sequences: HashMap::new(),
@@ -141,6 +147,14 @@ impl Graphics {
 
     pub fn append_explosions_batch(&mut self, sprite: graphics::DrawParam) {
         self.explosions_batch.push(sprite);
+    }
+
+    pub fn append_map_background_batch(&mut self, sprite: graphics::DrawParam) {
+        self.map_background_batch.push(sprite);
+    }
+
+    pub fn append_dark_map_background_batch(&mut self, sprite: graphics::DrawParam) {
+        self.map_dark_background_batch.push(sprite);
     }
 
     pub fn append_interior(&mut self, sprite: graphics::DrawParam) {
@@ -310,9 +324,21 @@ impl Graphics {
     }
 
     pub fn draw_map(&mut self, canvas: &mut Canvas, draw_param: graphics::DrawParam) -> GameResult {
-        // Map background sprites
-        if self.map_background_batch.instances().len() > 0 {
-            canvas.draw(&self.map_background_batch, draw_param);
+        if self.map_dark_background_first {
+            if self.map_dark_background_batch.instances().len() > 0 {
+                canvas.draw(&self.map_dark_background_batch, draw_param);
+            }
+
+            if self.map_background_batch.instances().len() > 0 {
+                canvas.draw(&self.map_background_batch, draw_param);
+            }
+        } else {
+            if self.map_background_batch.instances().len() > 0 {
+                canvas.draw(&self.map_background_batch, draw_param);
+            }
+            if self.map_dark_background_batch.instances().len() > 0 {
+                canvas.draw(&self.map_dark_background_batch, draw_param);
+            }
         }
 
         // Map interior sprites
@@ -376,10 +402,16 @@ impl Graphics {
         Ok(())
     }
 
+    pub fn set_map_dark_background_first(&mut self, map_dark_background_first: bool) {
+        self.map_dark_background_first = map_dark_background_first;
+    }
+
     pub fn clear(&mut self) {
         self.soldiers_batch.clear();
         self.vehicles_batch.clear();
         self.explosions_batch.clear();
+        self.map_background_batch.clear();
+        self.map_dark_background_batch.clear();
         self.ui_batch.clear();
     }
 

@@ -7,7 +7,6 @@ use battle_core::types::{
 use battle_core::utils::{DebugPoint, WindowShape, WorldShape};
 use ggez::graphics::Rect;
 use ggez::Context;
-use oc_core::utils::SpawnZoneName;
 
 use crate::debug::{DebugPhysics, DebugTerrain};
 

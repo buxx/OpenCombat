@@ -29,14 +29,6 @@ impl Display for DebugPhysics {
 }
 
 impl DebugPhysics {
-    pub fn next(&self) -> Self {
-        match self {
-            DebugPhysics::None => DebugPhysics::MosinNagantM1924GunFire,
-            DebugPhysics::MosinNagantM1924GunFire => DebugPhysics::BrandtMle2731Shelling,
-            DebugPhysics::BrandtMle2731Shelling => DebugPhysics::None,
-        }
-    }
-
     /// Give arbitrary chosen explosive for
     pub fn explosive(&self) -> Option<ExplosiveType> {
         match self {

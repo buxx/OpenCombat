@@ -27,6 +27,7 @@
                 "rustbuild",
                 "rustfmt",
                 "spritebatch",
+                "thiserror",
                 "tilecount",
                 "tileset",
                 "tilesets",

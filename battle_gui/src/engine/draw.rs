@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{self, Canvas, DrawParam, MeshBuilder},
+    graphics::{self, Canvas, DrawParam, MeshBuilder, Rect},
     Context, GameResult,
 };
 
@@ -9,6 +9,8 @@ use battle_core::{
     order::{marker::OrderMarker, Order, PendingOrder},
     types::*,
 };
+use glam::Vec2;
+use oc_core::spawn::SpawnZoneName;
 
 use super::{input::Control, Engine};
 
@@ -93,9 +95,84 @@ impl Engine {
         Ok(())
     }
 
-    pub fn generate_map_sprites(&self, _draw_decor: bool) -> GameResult {
-        // Note : Background sprites have been prepared once for map_background_batch
-        // Note : Decor sprites have been prepared once for map_background_batch
+    pub fn generate_map_sprites(&mut self, draw_decor: bool) -> GameResult {
+        if self.battle_state.phase().placement() {
+            self.generate_placement_map_sprites(draw_decor)?
+        } else {
+            self.generate_battle_map_sprites(draw_decor)?
+        }
+        Ok(())
+    }
+
+    pub fn generate_placement_map_sprites(&mut self, _draw_decor: bool) -> GameResult {
+        let (allowed_zone_names, opponent_zone_names) = self.zone_controls();
+        let mut map_background_sprites = vec![];
+        let mut dark_map_background_sprites = vec![];
+        let mut map_dark_background_first = false;
+
+        let all = DrawParam::new()
+            .src(Rect::new(0.0, 0.0, 1.0, 1.0))
+            .dest(Vec2::new(0., 0.));
+        if allowed_zone_names.contains(&SpawnZoneName::All) {
+            map_background_sprites.push(all.clone());
+
+            for opponent_spawn_zone in self
+                .battle_state
+                .map()
+                .find_spawn_zones(opponent_zone_names)
+            {
+                dark_map_background_sprites.push(
+                    DrawParam::new()
+                        .src(Rect::new(
+                            opponent_spawn_zone.relative_x(),
+                            opponent_spawn_zone.relative_y(),
+                            opponent_spawn_zone.relative_width(),
+                            opponent_spawn_zone.relative_height(),
+                        ))
+                        .dest(Vec2::new(opponent_spawn_zone.x(), opponent_spawn_zone.y())),
+                );
+            }
+        } else {
+            dark_map_background_sprites.push(all.clone());
+            map_dark_background_first = true;
+
+            for allowed_spawn_zone in self.battle_state.map().find_spawn_zones(allowed_zone_names) {
+                if !opponent_zone_names.contains(allowed_spawn_zone.name()) {
+                    map_background_sprites.push(
+                        DrawParam::new()
+                            .src(Rect::new(
+                                allowed_spawn_zone.relative_x(),
+                                allowed_spawn_zone.relative_y(),
+                                allowed_spawn_zone.relative_width(),
+                                allowed_spawn_zone.relative_height(),
+                            ))
+                            .dest(Vec2::new(allowed_spawn_zone.x(), allowed_spawn_zone.y())),
+                    );
+                }
+            }
+        }
+
+        for map_background_sprite in map_background_sprites {
+            self.graphics
+                .append_map_background_batch(map_background_sprite);
+        }
+
+        for dark_map_background_sprite in dark_map_background_sprites {
+            self.graphics
+                .append_dark_map_background_batch(dark_map_background_sprite);
+        }
+        self.graphics
+            .set_map_dark_background_first(map_dark_background_first);
+
+        Ok(())
+    }
+
+    pub fn generate_battle_map_sprites(&mut self, _draw_decor: bool) -> GameResult {
+        self.graphics.append_map_background_batch(
+            DrawParam::new()
+                .src(Rect::new(0.0, 0.0, 1.0, 1.0))
+                .dest(Vec2::new(0., 0.)),
+        );
         Ok(())
     }
 

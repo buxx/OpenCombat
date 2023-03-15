@@ -1,7 +1,3 @@
-use std::error::Error;
-use std::fmt::Display;
-use std::path;
-use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
@@ -21,8 +17,11 @@ use crossbeam_channel::SendError;
 use ggez::conf::WindowMode;
 use ggez::event;
 use ggez::GameError;
-use oc_core::utils::SpawnZoneName;
+use oc_core::resources::Resources;
+use oc_core::resources::ResourcesError;
+use oc_core::spawn::SpawnZoneName;
 use server::EmbeddedServer;
+use thiserror::Error;
 
 mod audio;
 mod debug;
@@ -35,8 +34,6 @@ mod utils;
 
 use server::EmbeddedServerError;
 use structopt::StructOpt;
-
-pub const RESOURCE_PATH: &'static str = "resources";
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "basic")]
@@ -70,9 +67,9 @@ fn main() -> Result<(), GuiError> {
     let opt = Opt::from_args();
     let map_name = "map1";
     let situation_name = "hardcoded";
-    let resources = PathBuf::from("./resources");
     let sync_required = Arc::new(AtomicBool::new(true));
     let stop_required = Arc::new(AtomicBool::new(false));
+    let resources = Resources::new()?.ensure()?;
 
     // Profiling server
     // NOTE : We must keep server object to avoid its destruction
@@ -89,7 +86,7 @@ fn main() -> Result<(), GuiError> {
         let (output_sender, output_receiver) = unbounded();
 
         EmbeddedServer::new(
-            &resources,
+            &resources.lib(),
             input_receiver,
             output_sender,
             stop_required.clone(),
@@ -121,17 +118,19 @@ fn main() -> Result<(), GuiError> {
 
     input_sender.send(vec![InputMessage::RequireCompleteSync])?;
 
-    let context_builder = ggez::ContextBuilder::new("Open Combat", "Bastien Sevajol")
-        .add_resource_path(path::PathBuf::from(format!("./{}", RESOURCE_PATH)))
+    let mut context_builder = ggez::ContextBuilder::new("Open Combat", "Bastien Sevajol")
         .window_mode(
             WindowMode::default()
                 .dimensions(1024., 768.)
                 .resizable(true),
         );
+    for resource_path in resources.resources_paths_abs() {
+        context_builder = context_builder.add_resource_path(resource_path);
+    }
     let (mut context, event_loop) = context_builder.build()?;
 
     // TODO : If remote server, download map before read it
-    let map = MapReader::new(map_name, &resources)?.build()?;
+    let map = MapReader::new(map_name, &resources.lib())?.build()?;
     let config = GuiConfig::new();
     let server_config = ServerConfig::new();
     let graphics = graphics::Graphics::new(&mut context, &map, &server_config)?;
@@ -156,16 +155,21 @@ fn main() -> Result<(), GuiError> {
     event::run(context, event_loop, engine)
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 enum GuiError {
+    #[error("Resource load error : {0}")]
+    Resources(ResourcesError),
+    #[error("Error during map load : {0}")]
     MapReader(MapReaderError),
+    #[error("Running error : {0}")]
     RunGame(GameError),
+    #[error("Error during input send : {0}")]
     SendInput(SendError<Vec<InputMessage>>),
+    #[error("Network error : {0}")]
     Network(NetworkError),
+    #[error("Embedded server error : {0}")]
     EmbeddedServer(EmbeddedServerError),
 }
-
-impl Error for GuiError {}
 
 impl From<MapReaderError> for GuiError {
     fn from(error: MapReaderError) -> Self {
@@ -197,20 +201,8 @@ impl From<EmbeddedServerError> for GuiError {
     }
 }
 
-impl Display for GuiError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            GuiError::MapReader(error) => {
-                f.write_str(&format!("Error during map load : {}", error))
-            }
-            GuiError::RunGame(error) => f.write_str(&format!("Running error : {}", error)),
-            GuiError::SendInput(error) => {
-                f.write_str(&format!("Error during input send : {}", error))
-            }
-            GuiError::Network(error) => f.write_str(&format!("Network error : {}", error)),
-            GuiError::EmbeddedServer(error) => {
-                f.write_str(&format!("Embedded server error : {}", error))
-            }
-        }
+impl From<ResourcesError> for GuiError {
+    fn from(error: ResourcesError) -> Self {
+        Self::Resources(error)
     }
 }

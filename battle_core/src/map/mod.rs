@@ -7,7 +7,7 @@ use crate::{
     types::{GridPoint, VehicleSize, WorldPoint},
     utils::grid_points_for_square,
 };
-use oc_core::utils::SpawnZoneName;
+use oc_core::spawn::SpawnZoneName;
 use strum::IntoEnumIterator;
 
 pub mod decor;
@@ -18,7 +18,7 @@ pub mod terrain;
 
 #[derive(Clone)]
 pub struct Map {
-    _name: String,
+    name: String,
     background_image_path: PathBuf,
     interiors_image_path: PathBuf,
     terrain_image_path: PathBuf,
@@ -50,7 +50,7 @@ impl Map {
         decor: Decor,
     ) -> Self {
         Self {
-            _name: name,
+            name,
             background_image_path,
             interiors_image_path,
             terrain_image_path,
@@ -65,6 +65,10 @@ impl Map {
             tile_height,
             decor,
         }
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
     pub fn background_image_path(&self) -> &PathBuf {
@@ -113,6 +117,13 @@ impl Map {
 
     pub fn terrain_tiles(&self) -> &Vec<TerrainTile> {
         &self.terrain_tiles
+    }
+
+    pub fn find_spawn_zones(&self, names: &Vec<SpawnZoneName>) -> Vec<&SpawnZone> {
+        self.spawn_zones
+            .iter()
+            .filter(|s| names.contains(&SpawnZoneName::All) || names.contains(&s.name()))
+            .collect()
     }
 
     pub fn successors(
@@ -208,7 +219,12 @@ impl Map {
         &self,
         point: &WorldPoint,
         allowed_zone_names: &Vec<SpawnZoneName>,
+        consider_all: bool,
     ) -> bool {
+        if consider_all && allowed_zone_names.contains(&SpawnZoneName::All) {
+            return true;
+        }
+
         for spawn_zone in &self.spawn_zones {
             if allowed_zone_names.contains(spawn_zone.name()) {
                 if point.x >= spawn_zone.x()

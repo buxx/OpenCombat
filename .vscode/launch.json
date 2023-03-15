@@ -55,8 +55,12 @@
                 "a",
                 "--side-a-control",
                 "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
                 "--side-b-control",
-                "SE"
+                "ALL"
             ],
             "cwd": "${workspaceFolder}",
             "env": {

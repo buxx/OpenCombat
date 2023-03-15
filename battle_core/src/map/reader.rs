@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fmt::Display, path::PathBuf, str::FromStr, sync::Arc};
 
-use oc_core::utils::{ParseOriginDirectionError, SpawnZoneName};
+use oc_core::spawn::{ParseOriginDirectionError, SpawnZoneName};
 use tiled::{
     FiniteTileLayer, Image, ImageLayer, Layer, LayerType, Loader, Map as TiledMap, ObjectLayer,
     TileLayer, Tileset,
@@ -203,6 +203,7 @@ impl MapReader {
     }
 
     fn spawn_zones(&self) -> Result<Vec<SpawnZone>, MapReaderError> {
+        let background_image = self.background_image()?;
         let mut spawn_zones = vec![];
 
         for object in self.spawn_zones_layer()?.objects() {
@@ -221,8 +222,8 @@ impl MapReader {
                     object.y,
                     width,
                     height,
-                    self.map.width as f32,
-                    self.map.height as f32,
+                    background_image.width as f32,
+                    background_image.height as f32,
                 ),
                 _ => {
                     return Result::Err(MapReaderError::InvalidLayer(format!(
