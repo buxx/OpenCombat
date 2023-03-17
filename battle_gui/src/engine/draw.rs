@@ -12,6 +12,8 @@ use battle_core::{
 use glam::Vec2;
 use oc_core::spawn::SpawnZoneName;
 
+use crate::ui::hud::painter::HudPainter;
+
 use super::{input::Control, Engine};
 
 impl Engine {
@@ -190,6 +192,13 @@ impl Engine {
         Ok(())
     }
 
+    pub fn generate_hud_sprites(&mut self) -> GameResult {
+        self.graphics
+            .extend_ui_batch(HudPainter::new(&self.gui_state, &self.battle_state).sprites());
+
+        Ok(())
+    }
+
     pub fn generate_selection_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
         self.generate_selected_entities_meshes(mesh_builder)?;
 
@@ -211,6 +220,15 @@ impl Engine {
             self.generate_select_rectangle_meshes(mesh_builder)?;
         }
 
+        Ok(())
+    }
+
+    pub fn generate_hud_meshes(
+        &mut self,
+        ctx: &Context,
+        mesh_builder: &mut MeshBuilder,
+    ) -> GameResult {
+        HudPainter::new(&self.gui_state, &self.battle_state).meshes(ctx, mesh_builder)?;
         Ok(())
     }
 

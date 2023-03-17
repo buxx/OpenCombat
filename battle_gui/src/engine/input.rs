@@ -1,12 +1,16 @@
 use std::fmt::Display;
 
-use battle_core::types::{Offset, Scale, WindowPoint};
+use battle_core::{
+    audio::Sound,
+    types::{Offset, Scale, WindowPoint},
+};
 use ggez::{event::MouseButton, input::keyboard::KeyInput, winit::event::VirtualKeyCode, Context};
 use glam::Vec2;
 
 use crate::{
     debug::DebugPhysics,
     engine::{event::UIEvent, message::GuiStateMessage},
+    ui::hud::painter::HudPainter,
 };
 use serde::{Deserialize, Serialize};
 
@@ -151,7 +155,7 @@ impl Engine {
 
     pub fn collect_mouse_motion(
         &self,
-        _ctx: &mut Context,
+        ctx: &mut Context,
         x: f32,
         y: f32,
         _dx: f32,
@@ -184,6 +188,7 @@ impl Engine {
                     ))
                 }
 
+                // Begin drag squad if this mouve is after a click on soldier and cursor is still hover the soldier
                 if self.battle_state.phase().placement() && self.gui_state.dragged_squad().is_none()
                 {
                     let world_point = self.gui_state.get_current_cursor_world_point();
@@ -202,6 +207,12 @@ impl Engine {
                 }
             }
         }
+
+        let cursor_in_control = HudPainter::new(&self.gui_state, &self.battle_state)
+            .contains(ctx, self.gui_state.get_current_cursor_window_point());
+        messages.push(EngineMessage::GuiState(GuiStateMessage::SetCursorInHud(
+            cursor_in_control,
+        )));
 
         messages
     }
@@ -224,7 +235,9 @@ impl Engine {
                 )));
 
                 // Check if any order under the cursor
-                if self.gui_state.is_controlling(&Control::Soldiers) {
+                if self.gui_state.is_controlling(&Control::Soldiers)
+                    && !self.gui_state.cursor_in_hud()
+                {
                     for (order, order_marker, squad_id, world_point, order_marker_i) in
                         self.battle_state.order_markers(self.gui_state.side())
                     {
@@ -247,7 +260,7 @@ impl Engine {
                         }
                     }
 
-                    if self.battle_state.phase().placement() {
+                    if self.battle_state.phase().placement() && !self.gui_state.cursor_in_hud() {
                         let world_point = self.gui_state.get_current_cursor_world_point();
                         if let Some(soldier_index) = self.get_soldiers_at_point(world_point).first()
                         {
@@ -302,10 +315,15 @@ impl Engine {
                 }
 
                 if let Some(squad_index) = self.gui_state.dragged_squad() {
-                    let world_end_point = self.gui_state.world_point_from_window_point(end_point);
-                    messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
-                        UIEvent::DropSquadTo(*squad_index, world_end_point),
-                    )));
+                    if self.gui_state.cursor_in_hud() {
+                        messages.push(EngineMessage::PlaySound(Sound::Bip1))
+                    } else {
+                        let world_end_point =
+                            self.gui_state.world_point_from_window_point(end_point);
+                        messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
+                            UIEvent::DropSquadTo(*squad_index, world_end_point),
+                        )));
+                    }
                 }
 
                 messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(None)));
@@ -327,7 +345,7 @@ impl Engine {
     pub fn collect_mouse_wheel(&self, ctx: &mut Context, _x: f32, y: f32) -> Vec<EngineMessage> {
         let mut messages = vec![];
 
-        if !self.gui_state.debug_gui_hovered {
+        if !self.gui_state.debug_gui_hovered && !self.gui_state.cursor_in_hud() {
             let modifier = Vec2::new(y / 10.0, y / 10.0);
             let new_scale = Scale::from(self.gui_state.display_scene_scale.to_vec2() + modifier);
 

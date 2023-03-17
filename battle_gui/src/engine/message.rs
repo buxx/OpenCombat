@@ -48,4 +48,5 @@ pub enum GuiStateMessage {
     SetDisplayDebugGui(bool),
     SetBeginClickOnSoldier(Option<SoldierIndex>),
     SetDragSquad(Option<SquadUuid>),
+    SetCursorInHud(bool),
 }

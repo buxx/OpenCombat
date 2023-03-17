@@ -21,21 +21,21 @@ use crate::graphics::Graphics;
 use self::debug::gui::state::DebugGuiState;
 use self::state::GuiState;
 
-mod debug;
-mod draw;
-mod event;
-mod game;
-mod input;
-mod interior;
-mod message;
-mod network;
-mod order;
-mod physics;
-mod react;
-mod state;
-mod tick;
-mod ui;
-mod utils;
+pub mod debug;
+pub mod draw;
+pub mod event;
+pub mod game;
+pub mod input;
+pub mod interior;
+pub mod message;
+pub mod network;
+pub mod order;
+pub mod physics;
+pub mod react;
+pub mod state;
+pub mod tick;
+pub mod ui;
+pub mod utils;
 
 pub struct Engine {
     config: GuiConfig,
@@ -136,12 +136,14 @@ impl EventHandler<ggez::GameError> for Engine {
         // Draw ui
         let mut mesh_builder = MeshBuilder::new();
         self.generate_menu_sprites()?;
+        self.generate_hud_sprites()?;
 
         self.draw_physics(&mut mesh_builder)?;
         self.generate_debug_meshes(&mut mesh_builder)?;
         self.generate_selection_meshes(&mut mesh_builder)?;
         self.generate_display_paths_meshes(&mut mesh_builder)?;
         self.generate_game_play_meshes(&mut mesh_builder)?;
+        self.generate_hud_meshes(ctx, &mut mesh_builder)?;
         self.generate_orders_sprites()?;
 
         let ui_draw_param = graphics::DrawParam::new();

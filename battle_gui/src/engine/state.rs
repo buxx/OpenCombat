@@ -65,6 +65,7 @@ pub struct GuiState {
     debug_points: Vec<DebugPoint>,
     /// Contains current control mode
     control: Control,
+    cursor_in_hud: bool,
     ///
     begin_click_on_soldier: Option<SoldierIndex>,
     dragged_squad: Option<SquadUuid>,
@@ -101,6 +102,7 @@ impl GuiState {
             last_computed_path_point: None,
             debug_points: vec![],
             control: Control::Soldiers,
+            cursor_in_hud: false,
             begin_click_on_soldier: None,
             dragged_squad: None,
         }
@@ -350,6 +352,10 @@ impl GuiState {
             GuiStateMessage::SetBeginClickOnSoldier(soldier_index) => {
                 self.begin_click_on_soldier = *soldier_index
             }
+            GuiStateMessage::SetCursorInHud(value) => {
+                //
+                self.cursor_in_hud = *value
+            }
         }
     }
 
@@ -446,5 +452,9 @@ impl GuiState {
 
     pub fn begin_click_on_soldier(&self) -> Option<SoldierIndex> {
         self.begin_click_on_soldier
+    }
+
+    pub fn cursor_in_hud(&self) -> bool {
+        self.cursor_in_hud
     }
 }
