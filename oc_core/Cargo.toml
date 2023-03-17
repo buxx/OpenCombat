@@ -1,0 +1,10 @@
+[package]
+name = "oc_core"
+version = "0.1.0"
+authors = ["Sevajol Bastien <contact@bux.fr>"]
+edition = "2021"
+
+[dependencies]
+dirs = "4.0.0"
+anyhow = "1.0.69"
+thiserror = "1.0.39"
