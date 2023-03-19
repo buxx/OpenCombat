@@ -1,11 +1,4 @@
-use battle_core::{
-    state::battle::BattleState,
-    types::{Scale, WindowPoint},
-};
-use ggez::{
-    graphics::{DrawParam, Rect},
-    Context,
-};
+use battle_core::{state::battle::BattleState, types::WindowPoint};
 
 use crate::{
     engine::state::GuiState,
@@ -24,12 +17,15 @@ use super::{
     background::Background, Hud, BACKGROUND_LEFT_HEIGHT, BACKGROUND_REL_LEFT_HEIGHT,
     BACKGROUND_REL_LEFT_START_X, BACKGROUND_REL_LEFT_START_Y, BACKGROUND_REL_LEFT_WIDTH,
     BACKGROUND_REL_RIGHT_HEIGHT, BACKGROUND_REL_RIGHT_START_X, BACKGROUND_REL_RIGHT_START_Y,
-    BACKGROUND_REL_RIGHT_WIDTH, HUD_FACTOR, HUD_HEIGHT,
+    BACKGROUND_REL_RIGHT_WIDTH,
 };
 
 pub struct HudBuilder<'a> {
     gui_state: &'a GuiState,
     battle_state: &'a BattleState,
+    point: WindowPoint,
+    width: f32,
+    height: f32,
 }
 
 impl<'a> HudBuilder<'a> {
@@ -37,11 +33,32 @@ impl<'a> HudBuilder<'a> {
         Self {
             gui_state,
             battle_state,
+            point: WindowPoint::new(0., 0.),
+            width: 0.,
+            height: 0.,
         }
     }
 
-    pub fn build(&self, ctx: &Context) -> Hud {
-        let window = ctx.gfx.window().inner_size();
+    pub fn point(mut self, point: WindowPoint) -> Self {
+        self.point = point;
+        self
+    }
+
+    pub fn width(mut self, width: f32) -> Self {
+        self.width = width;
+        self
+    }
+
+    pub fn height(mut self, height: f32) -> Self {
+        self.height = height;
+        self
+    }
+
+    pub fn build(&self) -> Hud {
+        Hud::new(self.background())
+    }
+
+    fn background(&self) -> Background {
         let background = HorizontalBackground {
             rel_left_start_x: BACKGROUND_REL_LEFT_START_X,
             rel_left_start_y: BACKGROUND_REL_LEFT_START_Y,
@@ -62,50 +79,12 @@ impl<'a> HudBuilder<'a> {
             right_width: BACKGROUND_RIGHT_WIDTH,
             right_height: BACKGROUND_RIGHT_HEIGHT,
         };
-        let background_sprites = background.sprites(
-            WindowPoint::new(0., window.height as f32 - HUD_HEIGHT),
-            window.width as f32,
-            HUD_HEIGHT,
-            HUD_FACTOR,
-        );
-
-        // println!("{}", (window.width as f32 / 2.) / BACKGROUND_REL_LEFT_WIDTH);
-        // let background = Background::new(vec![
-        //     DrawParam::new()
-        //         .src(Rect::new(
-        //             BACKGROUND_REL_LEFT_START_X,
-        //             BACKGROUND_REL_LEFT_START_Y,
-        //             BACKGROUND_REL_LEFT_WIDTH,
-        //             BACKGROUND_REL_LEFT_HEIGHT,
-        //         ))
-        //         .scale(
-        //             Scale::new(
-        //                 (window.width as f32 / 2.) / BACKGROUND_LEFT_WIDTH,
-        //                 HUD_HEIGHT / BACKGROUND_LEFT_HEIGHT,
-        //             )
-        //             .to_vec2(),
-        //         )
-        //         .dest(WindowPoint::new(0., window.height as f32 - HUD_HEIGHT).to_vec2()),
-        //     DrawParam::new()
-        //         .src(Rect::new(
-        //             BACKGROUND_REL_RIGHT_START_X,
-        //             BACKGROUND_REL_RIGHT_START_Y,
-        //             BACKGROUND_REL_RIGHT_WIDTH,
-        //             BACKGROUND_REL_RIGHT_HEIGHT,
-        //         ))
-        //         .scale(
-        //             Scale::new(
-        //                 (window.width as f32 / 2.) / BACKGROUND_RIGHT_WIDTH,
-        //                 HUD_HEIGHT / BACKGROUND_RIGHT_HEIGHT,
-        //             )
-        //             .to_vec2(),
-        //         )
-        //         .dest(
-        //             WindowPoint::new(window.width as f32 / 2.0, window.height as f32 - HUD_HEIGHT)
-        //                 .to_vec2(),
-        //         ),
-        // ]);
-        let background = Background::new(background_sprites);
-        Hud::new(background)
+        let background_sprites = background.sprites(self.point, self.width, self.height);
+        Background::new(
+            background_sprites,
+            self.point.clone(),
+            self.width,
+            self.height,
+        )
     }
 }

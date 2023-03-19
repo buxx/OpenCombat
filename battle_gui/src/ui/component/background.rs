@@ -24,13 +24,7 @@ pub struct HorizontalBackground {
 }
 
 impl HorizontalBackground {
-    pub fn sprites(
-        &self,
-        point: WindowPoint,
-        width: f32,
-        height: f32,
-        factor: f32,
-    ) -> Vec<DrawParam> {
+    pub fn sprites(&self, point: WindowPoint, width: f32, height: f32) -> Vec<DrawParam> {
         vec![
             // Left part
             DrawParam::new()
@@ -40,7 +34,7 @@ impl HorizontalBackground {
                     self.rel_left_width,
                     self.rel_left_height,
                 ))
-                .scale(Scale::new(factor, height / self.left_height).to_vec2())
+                .scale(Scale::new(1.0, height / self.left_height).to_vec2())
                 .dest(point.to_vec2()),
             // Center part
             DrawParam::new()
@@ -57,7 +51,7 @@ impl HorizontalBackground {
                     )
                     .to_vec2(),
                 )
-                .dest(point.to_vec2() + Vec2::new(self.left_width * factor, 0.)),
+                .dest(point.to_vec2() + Vec2::new(self.left_width, 0.)),
             // Right part
             DrawParam::new()
                 .src(Rect::new(
@@ -66,8 +60,8 @@ impl HorizontalBackground {
                     self.rel_right_width,
                     self.rel_right_height,
                 ))
-                .scale(Scale::new(factor, height / self.right_height).to_vec2())
-                .dest(point.to_vec2() + Vec2::new(width - self.right_width * factor, 0.)),
+                .scale(Scale::new(1.0, height / self.right_height).to_vec2())
+                .dest(point.to_vec2() + Vec2::new(width - self.right_width, 0.)),
         ]
     }
 }

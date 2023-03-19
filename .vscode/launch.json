@@ -76,7 +76,8 @@
                 "args": [
                     "build",
                     "--bin=battle_gui",
-                    "--package=battle_gui"
+                    "--package=battle_gui",
+                    "--release"
                 ],
                 "filter": {
                     "name": "battle_gui",
@@ -99,7 +100,6 @@
                 "SW",
                 "--side-b-control",
                 "ALL",
-                "--release"
             ],
             "cwd": "${workspaceFolder}",
             "env": {

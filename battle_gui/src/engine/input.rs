@@ -208,11 +208,10 @@ impl Engine {
             }
         }
 
-        // FIXME BS NOW
-        // let cursor_in_control = HudPainter::new(&self.gui_state, &self.battle_state)
-        //     .contains(ctx, self.gui_state.get_current_cursor_window_point());
+        let point = self.gui_state.get_current_cursor_window_point();
+        let cursor_in_control = self.hud.contains(&point);
         messages.push(EngineMessage::GuiState(GuiStateMessage::SetCursorInHud(
-            false,
+            cursor_in_control,
         )));
 
         messages

@@ -5,6 +5,7 @@ use battle_core::config::{GuiConfig, ServerConfig};
 use battle_core::game::Side;
 use battle_core::message::{InputMessage, OutputMessage};
 use battle_core::state::battle::BattleState;
+use battle_core::types::WindowPoint;
 use crossbeam_channel::{Receiver, Sender};
 use ggegui::Gui;
 use ggez::event::EventHandler;
@@ -19,7 +20,7 @@ use crate::audio::player::Player;
 use crate::graphics::Graphics;
 use crate::ui::hud::builder::HudBuilder;
 use crate::ui::hud::painter::HudPainter;
-use crate::ui::hud::Hud;
+use crate::ui::hud::{Hud, HUD_HEIGHT};
 
 use self::debug::gui::state::DebugGuiState;
 use self::state::GuiState;
@@ -79,7 +80,7 @@ impl Engine {
         b_control: Vec<SpawnZoneName>,
     ) -> GameResult<Engine> {
         let gui_state = GuiState::new(side.clone());
-        let hud = HudBuilder::new(&gui_state, &battle_state).build(ctx);
+        let hud = HudBuilder::new(&gui_state, &battle_state).build();
         let engine = Engine {
             config,
             server_config,
@@ -103,6 +104,7 @@ impl Engine {
 
 impl EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
+        let window = ctx.gfx.window().inner_size();
         let frame_i = self.gui_state.get_frame_i();
         puffin::profile_scope!("update", format!("frame {frame_i}"));
         puffin::GlobalProfiler::lock().new_frame();
@@ -115,7 +117,12 @@ impl EventHandler<ggez::GameError> for Engine {
             self.gui_state.increment_frame_i();
 
             //
-            self.hud = HudBuilder::new(&self.gui_state, &self.battle_state).build(ctx);
+
+            self.hud = HudBuilder::new(&self.gui_state, &self.battle_state)
+                .point(WindowPoint::new(0., window.height as f32 - HUD_HEIGHT))
+                .width(window.width as f32)
+                .height(HUD_HEIGHT)
+                .build();
         }
 
         self.update_debug_gui(ctx)?;

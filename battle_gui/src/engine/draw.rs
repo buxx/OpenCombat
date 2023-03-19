@@ -193,7 +193,7 @@ impl Engine {
     }
 
     pub fn generate_hud_sprites(&mut self) -> GameResult {
-        let sprites = HudPainter::new(&self.hud).sprites();
+        let sprites = HudPainter::new(&self.hud).sprites().clone();
         self.graphics.extend_ui_batch(sprites);
 
         Ok(())
