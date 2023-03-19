@@ -17,7 +17,9 @@ use oc_core::spawn::SpawnZoneName;
 
 use crate::audio::player::Player;
 use crate::graphics::Graphics;
+use crate::ui::hud::builder::HudBuilder;
 use crate::ui::hud::painter::HudPainter;
+use crate::ui::hud::Hud;
 
 use self::debug::gui::state::DebugGuiState;
 use self::state::GuiState;
@@ -56,6 +58,7 @@ pub struct Engine {
     debug_gui: DebugGuiState,
     egui_backend: Gui,
     ///
+    hud: Hud,
     a_control: Vec<SpawnZoneName>,
     b_control: Vec<SpawnZoneName>,
 }
@@ -75,6 +78,8 @@ impl Engine {
         a_control: Vec<SpawnZoneName>,
         b_control: Vec<SpawnZoneName>,
     ) -> GameResult<Engine> {
+        let gui_state = GuiState::new(side.clone());
+        let hud = HudBuilder::new(&gui_state, &battle_state).build(ctx);
         let engine = Engine {
             config,
             server_config,
@@ -83,11 +88,12 @@ impl Engine {
             output: input_sender,   // Gui output is server input
             player: Player::new(ctx)?,
             battle_state,
-            gui_state: GuiState::new(side.clone()),
+            gui_state,
             sync_required,
             stop_required,
             debug_gui: DebugGuiState::new()?,
             egui_backend: Gui::default(),
+            hud,
             a_control,
             b_control,
         };
@@ -107,6 +113,9 @@ impl EventHandler<ggez::GameError> for Engine {
 
             // Increment the frame counter
             self.gui_state.increment_frame_i();
+
+            //
+            self.hud = HudBuilder::new(&self.gui_state, &self.battle_state).build(ctx);
         }
 
         self.update_debug_gui(ctx)?;
@@ -151,7 +160,7 @@ impl EventHandler<ggez::GameError> for Engine {
         self.graphics
             .draw_ui(ctx, &mut canvas, ui_draw_param, mesh_builder)?;
 
-        HudPainter::new(&self.gui_state, &self.battle_state).draw(ctx, &mut canvas);
+        HudPainter::new(&self.hud).draw(ctx, &mut canvas);
 
         self.draw_debug_gui(ctx, &mut canvas);
 

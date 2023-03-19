@@ -71,6 +71,45 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Gui (server embedded) release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--embedded-server",
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "a",
+                "--side-a-control",
+                "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
+                "--side-b-control",
+                "ALL",
+                "--release"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG": "DEBUG"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Gui a",
             "cargo": {
                 "args": [

@@ -43,7 +43,7 @@ pub const VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE: usize = 4;
 // Width of sprite sheet
 pub const UI_SPRITE_SHEET_WIDTH: f32 = 800.0;
 // Height of sprite sheet
-pub const UI_SPRITE_SHEET_HEIGHT: f32 = 600.0;
+pub const UI_SPRITE_SHEET_HEIGHT: f32 = 1000.0;
 // Target FPS
 // Velocity of move vector
 pub const MOVE_VELOCITY: f32 = 5.0 / TARGET_FPS as f32;

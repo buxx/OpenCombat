@@ -193,8 +193,8 @@ impl Engine {
     }
 
     pub fn generate_hud_sprites(&mut self) -> GameResult {
-        self.graphics
-            .extend_ui_batch(HudPainter::new(&self.gui_state, &self.battle_state).sprites());
+        let sprites = HudPainter::new(&self.hud).sprites();
+        self.graphics.extend_ui_batch(sprites);
 
         Ok(())
     }
@@ -228,7 +228,7 @@ impl Engine {
         ctx: &Context,
         mesh_builder: &mut MeshBuilder,
     ) -> GameResult {
-        HudPainter::new(&self.gui_state, &self.battle_state).meshes(ctx, mesh_builder)?;
+        HudPainter::new(&self.hud).meshes(ctx, mesh_builder)?;
         Ok(())
     }
 
