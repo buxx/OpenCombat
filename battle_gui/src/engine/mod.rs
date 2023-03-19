@@ -17,6 +17,7 @@ use oc_core::spawn::SpawnZoneName;
 
 use crate::audio::player::Player;
 use crate::graphics::Graphics;
+use crate::ui::hud::painter::HudPainter;
 
 use self::debug::gui::state::DebugGuiState;
 use self::state::GuiState;
@@ -149,6 +150,8 @@ impl EventHandler<ggez::GameError> for Engine {
         let ui_draw_param = graphics::DrawParam::new();
         self.graphics
             .draw_ui(ctx, &mut canvas, ui_draw_param, mesh_builder)?;
+
+        HudPainter::new(&self.gui_state, &self.battle_state).draw(ctx, &mut canvas);
 
         self.draw_debug_gui(ctx, &mut canvas);
 

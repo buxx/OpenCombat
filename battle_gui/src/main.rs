@@ -11,6 +11,7 @@ use battle_core::map::reader::MapReaderError;
 use battle_core::message::InputMessage;
 use battle_core::network::client::Client;
 use battle_core::network::error::NetworkError;
+use battle_core::state::battle::message::BattleStateMessage;
 use battle_core::state::battle::BattleState;
 use crossbeam_channel::unbounded;
 use crossbeam_channel::SendError;
@@ -116,7 +117,12 @@ fn main() -> Result<(), GuiError> {
         (input_sender, output_receiver)
     };
 
-    input_sender.send(vec![InputMessage::RequireCompleteSync])?;
+    let ready_message = if &opt.side == &Side::A {
+        InputMessage::BattleState(BattleStateMessage::SetAConnected(true))
+    } else {
+        InputMessage::BattleState(BattleStateMessage::SetBConnected(true))
+    };
+    input_sender.send(vec![InputMessage::RequireCompleteSync, ready_message])?;
 
     let mut context_builder = ggez::ContextBuilder::new("Open Combat", "Bastien Sevajol")
         .window_mode(

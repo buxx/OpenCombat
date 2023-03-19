@@ -44,7 +44,11 @@ impl Runner {
                     },
                     BattleStateMessage::PushBulletFire(_)
                     | BattleStateMessage::PushExplosion(_)
-                    | BattleStateMessage::SetVisibilities(_) => outputs.push((
+                    | BattleStateMessage::SetVisibilities(_)
+                    | BattleStateMessage::SetAConnected(_)
+                    | BattleStateMessage::SetBConnected(_)
+                    | BattleStateMessage::SetAReady(_)
+                    | BattleStateMessage::SetBReady(_) => outputs.push((
                         Side::All,
                         OutputMessage::BattleState(battle_state_message.clone()),
                     )),

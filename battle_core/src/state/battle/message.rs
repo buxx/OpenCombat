@@ -23,6 +23,10 @@ pub enum BattleStateMessage {
     PushExplosion(Explosion),
     SetVisibilities(HashMap<(SoldierIndex, SoldierIndex), Visibility>),
     SetPhase(Phase),
+    SetAConnected(bool),
+    SetBConnected(bool),
+    SetAReady(bool),
+    SetBReady(bool),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

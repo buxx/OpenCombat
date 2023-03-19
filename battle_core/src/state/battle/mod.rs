@@ -44,6 +44,10 @@ pub struct BattleState {
     bullet_fires: Vec<BulletFire>,
     explosions: Vec<Explosion>,
     visibilities: Visibilities,
+    a_connected: bool,
+    b_connected: bool,
+    a_ready: bool,
+    b_ready: bool,
 }
 
 impl BattleState {
@@ -65,6 +69,10 @@ impl BattleState {
             bullet_fires: vec![],
             explosions: vec![],
             visibilities: Visibilities::new(),
+            a_connected: false,
+            b_connected: false,
+            a_ready: false,
+            b_ready: false,
         }
     }
 
@@ -80,6 +88,10 @@ impl BattleState {
             bullet_fires: vec![],
             explosions: vec![],
             visibilities: Visibilities::new(),
+            a_connected: false,
+            b_connected: false,
+            a_ready: false,
+            b_ready: false,
         }
     }
 
@@ -229,6 +241,10 @@ impl BattleState {
                 self.visibilities.set(visibilities.clone())
             }
             BattleStateMessage::SetPhase(phase) => self.phase = phase.clone(),
+            BattleStateMessage::SetAConnected(value) => self.a_connected = *value,
+            BattleStateMessage::SetBConnected(value) => self.b_connected = *value,
+            BattleStateMessage::SetAReady(value) => self.a_ready = *value,
+            BattleStateMessage::SetBReady(value) => self.b_ready = *value,
         };
 
         vec![]
@@ -268,6 +284,14 @@ impl BattleState {
 
     pub fn set_phase(&mut self, phase: Phase) {
         self.phase = phase;
+    }
+
+    pub fn ready(&self, side: &Side) -> bool {
+        match side {
+            Side::A => self.a_ready,
+            Side::B => self.b_ready,
+            Side::All => panic!("Never call ready for Side::All"),
+        }
     }
 }
 
