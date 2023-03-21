@@ -49,4 +49,5 @@ pub enum GuiStateMessage {
     SetBeginClickOnSoldier(Option<SoldierIndex>),
     SetDragSquad(Option<SquadUuid>),
     SetCursorInHud(bool),
+    SetIntroAck(bool),
 }

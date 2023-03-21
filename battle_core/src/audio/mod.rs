@@ -31,6 +31,9 @@ pub enum Sound {
     MetalHit1,
     Bip1,
     Clac1,
+    Clic1,
+    DrumMultiHits,
+    TrumpetLongHall,
 }
 
 impl Sound {

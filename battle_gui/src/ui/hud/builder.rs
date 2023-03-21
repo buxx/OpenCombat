@@ -1,24 +1,15 @@
-use battle_core::{state::battle::BattleState, types::WindowPoint};
-
-use crate::{
-    engine::state::GuiState,
-    ui::{
-        component::background::HorizontalBackground,
-        hud::{
-            BACKGROUND_CENTER_HEIGHT, BACKGROUND_CENTER_WIDTH, BACKGROUND_LEFT_WIDTH,
-            BACKGROUND_REL_CENTER_HEIGHT, BACKGROUND_REL_CENTER_START_X,
-            BACKGROUND_REL_CENTER_START_Y, BACKGROUND_REL_CENTER_WIDTH, BACKGROUND_RIGHT_HEIGHT,
-            BACKGROUND_RIGHT_WIDTH,
-        },
-    },
+use battle_core::{
+    state::battle::{phase::Phase, BattleState},
+    types::WindowPoint,
 };
+use glam::Vec2;
 
-use super::{
-    background::Background, Hud, BACKGROUND_LEFT_HEIGHT, BACKGROUND_REL_LEFT_HEIGHT,
-    BACKGROUND_REL_LEFT_START_X, BACKGROUND_REL_LEFT_START_Y, BACKGROUND_REL_LEFT_WIDTH,
-    BACKGROUND_REL_RIGHT_HEIGHT, BACKGROUND_REL_RIGHT_START_X, BACKGROUND_REL_RIGHT_START_Y,
-    BACKGROUND_REL_RIGHT_WIDTH,
-};
+use crate::engine::state::GuiState;
+
+use super::{background::Background, button::Button, Hud};
+
+const MARGIN: f32 = 5.;
+const RIGHT_BOX_WIDTH: f32 = 200.;
 
 pub struct HudBuilder<'a> {
     gui_state: &'a GuiState,
@@ -55,36 +46,24 @@ impl<'a> HudBuilder<'a> {
     }
 
     pub fn build(&self) -> Hud {
-        Hud::new(self.background())
+        Hud::new(
+            Background::new(self.point.clone(), self.width, self.height),
+            self.battle_button(),
+        )
     }
 
-    fn background(&self) -> Background {
-        let background = HorizontalBackground {
-            rel_left_start_x: BACKGROUND_REL_LEFT_START_X,
-            rel_left_start_y: BACKGROUND_REL_LEFT_START_Y,
-            rel_left_width: BACKGROUND_REL_LEFT_WIDTH,
-            rel_left_height: BACKGROUND_REL_LEFT_HEIGHT,
-            left_width: BACKGROUND_LEFT_WIDTH,
-            left_height: BACKGROUND_LEFT_HEIGHT,
-            rel_center_start_x: BACKGROUND_REL_CENTER_START_X,
-            rel_center_start_y: BACKGROUND_REL_CENTER_START_Y,
-            rel_center_width: BACKGROUND_REL_CENTER_WIDTH,
-            rel_center_height: BACKGROUND_REL_CENTER_HEIGHT,
-            center_width: BACKGROUND_CENTER_WIDTH,
-            center_height: BACKGROUND_CENTER_HEIGHT,
-            rel_right_start_x: BACKGROUND_REL_RIGHT_START_X,
-            rel_right_start_y: BACKGROUND_REL_RIGHT_START_Y,
-            rel_right_width: BACKGROUND_REL_RIGHT_WIDTH,
-            rel_right_height: BACKGROUND_REL_RIGHT_HEIGHT,
-            right_width: BACKGROUND_RIGHT_WIDTH,
-            right_height: BACKGROUND_RIGHT_HEIGHT,
-        };
-        let background_sprites = background.sprites(self.point, self.width, self.height);
-        Background::new(
-            background_sprites,
-            self.point.clone(),
-            self.width,
-            self.height,
-        )
+    fn battle_button(&self) -> Button {
+        let point = self
+            .point
+            .apply(Vec2::new(self.width - RIGHT_BOX_WIDTH, MARGIN));
+        match self.battle_state.phase() {
+            Phase::Placement => {
+                let enabled = !self.battle_state.ready(self.gui_state.side());
+                Button::begin(point, enabled)
+            }
+            // FIXME BS NOW : enabled computing
+            Phase::Battle => Button::end(point, true),
+            Phase::End => Button::end(point, false),
+        }
     }
 }

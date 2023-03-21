@@ -10,7 +10,6 @@ use glam::Vec2;
 use crate::{
     debug::DebugPhysics,
     engine::{event::UIEvent, message::GuiStateMessage},
-    ui::hud::painter::HudPainter,
 };
 use serde::{Deserialize, Serialize};
 
@@ -155,7 +154,7 @@ impl Engine {
 
     pub fn collect_mouse_motion(
         &self,
-        ctx: &mut Context,
+        _ctx: &mut Context,
         x: f32,
         y: f32,
         _dx: f32,
@@ -209,7 +208,7 @@ impl Engine {
         }
 
         let point = self.gui_state.get_current_cursor_window_point();
-        let cursor_in_control = self.hud.contains(&point);
+        let cursor_in_control = self.hud.contains(&vec![&point]);
         messages.push(EngineMessage::GuiState(GuiStateMessage::SetCursorInHud(
             cursor_in_control,
         )));
@@ -288,14 +287,11 @@ impl Engine {
 
         match button {
             MouseButton::Left => {
-                let start_point = match self.gui_state.get_left_click_down_window_point() {
-                    Some(start_point) => *start_point,
-                    None => {
-                        // No left button down before button up ?!
-                        return vec![];
-                    }
-                };
                 let end_point = WindowPoint::new(x, y);
+                let start_point = self
+                    .gui_state
+                    .get_left_click_down_window_point()
+                    .unwrap_or(end_point);
 
                 // No more longer left click down or current drag
                 messages.extend(vec![
@@ -325,6 +321,15 @@ impl Engine {
                         )));
                     }
                 }
+
+                if let Some(component) = self.hud.hovered_by(&vec![&start_point, &end_point]) {
+                    if let Some(event) = component.event() {
+                        messages.extend(self.hud_event(event));
+                    }
+                    if let Some(sound) = component.sound() {
+                        messages.push(EngineMessage::PlaySound(sound));
+                    }
+                };
 
                 messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(None)));
                 messages.push(EngineMessage::GuiState(

@@ -25,10 +25,7 @@ use battle_core::{
 };
 use oc_core::resources::RESOURCE_PATH;
 
-use crate::{
-    debug::DebugTerrain,
-    ui::{hud::painter::HudPainter, menu::squad_menu_sprite_info},
-};
+use crate::{debug::DebugTerrain, ui::menu::squad_menu_sprite_info};
 
 use self::message::GraphicsMessage;
 

@@ -33,6 +33,33 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Server (standalone) --realease",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_server",
+                    "--package=battle_server",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "battle_server",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--rep-address",
+                "tcp://0.0.0.0:4255",
+                "--bind-address",
+                "tcp://0.0.0.0:4256"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Gui (server embedded)",
             "cargo": {
                 "args": [
@@ -128,7 +155,48 @@
                 "--server-bind-address",
                 "tcp://0.0.0.0:4256",
                 "--side",
-                "a"
+                "a",
+                "--side-a-control",
+                "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Gui a --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "a",
+                "--side-a-control",
+                "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
             ],
             "cwd": "${workspaceFolder}",
             "env": {
@@ -156,120 +224,14 @@
                 "--server-bind-address",
                 "tcp://0.0.0.0:4256",
                 "--side",
-                "b"
+                "b",
+                "--side-b-control",
+                "ALL",
             ],
             "cwd": "${workspaceFolder}",
             "env": {
                 "RUST_BACKTRACE": "1"
             }
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Server (release)",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=opencombat",
-                    "--package=opencombat",
-                    "--release"
-                ],
-                "filter": {
-                    "name": "opencombat",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                "Server",
-                "--server-rep-address",
-                "tcp://0.0.0.0:4255",
-                "--server-bind-address",
-                "tcp://0.0.0.0:4256",
-                "--debug",
-                "--profile-address",
-                "0.0.0.0:8585"
-            ],
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "RUST_BACKTRACE": "1"
-            }
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Client",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=opencombat",
-                    "--package=opencombat",
-                    "--release"
-                ],
-                "filter": {
-                    "name": "opencombat",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                "Client",
-                "--server-rep-address",
-                "tcp://127.0.0.1:4255",
-                "--server-bind-address",
-                "tcp://127.0.0.1:4256",
-                "--side",
-                "b",
-                "--debug",
-                "--profile-address",
-                "0.0.0.0:8586"
-            ],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Client (release)",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=opencombat",
-                    "--package=opencombat"
-                ],
-                "filter": {
-                    "name": "opencombat",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                "Client",
-                "--server-rep-address",
-                "tcp://127.0.0.1:4255",
-                "--server-bind-address",
-                "tcp://127.0.0.1:4256",
-                "--side",
-                "b",
-                "--profile-address",
-                "0.0.0.0:8586"
-            ],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in executable 'opencombat'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--bin=opencombat",
-                    "--package=opencombat"
-                ],
-                "filter": {
-                    "name": "opencombat",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
         }
     ]
 }

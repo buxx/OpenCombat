@@ -286,6 +286,22 @@ impl BattleState {
         self.phase = phase;
     }
 
+    pub fn a_connected(&self) -> bool {
+        self.a_connected
+    }
+
+    pub fn b_connected(&self) -> bool {
+        self.b_connected
+    }
+
+    pub fn a_ready(&self) -> bool {
+        self.a_ready
+    }
+
+    pub fn b_ready(&self) -> bool {
+        self.b_ready
+    }
+
     pub fn ready(&self, side: &Side) -> bool {
         match side {
             Side::A => self.a_ready,

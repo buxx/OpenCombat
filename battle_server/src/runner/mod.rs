@@ -21,6 +21,7 @@ mod input;
 mod message;
 mod movement;
 mod output;
+mod phase;
 mod physics;
 mod react;
 mod soldier;

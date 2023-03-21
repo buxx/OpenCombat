@@ -29,8 +29,11 @@ pub mod debug;
 pub mod draw;
 pub mod event;
 pub mod game;
+pub mod gui;
+pub mod hud;
 pub mod input;
 pub mod interior;
+pub mod intro;
 pub mod message;
 pub mod network;
 pub mod order;
@@ -104,7 +107,6 @@ impl Engine {
 
 impl EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        let window = ctx.gfx.window().inner_size();
         let frame_i = self.gui_state.get_frame_i();
         puffin::profile_scope!("update", format!("frame {frame_i}"));
         puffin::GlobalProfiler::lock().new_frame();
@@ -115,17 +117,10 @@ impl EventHandler<ggez::GameError> for Engine {
 
             // Increment the frame counter
             self.gui_state.increment_frame_i();
-
-            //
-
-            self.hud = HudBuilder::new(&self.gui_state, &self.battle_state)
-                .point(WindowPoint::new(0., window.height as f32 - HUD_HEIGHT))
-                .width(window.width as f32)
-                .height(HUD_HEIGHT)
-                .build();
         }
 
         self.update_debug_gui(ctx)?;
+        self.update_intro_gui(ctx)?;
         self.graphics.tick(ctx);
 
         Ok(())
@@ -133,6 +128,12 @@ impl EventHandler<ggez::GameError> for Engine {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = Canvas::from_frame(ctx, Color::from((0.392, 0.584, 0.929)));
+        let window = ctx.gfx.window().inner_size();
+        self.hud = HudBuilder::new(&self.gui_state, &self.battle_state)
+            .point(WindowPoint::new(0., window.height as f32 - HUD_HEIGHT))
+            .width(window.width as f32)
+            .height(HUD_HEIGHT)
+            .build();
 
         self.graphics.clear();
         let scene_draw = graphics::DrawParam::new()
@@ -167,9 +168,9 @@ impl EventHandler<ggez::GameError> for Engine {
         self.graphics
             .draw_ui(ctx, &mut canvas, ui_draw_param, mesh_builder)?;
 
-        HudPainter::new(&self.hud).draw(ctx, &mut canvas);
+        HudPainter::new(&self.hud, &self.gui_state).draw(ctx, &mut canvas);
 
-        self.draw_debug_gui(ctx, &mut canvas);
+        self.draw_gui(ctx, &mut canvas);
 
         canvas.finish(ctx)?;
 

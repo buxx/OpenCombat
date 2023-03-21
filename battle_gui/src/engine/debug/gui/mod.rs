@@ -1,16 +1,11 @@
 use ggegui::egui::{self, ScrollArea};
-use ggez::{
-    graphics::{Canvas, DrawParam},
-    Context, GameResult,
-};
-use glam::Vec2;
+use ggez::{Context, GameResult};
 
 use crate::engine::{
+    gui::EGUI_SCALE,
     message::{EngineMessage, GuiStateMessage},
     Engine,
 };
-
-const EGUI_SCALE: f32 = 1.5;
 
 pub mod body;
 pub mod config;
@@ -76,12 +71,5 @@ impl Engine {
 
         self.egui_backend.update(ctx);
         messages
-    }
-
-    pub fn draw_debug_gui(&mut self, _ctx: &mut Context, canvas: &mut Canvas) {
-        canvas.draw(
-            &self.egui_backend,
-            DrawParam::default().dest(Vec2::new(0., 0.)),
-        );
     }
 }

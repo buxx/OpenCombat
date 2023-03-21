@@ -69,6 +69,8 @@ pub struct GuiState {
     ///
     begin_click_on_soldier: Option<SoldierIndex>,
     dragged_squad: Option<SquadUuid>,
+    //
+    intro_ack: bool,
 }
 
 impl GuiState {
@@ -105,12 +107,9 @@ impl GuiState {
             cursor_in_hud: false,
             begin_click_on_soldier: None,
             dragged_squad: None,
+            intro_ack: false,
         }
     }
-
-    // pub fn is_first_frame(&self) -> bool {
-    //     self.frame_i == 0
-    // }
 
     pub fn get_frame_i(&self) -> u64 {
         self.frame_i
@@ -356,6 +355,10 @@ impl GuiState {
                 //
                 self.cursor_in_hud = *value
             }
+            GuiStateMessage::SetIntroAck(value) => {
+                //
+                self.intro_ack = *value
+            }
         }
     }
 
@@ -456,5 +459,9 @@ impl GuiState {
 
     pub fn cursor_in_hud(&self) -> bool {
         self.cursor_in_hud
+    }
+
+    pub fn intro_ack(&self) -> bool {
+        self.intro_ack
     }
 }

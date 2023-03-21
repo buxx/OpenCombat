@@ -7,6 +7,7 @@ impl Runner {
         self.inputs()?;
 
         let mut messages = vec![];
+        messages.extend(self.tick_phase());
         messages.extend(self.tick_soldiers());
         messages.extend(self.tick_feeling_decreasing_soldiers());
         messages.extend(self.tick_visibilities());
