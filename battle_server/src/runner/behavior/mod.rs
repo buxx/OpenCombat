@@ -1,5 +1,6 @@
 use battle_core::{
     behavior::{Behavior, BehaviorMode, BehaviorPropagation},
+    config::VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT,
     entity::soldier::Soldier,
     order::Order,
     state::{
@@ -76,14 +77,21 @@ impl Runner {
                 }
             }
             Behavior::Defend(_) => {
-                //
-                let (orders, debug_points_) = self.propagate_defend(leader.squad_uuid(), &behavior);
+                let (orders, debug_points_) = match self.battle_state.soldier_behavior_mode(leader)
+                {
+                    BehaviorMode::Ground => self.propagate_defend(leader.squad_uuid(), &behavior),
+                    BehaviorMode::Vehicle => self.propagate_rotate(leader.squad_uuid(), &behavior),
+                };
                 debug_points.extend(debug_points_);
                 orders
             }
             Behavior::Hide(_) => {
-                // TODO : Special behavior for hide
-                let (orders, debug_points_) = self.propagate_defend(leader.squad_uuid(), &behavior);
+                // TODO : Special behavior for hide ?
+                let (orders, debug_points_) = match self.battle_state.soldier_behavior_mode(leader)
+                {
+                    BehaviorMode::Ground => self.propagate_defend(leader.squad_uuid(), &behavior),
+                    BehaviorMode::Vehicle => self.propagate_rotate(leader.squad_uuid(), &behavior),
+                };
                 debug_points.extend(debug_points_);
                 orders
             }
@@ -166,12 +174,60 @@ impl Runner {
         Behavior::SneakTo(paths.clone())
     }
 
-    pub fn defend_behavior(&self, _soldier: &Soldier, angle: &Angle) -> Behavior {
-        Behavior::Defend(*angle)
+    pub fn defend_behavior(&self, soldier: &Soldier, angle: &Angle) -> Behavior {
+        match self.battle_state.soldier_behavior_mode(soldier) {
+            BehaviorMode::Ground => Behavior::Defend(*angle),
+            BehaviorMode::Vehicle => {
+                // FIXME BS NOW : REF_ANGLE001 refactor it
+                let vehicle_index = self
+                    .battle_state
+                    .soldier_board(soldier.uuid())
+                    .expect("Must be in vehicle when in the function")
+                    .0;
+                let vehicle = self.battle_state.vehicle(vehicle_index);
+                let rounded_chassis_orientation = (vehicle.get_chassis_orientation().0
+                    * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
+                    .round()
+                    .abs();
+                let target_vehicle_orientation = (angle.0
+                    * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
+                    .round()
+                    .abs();
+                if rounded_chassis_orientation != target_vehicle_orientation {
+                    Behavior::RotateTo(*angle)
+                } else {
+                    Behavior::Idle
+                }
+            }
+        }
     }
 
-    pub fn hide_behavior(&self, _soldier: &Soldier, angle: &Angle) -> Behavior {
-        Behavior::Hide(*angle)
+    pub fn hide_behavior(&self, soldier: &Soldier, angle: &Angle) -> Behavior {
+        match self.battle_state.soldier_behavior_mode(soldier) {
+            BehaviorMode::Ground => Behavior::Hide(*angle),
+            BehaviorMode::Vehicle => {
+                // FIXME BS NOW : REF_ANGLE001 refactor it
+                let vehicle_index = self
+                    .battle_state
+                    .soldier_board(soldier.uuid())
+                    .expect("Must be in vehicle when in the function")
+                    .0;
+                let vehicle = self.battle_state.vehicle(vehicle_index);
+                let rounded_chassis_orientation = (vehicle.get_chassis_orientation().0
+                    * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
+                    .round()
+                    .abs();
+                let target_vehicle_orientation = (angle.0
+                    * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
+                    .round()
+                    .abs();
+                if rounded_chassis_orientation != target_vehicle_orientation {
+                    Behavior::RotateTo(*angle)
+                } else {
+                    Behavior::Idle
+                }
+            }
+        }
     }
 
     pub fn engage_behavior(&self, soldier: &Soldier, squad_index: &SquadUuid) -> Behavior {

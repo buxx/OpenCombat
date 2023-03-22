@@ -47,7 +47,7 @@ impl Behavior {
                 BehaviorPropagation::Regularly
             }
             Behavior::DriveTo(_) => BehaviorPropagation::Never,
-            Behavior::RotateTo(_) => todo!(),
+            Behavior::RotateTo(_) => BehaviorPropagation::Never,
             Behavior::Idle => BehaviorPropagation::OnChange,
             Behavior::Defend(_) => BehaviorPropagation::OnChange,
             Behavior::Hide(_) => BehaviorPropagation::OnChange,

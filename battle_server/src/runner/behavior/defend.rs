@@ -1,6 +1,6 @@
 use battle_core::{
     behavior::Behavior,
-    entity::soldier::Soldier,
+    entity::{soldier::Soldier, vehicle::OnBoardPlace},
     game::cover::CoverFinder,
     order::Order,
     types::{SquadUuid, WorldPath, WorldPaths},
@@ -31,5 +31,31 @@ impl Runner {
         }
 
         (orders, debug_points)
+    }
+
+    pub fn propagate_rotate(
+        &self,
+        squad_uuid: SquadUuid,
+        behavior: &Behavior,
+    ) -> (Vec<(&Soldier, Order)>, Vec<NewDebugPoint>) {
+        let squad = self.battle_state.squad(squad_uuid);
+
+        for member_index in squad.members() {
+            if let Some((_, place)) = self.battle_state.soldier_board(*member_index) {
+                if place == &OnBoardPlace::Driver {
+                    let soldier = self.battle_state.soldier(*member_index);
+                    let order = match &behavior {
+                        Behavior::Defend(angle) => Order::Defend(*angle),
+                        Behavior::Hide(angle) => Order::Hide(*angle),
+                        _ => {
+                            unreachable!()
+                        }
+                    };
+                    return (vec![(soldier, order)], vec![]);
+                }
+            }
+        }
+
+        (vec![], vec![])
     }
 }

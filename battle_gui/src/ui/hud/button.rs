@@ -4,7 +4,6 @@ use battle_core::{
     types::WindowPoint,
 };
 use ggez::graphics::{Color, DrawParam, Text, TextFragment, TextLayout};
-use glam::Vec2;
 
 use crate::ui::component::{button::Button as UiButton, Component};
 

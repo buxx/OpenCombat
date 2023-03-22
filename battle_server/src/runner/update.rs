@@ -50,7 +50,7 @@ impl Runner {
                 vec![]
             }
             Behavior::DriveTo(paths) => self.drive_update(soldier_index, &paths),
-            Behavior::RotateTo(_) => todo!(),
+            Behavior::RotateTo(angle) => self.rotate_update(soldier_index, angle),
             Behavior::SuppressFire(_) => {
                 vec![]
             }

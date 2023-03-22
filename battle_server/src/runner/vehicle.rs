@@ -93,4 +93,49 @@ impl Runner {
 
         messages
     }
+
+    pub fn rotate_update(&self, soldier_index: SoldierIndex, angle: &Angle) -> Vec<RunnerMessage> {
+        let vehicle_index = self
+            .battle_state
+            .soldier_board(soldier_index)
+            .expect("this code must be called only when soldier is on board")
+            .0;
+        let vehicle = self.battle_state.vehicle(vehicle_index);
+
+        // FIXME BS NOW : REF_ANGLE001 refactor it
+        let rounded_chassis_orientation = (vehicle.get_chassis_orientation().0
+            * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
+            .round()
+            .abs();
+        let target_vehicle_orientation = (angle.0
+            * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
+            .round()
+            .abs();
+
+        let mut messages = vec![];
+
+        // Need to rotate chassis ?
+        if rounded_chassis_orientation != target_vehicle_orientation {
+            let new_orientation = match short_angle_way(vehicle.get_chassis_orientation(), &angle) {
+                AngleWay::ClockWise => {
+                    *vehicle.get_chassis_orientation() + vehicle.get_type().chassis_rotation_speed()
+                }
+                AngleWay::CounterClockWise => {
+                    *vehicle.get_chassis_orientation()
+                        + (-vehicle.get_type().chassis_rotation_speed())
+                }
+            };
+            messages.push(RunnerMessage::BattleState(BattleStateMessage::Vehicle(
+                vehicle_index,
+                VehicleMessage::SetChassisOrientation(new_orientation),
+            )));
+        } else {
+            messages.push(RunnerMessage::BattleState(BattleStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetBehavior(Behavior::Idle),
+            )))
+        }
+
+        messages
+    }
 }
