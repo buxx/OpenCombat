@@ -1,8 +1,4 @@
 name: rustbuild
-on:
-  push:
-    tags:
-      - v.*
 
 jobs:
   create-release:
