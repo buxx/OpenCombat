@@ -1,26 +1,86 @@
 name: rustbuild
 on:
   push:
-    branches:
-      - 'releases/**'
+    tags:
+      - v.*
 
 jobs:
   build-msys-mingw64:
+    name: Build and package for Windows
     runs-on: windows-latest
     defaults:
       run:
         shell: msys2 {0}
     steps:
-      - uses: actions/checkout@v2
-      - uses: msys2/setup-msys2@v2
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Setup msys2 dependencies
+        uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           update: true
           install: git mingw-w64-x86_64-cc mingw-w64-x86_64-rust mingw-w64-x86_64-zeromq mingw-w64-x86_64-pkg-config --needed
-      - name: CI-Build
-        run: cargo build --release
-      - name: Upload a Build Artifact
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+
+      - name: Build
+        run: cargo build --bin battle_gui --bin battle_server --release
+
+      - name: Package
+        run: |
+          mkdir OpenCombat_${{env.$GITHUB_REF}}_Win64 && \
+          cp target/release/battle_gui.exe OpenCombat_${{env.$GITHUB_REF}}_Win64 && \
+          cp target/release/battle_server.exe OpenCombat_${{env.$GITHUB_REF}}_Win64 && \
+          cp -r resources OpenCombat_${{env.$GITHUB_REF}}_Win64 && \
+          cp assets/w64/* OpenCombat_${{env.$GITHUB_REF}}_Win64 && \
+          zip -r OpenCombat_${{env.$GITHUB_REF}}_Win64.zip OpenCombat_${{env.$GITHUB_REF}}_Win64
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: opencombat
-          path: target/release/battle_gui.exe
+          name: OpenCombat_${{env.$GITHUB_REF}}_Win64
+          path: OpenCombat_${{env.$GITHUB_REF}}_Win64.zip
+
+  build-linux:
+    name: Build and package for Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+
+      - name: Install OS dependencies
+        run: apt-get install -y zip build-essential cmake pkg-config libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
+
+      - name: Build
+        run: cargo build --bin battle_gui --bin battle_server --release
+
+      - name: Package
+        run: |
+          mkdir OpenCombat_${{env.$GITHUB_REF}}_Linux && \
+          cp target/release/battle_gui OpenCombat_${{env.$GITHUB_REF}}_Linux && \
+          cp target/release/battle_server OpenCombat_${{env.$GITHUB_REF}}_Linux && \
+          cp -r resources OpenCombat_${{env.$GITHUB_REF}}_Linux && \
+          cp assets/linux/* OpenCombat_${{env.$GITHUB_REF}}_Linux && \
+          zip -r OpenCombat_${{env.$GITHUB_REF}}_Linux.zip OpenCombat_${{env.$GITHUB_REF}}_Linux
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: OpenCombat_${{env.$GITHUB_REF}}_Linux
+          path: OpenCombat_${{env.$GITHUB_REF}}_Linux.zip
