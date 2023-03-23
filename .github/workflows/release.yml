@@ -1,5 +1,6 @@
 name: rustbuild
 
+# Only on master and new v* tag
 on: push
 
 jobs:
