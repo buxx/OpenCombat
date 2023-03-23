@@ -1,5 +1,8 @@
 use crate::{
-    config::TARGET_FPS, graphics::vehicle::VehicleGraphicInfos, types::*, utils::WorldShape,
+    config::{TARGET_FPS, VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT},
+    graphics::vehicle::VehicleGraphicInfos,
+    types::*,
+    utils::WorldShape,
 };
 use serde::{Deserialize, Serialize};
 
@@ -92,6 +95,19 @@ impl Vehicle {
 
     pub fn get_chassis_orientation(&self) -> &Angle {
         &self.chassis_orientation
+    }
+
+    pub fn chassis_orientation_match(&self, angle: &Angle) -> bool {
+        let rounded_chassis_orientation = (self.get_chassis_orientation().0
+            * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
+            .round()
+            .abs();
+        let target_vehicle_orientation = (angle.0
+            * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
+            .round()
+            .abs();
+
+        rounded_chassis_orientation != target_vehicle_orientation
     }
 
     pub fn get_main_turret_relative_orientation(&self) -> &Angle {

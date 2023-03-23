@@ -1,6 +1,5 @@
 use battle_core::{
     behavior::{Behavior, BehaviorMode, BehaviorPropagation},
-    config::VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT,
     entity::soldier::Soldier,
     order::Order,
     state::{
@@ -182,18 +181,13 @@ impl Runner {
                 let vehicle_index = self
                     .battle_state
                     .soldier_board(soldier.uuid())
-                    .expect("Must be in vehicle when in the function")
+                    .expect("Must be in vehicle according to match")
                     .0;
-                let vehicle = self.battle_state.vehicle(vehicle_index);
-                let rounded_chassis_orientation = (vehicle.get_chassis_orientation().0
-                    * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
-                    .round()
-                    .abs();
-                let target_vehicle_orientation = (angle.0
-                    * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
-                    .round()
-                    .abs();
-                if rounded_chassis_orientation != target_vehicle_orientation {
+                if !self
+                    .battle_state
+                    .vehicle(vehicle_index)
+                    .chassis_orientation_match(angle)
+                {
                     Behavior::RotateTo(*angle)
                 } else {
                     Behavior::Idle
@@ -206,22 +200,16 @@ impl Runner {
         match self.battle_state.soldier_behavior_mode(soldier) {
             BehaviorMode::Ground => Behavior::Hide(*angle),
             BehaviorMode::Vehicle => {
-                // FIXME BS NOW : REF_ANGLE001 refactor it
                 let vehicle_index = self
                     .battle_state
                     .soldier_board(soldier.uuid())
-                    .expect("Must be in vehicle when in the function")
+                    .expect("Must be in vehicle according to match")
                     .0;
-                let vehicle = self.battle_state.vehicle(vehicle_index);
-                let rounded_chassis_orientation = (vehicle.get_chassis_orientation().0
-                    * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
-                    .round()
-                    .abs();
-                let target_vehicle_orientation = (angle.0
-                    * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
-                    .round()
-                    .abs();
-                if rounded_chassis_orientation != target_vehicle_orientation {
+                if !self
+                    .battle_state
+                    .vehicle(vehicle_index)
+                    .chassis_orientation_match(angle)
+                {
                     Behavior::RotateTo(*angle)
                 } else {
                     Behavior::Idle

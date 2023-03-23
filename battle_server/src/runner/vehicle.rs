@@ -102,20 +102,10 @@ impl Runner {
             .0;
         let vehicle = self.battle_state.vehicle(vehicle_index);
 
-        // FIXME BS NOW : REF_ANGLE001 refactor it
-        let rounded_chassis_orientation = (vehicle.get_chassis_orientation().0
-            * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
-            .round()
-            .abs();
-        let target_vehicle_orientation = (angle.0
-            * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
-            .round()
-            .abs();
-
         let mut messages = vec![];
 
         // Need to rotate chassis ?
-        if rounded_chassis_orientation != target_vehicle_orientation {
+        if !vehicle.chassis_orientation_match(angle) {
             let new_orientation = match short_angle_way(vehicle.get_chassis_orientation(), &angle) {
                 AngleWay::ClockWise => {
                     *vehicle.get_chassis_orientation() + vehicle.get_type().chassis_rotation_speed()
