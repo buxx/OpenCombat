@@ -5,6 +5,26 @@ on:
       - v.*
 
 jobs:
+  create-release:
+    name: Create official release
+    runs-on: ubuntu-latest
+    # How to create release WITH artefacts only builds success ?
+    # needs: [build-msys-mingw64, build-linux]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          # TODO : true if tag contain "rc"
+          prerelease: false
+    
   build-msys-mingw64:
     name: Build and package for Windows
     runs-on: windows-latest
@@ -32,18 +52,22 @@ jobs:
 
       - name: Package
         run: |
-          mkdir OpenCombat_${{env.$GITHUB_REF}}_Win64 && \
-          cp target/release/battle_gui.exe OpenCombat_${{env.$GITHUB_REF}}_Win64 && \
-          cp target/release/battle_server.exe OpenCombat_${{env.$GITHUB_REF}}_Win64 && \
-          cp -r resources OpenCombat_${{env.$GITHUB_REF}}_Win64 && \
-          cp assets/w64/* OpenCombat_${{env.$GITHUB_REF}}_Win64 && \
-          zip -r OpenCombat_${{env.$GITHUB_REF}}_Win64.zip OpenCombat_${{env.$GITHUB_REF}}_Win64
+          mkdir OpenCombat_${{ github.ref }}_Win64 && \
+          cp target/release/battle_gui.exe OpenCombat_${{ github.ref }}_Win64 && \
+          cp target/release/battle_server.exe OpenCombat_${{ github.ref }}_Win64 && \
+          cp -r resources OpenCombat_${{ github.ref }}_Win64 && \
+          cp assets/w64/* OpenCombat_${{ github.ref }}_Win64 && \
+          zip -r OpenCombat_${{ github.ref }}_Win64.zip OpenCombat_${{ github.ref }}_Win64
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
-          name: OpenCombat_${{env.$GITHUB_REF}}_Win64
-          path: OpenCombat_${{env.$GITHUB_REF}}_Win64.zip
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: OpenCombat_${{ github.ref }}_Win64.zip
+          asset_name: OpenCombat_${{ github.ref }}_Win64.zip
+          asset_content_type: application/zip
 
   build-linux:
     name: Build and package for Linux
@@ -72,15 +96,19 @@ jobs:
 
       - name: Package
         run: |
-          mkdir OpenCombat_${{env.$GITHUB_REF}}_Linux && \
-          cp target/release/battle_gui OpenCombat_${{env.$GITHUB_REF}}_Linux && \
-          cp target/release/battle_server OpenCombat_${{env.$GITHUB_REF}}_Linux && \
-          cp -r resources OpenCombat_${{env.$GITHUB_REF}}_Linux && \
-          cp assets/linux/* OpenCombat_${{env.$GITHUB_REF}}_Linux && \
-          zip -r OpenCombat_${{env.$GITHUB_REF}}_Linux.zip OpenCombat_${{env.$GITHUB_REF}}_Linux
+          mkdir OpenCombat_${{ github.ref }}_Linux && \
+          cp target/release/battle_gui OpenCombat_${{ github.ref }}_Linux && \
+          cp target/release/battle_server OpenCombat_${{ github.ref }}_Linux && \
+          cp -r resources OpenCombat_${{ github.ref }}_Linux && \
+          cp assets/linux/* OpenCombat_${{ github.ref }}_Linux && \
+          zip -r OpenCombat_${{ github.ref }}_Linux.zip
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
-          name: OpenCombat_${{env.$GITHUB_REF}}_Linux
-          path: OpenCombat_${{env.$GITHUB_REF}}_Linux.zip
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: OpenCombat_${{ github.ref }}_Linux.zip
+          asset_name: OpenCombat_${{ github.ref }}_Linux.zip
+          asset_content_type: application/zip
