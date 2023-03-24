@@ -1,0 +1,53 @@
+name: check-release
+
+on:
+  push:
+    branches:
+      - 'releases/**'
+
+jobs:  
+  check-msys-mingw64:
+    name: Check build for Windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Setup msys2 dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git mingw-w64-x86_64-cc mingw-w64-x86_64-rust mingw-w64-x86_64-zeromq mingw-w64-x86_64-pkg-config --needed
+
+      - name: Run cargo check
+        run: cargo check --release
+
+      - name: Build
+        run: cargo build --bin battle_gui --bin battle_server --release
+
+  check-linux:
+    name: Check build for Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Install OS dependencies
+        run: sudo apt-get install -y build-essential cmake pkg-config libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
+
+      - name: Run cargo check
+        run: cargo check --release
+
+      - name: Build
+        run: cargo build --bin battle_gui --bin battle_server --release
