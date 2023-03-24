@@ -36,6 +36,7 @@ jobs:
     steps:
       - env:
           UPLOAD_URL: ${{needs.create-release.outputs.upload_url}}
+        run: echo "$UPLOAD_URL"
 
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -79,6 +80,7 @@ jobs:
     steps:
       - env:
           UPLOAD_URL: ${{needs.create-release.outputs.upload_url}}
+        run: echo "$UPLOAD_URL"
 
       - name: Checkout sources
         uses: actions/checkout@v2
