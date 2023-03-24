@@ -21,7 +21,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-cc mingw-w64-x86_64-rust mingw-w64-x86_64-zeromq mingw-w64-x86_64-pkg-config --needed
+          install: git mingw-w64-x86_64-cc mingw-w64-x86_64-rust mingw-w64-x86_64-zeromq mingw-w64-x86_64-pkg-config
 
       - name: Run cargo check
         run: cargo check --release
