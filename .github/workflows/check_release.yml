@@ -1,4 +1,4 @@
-name: rustbuild
+name: check-release
 
 # TODO : on pull_requests matching release-*
 on: push

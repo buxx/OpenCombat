@@ -1,4 +1,4 @@
-name: rustbuild
+name: release
 
 # Only on master and new v* tag
 on: push
