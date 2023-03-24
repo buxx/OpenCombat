@@ -1,7 +1,9 @@
 name: release
 
-# Only on master and new v* tag
-on: push
+on:
+  push:
+    tags:
+      - v*
 
 jobs:
   create-release:
