@@ -7,7 +7,7 @@ on:
 
 jobs:
   create-release:
-    name: Create official release
+    name: Create release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -26,6 +26,7 @@ jobs:
     
   build-msys-mingw64:
     name: Build and package for Windows
+    needs: create-release
     runs-on: windows-latest
     defaults:
       run:
@@ -61,13 +62,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ jobs.create-release.outputs.upload_url }}
           asset_path: OpenCombat_${{ github.ref_name }}_Win64.zip
           asset_name: OpenCombat_${{ github.ref_name }}_Win64.zip
           asset_content_type: application/zip
 
   build-linux:
     name: Build and package for Linux
+    needs: create-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -103,7 +105,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ jobs.create-release.outputs.upload_url }}
           asset_path: OpenCombat_${{ github.ref_name }}_Linux.zip
           asset_name: OpenCombat_${{ github.ref_name }}_Linux.zip
           asset_content_type: application/zip
