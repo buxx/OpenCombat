@@ -57,6 +57,8 @@ jobs:
           cp target/release/battle_server.exe OpenCombat_${{ github.ref_name }}_Win64 && \
           cp -r resources OpenCombat_${{ github.ref_name }}_Win64 && \
           cp assets/w64/* OpenCombat_${{ github.ref_name }}_Win64 && \
+          cp LICENSE OpenCombat_${{ github.ref_name }}_Win64 && \
+          cp CREDITS OpenCombat_${{ github.ref_name }}_Win64 && \
           zip -r OpenCombat_${{ github.ref_name }}_Win64.zip OpenCombat_${{ github.ref_name }}_Win64
 
       - name: Upload artifact
@@ -101,6 +103,8 @@ jobs:
           cp target/release/battle_server OpenCombat_${{ github.ref_name }}_Linux && \
           cp -r resources OpenCombat_${{ github.ref_name }}_Linux && \
           cp assets/linux/* OpenCombat_${{ github.ref_name }}_Linux && \
+          cp LICENSE OpenCombat_${{ github.ref_name }}_Win64 && \
+          cp CREDITS OpenCombat_${{ github.ref_name }}_Win64 && \
           zip -r OpenCombat_${{ github.ref_name }}_Linux.zip OpenCombat_${{ github.ref_name }}_Linux
 
       - name: Upload artifact
