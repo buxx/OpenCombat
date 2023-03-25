@@ -73,7 +73,7 @@ jobs:
   build-linux:
     name: Build and package for Linux
     needs: create-release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
