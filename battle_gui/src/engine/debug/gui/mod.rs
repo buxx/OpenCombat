@@ -1,4 +1,4 @@
-use ggegui::egui::{self, ScrollArea};
+use ggegui::egui::{self, Align2, ScrollArea, Vec2};
 use ggez::{Context, GameResult};
 
 use crate::engine::{
@@ -12,6 +12,7 @@ pub mod config;
 pub mod explosives;
 pub mod header;
 pub mod meta;
+pub mod saves;
 pub mod soldiers;
 pub mod state;
 pub mod terrain;
@@ -29,6 +30,7 @@ pub enum Panel {
     FightConfig,
     Textures,
     Explosives,
+    Saves,
 }
 
 impl Default for Panel {
@@ -58,12 +60,14 @@ impl Engine {
         let egui_ctx = self.egui_backend.ctx();
         let mut messages = vec![];
 
-        egui::Window::new("Debug").show(&egui_ctx, |ui| {
-            ScrollArea::vertical().show(ui, |ui| {
-                messages.extend(self.debug_gui_header(ctx, &egui_ctx, ui));
-                messages.extend(self.debug_gui_body(ctx, &egui_ctx, ui));
-            })
-        });
+        egui::Window::new("Debug")
+            .anchor(Align2::LEFT_TOP, Vec2::new(0., 0.))
+            .show(&egui_ctx, |ui| {
+                ScrollArea::vertical().show(ui, |ui| {
+                    messages.extend(self.debug_gui_header(ctx, &egui_ctx, ui));
+                    messages.extend(self.debug_gui_body(ctx, &egui_ctx, ui));
+                })
+            });
 
         messages.push(EngineMessage::GuiState(
             GuiStateMessage::SetDebugGuiHovered(egui_ctx.is_pointer_over_area()),

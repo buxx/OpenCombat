@@ -35,6 +35,7 @@ impl Engine {
         });
         ui.horizontal(|ui| {
             ui.selectable_value(&mut self.debug_gui.panel, Panel::Explosives, "Explosives");
+            ui.selectable_value(&mut self.debug_gui.panel, Panel::Saves, "Saves");
         });
         ui.separator();
 
@@ -68,6 +69,9 @@ impl Engine {
             }
             Panel::Explosives => {
                 messages.extend(self.debug_gui_explosives(ctx, egui_ctx, ui));
+            }
+            Panel::Saves => {
+                messages.extend(self.debug_gui_saves(ctx, egui_ctx, ui));
             }
         }
 

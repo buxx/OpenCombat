@@ -40,7 +40,14 @@ impl Engine {
             .resizable(false)
             .anchor(Align2::CENTER_CENTER, Vec2::new(0., 0.))
             .show(&egui_ctx, |ui| {
-                ui.label("Before battle, place your squads and prepare they orders. When ready to fight, click on \"Begin\" button.");
+                ui.label(concat!(
+                    "Before battle, place your squads and prepare they orders. ",
+                    "When ready to fight, click on \"Begin\" button.",
+                    "\n\n",
+                    "F12: Open debug window\n",
+                    "F4: Make a save point\n",
+                    "F5: Load las save point if any\n"
+                ));
                 ui.with_layout(Layout::right_to_left(Align::TOP), |ui| {
                     if ui.button("Continue").clicked() {
                         messages.push(EngineMessage::GuiState(GuiStateMessage::SetIntroAck(true)))

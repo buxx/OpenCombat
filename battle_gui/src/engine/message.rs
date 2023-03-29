@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use serde_derive::{Deserialize, Serialize};
 
 use battle_core::{
@@ -23,6 +25,9 @@ pub enum EngineMessage {
     Graphics(GraphicsMessage),
     PlaySound(Sound),
     ChangeServerConfig(ChangeConfigMessage),
+    LoadFromSave(PathBuf),
+    TryLoadLastSave,
+    MakeASave,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -50,4 +55,5 @@ pub enum GuiStateMessage {
     SetDragSquad(Option<SquadUuid>),
     SetCursorInHud(bool),
     SetIntroAck(bool),
+    SetSavesList(Vec<PathBuf>),
 }

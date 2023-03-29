@@ -22,10 +22,11 @@ impl Engine {
                     {
                         Ok(_) => {}
                         Err(error) => {
+                            // FIXME : stop here is a good idea ?
                             return Err(GameError::CustomError(format!(
                                 "Error when try to send data to server : {}",
                                 error
-                            )))
+                            )));
                         }
                     }
                 }
@@ -50,6 +51,46 @@ impl Engine {
                         }
                         _ => {}
                     };
+                }
+                // TODO : manage failures in user display
+                EngineMessage::MakeASave => {
+                    //
+                    match self.save_battle_state() {
+                        Ok(save) => self.gui_state.saves_mut().push(save),
+                        Err(error) => {
+                            eprintln!("Error happen during save : {}", error)
+                        }
+                    }
+                }
+                // TODO : manage failures in user display
+                EngineMessage::LoadFromSave(save_path) => {
+                    if let Some(copy) = self.load_from_save(&save_path) {
+                        if let Err(error) =
+                            self.output.send(vec![InputMessage::SetBattleState(copy)])
+                        {
+                            eprintln!(
+                                "Error when try to send battle state copy to server : {}",
+                                error
+                            )
+                        }
+                    }
+                }
+                // TODO : manage failures in user display
+                EngineMessage::TryLoadLastSave => {
+                    let mut saves = self.gui_state.saves().clone();
+                    saves.sort();
+                    if let Some(save_path) = saves.first() {
+                        if let Some(copy) = self.load_from_save(&save_path) {
+                            if let Err(error) =
+                                self.output.send(vec![InputMessage::SetBattleState(copy)])
+                            {
+                                eprintln!(
+                                    "Error when try to send battle state copy to server : {}",
+                                    error
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

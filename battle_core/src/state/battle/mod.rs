@@ -56,11 +56,12 @@ impl BattleState {
         soldiers: Vec<Soldier>,
         vehicles: Vec<Vehicle>,
         soldier_on_board: SoldiersOnBoard,
+        phase: Phase,
     ) -> Self {
         let vehicle_board = vehicle_board_from_soldiers_on_board(&soldier_on_board);
         Self {
             map,
-            phase: Phase::Placement,
+            phase,
             soldiers,
             vehicles,
             soldier_on_board,
@@ -93,6 +94,16 @@ impl BattleState {
             a_ready: false,
             b_ready: false,
         }
+    }
+
+    pub fn from_copy(copy: &BattleStateCopy, map: &Map) -> Self {
+        Self::new(
+            map.clone(),
+            copy.soldiers().clone(),
+            copy.vehicles().clone(),
+            copy.soldier_on_board().clone(),
+            copy.phase().clone(),
+        )
     }
 
     pub fn resolve(&mut self) {
@@ -271,6 +282,7 @@ impl BattleState {
             self.soldiers.clone(),
             self.vehicles.clone(),
             self.soldier_on_board.clone(),
+            self.phase.clone(),
         )
     }
 

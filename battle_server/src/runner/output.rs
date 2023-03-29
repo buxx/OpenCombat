@@ -1,8 +1,4 @@
-use battle_core::{
-    game::Side,
-    message::OutputMessage,
-    state::battle::message::{BattleStateMessage, SoldierMessage, VehicleMessage},
-};
+use battle_core::{game::Side, message::OutputMessage};
 
 use super::{message::RunnerMessage, Runner, RunnerError};
 
@@ -11,62 +7,28 @@ impl Runner {
         let mut outputs = vec![];
 
         for message in messages {
+            // WARNING : Be careful here. Here, messages are send to client for replication.
+            // Change what is send or not will change gui battle state
             match message {
-                RunnerMessage::BattleState(battle_state_message) => match battle_state_message {
-                    BattleStateMessage::Soldier(_, soldier_message) => match soldier_message {
-                        // TODO : For some, filter if really changed before send
-                        SoldierMessage::SetWorldPosition(_)
-                        | SoldierMessage::SetBehavior(_)
-                        | SoldierMessage::SetGesture(_)
-                        | SoldierMessage::SetOrder(_)
-                        | SoldierMessage::SetOrientation(_)
-                        | SoldierMessage::SetAlive(_)
-                        | SoldierMessage::IncreaseUnderFire(_)
-                        | SoldierMessage::DecreaseUnderFire
-                        | SoldierMessage::SetLastShootFrameI(_)
-                        | SoldierMessage::SetUnconscious(_) => {
-                            //
-                            outputs.push((
-                                Side::All,
-                                OutputMessage::BattleState(battle_state_message.clone()),
-                            ))
-                        }
-                        SoldierMessage::WeaponShot(_)
-                        | SoldierMessage::ReloadWeapon(_)
-                        | SoldierMessage::ReachBehaviorStep => {}
-                    },
-                    BattleStateMessage::Vehicle(_, vehicle_message) => match vehicle_message {
-                        VehicleMessage::SetWorldPosition(_)
-                        | VehicleMessage::SetChassisOrientation(_) => outputs.push((
-                            Side::All,
-                            OutputMessage::BattleState(battle_state_message.clone()),
-                        )),
-                    },
-                    BattleStateMessage::PushBulletFire(_)
-                    | BattleStateMessage::PushExplosion(_)
-                    | BattleStateMessage::SetVisibilities(_)
-                    | BattleStateMessage::SetAConnected(_)
-                    | BattleStateMessage::SetBConnected(_)
-                    | BattleStateMessage::SetAReady(_)
-                    | BattleStateMessage::SetBReady(_) => outputs.push((
+                // TODO : We can filter message where content is really a change ?
+                RunnerMessage::BattleState(message) => {
+                    //
+                    outputs.push((Side::All, OutputMessage::BattleState(message.clone())))
+                }
+                RunnerMessage::ClientsState(client_state_message) => {
+                    //
+                    outputs.push((
                         Side::All,
-                        OutputMessage::BattleState(battle_state_message.clone()),
-                    )),
-                    BattleStateMessage::SetPhase(_) => {
-                        outputs.push((
-                            Side::All,
-                            OutputMessage::BattleState(battle_state_message.clone()),
-                        ));
-                    }
-                },
-                RunnerMessage::ClientsState(client_state_message) => outputs.push((
-                    Side::All,
-                    OutputMessage::ClientState(client_state_message.clone()),
-                )),
-                RunnerMessage::ClientState(side, client_state_message) => outputs.push((
-                    side.clone(),
-                    OutputMessage::ClientState(client_state_message.clone()),
-                )),
+                        OutputMessage::ClientState(client_state_message.clone()),
+                    ))
+                }
+                RunnerMessage::ClientState(side, client_state_message) => {
+                    //
+                    outputs.push((
+                        side.clone(),
+                        OutputMessage::ClientState(client_state_message.clone()),
+                    ))
+                }
             }
         }
 

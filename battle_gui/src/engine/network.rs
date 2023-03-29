@@ -22,12 +22,8 @@ impl Engine {
             for message in &messages {
                 match message {
                     OutputMessage::LoadFromCopy(copy) => {
-                        let mut battle_state = BattleState::new(
-                            self.battle_state.map().clone(),
-                            copy.soldiers().clone(),
-                            copy.vehicles().clone(),
-                            copy.soldier_on_board().clone(),
-                        );
+                        let mut battle_state =
+                            BattleState::from_copy(copy, &self.battle_state.map());
                         battle_state.resolve();
 
                         side_effects.extend(

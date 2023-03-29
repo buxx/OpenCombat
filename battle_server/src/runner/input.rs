@@ -1,4 +1,7 @@
-use battle_core::message::{InputMessage, OutputMessage};
+use battle_core::{
+    message::{InputMessage, OutputMessage},
+    state::battle::BattleState,
+};
 use crossbeam_channel::TryRecvError;
 
 use super::{Runner, RunnerError};
@@ -31,6 +34,12 @@ impl Runner {
                         self.output
                             .send(vec![OutputMessage::ChangeConfig(change_config.clone())])?;
                         self.config.react(&change_config);
+                    }
+                    InputMessage::SetBattleState(copy) => {
+                        //
+                        self.battle_state = BattleState::from_copy(&copy, self.battle_state.map());
+                        self.battle_state.resolve();
+                        self.output.send(vec![OutputMessage::LoadFromCopy(copy)])?;
                     }
                 };
             }

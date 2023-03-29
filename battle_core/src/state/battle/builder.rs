@@ -11,7 +11,7 @@ use crate::{
 
 use crate::hardcode;
 
-use super::BattleState;
+use super::{phase::Phase, BattleState};
 
 pub struct BattleStateBuilder {
     map: Map,
@@ -67,6 +67,7 @@ impl BattleStateBuilder {
             self.soldiers.clone(),
             self.vehicles.clone(),
             self.soldier_on_board.clone(),
+            Phase::Placement,
         );
         state.resolve();
         state

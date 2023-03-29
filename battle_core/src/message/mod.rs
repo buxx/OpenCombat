@@ -20,6 +20,7 @@ pub enum Message {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum InputMessage {
     RequireCompleteSync,
+    SetBattleState(BattleStateCopy),
     BattleState(BattleStateMessage),
     ChangeConfig(ChangeConfigMessage),
 }

@@ -129,6 +129,12 @@ impl Engine {
         let mut messages = vec![];
 
         match input.keycode {
+            Some(VirtualKeyCode::F4) => {
+                messages.push(EngineMessage::MakeASave);
+            }
+            Some(VirtualKeyCode::F5) => {
+                messages.push(EngineMessage::TryLoadLastSave);
+            }
             Some(VirtualKeyCode::F12) => {
                 messages.push(EngineMessage::GuiState(
                     GuiStateMessage::SetDisplayDebugGui(!self.gui_state.display_debug_gui()),

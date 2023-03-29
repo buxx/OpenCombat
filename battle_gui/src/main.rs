@@ -29,6 +29,7 @@ mod debug;
 mod engine;
 mod graphics;
 mod physics;
+mod saves;
 mod server;
 mod ui;
 mod utils;

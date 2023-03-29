@@ -25,11 +25,8 @@ impl Resources {
     }
 
     pub fn ensure(self) -> Result<Self, ResourcesError> {
-        for path in &vec![self.cache_abs()] {
-            match fs::create_dir_all(path) {
-                Err(error) => return Err(ResourcesError::MkDir(path.clone(), error.to_string())),
-                _ => {}
-            }
+        for path in vec![self.cache_abs()] {
+            path.ensure()?;
         }
 
         Ok(self)
@@ -64,11 +61,33 @@ impl Resources {
         PathBuf::from("/Cache")
     }
 
+    pub fn battle_saves_abs(&self, map_name: &str) -> PathBuf {
+        self.app_abs().join("Saves").join(map_name)
+    }
+
     pub fn lib(&self) -> PathBuf {
         PathBuf::from(RESOURCE_PATH)
     }
 
     pub fn resources_paths_abs(&self) -> Vec<PathBuf> {
         vec![self.lib(), self.app_abs()]
+    }
+}
+
+pub trait EnsureDir
+where
+    Self: Sized,
+{
+    fn ensure(self) -> Result<Self, ResourcesError>;
+}
+
+impl EnsureDir for PathBuf {
+    fn ensure(self) -> Result<Self, ResourcesError> {
+        match fs::create_dir_all(&self) {
+            Err(error) => return Err(ResourcesError::MkDir(self.clone(), error.to_string())),
+            _ => {}
+        }
+
+        Ok(self)
     }
 }

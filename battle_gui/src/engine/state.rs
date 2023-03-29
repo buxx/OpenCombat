@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use battle_core::game::Side;
 use battle_core::order::PendingOrder;
 use battle_core::physics::utils::DISTANCE_TO_METERS_COEFFICIENT;
@@ -71,6 +73,8 @@ pub struct GuiState {
     dragged_squad: Option<SquadUuid>,
     //
     intro_ack: bool,
+    //
+    saves: Vec<PathBuf>,
 }
 
 impl GuiState {
@@ -108,6 +112,7 @@ impl GuiState {
             begin_click_on_soldier: None,
             dragged_squad: None,
             intro_ack: false,
+            saves: vec![],
         }
     }
 
@@ -359,6 +364,10 @@ impl GuiState {
                 //
                 self.intro_ack = *value
             }
+            GuiStateMessage::SetSavesList(saves) => {
+                //
+                self.saves = saves.clone()
+            }
         }
     }
 
@@ -463,5 +472,17 @@ impl GuiState {
 
     pub fn intro_ack(&self) -> bool {
         self.intro_ack
+    }
+
+    pub fn set_saves(&mut self, saves: Vec<PathBuf>) {
+        self.saves = saves;
+    }
+
+    pub fn saves(&self) -> &Vec<PathBuf> {
+        &self.saves
+    }
+
+    pub fn saves_mut(&mut self) -> &mut Vec<PathBuf> {
+        &mut self.saves
     }
 }

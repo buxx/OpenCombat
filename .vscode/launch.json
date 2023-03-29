@@ -98,7 +98,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Gui (server embedded) release",
+            "name": "Gui (server embedded) --release",
             "cargo": {
                 "args": [
                     "build",

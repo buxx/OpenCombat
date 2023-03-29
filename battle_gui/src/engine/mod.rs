@@ -18,6 +18,7 @@ use oc_core::spawn::SpawnZoneName;
 
 use crate::audio::player::Player;
 use crate::graphics::Graphics;
+use crate::saves::reader::BattleSavesListBuilder;
 use crate::ui::hud::builder::HudBuilder;
 use crate::ui::hud::painter::HudPainter;
 use crate::ui::hud::{Hud, HUD_HEIGHT};
@@ -39,6 +40,7 @@ pub mod network;
 pub mod order;
 pub mod physics;
 pub mod react;
+pub mod save;
 pub mod state;
 pub mod tick;
 pub mod ui;
@@ -82,7 +84,13 @@ impl Engine {
         a_control: Vec<SpawnZoneName>,
         b_control: Vec<SpawnZoneName>,
     ) -> GameResult<Engine> {
-        let gui_state = GuiState::new(side.clone());
+        let mut gui_state = GuiState::new(side.clone());
+        gui_state.set_saves(
+            BattleSavesListBuilder::new(battle_state.map().name())
+                .build()
+                .unwrap_or(vec![]),
+        );
+
         let hud = HudBuilder::new(&gui_state, &battle_state).build();
         let engine = Engine {
             config,
