@@ -213,7 +213,7 @@ checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
 name = "battle_core"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "bincode",
  "bresenham",
@@ -233,7 +233,7 @@ dependencies = [
 
 [[package]]
 name = "battle_gui"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "battle_core",
@@ -263,7 +263,7 @@ dependencies = [
 
 [[package]]
 name = "battle_server"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "battle_core",
  "crossbeam-channel",
@@ -2322,7 +2322,7 @@ dependencies = [
 
 [[package]]
 name = "oc_core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "dirs",

@@ -1,6 +1,6 @@
 [package]
 name = "oc_core"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Sevajol Bastien <contact@bux.fr>"]
 edition = "2021"
 
