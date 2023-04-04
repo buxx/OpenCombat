@@ -4,13 +4,14 @@ use battle_core::game::Side;
 use battle_core::order::PendingOrder;
 use battle_core::physics::utils::DISTANCE_TO_METERS_COEFFICIENT;
 use battle_core::types::{
-    Distance, Offset, Scale, SoldierIndex, SquadUuid, WindowPoint, WorldPaths, WorldPoint,
+    Distance, Offset, SoldierIndex, SquadUuid, WindowPoint, WorldPaths, WorldPoint,
 };
 use battle_core::utils::{DebugPoint, WindowShape, WorldShape};
 use ggez::graphics::Rect;
 use ggez::Context;
 
 use crate::debug::{DebugPhysics, DebugTerrain};
+use crate::graphics::qualified::Zoom;
 
 use super::event::UIEvent;
 use super::input::Control;
@@ -24,7 +25,7 @@ pub struct GuiState {
     /// Offset to apply to battle scene by window relative
     pub display_scene_offset: Offset,
     /// Scale to apply to battle scene by window relative
-    pub display_scene_scale: Scale,
+    pub zoom: Zoom,
     /// Display or not decor (trees, etc)
     pub draw_decor: bool,
     /// Current debugs to apply
@@ -83,7 +84,7 @@ impl GuiState {
             frame_i: 0,
             side,
             display_scene_offset: Offset::new(0., 0.),
-            display_scene_scale: Scale::new(1., 1.),
+            zoom: Zoom::default(),
             draw_decor: true,
             debug_mouse: false,
             debug_move_paths: false,
@@ -191,16 +192,16 @@ impl GuiState {
             window_point
                 .apply(-self.display_scene_offset.to_vec2())
                 .to_vec2()
-                / self.display_scene_scale.to_vec2(),
+                / self.zoom.factor(),
         )
     }
 
     pub fn window_point_from_world_point(&self, world_point: WorldPoint) -> WindowPoint {
         WindowPoint::from(
             world_point
-                .apply(self.display_scene_offset.to_vec2() / self.display_scene_scale.to_vec2())
+                .apply(self.display_scene_offset.to_vec2() / self.zoom.factor())
                 .to_vec2()
-                * self.display_scene_scale.to_vec2(),
+                * self.zoom.factor(),
         )
     }
 
@@ -210,8 +211,8 @@ impl GuiState {
         Rect::new(
             window_point.x,
             window_point.y,
-            world_rect.w * self.display_scene_scale.x,
-            world_rect.h * self.display_scene_scale.y,
+            world_rect.w * self.zoom.factor(),
+            world_rect.h * self.zoom.factor(),
         )
     }
 
@@ -333,9 +334,9 @@ impl GuiState {
                 Side::B => self.side = Side::A,
                 Side::All => unreachable!("Side All is excluded from ChangeSide"),
             },
-            GuiStateMessage::SetScale(scale) => {
+            GuiStateMessage::SetZoom(scale) => {
                 //
-                self.display_scene_scale = scale.clone();
+                self.zoom = scale.clone();
             }
             GuiStateMessage::SetControl(new_control) => {
                 //
@@ -397,10 +398,7 @@ impl GuiState {
 
         lines.push((
             "DisplaySceneScale".to_string(),
-            format!(
-                "{:.3}x{:.3}",
-                self.display_scene_scale.x, self.display_scene_scale.y
-            ),
+            format!("{:.3}x{:.3}", self.zoom.factor(), self.zoom.factor()),
         ));
 
         lines.push((

@@ -2,10 +2,9 @@ use std::fmt::Display;
 
 use battle_core::{
     audio::Sound,
-    types::{Offset, Scale, WindowPoint},
+    types::{Offset, WindowPoint},
 };
 use ggez::{event::MouseButton, input::keyboard::KeyInput, winit::event::VirtualKeyCode, Context};
-use glam::Vec2;
 
 use crate::{
     debug::DebugPhysics,
@@ -357,8 +356,11 @@ impl Engine {
         let mut messages = vec![];
 
         if !self.gui_state.debug_gui_hovered && !self.gui_state.cursor_in_hud() {
-            let modifier = Vec2::new(y / 10.0, y / 10.0);
-            let new_scale = Scale::from(self.gui_state.display_scene_scale.to_vec2() + modifier);
+            let zoom = if y > 0. {
+                self.gui_state.zoom.next()
+            } else {
+                self.gui_state.zoom.previous()
+            };
 
             let half_screen_width = ctx.gfx.drawable_size().0 / 2.;
             let half_screen_height = ctx.gfx.drawable_size().1 / 2.;
@@ -371,12 +373,10 @@ impl Engine {
 
             let half_screen_width = ctx.gfx.drawable_size().0 / 2.;
             let half_screen_height = ctx.gfx.drawable_size().1 / 2.;
-            let new_offset_x = -(world_point.x * new_scale.x) + half_screen_width;
-            let new_offset_y = -(world_point.y * new_scale.y) + half_screen_height;
+            let new_offset_x = -(world_point.x * zoom.factor()) + half_screen_width;
+            let new_offset_y = -(world_point.y * zoom.factor()) + half_screen_height;
 
-            messages.push(EngineMessage::GuiState(GuiStateMessage::SetScale(
-                new_scale,
-            )));
+            messages.push(EngineMessage::GuiState(GuiStateMessage::SetZoom(zoom)));
             messages.push(EngineMessage::GuiState(
                 GuiStateMessage::SetDisplaySceneOffset(Offset::new(new_offset_x, new_offset_y)),
             ));

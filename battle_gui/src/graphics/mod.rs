@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs};
+use std::{collections::HashMap, fs, path::PathBuf};
 
 use battle_core::{
     config::ServerConfig,
@@ -27,13 +27,30 @@ use oc_core::resources::RESOURCE_PATH;
 
 use crate::{debug::DebugTerrain, ui::menu::squad_menu_sprite_info};
 
-use self::message::GraphicsMessage;
+use self::{
+    background::{Background, BackgroundBuilder},
+    batch::QualifiedBatch,
+    decors::{Decors, DecorsBuilder},
+    explosions::{Explosions, ExplosionsBuilder},
+    interiors::{Interiors, InteriorsBuilder},
+    message::GraphicsMessage,
+    qualified::Zoom,
+    soldier::{Soldiers, SoldiersBuilder},
+    vehicles::{Vehicles, VehiclesBuilder},
+};
 
 pub mod animation;
+pub mod background;
+pub mod batch;
+pub mod decors;
+pub mod explosions;
+pub mod interiors;
 pub mod map;
 pub mod message;
 pub mod order;
+pub mod qualified;
 pub mod soldier;
+pub mod vehicles;
 
 pub enum AssetsType {
     Soldiers,
@@ -51,17 +68,21 @@ impl AssetsType {
             AssetsType::Ui => "/ui",
         }
     }
+
+    pub fn path(&self) -> PathBuf {
+        PathBuf::from(format!("{}.png", self.prefix()))
+    }
 }
 
 pub struct Graphics {
     // Sprites batches
-    soldiers_batch: InstanceArray,
+    soldiers: Soldiers,
     soldiers_files: Vec<String>,
     soldiers_file: String,
-    vehicles_batch: InstanceArray,
+    vehicles: Vehicles,
     vehicles_files: Vec<String>,
     vehicles_file: String,
-    explosions_batch: InstanceArray,
+    explosions: Explosions,
     explosions_files: Vec<String>,
     explosions_file: String,
     // Squad menu, etc
@@ -69,13 +90,13 @@ pub struct Graphics {
     ui_files: Vec<String>,
     ui_file: String,
     // Map background sprite batch
-    map_background_batch: InstanceArray,
+    background: Background,
     map_dark_background_batch: InstanceArray,
     map_dark_background_first: bool,
     // Map interiors sprite batch
-    map_interiors_batch: InstanceArray,
+    interiors: Interiors,
     // Map decor sprite batches
-    map_decor_batches: Vec<InstanceArray>,
+    decor: Decors,
     // Soldiers animations
     soldier_animation_sequences: HashMap<SoldierIndex, AnimationSequence<TweenableRect>>,
     // Explosion animations
@@ -90,46 +111,46 @@ impl Graphics {
     pub fn new(ctx: &mut Context, map: &Map, config: &ServerConfig) -> GameResult<Graphics> {
         let soldiers_file = AssetsType::Soldiers.prefix().to_string() + ".png";
         let soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
-        let soldiers_batch = create_batch(&soldiers_file, ctx)?;
+        let soldiers = SoldiersBuilder::new(ctx).build()?;
 
         let vehicles_file = AssetsType::Vehicles.prefix().to_string() + ".png";
         let vehicles_files = collect_resources_by_prefix(AssetsType::Vehicles.prefix())?;
-        let vehicles_batch = create_batch(&vehicles_file, ctx)?;
+        let vehicles = VehiclesBuilder::new(ctx).build()?;
 
         let explosions_file = AssetsType::Explosions.prefix().to_string() + ".png";
         let explosions_files = collect_resources_by_prefix(AssetsType::Explosions.prefix())?;
-        let explosions_batch = create_batch(&explosions_file, ctx)?;
+        let explosions = ExplosionsBuilder::new(ctx).build()?;
 
         let ui_file = AssetsType::Ui.prefix().to_string() + ".png";
         let ui_files = collect_resources_by_prefix(AssetsType::Ui.prefix())?;
         let ui_batch = create_batch(&ui_file, ctx)?;
 
-        let map_background_batch = map::get_map_background_batch(ctx, map)?;
+        let background = BackgroundBuilder::new(ctx, map).build()?;
         let map_dark_background_batch = map::get_map_dark_background_batch(ctx, map)?;
-        let map_interiors_batch = map::get_map_interiors_batch(ctx, map)?;
-        let map_decor_batches = map::get_map_decor_batch(ctx, map)?;
+        let map_interiors_batch = InteriorsBuilder::new(ctx, map).build()?;
+        let decor = DecorsBuilder::new(ctx, map).build()?;
         let debug_terrain_batch = map::create_debug_terrain_batch(ctx, map)?;
         let debug_terrain_opacity_mesh_builder =
             map::create_debug_terrain_opacity_mesh_builder(map, config)?;
 
         Ok(Graphics {
-            soldiers_batch,
+            soldiers,
             soldiers_files,
             soldiers_file,
-            vehicles_batch,
+            vehicles,
             vehicles_files,
             vehicles_file,
-            explosions_batch,
+            explosions,
             explosions_files,
             explosions_file,
             ui_batch,
             ui_files,
             ui_file,
-            map_background_batch,
+            background,
             map_dark_background_batch,
             map_dark_background_first: false,
-            map_interiors_batch,
-            map_decor_batches,
+            interiors: map_interiors_batch,
+            decor,
             soldier_animation_sequences: HashMap::new(),
             explosion_sequences: vec![],
             debug_terrain_batch,
@@ -137,28 +158,8 @@ impl Graphics {
         })
     }
 
-    pub fn append_soldier_batch(&mut self, sprite: graphics::DrawParam) {
-        self.soldiers_batch.push(sprite);
-    }
-
-    pub fn append_vehicles_batch(&mut self, sprite: graphics::DrawParam) {
-        self.vehicles_batch.push(sprite);
-    }
-
-    pub fn append_explosions_batch(&mut self, sprite: graphics::DrawParam) {
-        self.explosions_batch.push(sprite);
-    }
-
-    pub fn append_map_background_batch(&mut self, sprite: graphics::DrawParam) {
-        self.map_background_batch.push(sprite);
-    }
-
     pub fn append_dark_map_background_batch(&mut self, sprite: graphics::DrawParam) {
         self.map_dark_background_batch.push(sprite);
-    }
-
-    pub fn append_interior(&mut self, sprite: graphics::DrawParam) {
-        self.map_interiors_batch.push(sprite);
     }
 
     pub fn append_ui_batch(&mut self, sprite: graphics::DrawParam) {
@@ -207,6 +208,7 @@ impl Graphics {
         &self,
         soldier: &Soldier,
         draw_to: Option<&WorldPoint>,
+        zoom: &Zoom,
     ) -> Vec<graphics::DrawParam> {
         let current_frame_src: Rect = self
             .soldier_animation_sequences
@@ -216,19 +218,20 @@ impl Graphics {
             .unwrap()
             .into();
 
-        const SOLDIER_SPRITE_OFFSET: (f32, f32) = (
-            SOLDIER_TILE_WIDTH as f32 * 0.5,
-            SOLDIER_TILE_HEIGHT as f32 * 0.5,
+        let soldier_sprite_offset: (f32, f32) = (
+            SOLDIER_TILE_WIDTH as f32 * zoom.factor() * 0.5,
+            SOLDIER_TILE_HEIGHT as f32 * zoom.factor() * 0.5,
         );
 
         vec![graphics::DrawParam::new()
             .src(current_frame_src)
             .rotation(soldier.get_looking_direction().0)
-            .offset(Vec2::from(SOLDIER_SPRITE_OFFSET))
+            .offset(Vec2::from(soldier_sprite_offset))
             .dest(
                 draw_to
                     .and_then(|p| Some(p.to_vec2()))
-                    .unwrap_or(soldier.get_world_point().to_vec2()),
+                    .unwrap_or(soldier.get_world_point().to_vec2())
+                    * zoom.factor(),
             )]
     }
 
@@ -236,20 +239,28 @@ impl Graphics {
         &self,
         _vehicle_index: VehicleIndex,
         vehicle: &Vehicle,
+        zoom: &Zoom,
     ) -> Vec<graphics::DrawParam> {
         let vehicle_sprite_infos = VehicleGraphicInfos::from_type(vehicle.get_type());
         let mut sprites = vec![];
 
-        const VEHICLE_SPRITE_OFFSET: (f32, f32) =
-            (VEHICLE_TILE_WIDTH * 0.5, VEHICLE_TILE_HEIGHT * 0.5);
-        const VEHICLE_SPRITE_SHADOW_OFFSET: (f32, f32) =
-            (VEHICLE_TILE_WIDTH * 0.05, VEHICLE_TILE_HEIGHT * 0.05);
+        let vehicle_sprite_offset: (f32, f32) = (
+            VEHICLE_TILE_WIDTH * zoom.factor() * 0.5,
+            VEHICLE_TILE_HEIGHT * zoom.factor() * 0.5,
+        );
+        let vehicle_sprite_shadow_offset: (f32, f32) = (
+            VEHICLE_TILE_WIDTH * zoom.factor() * 0.05,
+            VEHICLE_TILE_HEIGHT * zoom.factor() * 0.05,
+        );
 
         // Vehicle body shadow
         let body_shadow_sprite = vehicle_sprite_infos.chassis().shadow_version();
         let body_shadow_draw = DrawParam::new()
-            .offset(Vec2::from(VEHICLE_SPRITE_OFFSET))
-            .dest(vehicle.get_world_point().to_vec2() + Vec2::from(VEHICLE_SPRITE_SHADOW_OFFSET))
+            .offset(Vec2::from(vehicle_sprite_offset))
+            .dest(
+                vehicle.get_world_point().to_vec2() * zoom.factor()
+                    + Vec2::from(vehicle_sprite_shadow_offset),
+            )
             .src(Rect::from(body_shadow_sprite.relative_rect().to_array()))
             .rotation(vehicle.get_chassis_orientation().0);
         sprites.push(body_shadow_draw);
@@ -257,10 +268,10 @@ impl Graphics {
         // Vehicle body
         let body_sprite = vehicle_sprite_infos.chassis();
         let body_draw = DrawParam::new()
-            .offset(Vec2::from(VEHICLE_SPRITE_OFFSET))
+            .offset(Vec2::from(vehicle_sprite_offset))
             .src(Rect::from(body_sprite.relative_rect().to_array()))
             .rotation(vehicle.get_chassis_orientation().0)
-            .dest(vehicle.get_world_point().to_vec2());
+            .dest(vehicle.get_world_point().to_vec2() * zoom.factor());
         sprites.push(body_draw);
 
         // Main turret
@@ -268,23 +279,23 @@ impl Graphics {
             let turret_shadow_sprite = turret_sprite_info.shadow_version();
             let turret_shadow_draw = DrawParam::new()
                 .offset(
-                    Vec2::from(VEHICLE_SPRITE_OFFSET)
+                    Vec2::from(vehicle_sprite_offset)
                         + turret_sprite_info.abs_offset(&turret_offset).to_vec2()
-                        + Vec2::from(VEHICLE_SPRITE_SHADOW_OFFSET),
+                        + Vec2::from(vehicle_sprite_shadow_offset),
                 )
                 .src(Rect::from(turret_shadow_sprite.relative_rect().to_array()))
-                .dest(vehicle.get_world_point().to_vec2())
+                .dest(vehicle.get_world_point().to_vec2() * zoom.factor())
                 .rotation(vehicle.get_chassis_orientation().0);
             sprites.push(turret_shadow_draw);
 
             let turret_sprite = turret_sprite_info;
             let turret_draw = DrawParam::new()
                 .offset(
-                    Vec2::from(VEHICLE_SPRITE_OFFSET)
+                    Vec2::from(vehicle_sprite_offset)
                         + turret_sprite_info.abs_offset(&turret_offset).to_vec2(),
                 )
                 .src(Rect::from(turret_sprite.relative_rect().to_array()))
-                .dest(vehicle.get_world_point().to_vec2())
+                .dest(vehicle.get_world_point().to_vec2() * zoom.factor())
                 .rotation(vehicle.get_chassis_orientation().0);
             sprites.push(turret_draw);
         }
@@ -292,7 +303,7 @@ impl Graphics {
         sprites
     }
 
-    pub fn explosion_sprites(&self) -> Vec<graphics::DrawParam> {
+    pub fn explosion_sprites(&self, zoom: &Zoom) -> Vec<graphics::DrawParam> {
         let mut sprites = vec![];
 
         const EXPLOSION_SPRITE_OFFSET: (f32, f32) = (
@@ -307,7 +318,7 @@ impl Graphics {
                     .src(current_frame_src)
                     .offset(Vec2::from(EXPLOSION_SPRITE_OFFSET))
                     .scale(Scale::new(0.25, 0.25).to_vec2())
-                    .dest(world_point.to_vec2()),
+                    .dest(world_point.to_vec2() * zoom.factor()),
             )
         }
 
@@ -323,27 +334,33 @@ impl Graphics {
         squad_menu_sprite_info().as_draw_params(&to_point, &cursor_point)
     }
 
-    pub fn draw_map(&mut self, canvas: &mut Canvas, draw_param: graphics::DrawParam) -> GameResult {
+    pub fn draw_map(
+        &mut self,
+        canvas: &mut Canvas,
+        draw_param: graphics::DrawParam,
+        zoom: &Zoom,
+    ) -> GameResult {
         if self.map_dark_background_first {
             if self.map_dark_background_batch.instances().len() > 0 {
                 canvas.draw(&self.map_dark_background_batch, draw_param);
             }
 
-            if self.map_background_batch.instances().len() > 0 {
-                canvas.draw(&self.map_background_batch, draw_param);
+            if self.background.drawable(zoom).instances().len() > 0 {
+                canvas.draw(self.background.drawable(zoom), draw_param);
             }
         } else {
-            if self.map_background_batch.instances().len() > 0 {
-                canvas.draw(&self.map_background_batch, draw_param);
+            if self.background.drawable(zoom).instances().len() > 0 {
+                canvas.draw(self.background.drawable(zoom), draw_param);
             }
+
             if self.map_dark_background_batch.instances().len() > 0 {
                 canvas.draw(&self.map_dark_background_batch, draw_param);
             }
         }
 
         // Map interior sprites
-        if self.map_interiors_batch.instances().len() > 0 {
-            canvas.draw(&self.map_interiors_batch, draw_param);
+        if self.interiors.drawable(zoom).instances().len() > 0 {
+            canvas.draw(self.interiors.drawable(zoom), draw_param);
         }
 
         Ok(())
@@ -354,12 +371,13 @@ impl Graphics {
         canvas: &mut Canvas,
         draw_decor: bool,
         draw_param: graphics::DrawParam,
+        zoom: &Zoom,
     ) -> GameResult {
-        // Draw decor like Trees
         if draw_decor {
-            for decor_batch in self.map_decor_batches.iter() {
-                canvas.draw(decor_batch, draw_param);
-            }
+            self.decor
+                .drawable(zoom)
+                .iter()
+                .for_each(|d| canvas.draw(d, draw_param));
         }
 
         Ok(())
@@ -369,16 +387,17 @@ impl Graphics {
         &mut self,
         canvas: &mut Canvas,
         draw_param: graphics::DrawParam,
+        zoom: &Zoom,
     ) -> GameResult {
         // Entities, explosions, etc. sprites
-        if self.soldiers_batch.instances().len() > 0 {
-            canvas.draw(&self.soldiers_batch, draw_param);
+        if self.soldiers.drawable(zoom).instances().len() > 0 {
+            canvas.draw(self.soldiers.drawable(zoom), draw_param);
         }
-        if self.vehicles_batch.instances().len() > 0 {
-            canvas.draw(&self.vehicles_batch, draw_param);
+        if self.vehicles.drawable(zoom).instances().len() > 0 {
+            canvas.draw(self.vehicles.drawable(zoom), draw_param);
         }
-        if self.explosions_batch.instances().len() > 0 {
-            canvas.draw(&self.explosions_batch, draw_param);
+        if self.explosions.drawable(zoom).instances().len() > 0 {
+            canvas.draw(self.explosions.drawable(zoom), draw_param);
         }
 
         Ok(())
@@ -406,17 +425,17 @@ impl Graphics {
         self.map_dark_background_first = map_dark_background_first;
     }
 
-    pub fn clear(&mut self) {
-        self.soldiers_batch.clear();
-        self.vehicles_batch.clear();
-        self.explosions_batch.clear();
-        self.map_background_batch.clear();
+    pub fn clear(&mut self, zoom: &Zoom) {
+        self.soldiers.clear(zoom);
+        self.vehicles.clear(zoom);
+        self.explosions.clear(zoom);
+        self.background.clear(zoom);
         self.map_dark_background_batch.clear();
         self.ui_batch.clear();
     }
 
-    pub fn clear_map_interiors_batch(&mut self) {
-        self.map_interiors_batch.clear();
+    pub fn clear_map_interiors_batch(&mut self, zoom: &Zoom) {
+        self.interiors.clear(zoom);
     }
 
     pub fn tick(&mut self, ctx: &Context) {
@@ -443,34 +462,34 @@ impl Graphics {
                     map::create_debug_terrain_opacity_mesh_builder(map, config)?;
             }
             GraphicsMessage::ReloadSoldiersAsset => {
-                self.soldiers_batch = create_batch(&self.soldiers_file, ctx)?;
+                self.soldiers = SoldiersBuilder::new(ctx).build()?;
             }
             GraphicsMessage::ReloadVehiclesAsset => {
-                self.vehicles_batch = create_batch(&self.vehicles_file, ctx)?;
+                self.vehicles = VehiclesBuilder::new(ctx).build()?;
             }
             GraphicsMessage::ReloadExplosionsAsset => {
-                self.explosions_batch = create_batch(&self.explosions_file, ctx)?;
+                self.explosions = ExplosionsBuilder::new(ctx).build()?;
             }
             GraphicsMessage::ReloadUiAsset => {
                 self.ui_batch = create_batch(&self.ui_file, ctx)?;
             }
             GraphicsMessage::ReloadAll => {
                 self.soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
-                self.soldiers_batch = create_batch(&self.soldiers_file, ctx)?;
+                self.soldiers = SoldiersBuilder::new(ctx).build()?;
 
                 self.vehicles_files = collect_resources_by_prefix(AssetsType::Vehicles.prefix())?;
-                self.vehicles_batch = create_batch(&self.vehicles_file, ctx)?;
+                self.vehicles = VehiclesBuilder::new(ctx).build()?;
 
                 self.explosions_files =
                     collect_resources_by_prefix(AssetsType::Explosions.prefix())?;
-                self.explosions_batch = create_batch(&self.explosions_file, ctx)?;
+                self.explosions = ExplosionsBuilder::new(ctx).build()?;
 
                 self.ui_files = collect_resources_by_prefix(AssetsType::Ui.prefix())?;
                 self.ui_batch = create_batch(&self.ui_file, ctx)?;
 
-                self.map_background_batch = map::get_map_background_batch(ctx, map)?;
-                self.map_interiors_batch = map::get_map_interiors_batch(ctx, map)?;
-                self.map_decor_batches = map::get_map_decor_batch(ctx, map)?;
+                self.background = BackgroundBuilder::new(ctx, map).build()?;
+                self.interiors = InteriorsBuilder::new(ctx, map).build()?;
+                self.decor = DecorsBuilder::new(ctx, map).build()?;
                 self.debug_terrain_batch = map::create_debug_terrain_batch(ctx, map)?;
                 self.debug_terrain_opacity_mesh_builder =
                     map::create_debug_terrain_opacity_mesh_builder(map, config)?;
@@ -501,6 +520,26 @@ impl Graphics {
         };
 
         GameResult::Ok(())
+    }
+
+    pub fn background_mut(&mut self) -> &mut Background {
+        &mut self.background
+    }
+
+    pub fn interiors_mut(&mut self) -> &mut Interiors {
+        &mut self.interiors
+    }
+
+    pub fn soldiers_mut(&mut self) -> &mut Soldiers {
+        &mut self.soldiers
+    }
+
+    pub fn vehicles_mut(&mut self) -> &mut Vehicles {
+        &mut self.vehicles
+    }
+
+    pub fn explosions_mut(&mut self) -> &mut Explosions {
+        &mut self.explosions
     }
 }
 
@@ -543,7 +582,10 @@ pub fn collect_resources_by_prefix(prefix: &str) -> GameResult<Vec<String>> {
                         )))
                     }
                 };
-                if file_name.starts_with(prefix) && file_name.ends_with(".png") {
+                if file_name.starts_with(prefix)
+                    && file_name.ends_with(".png")
+                    && !file_name.ends_with("__HD.png")
+                {
                     resources.push("/".to_string() + file_name)
                 }
             }

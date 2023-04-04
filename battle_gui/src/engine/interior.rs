@@ -1,7 +1,7 @@
 use battle_core::types::WorldPoint;
 use ggez::graphics::{DrawParam, Rect};
 
-use crate::engine::message::EngineMessage;
+use crate::{engine::message::EngineMessage, graphics::batch::QualifiedBatch};
 
 use super::Engine;
 
@@ -19,7 +19,8 @@ impl Engine {
     }
 
     pub fn update_interior_sprites(&mut self) {
-        self.graphics.clear_map_interiors_batch();
+        self.graphics
+            .clear_map_interiors_batch(&self.gui_state.zoom);
 
         for interior in self.battle_state.map().interiors() {
             // World coordinates
@@ -42,7 +43,8 @@ impl Engine {
                     && soldier_position.y >= start_y
                     && soldier_position.y <= end_y
                 {
-                    self.graphics.append_interior(
+                    self.graphics.interiors_mut().push(
+                        &self.gui_state.zoom,
                         DrawParam::new()
                             .src(Rect::new(
                                 interior.relative_x(),

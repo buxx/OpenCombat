@@ -1,0 +1,37 @@
+use std::path::PathBuf;
+
+use thiserror::Error;
+
+use crate::graphics::qualified::Zoom;
+
+pub trait ToQualified<T, E> {
+    fn to_qualified(&self, zoom: &Zoom) -> Result<T, E>;
+}
+
+impl ToQualified<PathBuf, PathQualificationError> for PathBuf {
+    fn to_qualified(&self, zoom: &Zoom) -> Result<PathBuf, PathQualificationError> {
+        match zoom {
+            Zoom::In => Ok(self
+                .parent()
+                .ok_or_else(|| PathQualificationError::NoParent(self.clone()))?
+                .join(format!(
+                    "{}__HD.png",
+                    self.file_stem()
+                        .ok_or_else(|| PathQualificationError::NoStem(self.clone()))?
+                        .to_str()
+                        .ok_or_else(|| PathQualificationError::Unexpected(self.clone()))?
+                ))),
+            _ => Ok(self.clone()),
+        }
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum PathQualificationError {
+    #[error("Path have no parent : {0}")]
+    NoParent(PathBuf),
+    #[error("Unexpected to extract non extension file name from : {0}")]
+    NoStem(PathBuf),
+    #[error("Unexpected format : {0}")]
+    Unexpected(PathBuf),
+}

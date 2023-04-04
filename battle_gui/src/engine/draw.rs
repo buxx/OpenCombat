@@ -12,7 +12,7 @@ use battle_core::{
 use glam::Vec2;
 use oc_core::spawn::SpawnZoneName;
 
-use crate::ui::hud::painter::HudPainter;
+use crate::{graphics::batch::QualifiedBatch, ui::hud::painter::HudPainter};
 
 use super::{input::Control, Engine};
 
@@ -25,9 +25,12 @@ impl Engine {
                 continue;
             }
 
-            for sprite in self.graphics.soldier_sprites(soldier, None) {
-                self.graphics.append_soldier_batch(sprite);
-            }
+            let sprites = self
+                .graphics
+                .soldier_sprites(soldier, None, &self.gui_state.zoom);
+            self.graphics
+                .soldiers_mut()
+                .extend(&self.gui_state.zoom, sprites);
         }
 
         // Dragged soldiers
@@ -35,9 +38,13 @@ impl Engine {
             let cursor = self.gui_state.get_current_cursor_world_point();
             let squad = self.battle_state.squad(*squad_index);
             let leader = self.battle_state.soldier(squad.leader());
-            for sprite in self.graphics.soldier_sprites(leader, Some(&cursor)) {
-                self.graphics.append_soldier_batch(sprite);
-            }
+
+            let sprites =
+                self.graphics
+                    .soldier_sprites(leader, Some(&cursor), &self.gui_state.zoom);
+            self.graphics
+                .soldiers_mut()
+                .extend(&self.gui_state.zoom, sprites);
 
             let cursor_immobile_since =
                 self.gui_state.get_frame_i() - self.gui_state.get_last_cursor_move_frame();
@@ -46,12 +53,14 @@ impl Engine {
                     squad_positions(squad, Formation::Line, leader, Some(cursor))
                 {
                     let soldier = self.battle_state.soldier(member_id);
-                    for sprite in self
-                        .graphics
-                        .soldier_sprites(soldier, Some(&formation_position))
-                    {
-                        self.graphics.append_soldier_batch(sprite);
-                    }
+                    let sprites = self.graphics.soldier_sprites(
+                        soldier,
+                        Some(&formation_position),
+                        &self.gui_state.zoom,
+                    );
+                    self.graphics
+                        .soldiers_mut()
+                        .extend(&self.gui_state.zoom, sprites);
                 }
             }
         }
@@ -81,18 +90,22 @@ impl Engine {
 
     pub fn generate_vehicles_sprites(&mut self) -> GameResult {
         for (i, vehicle) in self.battle_state.vehicles().iter().enumerate() {
-            for sprite in self.graphics.vehicle_sprites(VehicleIndex(i), vehicle) {
-                self.graphics.append_vehicles_batch(sprite);
-            }
+            let sprites =
+                self.graphics
+                    .vehicle_sprites(VehicleIndex(i), vehicle, &self.gui_state.zoom);
+            self.graphics
+                .vehicles_mut()
+                .extend(&self.gui_state.zoom, sprites);
         }
 
         Ok(())
     }
 
     pub fn generate_explosion_sprites(&mut self) -> GameResult {
-        for sprite in self.graphics.explosion_sprites() {
-            self.graphics.append_explosions_batch(sprite);
-        }
+        let sprites = self.graphics.explosion_sprites(&self.gui_state.zoom);
+        self.graphics
+            .explosions_mut()
+            .extend(&self.gui_state.zoom, sprites);
 
         Ok(())
     }
@@ -156,7 +169,8 @@ impl Engine {
 
         for map_background_sprite in map_background_sprites {
             self.graphics
-                .append_map_background_batch(map_background_sprite);
+                .background_mut()
+                .push(&self.gui_state.zoom, map_background_sprite);
         }
 
         for dark_map_background_sprite in dark_map_background_sprites {
@@ -170,7 +184,8 @@ impl Engine {
     }
 
     pub fn generate_battle_map_sprites(&mut self, _draw_decor: bool) -> GameResult {
-        self.graphics.append_map_background_batch(
+        self.graphics.background_mut().push(
+            &self.gui_state.zoom,
             DrawParam::new()
                 .src(Rect::new(0.0, 0.0, 1.0, 1.0))
                 .dest(Vec2::new(0., 0.)),
@@ -284,14 +299,14 @@ impl Engine {
                     draw_params.push(
                         self.graphics
                             .order_marker_draw_params(&pending_order_marker, point, Angle(0.))
-                            .scale(self.gui_state.display_scene_scale.to_vec2()),
+                            .scale(self.gui_state.zoom.to_vec2()),
                     )
                 }
                 let cursor_point = self.gui_state.get_current_cursor_window_point();
                 draw_params.push(
                     self.graphics
                         .order_marker_draw_params(&pending_order_marker, *cursor_point, Angle(0.))
-                        .scale(self.gui_state.display_scene_scale.to_vec2()),
+                        .scale(self.gui_state.zoom.to_vec2()),
                 );
             }
             PendingOrder::Defend(_) | PendingOrder::Hide(_) => {
@@ -309,7 +324,7 @@ impl Engine {
                             Angle::from_points(&to_point, &from_point),
                         )
                         // Defend/Hide sprite are scaled
-                        .scale(self.gui_state.display_scene_scale.to_vec2()),
+                        .scale(self.gui_state.zoom.to_vec2()),
                 )
             }
             PendingOrder::EngageOrFire(_) => {
@@ -365,7 +380,7 @@ impl Engine {
             .graphics
             .order_marker_draw_params(order_marker, point, angle)
             // Defend/Hide sprite must be scaled
-            .scale(self.gui_state.display_scene_scale.to_vec2())]
+            .scale(self.gui_state.zoom.to_vec2())]
     }
 
     pub fn draw_debug_terrain(

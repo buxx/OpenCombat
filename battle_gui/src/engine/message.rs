@@ -7,13 +7,13 @@ use battle_core::{
     config::ChangeConfigMessage,
     order::PendingOrder,
     state::battle::message::BattleStateMessage,
-    types::{Offset, Scale, SoldierIndex, SquadUuid, WindowPoint, WorldPaths, WorldPoint},
+    types::{Offset, SoldierIndex, SquadUuid, WindowPoint, WorldPaths, WorldPoint},
     utils::DebugPoint,
 };
 
 use crate::{
     debug::{DebugPhysics, DebugTerrain},
-    graphics::message::GraphicsMessage,
+    graphics::{message::GraphicsMessage, qualified::Zoom},
 };
 
 use super::{event::UIEvent, input::Control};
@@ -47,7 +47,7 @@ pub enum GuiStateMessage {
     SetDebugPhysics(DebugPhysics),
     PushUIEvent(UIEvent),
     ChangeSide,
-    SetScale(Scale),
+    SetZoom(Zoom),
     SetControl(Control),
     SetDebugGuiHovered(bool),
     SetDisplayDebugGui(bool),

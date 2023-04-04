@@ -325,7 +325,7 @@ impl Engine {
             mesh_builder.circle(
                 DrawMode::stroke(1.0),
                 point.to_vec2(),
-                direct_death_radius * self.gui_state.display_scene_scale.x,
+                direct_death_radius * self.gui_state.zoom.factor(),
                 1.0,
                 RED,
             )?;
@@ -338,7 +338,7 @@ impl Engine {
                     mesh_builder.circle(
                         DrawMode::stroke(1.0),
                         point.to_vec2(),
-                        radius_ * self.gui_state.display_scene_scale.x,
+                        radius_ * self.gui_state.zoom.factor(),
                         1.0,
                         Color {
                             r: 1.0,
@@ -359,7 +359,7 @@ impl Engine {
                     mesh_builder.circle(
                         DrawMode::stroke(1.0),
                         point.to_vec2(),
-                        radius_ * self.gui_state.display_scene_scale.x,
+                        radius_ * self.gui_state.zoom.factor(),
                         1.0,
                         Color {
                             r: 1.0,

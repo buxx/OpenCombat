@@ -67,7 +67,7 @@ pub struct Opt {
 
 fn main() -> Result<(), GuiError> {
     let opt = Opt::from_args();
-    let map_name = "map1";
+    let map_name = "map2";
     let situation_name = "hardcoded";
     let sync_required = Arc::new(AtomicBool::new(true));
     let stop_required = Arc::new(AtomicBool::new(false));
