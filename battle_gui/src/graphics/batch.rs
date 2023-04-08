@@ -27,9 +27,10 @@ pub trait QualifiedBatch<T> {
     }
 
     fn drawable(&self, zoom: &Zoom) -> &T {
-        match zoom {
-            Zoom::In => self.hd(),
-            _ => self.sd(),
+        if zoom.is_hd() {
+            self.hd()
+        } else {
+            self.sd()
         }
     }
 }

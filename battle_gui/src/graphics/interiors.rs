@@ -29,16 +29,18 @@ impl QualifiedBatch<InstanceArray> for Interiors {
     }
 
     fn clear(&mut self, zoom: &Zoom) {
-        match zoom {
-            Zoom::In => self.hd.clear(),
-            _ => self.sd.clear(),
+        if zoom.is_hd() {
+            self.hd.clear()
+        } else {
+            self.sd.clear()
         }
     }
 
     fn push(&mut self, zoom: &Zoom, draw: DrawParam) {
-        match zoom {
-            Zoom::In => self.hd.push(draw),
-            _ => self.sd.push(draw),
+        if zoom.is_hd() {
+            self.hd.push(draw)
+        } else {
+            self.sd.push(draw)
         }
     }
 }
@@ -55,8 +57,8 @@ impl<'a> InteriorsBuilder<'a> {
 
     pub fn build(&self) -> GameResult<Interiors> {
         Ok(Interiors::new(
-            self.build_for(&Zoom::Standard)?,
-            self.build_for(&Zoom::In)?,
+            self.build_for(&Zoom::default())?,
+            self.build_for(&Zoom::hd())?,
         ))
     }
 

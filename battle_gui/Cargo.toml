@@ -4,6 +4,10 @@ version = "0.4.0"
 authors = ["Sevajol Bastien <contact@bux.fr>"]
 edition = "2021"
 
+[features]
+default = ["hd"]
+hd = []
+
 [dependencies]
 oc_core = { path = "../oc_core" }
 battle_core = { path = "../battle_core" }

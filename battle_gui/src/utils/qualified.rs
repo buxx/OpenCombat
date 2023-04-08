@@ -10,19 +10,17 @@ pub trait ToQualified<T, E> {
 
 impl ToQualified<PathBuf, PathQualificationError> for PathBuf {
     fn to_qualified(&self, zoom: &Zoom) -> Result<PathBuf, PathQualificationError> {
-        match zoom {
-            Zoom::In => Ok(self
-                .parent()
-                .ok_or_else(|| PathQualificationError::NoParent(self.clone()))?
-                .join(format!(
-                    "{}__HD.png",
-                    self.file_stem()
-                        .ok_or_else(|| PathQualificationError::NoStem(self.clone()))?
-                        .to_str()
-                        .ok_or_else(|| PathQualificationError::Unexpected(self.clone()))?
-                ))),
-            _ => Ok(self.clone()),
-        }
+        Ok(self
+            .parent()
+            .ok_or_else(|| PathQualificationError::NoParent(self.clone()))?
+            .join(format!(
+                "{}{}.png",
+                self.file_stem()
+                    .ok_or_else(|| PathQualificationError::NoStem(self.clone()))?
+                    .to_str()
+                    .ok_or_else(|| PathQualificationError::Unexpected(self.clone()))?,
+                zoom.suffix()
+            )))
     }
 }
 
