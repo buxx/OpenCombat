@@ -40,6 +40,9 @@ use structopt::StructOpt;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "basic")]
 pub struct Opt {
+    #[structopt()]
+    map_name: String,
+
     #[structopt(long = "--embedded-server")]
     embedded_server: bool,
 
@@ -67,7 +70,7 @@ pub struct Opt {
 
 fn main() -> Result<(), GuiError> {
     let opt = Opt::from_args();
-    let map_name = "map2";
+    let map_name = &opt.map_name;
     let situation_name = "hardcoded";
     let sync_required = Arc::new(AtomicBool::new(true));
     let stop_required = Arc::new(AtomicBool::new(false));

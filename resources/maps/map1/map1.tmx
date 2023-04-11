@@ -4,7 +4,7 @@
  <tileset firstgid="2001" source="trees_64x64.tsx"/>
  <tileset firstgid="2010" source="trees_32x32.tsx"/>
  <imagelayer id="2" name="background_image">
-  <image source="map1bg.png" width="560" height="320"/>
+  <image source="map1.png" width="560" height="320"/>
  </imagelayer>
  <imagelayer id="6" name="interiors_image">
   <image source="interiors.png" width="560" height="320"/>

@@ -28,6 +28,7 @@ pub enum EngineMessage {
     LoadFromSave(PathBuf),
     TryLoadLastSave,
     MakeASave,
+    UpdateInteriors,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

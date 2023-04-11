@@ -52,7 +52,10 @@ impl Engine {
                                 interior.relative_width(),
                                 interior.relative_height(),
                             ))
-                            .dest(WorldPoint::new(start_x, start_y).to_vec2()),
+                            .dest(
+                                WorldPoint::new(start_x, start_y).to_vec2()
+                                    * self.gui_state.zoom.factor(),
+                            ),
                     );
                     continue;
                 }

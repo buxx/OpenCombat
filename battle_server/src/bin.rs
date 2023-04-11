@@ -15,6 +15,9 @@ use battle_server::runner::{Runner, RunnerError};
 #[derive(StructOpt, Debug)]
 #[structopt(name = "basic")]
 pub struct Opt {
+    #[structopt()]
+    map_name: String,
+
     #[structopt(long = "rep-address")]
     rep_address: String,
 
@@ -34,7 +37,7 @@ fn main() -> Result<(), Error> {
     let stop_required = Arc::new(AtomicBool::new(false));
     let opt = Opt::from_args();
     let resources = PathBuf::from("./resources");
-    let map_name = "map1";
+    let map_name = &opt.map_name;
     let situation = "hardcode";
 
     let _puffin_server = if opt.profile {

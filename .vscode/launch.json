@@ -7,7 +7,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Server (standalone)",
+            "name": "Server (standalone) map1",
             "cargo": {
                 "args": [
                     "build",
@@ -20,6 +20,7 @@
                 }
             },
             "args": [
+                "map1",
                 "--rep-address",
                 "tcp://0.0.0.0:4255",
                 "--bind-address",
@@ -33,7 +34,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Server (standalone) --realease",
+            "name": "Server (standalone) map1 --realease",
             "cargo": {
                 "args": [
                     "build",
@@ -47,6 +48,7 @@
                 }
             },
             "args": [
+                "map1",
                 "--rep-address",
                 "tcp://0.0.0.0:4255",
                 "--bind-address",
@@ -60,7 +62,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Gui (server embedded)",
+            "name": "Gui (server embedded) map1",
             "cargo": {
                 "args": [
                     "build",
@@ -73,6 +75,7 @@
                 }
             },
             "args": [
+                "map1",
                 "--embedded-server",
                 "--server-rep-address",
                 "tcp://0.0.0.0:4255",
@@ -98,7 +101,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Gui (server embedded) --release",
+            "name": "Gui (server embedded) map1 --release",
             "cargo": {
                 "args": [
                     "build",
@@ -112,6 +115,7 @@
                 }
             },
             "args": [
+                "map1",
                 "--embedded-server",
                 "--server-rep-address",
                 "tcp://0.0.0.0:4255",
@@ -137,41 +141,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Gui a",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=battle_gui",
-                    "--package=battle_gui"
-                ],
-                "filter": {
-                    "name": "battle_gui",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                "--server-rep-address",
-                "tcp://0.0.0.0:4255",
-                "--server-bind-address",
-                "tcp://0.0.0.0:4256",
-                "--side",
-                "a",
-                "--side-a-control",
-                "W",
-                "--side-a-control",
-                "NW",
-                "--side-a-control",
-                "SW",
-            ],
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "RUST_BACKTRACE": "1"
-            }
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Gui a --release",
+            "name": "Gui (server embedded) map2 --release",
             "cargo": {
                 "args": [
                     "build",
@@ -185,6 +155,46 @@
                 }
             },
             "args": [
+                "map1",
+                "--embedded-server",
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "a",
+                "--side-a-control",
+                "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
+                "--side-b-control",
+                "ALL",
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG": "DEBUG"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Gui a map1",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "map1",
                 "--server-rep-address",
                 "tcp://0.0.0.0:4255",
                 "--server-bind-address",
@@ -206,7 +216,43 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Gui b",
+            "name": "Gui a map1 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "map1",
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "a",
+                "--side-a-control",
+                "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Gui b map1",
             "cargo": {
                 "args": [
                     "build",
@@ -219,6 +265,7 @@
                 }
             },
             "args": [
+                "map1",
                 "--server-rep-address",
                 "tcp://0.0.0.0:4255",
                 "--server-bind-address",

@@ -6,14 +6,12 @@ use serde_derive::{Deserialize, Serialize};
 pub enum Zoom {
     In,
     Standard,
-    Out,
 }
 
 #[cfg(not(feature = "hd"))]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Zoom {
     Standard,
-    Out,
 }
 
 impl Zoom {
@@ -38,14 +36,12 @@ impl Zoom {
             match self {
                 Zoom::In => 3.0,
                 Zoom::Standard => 1.0,
-                Zoom::Out => -5.0,
             }
         }
         #[cfg(not(feature = "hd"))]
         {
             match self {
                 Zoom::Standard => 1.0,
-                Zoom::Out => -5.0,
             }
         }
     }
@@ -60,14 +56,12 @@ impl Zoom {
             match self {
                 Zoom::In => Zoom::In,
                 Zoom::Standard => Zoom::In,
-                Zoom::Out => Zoom::Standard,
             }
         }
         #[cfg(not(feature = "hd"))]
         {
             match self {
                 Zoom::Standard => Zoom::Standard,
-                Zoom::Out => Zoom::Standard,
             }
         }
     }
@@ -77,15 +71,13 @@ impl Zoom {
         {
             match self {
                 Zoom::In => Zoom::Standard,
-                Zoom::Standard => Zoom::Out,
-                Zoom::Out => Zoom::Out,
+                Zoom::Standard => Zoom::Standard,
             }
         }
         #[cfg(not(feature = "hd"))]
         {
             match self {
-                Zoom::Standard => Zoom::Out,
-                Zoom::Out => Zoom::Out,
+                Zoom::Standard => Zoom::Standard,
             }
         }
     }

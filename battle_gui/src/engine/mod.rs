@@ -144,9 +144,8 @@ impl EventHandler<ggez::GameError> for Engine {
             .build();
 
         self.graphics.clear(&self.gui_state.zoom);
-        let scene_draw = graphics::DrawParam::new()
-            .dest(self.gui_state.display_scene_offset.to_vec2())
-            .scale(self.gui_state.zoom.to_vec2());
+        let dest = graphics::DrawParam::new().dest(self.gui_state.display_scene_offset.to_vec2());
+        let scale = dest.clone().scale(self.gui_state.zoom.to_vec2());
         let decor = self.gui_state.draw_decor;
 
         // Draw entire scene
@@ -154,23 +153,13 @@ impl EventHandler<ggez::GameError> for Engine {
         self.generate_soldiers_sprites()?;
         self.generate_vehicles_sprites()?;
         self.generate_explosion_sprites()?;
-        self.graphics.draw_map(
-            &mut canvas,
-            graphics::DrawParam::new().dest(self.gui_state.display_scene_offset.to_vec2()),
-            &self.gui_state.zoom,
-        )?;
-        self.draw_debug_terrain(ctx, &mut canvas, scene_draw)?;
-        self.graphics.draw_units(
-            &mut canvas,
-            graphics::DrawParam::new().dest(self.gui_state.display_scene_offset.to_vec2()),
-            &self.gui_state.zoom,
-        )?;
-        self.graphics.draw_decor(
-            &mut canvas,
-            decor,
-            graphics::DrawParam::new().dest(self.gui_state.display_scene_offset.to_vec2()),
-            &self.gui_state.zoom,
-        )?;
+        self.graphics
+            .draw_map(&mut canvas, dest, &self.gui_state.zoom)?;
+        self.draw_debug_terrain(ctx, &mut canvas, scale)?;
+        self.graphics
+            .draw_units(&mut canvas, dest, &self.gui_state.zoom)?;
+        self.graphics
+            .draw_decor(&mut canvas, decor, dest, &self.gui_state.zoom)?;
 
         // Draw ui
         let mut mesh_builder = MeshBuilder::new();

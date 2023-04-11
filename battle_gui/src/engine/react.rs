@@ -92,6 +92,9 @@ impl Engine {
                         }
                     }
                 }
+                EngineMessage::UpdateInteriors => {
+                    self.update_interior_sprites();
+                }
             }
         }
 

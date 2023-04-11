@@ -377,6 +377,7 @@ impl Engine {
             let new_offset_y = -(world_point.y * zoom.factor()) + half_screen_height;
 
             messages.push(EngineMessage::GuiState(GuiStateMessage::SetZoom(zoom)));
+            messages.push(EngineMessage::UpdateInteriors);
             messages.push(EngineMessage::GuiState(
                 GuiStateMessage::SetDisplaySceneOffset(Offset::new(new_offset_x, new_offset_y)),
             ));
