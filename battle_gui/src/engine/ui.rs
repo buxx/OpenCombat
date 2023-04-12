@@ -32,7 +32,6 @@ impl Engine {
     pub fn generate_selected_entities_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
         for squad_uuid in &self.gui_state.selected_squads().1 {
             for soldier_index in self.battle_state.squad(*squad_uuid).members() {
-                let zoom = &self.gui_state.zoom;
                 let soldier = self.battle_state.soldier(*soldier_index);
                 let point = self
                     .gui_state
