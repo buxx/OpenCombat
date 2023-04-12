@@ -155,7 +155,7 @@
                 }
             },
             "args": [
-                "map1",
+                "map2",
                 "--embedded-server",
                 "--server-rep-address",
                 "tcp://0.0.0.0:4255",
