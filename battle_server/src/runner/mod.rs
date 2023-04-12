@@ -15,6 +15,7 @@ use std::{
 };
 
 mod behavior;
+mod engage;
 mod fight;
 mod gesture;
 mod input;

@@ -54,7 +54,7 @@ impl Runner {
             Behavior::SuppressFire(_) => {
                 vec![]
             }
-            Behavior::EngageSoldier(_) => vec![],
+            Behavior::EngageSoldier(target) => self.engage_update(&soldier_index, target),
             Behavior::Dead => vec![],
             Behavior::Unconscious => vec![],
         });
