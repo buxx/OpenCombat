@@ -354,8 +354,7 @@ impl Engine {
 
     pub fn collect_mouse_wheel(&self, ctx: &mut Context, _x: f32, y: f32) -> Vec<EngineMessage> {
         let mut messages = vec![];
-
-        if !self.gui_state.debug_gui_hovered && !self.gui_state.cursor_in_hud() {
+        if y != 0. && !self.gui_state.debug_gui_hovered && !self.gui_state.cursor_in_hud() {
             let zoom = if y > 0. {
                 self.gui_state.zoom.next()
             } else {
