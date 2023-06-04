@@ -36,6 +36,14 @@ pub const TILE_TYPE_OPACITY_DIRT: f32 = 0.0;
 pub const TILE_TYPE_OPACITY_CONCRETE: f32 = 0.0;
 pub const TILE_TYPE_OPACITY_MUD: f32 = 0.02;
 pub const TILE_TYPE_OPACITY_BRICK_WALL: f32 = 1.0;
+pub const TILE_TYPE_OPACITY_TRUNK: f32 = 0.7;
+pub const TILE_TYPE_OPACITY_WATER: f32 = 0.0;
+pub const TILE_TYPE_OPACITY_DEEP_WATER: f32 = 0.0;
+pub const TILE_TYPE_OPACITY_UNDERBRUSH: f32 = 0.05;
+pub const TILE_TYPE_OPACITY_LIGHT_UNDERBRUSH: f32 = 0.025;
+pub const TILE_TYPE_OPACITY_MIDDLE_WOOD_LOGS: f32 = 0.5;
+pub const TILE_TYPE_OPACITY_HEDGE: f32 = 0.5;
+pub const TILE_TYPE_OPACITY_MIDDLE_ROCK: f32 = 0.3;
 //
 pub const VISIBILITY_BY_LAST_FRAME_SHOOT: u64 = 180;
 pub const VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE: usize = 4;
@@ -104,6 +112,14 @@ pub struct ServerConfig {
     pub tile_type_opacity_concrete: f32,
     pub tile_type_opacity_mud: f32,
     pub tile_type_opacity_brick_wall: f32,
+    pub tile_type_opacity_trunk: f32,
+    pub tile_type_opacity_water: f32,
+    pub tile_type_opacity_deep_water: f32,
+    pub tile_type_opacity_underbrush: f32,
+    pub tile_type_opacity_light_underbrush: f32,
+    pub tile_type_opacity_middle_wood_logs: f32,
+    pub tile_type_opacity_hedge: f32,
+    pub tile_type_opacity_middle_rock: f32,
     pub visibility_by_last_frame_shoot: u64,
     pub visibility_by_last_frame_shoot_distance: usize,
     pub explosive_direct_death_rayon: HashMap<ExplosiveType, Distance>,
@@ -168,6 +184,14 @@ impl ServerConfig {
             tile_type_opacity_concrete: TILE_TYPE_OPACITY_CONCRETE,
             tile_type_opacity_mud: TILE_TYPE_OPACITY_MUD,
             tile_type_opacity_brick_wall: TILE_TYPE_OPACITY_BRICK_WALL,
+            tile_type_opacity_trunk: TILE_TYPE_OPACITY_TRUNK,
+            tile_type_opacity_water: TILE_TYPE_OPACITY_WATER,
+            tile_type_opacity_deep_water: TILE_TYPE_OPACITY_DEEP_WATER,
+            tile_type_opacity_underbrush: TILE_TYPE_OPACITY_UNDERBRUSH,
+            tile_type_opacity_light_underbrush: TILE_TYPE_OPACITY_LIGHT_UNDERBRUSH,
+            tile_type_opacity_middle_wood_logs: TILE_TYPE_OPACITY_MIDDLE_WOOD_LOGS,
+            tile_type_opacity_hedge: TILE_TYPE_OPACITY_HEDGE,
+            tile_type_opacity_middle_rock: TILE_TYPE_OPACITY_MIDDLE_ROCK,
 
             explosive_direct_death_rayon,
             explosive_regressive_death_rayon,
@@ -242,6 +266,14 @@ impl ServerConfig {
             TileType::Concrete => self.tile_type_opacity_concrete,
             TileType::Mud => self.tile_type_opacity_mud,
             TileType::BrickWall => self.tile_type_opacity_brick_wall,
+            TileType::Trunk => self.tile_type_opacity_trunk,
+            TileType::Water => self.tile_type_opacity_water,
+            TileType::DeepWater => self.tile_type_opacity_deep_water,
+            TileType::Underbrush => self.tile_type_opacity_underbrush,
+            TileType::LightUnderbrush => self.tile_type_opacity_light_underbrush,
+            TileType::MiddleWoodLogs => self.tile_type_opacity_middle_wood_logs,
+            TileType::Hedge => self.tile_type_opacity_hedge,
+            TileType::MiddleRock => self.tile_type_opacity_middle_rock,
         }
     }
 
@@ -274,6 +306,14 @@ impl ServerConfig {
             ChangeConfigMessage::TileTypeOpacityConcrete(v) => self.tile_type_opacity_concrete = *v,
             ChangeConfigMessage::TileTypeOpacityMud(v) => self.tile_type_opacity_mud = *v,
             ChangeConfigMessage::TileTypeOpacityBrickWall(v) => self.tile_type_opacity_brick_wall = *v,
+            ChangeConfigMessage::TileTypeOpacityTrunk(v) => self.tile_type_opacity_trunk = *v,
+            ChangeConfigMessage::TileTypeOpacityWater(v) => self.tile_type_opacity_water = *v,
+            ChangeConfigMessage::TileTypeOpacityDeepWater(v) => self.tile_type_opacity_deep_water = *v,
+            ChangeConfigMessage::TileTypeOpacityUnderbrush(v) => self.tile_type_opacity_underbrush = *v,
+            ChangeConfigMessage::TileTypeOpacityLightUnderbrush(v) => self.tile_type_opacity_light_underbrush = *v,
+            ChangeConfigMessage::TileTypeOpacityMiddleWoodLogs(v) => self.tile_type_opacity_middle_wood_logs = *v,
+            ChangeConfigMessage::TileTypeOpacityHedge(v) => self.tile_type_opacity_hedge = *v,
+            ChangeConfigMessage::TileTypeOpacityMiddleRock(v) => self.tile_type_opacity_middle_rock = *v,
             ChangeConfigMessage::VisibilityByLastFrameShot(v) => self.visibility_by_last_frame_shoot = *v,
             ChangeConfigMessage::VisibilityByLastFrameShotDistance(v) => self.visibility_by_last_frame_shoot_distance = *v,
             ChangeConfigMessage::ExplosiveDirectDeathRayon(explosive, new_distance) => {
@@ -337,6 +377,14 @@ pub enum ChangeConfigMessage {
     TileTypeOpacityConcrete(f32),
     TileTypeOpacityMud(f32),
     TileTypeOpacityBrickWall(f32),
+    TileTypeOpacityTrunk(f32),
+    TileTypeOpacityWater(f32),
+    TileTypeOpacityDeepWater(f32),
+    TileTypeOpacityUnderbrush(f32),
+    TileTypeOpacityLightUnderbrush(f32),
+    TileTypeOpacityMiddleWoodLogs(f32),
+    TileTypeOpacityHedge(f32),
+    TileTypeOpacityMiddleRock(f32),
     VisibilityByLastFrameShot(u64),
     VisibilityByLastFrameShotDistance(usize),
     ExplosiveDirectDeathRayon(ExplosiveType, Distance),

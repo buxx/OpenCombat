@@ -4,12 +4,16 @@ use ggez::Context;
 use battle_core::config::{
     ChangeConfigMessage, FEELING_DECREASING_FREQ, INTERIORS_UPDATE_FREQ, SOLDIER_ANIMATE_FREQ,
     SOLDIER_UPDATE_FREQ, TARGET_FPS, TILE_TYPE_OPACITY_BRICK_WALL, TILE_TYPE_OPACITY_CONCRETE,
-    TILE_TYPE_OPACITY_DIRT, TILE_TYPE_OPACITY_HIGH_GRASS, TILE_TYPE_OPACITY_MIDDLE_GRASS,
-    TILE_TYPE_OPACITY_MUD, TILE_TYPE_OPACITY_SHORT_GRASS, VISIBILITY_BY_LAST_FRAME_SHOOT,
-    VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE, VISIBILITY_DEAD_MODIFIER, VISIBILITY_DEFEND_MODIFIER,
-    VISIBILITY_ENGAGE_MODIFIER, VISIBILITY_FIRSTS, VISIBILITY_HIDE_MODIFIER,
-    VISIBILITY_IDLE_MODIFIER, VISIBILITY_IN_VEHICLE_MODIFIER, VISIBILITY_MOVE_FAST_TO_MODIFIER,
-    VISIBILITY_MOVE_TO_MODIFIER, VISIBILITY_SNEAK_TO_MODIFIER, VISIBILITY_SUPPRESS_FIRE_MODIFIER,
+    TILE_TYPE_OPACITY_DEEP_WATER, TILE_TYPE_OPACITY_DIRT, TILE_TYPE_OPACITY_HEDGE,
+    TILE_TYPE_OPACITY_HIGH_GRASS, TILE_TYPE_OPACITY_LIGHT_UNDERBRUSH,
+    TILE_TYPE_OPACITY_MIDDLE_GRASS, TILE_TYPE_OPACITY_MIDDLE_ROCK,
+    TILE_TYPE_OPACITY_MIDDLE_WOOD_LOGS, TILE_TYPE_OPACITY_MUD, TILE_TYPE_OPACITY_SHORT_GRASS,
+    TILE_TYPE_OPACITY_TRUNK, TILE_TYPE_OPACITY_UNDERBRUSH, TILE_TYPE_OPACITY_WATER,
+    VISIBILITY_BY_LAST_FRAME_SHOOT, VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE,
+    VISIBILITY_DEAD_MODIFIER, VISIBILITY_DEFEND_MODIFIER, VISIBILITY_ENGAGE_MODIFIER,
+    VISIBILITY_FIRSTS, VISIBILITY_HIDE_MODIFIER, VISIBILITY_IDLE_MODIFIER,
+    VISIBILITY_IN_VEHICLE_MODIFIER, VISIBILITY_MOVE_FAST_TO_MODIFIER, VISIBILITY_MOVE_TO_MODIFIER,
+    VISIBILITY_SNEAK_TO_MODIFIER, VISIBILITY_SUPPRESS_FIRE_MODIFIER,
     VISIBILITY_UNCONSCIOUS_MODIFIER, VISIBILITY_UPDATE_FREQ, VISIBLE_STARTS_AT,
 };
 
@@ -288,8 +292,56 @@ impl Engine {
                         TILE_TYPE_OPACITY_BRICK_WALL,
                         ChangeConfigMessage::TileTypeOpacityBrickWall,
                     ),
+                    (
+                        "TRUNK",
+                        &mut self.server_config.tile_type_opacity_trunk,
+                        TILE_TYPE_OPACITY_TRUNK,
+                        ChangeConfigMessage::TileTypeOpacityTrunk,
+                    ),
+                    (
+                        "WATER",
+                        &mut self.server_config.tile_type_opacity_water,
+                        TILE_TYPE_OPACITY_WATER,
+                        ChangeConfigMessage::TileTypeOpacityWater,
+                    ),
+                    (
+                        "DEEP_WATER",
+                        &mut self.server_config.tile_type_opacity_deep_water,
+                        TILE_TYPE_OPACITY_DEEP_WATER,
+                        ChangeConfigMessage::TileTypeOpacityDeepWater,
+                    ),
+                    (
+                        "UNDERBRUSH",
+                        &mut self.server_config.tile_type_opacity_underbrush,
+                        TILE_TYPE_OPACITY_UNDERBRUSH,
+                        ChangeConfigMessage::TileTypeOpacityUnderbrush,
+                    ),
+                    (
+                        "LIGHT_UNDERBRUSH",
+                        &mut self.server_config.tile_type_opacity_light_underbrush,
+                        TILE_TYPE_OPACITY_LIGHT_UNDERBRUSH,
+                        ChangeConfigMessage::TileTypeOpacityLightUnderbrush,
+                    ),
+                    (
+                        "MIDDLE_WOOD_LOGS",
+                        &mut self.server_config.tile_type_opacity_middle_wood_logs,
+                        TILE_TYPE_OPACITY_MIDDLE_WOOD_LOGS,
+                        ChangeConfigMessage::TileTypeOpacityMiddleWoodLogs,
+                    ),
+                    (
+                        "HEDGE",
+                        &mut self.server_config.tile_type_opacity_hedge,
+                        TILE_TYPE_OPACITY_HEDGE,
+                        ChangeConfigMessage::TileTypeOpacityHedge,
+                    ),
+                    (
+                        "MIDDLE_ROCK",
+                        &mut self.server_config.tile_type_opacity_middle_rock,
+                        TILE_TYPE_OPACITY_MIDDLE_ROCK,
+                        ChangeConfigMessage::TileTypeOpacityMiddleRock,
+                    ),
                 ]
-                    as [(_, _, _, fn(_) -> _); 7]
+                    as [(_, _, _, fn(_) -> _); 15]
                 {
                     ui.label(format!("TILE_TYPE_OPACITY_{}", name));
                     if ui.button("reset").clicked() {
