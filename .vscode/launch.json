@@ -141,7 +141,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Gui (server embedded) map2 --release",
+            "name": "Gui (server embedded) Demo1 --release",
             "cargo": {
                 "args": [
                     "build",
@@ -155,7 +155,7 @@
                 }
             },
             "args": [
-                "map2",
+                "Demo1",
                 "--embedded-server",
                 "--server-rep-address",
                 "tcp://0.0.0.0:4255",
