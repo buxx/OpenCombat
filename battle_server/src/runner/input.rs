@@ -22,6 +22,9 @@ impl Runner {
             let mut side_effects = vec![];
             for input in inputs {
                 match input {
+                    InputMessage::LoadDeployment(deployment) => {
+                        self.battle_state.inject(&deployment)
+                    }
                     InputMessage::RequireCompleteSync => {
                         self.output
                             .send(vec![OutputMessage::LoadFromCopy(self.battle_state.copy())])?;

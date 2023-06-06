@@ -6,4 +6,5 @@ members = [
     "battle_core",
     "battle_server",
     "battle_gui",
+    "battle_tools",
 ]

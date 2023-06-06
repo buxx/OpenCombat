@@ -1,5 +1,6 @@
 use crate::{
     behavior::{feeling::Feeling, gesture::Gesture, Behavior},
+    deployment::SoldierDeployment,
     game::{
         weapon::{Magazine, Weapon},
         Side,
@@ -233,6 +234,19 @@ impl Soldier {
         if let Some(weapon) = self.weapon_mut(class) {
             weapon.shot();
         }
+    }
+}
+
+impl From<&SoldierDeployment> for Soldier {
+    fn from(soldier: &SoldierDeployment) -> Self {
+        Self::new(
+            soldier.uuid().clone(),
+            soldier.world_point().clone(),
+            soldier.squad_uuid().clone(),
+            soldier.side().clone(),
+            soldier.main_weapon().cloned(),
+            soldier.magazines().clone().to_vec(),
+        )
     }
 }
 

@@ -1,8 +1,6 @@
-use crate::{
-    entity::{
-        soldier::Soldier,
-        vehicle::{OnBoardPlace, Vehicle, VehicleType},
-    },
+use battle_core::{
+    deployment::{Deployment, SoldierDeployment, VehicleDeployment},
+    entity::vehicle::{OnBoardPlace, VehicleType},
     game::{
         weapon::{Magazine, Weapon},
         Side,
@@ -12,7 +10,7 @@ use crate::{
 };
 use glam::Vec2;
 
-pub fn situation() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) {
+pub fn demo1_deployment() -> Deployment {
     let mut soldiers = vec![];
     let mut vehicles = vec![];
     let mut boards = SoldiersOnBoard::new();
@@ -23,11 +21,11 @@ pub fn situation() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) {
         for y in 0..5 {
             // let x: f32 = rng.gen_range(0.0..800.0);
             // let y: f32 = rng.gen_range(0.0..800.0);
-            let soldier = Soldier::new(
+            let soldier = SoldierDeployment::new(
                 SoldierIndex(soldiers_index),
+                Side::A,
                 WorldPoint::from(Vec2::new(x as f32 * 10. + 20.0, y as f32 * 10. + 100.)),
                 SquadUuid(squad),
-                Side::A,
                 Some(Weapon::MosinNagantM1924(
                     false,
                     Some(Magazine::full(Magazine::MosinNagant(0))),
@@ -47,11 +45,11 @@ pub fn situation() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) {
         for y in 0..5 {
             // let x: f32 = rng.gen_range(0.0..800.0);
             // let y: f32 = rng.gen_range(0.0..800.0);
-            let soldier = Soldier::new(
+            let soldier = SoldierDeployment::new(
                 SoldierIndex(soldiers_index),
+                Side::B,
                 WorldPoint::from(Vec2::new(x as f32 * 10. + 550., y as f32 * 10. + 250.)),
                 SquadUuid(squad),
-                Side::B,
                 Some(Weapon::MosinNagantM1924(
                     false,
                     Some(Magazine::full(Magazine::MosinNagant(0))),
@@ -66,7 +64,7 @@ pub fn situation() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) {
         }
     }
 
-    let tank = Vehicle::new(
+    let tank = VehicleDeployment::new(
         VehicleIndex(0),
         VehicleType::T26,
         WorldPoint::from(Vec2::new(100., 100.)),
@@ -74,11 +72,11 @@ pub fn situation() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) {
     vehicles.push(tank);
 
     let tank1_squad = utils::new_squad_uuid();
-    let tank_driver = Soldier::new(
+    let tank_driver = SoldierDeployment::new(
         SoldierIndex(soldiers_index),
+        Side::A,
         WorldPoint::from(Vec2::new(0., 0.)),
         SquadUuid(tank1_squad),
-        Side::A,
         None,
         vec![],
     );
@@ -88,11 +86,11 @@ pub fn situation() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) {
         SoldierIndex(soldiers.len() - 1),
         (VehicleIndex(vehicles.len() - 1), OnBoardPlace::Driver),
     );
-    let tank_gunner = Soldier::new(
+    let tank_gunner = SoldierDeployment::new(
         SoldierIndex(soldiers_index),
+        Side::A,
         WorldPoint::from(Vec2::new(0., 0.)),
         SquadUuid(tank1_squad),
-        Side::A,
         None,
         vec![],
     );
@@ -105,5 +103,5 @@ pub fn situation() -> (Vec<Soldier>, Vec<Vehicle>, SoldiersOnBoard) {
         ),
     );
 
-    (soldiers, vehicles, boards)
+    Deployment::from((soldiers, vehicles, boards))
 }

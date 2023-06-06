@@ -9,8 +9,6 @@ use crate::{
     types::SoldiersOnBoard,
 };
 
-use crate::hardcode;
-
 use super::{phase::Phase, BattleState};
 
 pub struct BattleStateBuilder {
@@ -49,16 +47,6 @@ impl BattleStateBuilder {
             vehicles: vec![],
             soldier_on_board: HashMap::new(),
         })
-    }
-
-    pub fn situation(mut self, _name: &str) -> Self {
-        // TODO : hardcoded for nom, later, will a description file
-        let (soldiers, vehicles, soldier_on_board) = hardcode::situation();
-        self.soldiers = soldiers;
-        self.vehicles = vehicles;
-        self.soldier_on_board = soldier_on_board;
-
-        self
     }
 
     pub fn build(&self) -> BattleState {

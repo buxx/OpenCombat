@@ -41,5 +41,8 @@
                 "uuids",
                 "winit",
                 "zeromq"
+        ],
+        "rust-analyzer.linkedProjects": [
+                "./battle_tools/Cargo.toml"
         ]
 }

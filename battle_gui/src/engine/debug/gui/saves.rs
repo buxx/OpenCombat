@@ -31,6 +31,14 @@ impl Engine {
                         }
                     }
                 }
+                if ui.button("Make a deployment file").clicked() {
+                    match self.save_deployment() {
+                        Err(error) => {
+                            eprintln!("Error happen during making deployment : {}", error)
+                        }
+                        _ => {}
+                    }
+                }
                 ui.end_row();
 
                 for save_path in self.gui_state.saves() {

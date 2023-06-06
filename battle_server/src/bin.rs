@@ -38,7 +38,6 @@ fn main() -> Result<(), Error> {
     let opt = Opt::from_args();
     let resources = PathBuf::from("./resources");
     let map_name = &opt.map_name;
-    let situation = "hardcode";
 
     let _puffin_server = if opt.profile {
         let puffin_server = puffin_http::Server::new(&opt.profile_address).unwrap();
@@ -62,9 +61,7 @@ fn main() -> Result<(), Error> {
 
     let stop_required_ = stop_required.clone();
     let config = ServerConfig::new();
-    let battle_state = BattleStateBuilder::new(map_name, &resources)?
-        .situation(situation)
-        .build();
+    let battle_state = BattleStateBuilder::new(map_name, &resources)?.build();
     let mut runner = Runner::new(
         config,
         server_input_receiver,

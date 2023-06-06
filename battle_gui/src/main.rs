@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
@@ -5,6 +6,8 @@ use battle_core::config::GuiConfig;
 use battle_core::config::ServerConfig;
 use battle_core::config::DEFAULT_SERVER_PUB_ADDRESS;
 use battle_core::config::DEFAULT_SERVER_REP_ADDRESS;
+use battle_core::deployment::DeploymentReader;
+use battle_core::deployment::DeploymentReaderError;
 use battle_core::game::Side;
 use battle_core::map::reader::MapReader;
 use battle_core::map::reader::MapReaderError;
@@ -43,6 +46,9 @@ pub struct Opt {
     #[structopt()]
     map_name: String,
 
+    #[structopt(parse(from_os_str))]
+    deployment: PathBuf,
+
     #[structopt(long = "--embedded-server")]
     embedded_server: bool,
 
@@ -70,8 +76,7 @@ pub struct Opt {
 
 fn main() -> Result<(), GuiError> {
     let opt = Opt::from_args();
-    let map_name = &opt.map_name;
-    let situation_name = "hardcoded";
+    let map_name: &String = &opt.map_name;
     let sync_required = Arc::new(AtomicBool::new(true));
     let stop_required = Arc::new(AtomicBool::new(false));
     let resources = Resources::new()?.ensure()?;
@@ -97,7 +102,6 @@ fn main() -> Result<(), GuiError> {
             stop_required.clone(),
         )
         .map_name(map_name)
-        .situation_name(situation_name)
         .server_rep_address(&opt.server_rep_address)
         .server_pub_address(&opt.server_pub_address)
         .start()?;
@@ -121,12 +125,18 @@ fn main() -> Result<(), GuiError> {
         (input_sender, output_receiver)
     };
 
+    let deployment = DeploymentReader::from_file(&opt.deployment)?;
+
     let ready_message = if &opt.side == &Side::A {
         InputMessage::BattleState(BattleStateMessage::SetAConnected(true))
     } else {
         InputMessage::BattleState(BattleStateMessage::SetBConnected(true))
     };
-    input_sender.send(vec![InputMessage::RequireCompleteSync, ready_message])?;
+    input_sender.send(vec![
+        InputMessage::LoadDeployment(deployment),
+        InputMessage::RequireCompleteSync,
+        ready_message,
+    ])?;
 
     let mut context_builder = ggez::ContextBuilder::new("Open Combat", "Bastien Sevajol")
         .window_mode(
@@ -169,6 +179,8 @@ fn main() -> Result<(), GuiError> {
 enum GuiError {
     #[error("Resource load error : {0}")]
     Resources(ResourcesError),
+    #[error("Deployment load error : {0}")]
+    Deployment(DeploymentReaderError),
     #[error("Error during map load : {0}")]
     MapReader(MapReaderError),
     #[error("Running error : {0}")]
@@ -214,5 +226,11 @@ impl From<EmbeddedServerError> for GuiError {
 impl From<ResourcesError> for GuiError {
     fn from(error: ResourcesError) -> Self {
         Self::Resources(error)
+    }
+}
+
+impl From<DeploymentReaderError> for GuiError {
+    fn from(error: DeploymentReaderError) -> Self {
+        Self::Deployment(error)
     }
 }

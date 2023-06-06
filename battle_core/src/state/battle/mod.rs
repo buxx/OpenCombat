@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
+    deployment::Deployment,
     entity::{soldier::Soldier, vehicle::Vehicle},
     game::Side,
     graphics::vehicle::VehicleGraphicInfos,
@@ -194,7 +195,7 @@ impl BattleState {
         self.explosions.as_ref()
     }
 
-    pub fn _soldier_on_board(&self) -> &SoldiersOnBoard {
+    pub fn soldier_on_board(&self) -> &SoldiersOnBoard {
         &self.soldier_on_board
     }
 
@@ -259,6 +260,17 @@ impl BattleState {
         };
 
         vec![]
+    }
+
+    pub fn inject(&mut self, deployment: &Deployment) {
+        for soldier_deployment in deployment.soldiers() {
+            self.soldiers.push(Soldier::from(soldier_deployment))
+        }
+        for vehicle_deployment in deployment.vehicles() {
+            self.vehicles.push(Vehicle::from(vehicle_deployment))
+        }
+        self.soldier_on_board = deployment.boards().clone();
+        self.resolve();
     }
 
     pub fn debug_lines(&self) -> Vec<(String, String)> {

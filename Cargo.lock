@@ -225,8 +225,10 @@ dependencies = [
  "rand",
  "serde",
  "serde_derive",
+ "serde_json",
  "strum",
  "strum_macros",
+ "thiserror",
  "tiled",
  "zmq",
 ]
@@ -255,6 +257,7 @@ dependencies = [
  "rayon",
  "serde",
  "serde_derive",
+ "serde_json",
  "structopt",
  "strum",
  "strum_macros",
@@ -276,6 +279,19 @@ dependencies = [
  "rayon",
  "serde",
  "serde_derive",
+ "structopt",
+]
+
+[[package]]
+name = "battle_tools"
+version = "0.1.0"
+dependencies = [
+ "battle_core",
+ "glam",
+ "oc_core",
+ "serde",
+ "serde_derive",
+ "serde_json",
  "structopt",
 ]
 
@@ -2884,9 +2900,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.92"
+version = "1.0.96"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7434af0dc1cbd59268aa98b4c22c131c0584d2232f6fb166efb993e2832e896a"
+checksum = "057d394a50403bcac12672b2b18fb387ab6d289d957dab67dd201875391e52f1"
 dependencies = [
  "itoa",
  "ryu",

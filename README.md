@@ -14,17 +14,21 @@ To be able to compile, please install (Debian packages example)
 
 ### Run
 
+Add `--release` after `--bin battle_server` or after `--bin battle_gui` to disable debug and have normal performances.
+
 #### Standalone server
 
-    cargo run --bin battle_server -- --bind-address 'tcp://0.0.0.0:4255' --rep-address 'tcp://0.0.0.0:4256'
+    cargo run --bin battle_server -- Demo1 --bind-address 'tcp://0.0.0.0:4255' --rep-address 'tcp://0.0.0.0:4256'
 
 #### Standalone gui
 
-    cargo run --bin battle_gui -- --embedded-server --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a
+Server must already been started
+
+    cargo run --bin battle_gui -- Demo1 assets/demo1_deployment.json --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a --side-a-control NW --side-a-control N --side-a-control W --side-b-control ALL
 
 #### Gui with embedded server
 
-    cargo run --bin battle_gui -- --embedded-server --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a
+    cargo run --bin battle_gui -- Demo1 assets/demo1_deployment.json --embedded-server --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a --side-a-control NW --side-a-control N --side-a-control W --side-b-control ALL
 
 
 ### Profile

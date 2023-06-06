@@ -1,5 +1,6 @@
 use crate::{
     config::{TARGET_FPS, VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT},
+    deployment::VehicleDeployment,
     graphics::vehicle::VehicleGraphicInfos,
     types::*,
     utils::WorldShape,
@@ -128,5 +129,15 @@ impl Vehicle {
             .from_point(self.world_point)
             .centered()
             .rotate(&self.chassis_orientation)
+    }
+}
+
+impl From<&VehicleDeployment> for Vehicle {
+    fn from(vehicle: &VehicleDeployment) -> Self {
+        Self::new(
+            vehicle.uuid().clone(),
+            vehicle.type_().clone(),
+            vehicle.world_point().clone(),
+        )
     }
 }

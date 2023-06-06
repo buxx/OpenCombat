@@ -15,7 +15,6 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 #[derive(Debug)]
 pub enum EmbeddedServerError {
     MissingMapName,
-    MissingSituationName,
     StateBuilderError(BattleStateBuilderError),
     Network(NetworkError),
 }
@@ -30,7 +29,6 @@ impl Display for EmbeddedServerError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             EmbeddedServerError::MissingMapName => f.write_str("Missing map name"),
-            EmbeddedServerError::MissingSituationName => f.write_str("Missing situation name"),
             EmbeddedServerError::StateBuilderError(error) => {
                 f.write_str(&format!("State builder error : {}", error))
             }
@@ -44,7 +42,6 @@ impl Display for EmbeddedServerError {
 pub struct EmbeddedServer {
     resources: PathBuf,
     map_name: Option<String>,
-    situation_name: Option<String>,
     server_rep_address: String,
     server_pub_address: String,
     gui_input_receiver: Receiver<Vec<InputMessage>>,
@@ -62,7 +59,6 @@ impl EmbeddedServer {
         Self {
             resources: resources.clone(),
             map_name: None,
-            situation_name: None,
             server_rep_address: DEFAULT_SERVER_REP_ADDRESS.to_string(),
             server_pub_address: DEFAULT_SERVER_PUB_ADDRESS.to_string(),
             gui_input_receiver,
@@ -73,11 +69,6 @@ impl EmbeddedServer {
 
     pub fn map_name(mut self, map_name: &str) -> Self {
         self.map_name = Some(map_name.to_string());
-        self
-    }
-
-    pub fn situation_name(mut self, situation_name: &str) -> Self {
-        self.situation_name = Some(situation_name.to_string());
         self
     }
 
@@ -102,14 +93,8 @@ impl EmbeddedServer {
             .map_name
             .as_ref()
             .ok_or(EmbeddedServerError::MissingMapName)?;
-        let situation_name = self
-            .situation_name
-            .as_ref()
-            .ok_or(EmbeddedServerError::MissingSituationName)?;
         let config = ServerConfig::new();
-        let state = BattleStateBuilder::new(&map_name, &self.resources)?
-            .situation(&situation_name)
-            .build();
+        let state = BattleStateBuilder::new(&map_name, &self.resources)?.build();
 
         let stop_required_ = self.stop_required.clone();
         thread::Builder::new()
