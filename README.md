@@ -18,18 +18,18 @@ Add `--release` after `--bin battle_server` or after `--bin battle_gui` to disab
 
 #### Standalone server
 
-    cargo run --bin battle_server -- Demo1 --bind-address 'tcp://0.0.0.0:4255' --rep-address 'tcp://0.0.0.0:4256'
+    cargo run --bin battle_server --release -- Demo1 --rep-address tcp://0.0.0.0:4255 --bind-address tcp://0.0.0.0:4256
 
 #### Standalone gui
 
 Server must already been started
 
-    cargo run --bin battle_gui -- Demo1 assets/demo1_deployment.json --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a --side-a-control NW --side-a-control N --side-a-control W --side-b-control ALL
+    cargo run --bin battle_gui 
+--release -- Demo1 assets/demo1_deployment.json --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a --side-a-control N --side-a-control NW --side-a-control W --side-b-control ALL
 
 #### Gui with embedded server
 
-    cargo run --bin battle_gui -- Demo1 assets/demo1_deployment.json --embedded-server --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a --side-a-control NW --side-a-control N --side-a-control W --side-b-control ALL
-
+    cargo run --bin battle_gui --release -- Demo1 assets/demo1_deployment.json --embedded-server --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a --side-a-control N --side-a-control NW --side-a-control W --side-b-control ALL
 
 ### Profile
 
