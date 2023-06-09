@@ -46,7 +46,10 @@ impl Engine {
                     "\n\n",
                     "F12: Open debug window\n",
                     "F4: Make a save point\n",
-                    "F5: Load las save point if any\n"
+                    "F5: Load las save point if any\n",
+                    "\n",
+                    "CTRL+Click : Move map\n",
+                    "T : Hide/show trees\n"
                 ));
                 ui.with_layout(Layout::right_to_left(Align::TOP), |ui| {
                     if ui.button("Continue").clicked() {
