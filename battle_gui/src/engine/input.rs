@@ -131,6 +131,9 @@ impl Engine {
             Some(VirtualKeyCode::F4) => {
                 messages.push(EngineMessage::MakeASave);
             }
+            Some(VirtualKeyCode::T) => {
+                messages.push(EngineMessage::SwitchDecorDisplay);
+            }
             Some(VirtualKeyCode::F5) => {
                 messages.push(EngineMessage::TryLoadLastSave);
             }

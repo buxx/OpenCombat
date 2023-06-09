@@ -95,6 +95,9 @@ impl Engine {
                 EngineMessage::UpdateInteriors => {
                     self.update_interior_sprites();
                 }
+                EngineMessage::SwitchDecorDisplay => {
+                    self.gui_state.draw_decor = !self.gui_state.draw_decor
+                }
             }
         }
 
