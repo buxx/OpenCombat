@@ -16,7 +16,7 @@ pub fn demo1_deployment() -> Deployment {
     let mut boards = SoldiersOnBoard::new();
     let mut soldiers_index: usize = 0;
 
-    for x in 0..1 {
+    for x in 0..5 {
         let squad = utils::new_squad_uuid();
         for y in 0..5 {
             // let x: f32 = rng.gen_range(0.0..800.0);
@@ -40,7 +40,7 @@ pub fn demo1_deployment() -> Deployment {
         }
     }
 
-    for x in 0..1 {
+    for x in 0..4 {
         let squad = utils::new_squad_uuid();
         for y in 0..5 {
             // let x: f32 = rng.gen_range(0.0..800.0);
