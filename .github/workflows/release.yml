@@ -51,7 +51,7 @@ jobs:
         run: cargo build --bin battle_gui --bin battle_server --release
 
       - name: Package
-        run: tools/package_release_linux.sh ${{ github.ref_name }}
+        run: tools/package_release_windows.sh ${{ github.ref_name }}
 
       - name: Upload artifact
         uses: actions/upload-release-asset@v1
