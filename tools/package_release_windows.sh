@@ -13,5 +13,5 @@ mkdir ${FOLDER_NAME}/assets
 cp assets/*deployment* ${FOLDER_NAME}/assets/
 cp LICENSE ${FOLDER_NAME}
 cp CREDITS ${FOLDER_NAME}
-find OpenCombat_${REF_NAME}_Linux -name "*.xcf" -type f -delete
+find ${FOLDER_NAME} -name "*.xcf" -type f -delete
 zip -r ${FOLDER_NAME}.zip ${FOLDER_NAME}
