@@ -13,4 +13,5 @@ mkdir OpenCombat_${REF_NAME}_Win64/assets
 cp assets/*deployment* OpenCombat_${REF_NAME}_Win64/assets/
 cp LICENSE OpenCombat_${REF_NAME}_Win64
 cp CREDITS OpenCombat_${REF_NAME}_Win64
+find OpenCombat_${REF_NAME}_Linux -name "*.xcf" -type f -delete
 zip -r OpenCombat_${REF_NAME}_Win64.zip OpenCombat_${REF_NAME}_Win64
