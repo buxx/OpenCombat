@@ -24,8 +24,7 @@ Add `--release` after `--bin battle_server` or after `--bin battle_gui` to disab
 
 Server must already been started
 
-    cargo run --bin battle_gui 
---release -- Demo1 assets/demo1_deployment.json --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a --side-a-control N --side-a-control NW --side-a-control W --side-b-control ALL
+    cargo run --bin battle_gui --release -- Demo1 assets/demo1_deployment.json --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a --side-a-control N --side-a-control NW --side-a-control W --side-b-control ALL
 
 #### Gui with embedded server
 
