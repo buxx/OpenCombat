@@ -51,17 +51,7 @@ jobs:
         run: cargo build --bin battle_gui --bin battle_server --release
 
       - name: Package
-        run: |
-          mkdir OpenCombat_${{ github.ref_name }}_Win64 && \
-          cp target/release/battle_gui.exe OpenCombat_${{ github.ref_name }}_Win64 && \
-          cp target/release/battle_server.exe OpenCombat_${{ github.ref_name }}_Win64 && \
-          cp -r resources OpenCombat_${{ github.ref_name }}_Win64 && \
-          cp assets/w64/* OpenCombat_${{ github.ref_name }}_Win64 && \
-          mkdir OpenCombat_${{ github.ref_name }}_Win64/assets && \
-          cp assets/*deployment* OpenCombat_${{ github.ref_name }}_Win64/assets/ && \
-          cp LICENSE OpenCombat_${{ github.ref_name }}_Win64 && \
-          cp CREDITS OpenCombat_${{ github.ref_name }}_Win64 && \
-          zip -r OpenCombat_${{ github.ref_name }}_Win64.zip OpenCombat_${{ github.ref_name }}_Win64
+        run: tools/package_release_linux.sh ${{ github.ref_name }}
 
       - name: Upload artifact
         uses: actions/upload-release-asset@v1
@@ -99,17 +89,7 @@ jobs:
         run: cargo build --bin battle_gui --bin battle_server --release
 
       - name: Package
-        run: |
-          mkdir OpenCombat_${{ github.ref_name }}_Linux && \
-          cp target/release/battle_gui OpenCombat_${{ github.ref_name }}_Linux && \
-          cp target/release/battle_server OpenCombat_${{ github.ref_name }}_Linux && \
-          cp -r resources OpenCombat_${{ github.ref_name }}_Linux && \
-          cp assets/linux/* OpenCombat_${{ github.ref_name }}_Linux && \
-          mkdir OpenCombat_${{ github.ref_name }}_Linux/assets && \
-          cp assets/*deployment* OpenCombat_${{ github.ref_name }}_Linux/assets/ && \
-          cp LICENSE OpenCombat_${{ github.ref_name }}_Linux && \
-          cp CREDITS OpenCombat_${{ github.ref_name }}_Linux && \
-          zip -r OpenCombat_${{ github.ref_name }}_Linux.zip OpenCombat_${{ github.ref_name }}_Linux
+        run: tools/package_release_linux.sh ${{ github.ref_name }}
 
       - name: Upload artifact
         uses: actions/upload-release-asset@v1
