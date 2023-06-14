@@ -235,6 +235,14 @@ impl Soldier {
             weapon.shot();
         }
     }
+
+    pub fn alive(&self) -> bool {
+        self.alive
+    }
+
+    pub fn unconscious(&self) -> bool {
+        self.unconscious
+    }
 }
 
 impl From<&SoldierDeployment> for Soldier {

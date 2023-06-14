@@ -12,7 +12,7 @@ use battle_core::{
         PENDING_ORDER_PATH_FINDING_DRAW_FRAMES,
     },
     entity::soldier::Soldier,
-    game::cover::CoverFinder,
+    game::{cover::CoverFinder, health::SoldierHealthBuilder},
     graphics::vehicle::VehicleGraphicInfos,
     order::{Order, PendingOrder},
     state::battle::message::{BattleStateMessage, SoldierMessage, VehicleMessage},
@@ -20,7 +20,11 @@ use battle_core::{
     utils::DebugPoint,
 };
 
-use crate::{engine::event::UIEvent, ui::menu::squad_menu_sprite_info, utils::GREEN};
+use crate::{
+    engine::event::UIEvent,
+    ui::{color::Colorized, menu::squad_menu_sprite_info},
+    utils::GREEN,
+};
 
 use super::{
     input::Control,
@@ -42,7 +46,8 @@ impl Engine {
                     DEFAULT_SELECTED_SQUARE_SIDE,
                     DEFAULT_SELECTED_SQUARE_SIDE,
                 );
-                mesh_builder.rectangle(DrawMode::Stroke(StrokeOptions::default()), rect, GREEN)?;
+                let color = SoldierHealthBuilder::new(&soldier).build().color();
+                mesh_builder.rectangle(DrawMode::Stroke(StrokeOptions::default()), rect, color)?;
             }
         }
 

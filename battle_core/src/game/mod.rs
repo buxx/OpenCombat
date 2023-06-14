@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod cover;
 pub mod explosive;
+pub mod health;
 pub mod squad;
 pub mod weapon;
 
