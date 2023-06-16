@@ -12,13 +12,13 @@ impl Runner {
         soldier: &Soldier,
         engaged_soldier_index: &SoldierIndex,
     ) -> (GestureContext, Gesture) {
-        let point = self
-            .battle_state
-            .soldier(*engaged_soldier_index)
-            .get_world_point();
+        let target_soldier = self.battle_state.soldier(*engaged_soldier_index);
 
-        if let Some(weapon) = self.soldier_able_to_fire_on_point(soldier, &point) {
-            return self.engage_point_gesture(soldier, &point, weapon);
+        if target_soldier.can_be_designed_as_target() {
+            let point = target_soldier.get_world_point();
+            if let Some(weapon) = self.soldier_able_to_fire_on_point(soldier, &point) {
+                return self.engage_point_gesture(soldier, &point, weapon);
+            }
         }
 
         (GestureContext::Idle, Gesture::Idle)
