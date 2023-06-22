@@ -19,6 +19,68 @@ pub enum TileType {
     MiddleRock,
 }
 
+impl TileType {
+    pub fn from_str(value: &str) -> Result<Self, TerrainTileError> {
+        match value {
+            "ShortGrass" => Ok(Self::ShortGrass),
+            "MiddleGrass" => Ok(Self::MiddleGrass),
+            "HighGrass" => Ok(Self::HighGrass),
+            "Dirt" => Ok(Self::Dirt),
+            "Mud" => Ok(Self::Mud),
+            "Concrete" => Ok(Self::Concrete),
+            "BrickWall" => Ok(Self::BrickWall),
+            "Trunk" => Ok(Self::Trunk),
+            "Water" => Ok(Self::Water),
+            "DeepWater" => Ok(Self::DeepWater),
+            "Underbrush" => Ok(Self::Underbrush),
+            "LightUnderbrush" => Ok(Self::LightUnderbrush),
+            "MiddleWoodLogs" => Ok(Self::MiddleWoodLogs),
+            "Hedge" => Ok(Self::Hedge),
+            "MiddleRock" => Ok(Self::MiddleRock),
+            _ => Result::Err(TerrainTileError::UnknownId(value.to_string())),
+        }
+    }
+
+    pub fn pedestrian_cost(&self) -> i32 {
+        match self {
+            TileType::ShortGrass => 10,
+            TileType::MiddleGrass => 10,
+            TileType::HighGrass => 10,
+            TileType::Dirt => 11,
+            TileType::Mud => 11,
+            TileType::Concrete => 50,
+            TileType::BrickWall => 50,
+            TileType::Trunk => 50,
+            TileType::Water => 18,
+            TileType::DeepWater => 50,
+            TileType::Underbrush => 12,
+            TileType::LightUnderbrush => 11,
+            TileType::MiddleWoodLogs => 30,
+            TileType::Hedge => 20,
+            TileType::MiddleRock => 25,
+        }
+    }
+
+    pub fn block_vehicle(&self) -> bool {
+        match self {
+            TileType::ShortGrass
+            | TileType::MiddleGrass
+            | TileType::HighGrass
+            | TileType::Dirt
+            | TileType::Mud
+            | TileType::Concrete
+            | TileType::Water
+            | TileType::Underbrush
+            | TileType::LightUnderbrush
+            | TileType::MiddleWoodLogs
+            | TileType::Hedge => false,
+            TileType::BrickWall | TileType::Trunk | TileType::DeepWater | TileType::MiddleRock => {
+                true
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum TerrainTileError {
     UnknownId(String),
@@ -42,8 +104,6 @@ pub struct TerrainTile {
     pub y: u32,
     pub tile_x: u32,
     pub tile_y: u32,
-    pub pedestrian_cost: i32,
-    pub block_vehicle: bool,
 }
 
 impl TerrainTile {
@@ -58,203 +118,20 @@ impl TerrainTile {
         tile_x: u32,
         tile_y: u32,
     ) -> Result<Self, TerrainTileError> {
-        Result::Ok(match id {
-            "ShortGrass" => Self {
-                type_: TileType::ShortGrass,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 10,
-                block_vehicle: false,
-            },
-            "MiddleGrass" => Self {
-                type_: TileType::MiddleGrass,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 10,
-                block_vehicle: false,
-            },
-            "HighGrass" => Self {
-                type_: TileType::HighGrass,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 10,
-                block_vehicle: false,
-            },
-            "Dirt" => Self {
-                type_: TileType::Dirt,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 11,
-                block_vehicle: false,
-            },
-            "Mud" => Self {
-                type_: TileType::Mud,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 11,
-                block_vehicle: false,
-            },
-            "Concrete" => Self {
-                type_: TileType::Concrete,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 50,
-                block_vehicle: true,
-            },
-            "BrickWall" => Self {
-                type_: TileType::BrickWall,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 50,
-                block_vehicle: true,
-            },
-            "Trunk" => Self {
-                type_: TileType::Trunk,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 50,
-                block_vehicle: true,
-            },
-            "Water" => Self {
-                type_: TileType::Water,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 18,
-                block_vehicle: true,
-            },
-            "DeepWater" => Self {
-                type_: TileType::DeepWater,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 50,
-                block_vehicle: true,
-            },
-            "Underbrush" => Self {
-                type_: TileType::Underbrush,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 12,
-                block_vehicle: true,
-            },
-            "LightUnderbrush" => Self {
-                type_: TileType::LightUnderbrush,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 11,
-                block_vehicle: true,
-            },
-            "MiddleWoodLogs" => Self {
-                type_: TileType::MiddleWoodLogs,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 30,
-                block_vehicle: true,
-            },
-            "Hedge" => Self {
-                type_: TileType::Hedge,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 20,
-                block_vehicle: true,
-            },
-            "MiddleRock" => Self {
-                type_: TileType::MiddleGrass,
-                tile_width,
-                tile_height,
-                relative_tile_width,
-                relative_tile_height,
-                x,
-                y,
-                tile_x,
-                tile_y,
-                pedestrian_cost: 25,
-                block_vehicle: true,
-            },
-            &_ => return Result::Err(TerrainTileError::UnknownId(id.to_string())),
+        Ok(Self {
+            type_: TileType::from_str(id)?,
+            tile_width,
+            tile_height,
+            relative_tile_width,
+            relative_tile_height,
+            x,
+            y,
+            tile_x,
+            tile_y,
         })
+    }
+
+    pub fn type_(&self) -> &TileType {
+        &self.type_
     }
 }

@@ -147,7 +147,7 @@ impl Map {
             let i = (new_y * self.width() as i32 + new_x) as usize;
             if let Some(next_tile) = self.terrain_tiles.get(i) {
                 if path_mode.include_vehicles() {
-                    if next_tile.block_vehicle {
+                    if next_tile.type_().block_vehicle() {
                         continue;
                     }
 
@@ -162,7 +162,7 @@ impl Map {
                 }
 
                 let cost = match path_mode {
-                    PathMode::Walk => next_tile.pedestrian_cost,
+                    PathMode::Walk => next_tile.type_().pedestrian_cost(),
                     PathMode::Drive(_size) => from.1.angle_cost(&direction),
                 };
 
@@ -205,7 +205,7 @@ impl Map {
                     .terrain_tiles
                     .get((y * self.width() as i32 + x) as usize)
                 {
-                    if tile.block_vehicle {
+                    if tile.type_().block_vehicle() {
                         return false;
                     }
                 }
