@@ -28,7 +28,7 @@ impl Runner {
     ) -> Vec<RunnerMessage> {
         vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
             soldier_index,
-            SoldierMessage::IncreaseUnderFire(Feeling::UnderFire(0).blast_increase_value(distance)),
+            SoldierMessage::IncreaseUnderFire(Feeling::blast_increase_value(distance)),
         ))]
     }
 }

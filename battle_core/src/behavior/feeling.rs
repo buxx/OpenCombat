@@ -14,31 +14,23 @@ pub const UNDER_FIRE_DANGER: u32 = 150;
 pub const UNDER_FIRE_WARNING: u32 = 100;
 
 impl Feeling {
-    pub fn blast_increase_value(&self, distance: Distance) -> u32 {
-        match self {
-            Feeling::UnderFire(_) => {
-                if distance.meters() < 5 {
-                    150
-                } else if distance.meters() < 10 {
-                    100
-                } else {
-                    50
-                }
-            }
+    pub fn blast_increase_value(distance: Distance) -> u32 {
+        if distance.meters() < 5 {
+            150
+        } else if distance.meters() < 10 {
+            100
+        } else {
+            50
         }
     }
 
-    pub fn proximity_bullet_increase_value(&self, distance: Distance) -> u32 {
-        match self {
-            Feeling::UnderFire(_) => {
-                if distance.meters() < 3 {
-                    150
-                } else if distance.meters() < 10 {
-                    100
-                } else {
-                    30
-                }
-            }
+    pub fn proximity_bullet_increase_value(distance: Distance) -> u32 {
+        if distance.meters() < 3 {
+            150
+        } else if distance.meters() < 10 {
+            100
+        } else {
+            30
         }
     }
 
