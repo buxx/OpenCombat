@@ -75,6 +75,7 @@ impl Runner {
         (GestureContext::Firing(final_point, None), gesture)
     }
 
+    // FIXME : use realistic range error (angle from target)
     pub fn soldier_fire_point(
         &self,
         soldier: &Soldier,

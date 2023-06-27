@@ -16,11 +16,13 @@ impl Runner {
     pub fn soldier_proximity_bullet(
         &self,
         soldier_index: SoldierIndex,
-        distance: Distance,
+        distance: &Distance,
     ) -> Vec<RunnerMessage> {
         vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
             soldier_index,
-            SoldierMessage::IncreaseUnderFire(Feeling::proximity_bullet_increase_value(distance)),
+            SoldierMessage::IncreaseUnderFire(Feeling::proximity_bullet_increase_value(
+                distance.clone(),
+            )),
         ))]
     }
 }

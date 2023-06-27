@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::types::*;
+use crate::{game::posture::Posture, types::*};
 use serde::{Deserialize, Serialize};
 
 pub mod feeling;
@@ -96,6 +96,22 @@ impl Behavior {
             | Behavior::Unconscious
             | Behavior::SuppressFire(_)
             | Behavior::EngageSoldier(_) => None,
+        }
+    }
+
+    pub fn posture(&self) -> Posture {
+        // TODO : posture can be different on same behavior (like with SuppressFire, EngageSoldier)
+        match self {
+            Behavior::MoveTo(_) | Behavior::MoveFastTo(_) | Behavior::Idle => Posture::StandUp,
+            Behavior::Defend(_)
+            | Behavior::SneakTo(_)
+            | Behavior::DriveTo(_)
+            | Behavior::RotateTo(_)
+            | Behavior::Hide(_)
+            | Behavior::Dead
+            | Behavior::Unconscious
+            | Behavior::SuppressFire(_)
+            | Behavior::EngageSoldier(_) => Posture::Flat,
         }
     }
 }

@@ -34,6 +34,10 @@ pub enum Sound {
     Clic1,
     DrumMultiHits,
     TrumpetLongHall,
+    BulletMetalImpact1,
+    BulletTrunkImpact1,
+    BulletWallImpact1,
+    BulletGroundImpact1,
 }
 
 impl Sound {

@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use crate::{game::posture::Posture, types::Coverage};
+
 #[derive(Clone)]
 pub enum TileType {
     ShortGrass,
@@ -77,6 +79,45 @@ impl TileType {
             TileType::BrickWall | TileType::Trunk | TileType::DeepWater | TileType::MiddleRock => {
                 true
             }
+        }
+    }
+
+    pub fn coverage(&self, posture: &Posture) -> Option<Coverage> {
+        match posture {
+            Posture::StandUp => match self {
+                TileType::ShortGrass => None,
+                TileType::MiddleGrass => None,
+                TileType::HighGrass => None,
+                TileType::Dirt => None,
+                TileType::Mud => None,
+                TileType::Concrete => None,
+                TileType::BrickWall => Some(Coverage(0.8)),
+                TileType::Trunk => Some(Coverage(0.9)),
+                TileType::Water => None,
+                TileType::DeepWater => None,
+                TileType::Underbrush => None,
+                TileType::LightUnderbrush => None,
+                TileType::MiddleWoodLogs => Some(Coverage(0.2)),
+                TileType::Hedge => Some(Coverage(0.15)),
+                TileType::MiddleRock => Some(Coverage(0.2)),
+            },
+            Posture::Flat => match self {
+                TileType::ShortGrass => None,
+                TileType::MiddleGrass => None,
+                TileType::HighGrass => None,
+                TileType::Dirt => None,
+                TileType::Mud => None,
+                TileType::Concrete => None,
+                TileType::BrickWall => Some(Coverage(0.8)),
+                TileType::Trunk => Some(Coverage(0.9)),
+                TileType::Water => None,
+                TileType::DeepWater => None,
+                TileType::Underbrush => None,
+                TileType::LightUnderbrush => None,
+                TileType::MiddleWoodLogs => Some(Coverage(0.7)),
+                TileType::Hedge => Some(Coverage(0.15)),
+                TileType::MiddleRock => Some(Coverage(0.9)),
+            },
         }
     }
 }

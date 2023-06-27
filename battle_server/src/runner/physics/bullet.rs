@@ -1,7 +1,9 @@
 use battle_core::{
     audio::Sound,
     entity::soldier::Soldier,
-    physics::{event::bullet::BulletFire, utils::meters_between_world_points},
+    physics::{
+        coverage::SoldierCovered, event::bullet::BulletFire, utils::meters_between_world_points,
+    },
     state::client::ClientStateMessage,
     types::Distance,
 };
@@ -48,8 +50,12 @@ impl Runner {
             }
 
             let distance = meters_between_world_points(&soldier.get_world_point(), point);
-
-            if distance.millimeters() < 500 {
+            if distance.meters() < 1
+                && SoldierCovered::new(&self.battle_state.map(), &bullet_fire, &soldier).compute()
+            {
+                messages.extend(self.covered_bullet_effects(soldier));
+                messages.extend(self.proximity_bullet_effects(soldier, &distance))
+            } else if distance.millimeters() < 500 {
                 let mut rng = rand::thread_rng();
                 let value: u8 = rng.gen();
                 if value < 10 {
@@ -57,10 +63,10 @@ impl Runner {
                 } else if value < 50 {
                     messages.extend(self.injuring_bullet_effects(soldier))
                 } else {
-                    messages.extend(self.proximity_bullet_effects(soldier, distance.clone()))
+                    messages.extend(self.proximity_bullet_effects(soldier, &distance))
                 }
             } else {
-                messages.extend(self.proximity_bullet_effects(soldier, distance.clone()))
+                messages.extend(self.proximity_bullet_effects(soldier, &distance))
             }
         }
 
@@ -132,12 +138,30 @@ impl Runner {
         messages
     }
 
+    pub fn covered_bullet_effects(&self, soldier: &Soldier) -> Vec<RunnerMessage> {
+        puffin::profile_scope!("covered_bullet_effects", soldier.uuid().to_string());
+        let pick_from = vec![
+            // TODO : sound according to tile type
+            Sound::BulletMetalImpact1,
+            Sound::BulletTrunkImpact1,
+            Sound::BulletWallImpact1,
+            Sound::BulletGroundImpact1,
+        ];
+        vec![RunnerMessage::ClientsState(
+            ClientStateMessage::PlayBattleSound(
+                *pick_from
+                    .choose(&mut rand::thread_rng())
+                    .expect("Must one be chosen"),
+            ),
+        )]
+    }
+
     pub fn proximity_bullet_effects(
         &self,
         soldier: &Soldier,
-        distance: Distance,
+        distance: &Distance,
     ) -> Vec<RunnerMessage> {
-        puffin::profile_scope!("ProximityBullet", soldier.uuid().to_string());
+        puffin::profile_scope!("proximity_bullet_effects", soldier.uuid().to_string());
         self.soldier_proximity_bullet(soldier.uuid(), distance)
     }
 }

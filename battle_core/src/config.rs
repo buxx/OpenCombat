@@ -82,6 +82,10 @@ pub const VISIBILITY_FIRSTS: usize = 4;
 pub const VISIBLE_STARTS_AT: f32 = 0.5;
 // When compute visibility, configure here each pixels step of line which me considered
 pub const VISIBILITY_PIXEL_STEPS: usize = 5;
+// When compute coverage, configure here each pixels step of line which me considered
+pub const COVERAGE_PIXEL_STEPS: usize = 5;
+// When compute coverage, configure here how many tile to consider starting from soldier
+pub const COVERAGE_TILE_STEPS: usize = 3;
 
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
