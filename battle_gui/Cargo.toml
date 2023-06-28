@@ -8,6 +8,9 @@ edition = "2021"
 default = ["hd"]
 hd = []
 
+[profile.dev]
+opt-level = 1
+
 [dependencies]
 oc_core = { path = "../oc_core" }
 battle_core = { path = "../battle_core" }
