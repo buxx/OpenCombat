@@ -59,6 +59,15 @@ impl PendingOrder {
             PendingOrder::EngageOrFire(_) => &None,
         }
     }
+
+    pub fn push_cache_point(&mut self, new_point: WorldPoint) {
+        match self {
+            PendingOrder::MoveTo(_, _, points)
+            | PendingOrder::MoveFastTo(_, _, points)
+            | PendingOrder::SneakTo(_, _, points) => points.push(new_point),
+            _ => {}
+        }
+    }
 }
 
 impl Display for PendingOrder {

@@ -262,7 +262,7 @@ impl Engine {
                                 &vec![],
                             );
                             messages.push(EngineMessage::GuiState(
-                                GuiStateMessage::SetPendingOrder(Some(pending_order)),
+                                GuiStateMessage::SetPendingOrders(vec![pending_order]),
                             ));
                         }
                     }

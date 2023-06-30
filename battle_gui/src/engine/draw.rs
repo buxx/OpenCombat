@@ -194,11 +194,11 @@ impl Engine {
     }
 
     pub fn generate_menu_sprites(&mut self) -> GameResult {
-        if let Some((to_point, squad_id)) = self.gui_state.get_squad_menu() {
+        if let Some((to_point, squad_ids)) = self.gui_state.get_squad_menu() {
             for sprite in self.graphics.squad_menu_sprites(
                 *to_point,
                 *self.gui_state.get_current_cursor_window_point(),
-                *squad_id,
+                squad_ids,
             ) {
                 self.graphics.append_ui_batch(sprite);
             }
@@ -223,15 +223,20 @@ impl Engine {
     }
 
     pub fn generate_display_paths_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        for (display_path, _) in self.gui_state.get_display_paths() {
-            self.generate_display_path_meshes(display_path, mesh_builder)?
+        for display_paths in self.gui_state.get_display_paths() {
+            for (display_path, _) in display_paths {
+                self.generate_display_path_meshes(display_path, mesh_builder)?
+            }
         }
 
         Ok(())
     }
 
     pub fn generate_game_play_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        if self.gui_state.get_pending_order().is_none()
+        if self
+            .gui_state
+            .current_cursor_vector_window_points()
+            .is_some()
             && self.gui_state.is_controlling(&Control::Soldiers)
         {
             self.generate_select_rectangle_meshes(mesh_builder)?;

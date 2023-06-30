@@ -57,11 +57,11 @@ pub struct GuiState {
     /// Selected squad ids
     selected_squads: (Option<SoldierIndex>, Vec<SquadUuid>),
     /// Possible currently displayed menu
-    squad_menu: Option<(WindowPoint, SquadUuid)>,
+    squad_menu: Option<(WindowPoint, Vec<SquadUuid>)>,
     /// Possible current player squad order
-    pending_order: Option<PendingOrder>,
+    pending_order: Vec<PendingOrder>,
     /// Paths to display
-    display_paths: Vec<(WorldPaths, SquadUuid)>,
+    display_paths: Vec<Vec<(WorldPaths, SquadUuid)>>,
     /// Used to know a path already search here last frame
     last_computed_path_point: Option<WorldPoint>,
     /// Debug points to display if debug mode
@@ -104,7 +104,7 @@ impl GuiState {
             ui_events: vec![],
             selected_squads: (None, vec![]),
             squad_menu: None,
-            pending_order: None,
+            pending_order: vec![],
             display_paths: vec![],
             last_computed_path_point: None,
             debug_points: vec![],
@@ -229,7 +229,7 @@ impl GuiState {
         &self.selected_squads
     }
 
-    pub fn get_squad_menu(&self) -> &Option<(WindowPoint, SquadUuid)> {
+    pub fn get_squad_menu(&self) -> &Option<(WindowPoint, Vec<SquadUuid>)> {
         &self.squad_menu
     }
 
@@ -237,11 +237,11 @@ impl GuiState {
         self.last_cursor_move_frame
     }
 
-    pub fn get_pending_order(&self) -> &Option<PendingOrder> {
+    pub fn get_pending_order(&self) -> &Vec<PendingOrder> {
         &self.pending_order
     }
 
-    pub fn get_display_paths(&self) -> &[(WorldPaths, SquadUuid)] {
+    pub fn get_display_paths(&self) -> &Vec<Vec<(WorldPaths, SquadUuid)>> {
         &self.display_paths
     }
 
@@ -306,25 +306,20 @@ impl GuiState {
                 //
                 self.squad_menu = squad_menu.clone()
             }
-            GuiStateMessage::SetPendingOrder(pending_order) => {
+            GuiStateMessage::SetPendingOrders(pending_orders) => {
                 //
-                self.pending_order = pending_order.clone()
+                self.pending_order = pending_orders.clone()
             }
             GuiStateMessage::SetDisplayPaths(display_paths) => {
                 //
                 self.display_paths = display_paths.clone();
                 self.last_computed_path_point = None;
             }
-            GuiStateMessage::AddCachePointToPendingOrder(new_point) => match self
-                .pending_order
-                .as_mut()
-                .expect("Add cache point imply existing pending order")
-            {
-                PendingOrder::MoveTo(_, _, points)
-                | PendingOrder::MoveFastTo(_, _, points)
-                | PendingOrder::SneakTo(_, _, points) => points.push(*new_point),
-                _ => unreachable!(),
-            },
+            GuiStateMessage::AddCachePointToPendingOrder(new_point) => {
+                for pending_order in &mut self.pending_order {
+                    pending_order.push_cache_point(new_point.clone());
+                }
+            }
             GuiStateMessage::PushDebugPoint(debug_point) => {
                 //
                 self.debug_points.push(debug_point.clone())
@@ -439,12 +434,13 @@ impl GuiState {
         };
         lines.push(("SquadMenu".to_string(), squad_menu_text));
 
-        let pending_order_text = if let Some(pending_order) = &self.pending_order {
-            pending_order.to_string()
+        if self.pending_order.len() > 0 {
+            for pending_order in &self.pending_order {
+                lines.push(("PendingOrder".to_string(), pending_order.to_string()));
+            }
         } else {
-            "".to_string()
-        };
-        lines.push(("PendingOrder".to_string(), pending_order_text));
+            lines.push(("PendingOrder".to_string(), "n/a".to_string()));
+        }
 
         lines.push((
             "DebugPoints (len)".to_string(),

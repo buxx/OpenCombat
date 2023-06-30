@@ -190,7 +190,7 @@ impl Engine {
         Ok(())
     }
 
-    /// Draw selection areas
+    ///
     pub fn generate_visibilities_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
         for squad_uuid in &self.gui_state.selected_squads().1 {
             let squad_composition = self.battle_state.squad(*squad_uuid);

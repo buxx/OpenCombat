@@ -240,9 +240,11 @@ impl Engine {
         cached_points: &Vec<WorldPoint>,
     ) -> Option<WorldPaths> {
         // Take path from displayed path if exist
-        for (display_paths, path_squad_id) in self.gui_state.get_display_paths() {
-            if *path_squad_id == *squad_id {
-                return Some(display_paths.clone());
+        for display_paths in self.gui_state.get_display_paths() {
+            for (display_path, path_squad_id) in display_paths {
+                if *path_squad_id == *squad_id {
+                    return Some(display_path.clone());
+                }
             }
         }
 

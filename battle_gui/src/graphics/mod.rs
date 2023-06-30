@@ -329,7 +329,7 @@ impl Graphics {
         &self,
         to_point: WindowPoint,
         cursor_point: WindowPoint,
-        _squad_id: SquadUuid,
+        _squad_ids: &Vec<SquadUuid>,
     ) -> Vec<graphics::DrawParam> {
         squad_menu_sprite_info().as_draw_params(&to_point, &cursor_point)
     }

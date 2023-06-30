@@ -99,14 +99,17 @@ impl Engine {
         &self,
         cursor_point: &WindowPoint,
         squad_menu_point: &WindowPoint,
-        squad_index: &SquadUuid,
+        squads: &Vec<SquadUuid>,
     ) -> Vec<EngineMessage> {
         let squad_menu_sprite_info = squad_menu_sprite_info();
         if let Some(menu_item) =
             squad_menu_sprite_info.item_clicked(&squad_menu_point, &cursor_point)
         {
-            return vec![EngineMessage::GuiState(GuiStateMessage::SetPendingOrder(
-                Some(menu_item.to_pending_order(squad_index)),
+            return vec![EngineMessage::GuiState(GuiStateMessage::SetPendingOrders(
+                squads
+                    .iter()
+                    .map(|squad_index| menu_item.to_pending_order(squad_index))
+                    .collect(),
             ))];
         };
 
@@ -149,26 +152,14 @@ impl Engine {
     }
 
     pub fn generate_orders_sprites(&mut self) -> GameResult {
-        if let Some(pending_order) = self.gui_state.get_pending_order() {
+        for pending_order in self.gui_state.get_pending_order() {
             let sprites = self.generate_pending_order_sprites(pending_order);
             self.graphics.extend_ui_batch(sprites);
         }
 
-        for (order, order_marker, squad_id, point, order_marker_index) in
+        for (order, order_marker, _squad_id, point, _order_marker_index) in
             self.battle_state.order_markers(self.gui_state.side())
         {
-            // Special case : If we are dragging this order_marker_index, don't draw it (because we only want draw the
-            // dragged order marker index)
-            if let Some(pending_order) = self.gui_state.get_pending_order() {
-                if let Some(pending_order_marker_index_) = pending_order.order_marker_index() {
-                    if *pending_order.squad_index() == squad_id
-                        && &order_marker_index == pending_order_marker_index_
-                        && *pending_order_marker_index_ == order_marker_index
-                    {
-                        continue;
-                    }
-                }
-            }
             let window_point = self.gui_state.window_point_from_world_point(point);
             let sprites = self.generate_order_marker_sprites(&order, &order_marker, window_point);
             self.graphics.extend_ui_batch(sprites);
@@ -235,12 +226,12 @@ impl Engine {
                 UIEvent::FinishedCursorRightClick(point) => {
                     let world_point = self.gui_state.world_point_from_window_point(point);
                     let soldier_indexes = self.get_soldiers_at_point(world_point);
-                    let mut squad_id: Option<SquadUuid> = None;
+                    let mut squad_ids: Vec<SquadUuid> = vec![];
 
                     // If squad under cursor, select it
                     if soldier_indexes.len() > 0 {
                         let squad_id_ = self.squad_ids_from_entities(soldier_indexes.clone())[0];
-                        squad_id = Some(squad_id_);
+                        squad_ids = vec![squad_id_];
                         messages.push(EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
                             None,
                             vec![squad_id_],
@@ -248,54 +239,62 @@ impl Engine {
 
                     // Else, if squads already selected, keep only one
                     } else if self.gui_state.selected_squads().1.len() > 0 {
-                        squad_id = Some(self.gui_state.selected_squads().1[0]);
-                        messages.push(EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
-                            None,
-                            vec![self.gui_state.selected_squads().1[0]],
-                        )));
+                        squad_ids = self.gui_state.selected_squads().1.clone();
                     }
 
                     // Display a squad menu if squad under cursor or selected squad
-                    if let Some(squad_id_) = squad_id {
+                    if squad_ids.len() > 0 {
                         messages.push(EngineMessage::GuiState(GuiStateMessage::SetSquadMenu(
                             Some((
                                 self.gui_state.get_current_cursor_window_point().clone(),
-                                squad_id_,
+                                squad_ids,
                             )),
                         )));
                     }
                 }
                 UIEvent::ImmobileCursorSince(since) => {
                     // Paths to draw if pending order
-                    if let Some(pending_order) = self.gui_state.get_pending_order() {
+                    let mut draw_path_findings = vec![];
+
+                    for pending_order in self.gui_state.get_pending_order() {
                         if since == PENDING_ORDER_PATH_FINDING_DRAW_FRAMES {
                             if pending_order.expect_path_finding() {
-                                messages.push(EngineMessage::GuiState(
-                                    GuiStateMessage::PushUIEvent(UIEvent::DrawPathFinding(
-                                        *pending_order.squad_index(),
-                                        *pending_order.order_marker_index(),
-                                        pending_order.cached_points().clone(),
-                                    )),
+                                draw_path_findings.push((
+                                    *pending_order.squad_index(),
+                                    *pending_order.order_marker_index(),
+                                    pending_order.cached_points().clone(),
                                 ));
                             }
                         }
                     }
-                }
-                UIEvent::DrawPathFinding(squad_id, order_marker_index, cached_points) => {
-                    let (path_mode, start_direction) =
-                        self.battle_state.squad_path_mode_and_direction(squad_id);
 
-                    if let Some(world_paths) = self.create_path_finding(
-                        squad_id,
-                        &order_marker_index,
-                        &cached_points,
-                        &path_mode,
-                        &start_direction,
-                    ) {
-                        messages.push(EngineMessage::GuiState(GuiStateMessage::SetDisplayPaths(
-                            vec![(world_paths, squad_id)],
+                    if !draw_path_findings.is_empty() {
+                        messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
+                            UIEvent::DrawPathFinding(draw_path_findings),
                         )));
                     }
+                }
+                UIEvent::DrawPathFinding(draw_path_findings) => {
+                    let mut set_display_paths = vec![];
+
+                    for (squad_id, order_marker_index, cached_points) in draw_path_findings {
+                        let (path_mode, start_direction) =
+                            self.battle_state.squad_path_mode_and_direction(squad_id);
+
+                        if let Some(world_paths) = self.create_path_finding(
+                            squad_id,
+                            &order_marker_index,
+                            &cached_points,
+                            &path_mode,
+                            &start_direction,
+                        ) {
+                            set_display_paths.push(vec![(world_paths, squad_id)]);
+                        }
+                    }
+
+                    messages.push(EngineMessage::GuiState(GuiStateMessage::SetDisplayPaths(
+                        set_display_paths,
+                    )));
                 }
                 UIEvent::CursorMove(_point) => {
                     messages.push(EngineMessage::GuiState(GuiStateMessage::SetDisplayPaths(
@@ -318,11 +317,11 @@ impl Engine {
     ) -> Vec<EngineMessage> {
         let mut messages = vec![];
 
-        if let Some((squad_menu_point, squad_index)) = self.gui_state.get_squad_menu() {
+        if let Some((squad_menu_point, squads)) = self.gui_state.get_squad_menu() {
             messages.extend(self.digest_squad_menu_select_by_click(
                 &point,
                 squad_menu_point,
-                squad_index,
+                squads,
             ));
             messages.push(EngineMessage::GuiState(GuiStateMessage::SetSquadMenu(None)));
         } else {
@@ -330,7 +329,7 @@ impl Engine {
         }
 
         // This is a pending order click
-        if let Some(pending_order) = self.gui_state.get_pending_order() {
+        for pending_order in self.gui_state.get_pending_order() {
             let is_appending = ctx.keyboard.is_key_pressed(VirtualKeyCode::LShift)
                 || ctx.keyboard.is_key_pressed(VirtualKeyCode::RShift);
 
@@ -360,10 +359,10 @@ impl Engine {
 
                 // In all cases, remove pending order
                 messages.extend(vec![EngineMessage::GuiState(
-                    GuiStateMessage::SetPendingOrder(None),
+                    GuiStateMessage::SetPendingOrders(vec![]),
                 )]);
             }
-        };
+        }
 
         // In all cases, clean some things
         messages.extend(vec![EngineMessage::GuiState(
@@ -390,26 +389,28 @@ impl Engine {
     ) -> Vec<EngineMessage> {
         let mut messages = vec![];
 
-        if let Some(pending_order) = self.gui_state.get_pending_order() {
-            if let Some(order_) = self.order_from_pending_order(pending_order) {
-                let squad_leader = self
-                    .battle_state
-                    .squad(*pending_order.squad_index())
-                    .leader();
-                messages.extend(
-                    [
-                        vec![EngineMessage::PlaySound(Sound::Clac1)],
-                        self.define_order(&squad_leader, &order_),
-                    ]
-                    .concat(),
-                )
-            } else {
-                messages.push(EngineMessage::PlaySound(Sound::Bip1))
+        if self.gui_state.get_pending_order().len() > 0 {
+            for pending_order in self.gui_state.get_pending_order() {
+                if let Some(order_) = self.order_from_pending_order(pending_order) {
+                    let squad_leader = self
+                        .battle_state
+                        .squad(*pending_order.squad_index())
+                        .leader();
+                    messages.extend(
+                        [
+                            vec![EngineMessage::PlaySound(Sound::Clac1)],
+                            self.define_order(&squad_leader, &order_),
+                        ]
+                        .concat(),
+                    )
+                } else {
+                    messages.push(EngineMessage::PlaySound(Sound::Bip1))
+                }
+                messages.extend(vec![
+                    EngineMessage::GuiState(GuiStateMessage::SetPendingOrders(vec![])),
+                    EngineMessage::GuiState(GuiStateMessage::SetDisplayPaths(vec![])),
+                ]);
             }
-            messages.extend(vec![
-                EngineMessage::GuiState(GuiStateMessage::SetPendingOrder(None)),
-                EngineMessage::GuiState(GuiStateMessage::SetDisplayPaths(vec![])),
-            ]);
         } else {
             let world_start = self.gui_state.world_point_from_window_point(start);
             let world_end = self.gui_state.world_point_from_window_point(end);
