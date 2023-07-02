@@ -307,17 +307,6 @@ impl Engine {
                     EngineMessage::GuiState(GuiStateMessage::SetCurrentCursorVector(None)),
                 ]);
 
-                // Determine if it is a simple click or a drag
-                if start_point != end_point {
-                    messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
-                        UIEvent::FinishedCursorVector(start_point, end_point),
-                    )));
-                } else {
-                    messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
-                        UIEvent::FinishedCursorLeftClick(end_point),
-                    )));
-                }
-
                 if let Some(squad_index) = self.gui_state.dragged_squad() {
                     if self.gui_state.cursor_in_hud() {
                         messages.push(EngineMessage::PlaySound(Sound::Bip1))
@@ -326,6 +315,18 @@ impl Engine {
                             self.gui_state.world_point_from_window_point(end_point);
                         messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
                             UIEvent::DropSquadTo(*squad_index, world_end_point),
+                        )));
+                    }
+                // Determine finish cursor vector only if no dragging to avoid fake selection
+                } else {
+                    // Determine if it is a simple click or a drag
+                    if start_point != end_point {
+                        messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
+                            UIEvent::FinishedCursorVector(start_point, end_point),
+                        )));
+                    } else {
+                        messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
+                            UIEvent::FinishedCursorLeftClick(end_point),
                         )));
                     }
                 }
