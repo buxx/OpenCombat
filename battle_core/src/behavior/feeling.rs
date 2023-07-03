@@ -26,11 +26,11 @@ impl Feeling {
 
     pub fn proximity_bullet_increase_value(distance: Distance) -> u32 {
         if distance.meters() < 3 {
-            150
-        } else if distance.meters() < 10 {
             100
+        } else if distance.meters() < 10 {
+            35
         } else {
-            30
+            1
         }
     }
 
