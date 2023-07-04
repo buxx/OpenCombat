@@ -241,7 +241,7 @@ impl Map {
     }
 }
 
-pub fn find_cover_grid_point(
+pub fn find_arbitrary_cover_grid_point(
     config: &ServerConfig,
     from_grid_point: &GridPoint,
     map: &Map,

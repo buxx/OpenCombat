@@ -1,7 +1,7 @@
 use crate::{
     config::{ServerConfig, COVER_DISTANCE},
     entity::soldier::Soldier,
-    map::find_cover_grid_point,
+    map::find_arbitrary_cover_grid_point,
     state::battle::BattleState,
     types::{GridPoint, SoldierIndex, SquadComposition, WorldPoint},
     utils::NewDebugPoint,
@@ -56,7 +56,7 @@ impl<'a> CoverFinder<'a> {
                 .battle_state
                 .map()
                 .grid_point_from_world_point(&formation_position);
-            if let Some((cover_grid_point, debug_grid_points)) = find_cover_grid_point(
+            if let Some((cover_grid_point, debug_grid_points)) = find_arbitrary_cover_grid_point(
                 &self.config,
                 &grid_point,
                 &self.battle_state.map(),
