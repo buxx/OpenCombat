@@ -524,7 +524,7 @@ impl Engine {
         let (moves, debug_points) = CoverFinder::new(&self.battle_state, &self.server_config)
             .point(Some(point.clone()))
             .exclude_grid_points(vec![cursor_grid_point])
-            .find_cover_points(squad, leader);
+            .find_arbitrary_cover_points(squad, leader);
 
         messages.push(EngineMessage::BattleState(BattleStateMessage::Soldier(
             squad.leader(),

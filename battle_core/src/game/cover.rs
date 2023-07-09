@@ -36,7 +36,7 @@ impl<'a> CoverFinder<'a> {
         self
     }
 
-    pub fn find_cover_points(
+    pub fn find_arbitrary_cover_points(
         &self,
         squad: &SquadComposition,
         leader: &Soldier,

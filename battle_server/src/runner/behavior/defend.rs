@@ -19,8 +19,8 @@ impl Runner {
         let leader = self.battle_state.soldier(squad.leader());
         let mut orders = vec![];
 
-        let (moves, debug_points) =
-            CoverFinder::new(&self.battle_state, &self.config).find_cover_points(squad, leader);
+        let (moves, debug_points) = CoverFinder::new(&self.battle_state, &self.config)
+            .find_arbitrary_cover_points(squad, leader);
 
         for (member_id, from_world_point, cover_world_point) in moves {
             let order = Order::MoveFastTo(WorldPaths::new(vec![WorldPath::new(vec![

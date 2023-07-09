@@ -182,7 +182,7 @@ impl Engine {
                 let squad = self.battle_state.squad(leader.squad_uuid());
                 let (moves, debug_points) =
                     CoverFinder::new(&self.battle_state, &self.server_config)
-                        .find_cover_points(squad, leader);
+                        .find_arbitrary_cover_points(squad, leader);
 
                 // Debug points
                 messages.extend(debug_points.iter().map(|d| {
