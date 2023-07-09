@@ -35,6 +35,7 @@ pub struct GuiState {
     pub debug_scene_item_circles: bool,
     pub debug_areas: bool,
     pub debug_visibilities: bool,
+    pub debug_targets: bool,
     pub debug_physics_areas: bool,
     /// Current debug terrain to apply
     pub debug_terrain: DebugTerrain,
@@ -92,6 +93,7 @@ impl GuiState {
             debug_scene_item_circles: false,
             debug_areas: false,
             debug_visibilities: false,
+            debug_targets: false,
             debug_physics_areas: false,
             debug_terrain: DebugTerrain::None,
             debug_physics: DebugPhysics::None,

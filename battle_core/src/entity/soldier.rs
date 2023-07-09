@@ -243,6 +243,13 @@ impl Soldier {
     pub fn unconscious(&self) -> bool {
         self.unconscious
     }
+
+    pub fn target(&self) -> Option<&SoldierIndex> {
+        match self.behavior() {
+            Behavior::EngageSoldier(soldier_index) => Some(soldier_index),
+            _ => None,
+        }
+    }
 }
 
 impl From<&SoldierDeployment> for Soldier {

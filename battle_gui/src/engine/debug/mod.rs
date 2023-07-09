@@ -244,6 +244,26 @@ impl Engine {
 
         Ok(())
     }
+    pub fn generate_targets_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
+        for squad_uuid in &self.gui_state.selected_squads().1 {
+            let squad_composition = self.battle_state.squad(*squad_uuid);
+            for soldier_index in squad_composition.members() {
+                let soldier = self.battle_state.soldier(*soldier_index);
+                if let Some(target_soldier) = soldier.target() {
+                    let target_soldier = self.battle_state.soldier(*target_soldier);
+                    let from_point = self
+                        .gui_state
+                        .window_point_from_world_point(soldier.get_world_point());
+                    let to_point = self
+                        .gui_state
+                        .window_point_from_world_point(target_soldier.get_world_point());
+                    mesh_builder.line(&vec![from_point.to_vec2(), to_point.to_vec2()], 1.0, RED)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
 
     pub fn generate_debug_physics(&self, from: WorldPoint, to: WorldPoint) -> Vec<EngineMessage> {
         let mut messages = vec![];

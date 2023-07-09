@@ -44,6 +44,7 @@ impl Engine {
             ui.checkbox(&mut self.gui_state.debug_scene_item_circles, "Soldier");
             ui.checkbox(&mut self.gui_state.debug_areas, "Areas");
             ui.checkbox(&mut self.gui_state.debug_visibilities, "Visibilities");
+            ui.checkbox(&mut self.gui_state.debug_targets, "Targets");
             ui.checkbox(&mut self.gui_state.debug_physics_areas, "Physics");
 
             ui.label(format!("FPS : {:.2}", ctx.time.fps()));
