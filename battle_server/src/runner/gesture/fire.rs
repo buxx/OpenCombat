@@ -88,6 +88,15 @@ impl Runner {
             * (meters_between_world_points(&soldier.get_world_point(), target_point).meters()
                 as f32
                 / 500.);
+
+        if range == 0. {
+            eprintln!(
+                "ERROR : soldier_fire_point on original soldier point ({:?})",
+                target_point
+            );
+            return target_point.clone();
+        }
+
         let x_change = rng.gen_range(-range..range);
         let y_change = rng.gen_range(-range..range);
         WorldPoint::from(target_point.apply(Vec2::new(x_change, y_change)))
