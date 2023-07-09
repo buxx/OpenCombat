@@ -116,6 +116,31 @@ impl Engine {
         vec![]
     }
 
+    fn digest_squad_menu_select_by_vector(
+        &self,
+        start_cursor_point: &WindowPoint,
+        end_cursor_point: &WindowPoint,
+        squad_menu_point: &WindowPoint,
+        squads: &Vec<SquadUuid>,
+    ) -> Option<Vec<EngineMessage>> {
+        let squad_menu_sprite_info = squad_menu_sprite_info();
+        if let (Some(menu_item), Some(_)) = (
+            squad_menu_sprite_info.item_clicked(&squad_menu_point, &start_cursor_point),
+            squad_menu_sprite_info.item_clicked(&squad_menu_point, &end_cursor_point),
+        ) {
+            return Some(vec![EngineMessage::GuiState(
+                GuiStateMessage::SetPendingOrders(
+                    squads
+                        .iter()
+                        .map(|squad_index| menu_item.to_pending_order(squad_index))
+                        .collect(),
+                ),
+            )]);
+        };
+
+        None
+    }
+
     pub fn generate_display_path_meshes(
         &self,
         display_path: &WorldPaths,
@@ -388,6 +413,20 @@ impl Engine {
         end: WindowPoint,
     ) -> Vec<EngineMessage> {
         let mut messages = vec![];
+
+        // First try to check if its a missed click in a squad menu
+        if let Some((squad_menu_point, squads)) = self.gui_state.get_squad_menu() {
+            if let Some(messages) =
+                self.digest_squad_menu_select_by_vector(&start, &end, squad_menu_point, squads)
+            {
+                // Interrupt vector analyze by returning
+                return [
+                    messages,
+                    vec![EngineMessage::GuiState(GuiStateMessage::SetSquadMenu(None))],
+                ]
+                .concat();
+            }
+        }
 
         if self.gui_state.get_pending_order().len() > 0 {
             for pending_order in self.gui_state.get_pending_order() {
