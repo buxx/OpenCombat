@@ -117,6 +117,12 @@ impl GridPoint {
     }
 }
 
+impl Display for GridPoint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&format!("{},{}", self.x, self.y))
+    }
+}
+
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ScenePoint {
     pub x: f32,

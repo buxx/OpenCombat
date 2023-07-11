@@ -10,12 +10,14 @@ use super::BattleState;
 
 impl BattleState {
     pub fn soldier_is_visible_by_side(&self, soldier: &Soldier, side: &Side) -> bool {
-        for visibility in self
-            .visibilities()
-            .visibles_soldiers()
-            .iter()
-            .filter(|v| self.soldier(v.from_soldier).get_side() == side)
-        {
+        for visibility in self.visibilities().visibles_soldiers().iter().filter(|v| {
+            self.soldier(
+                v.from_soldier
+                    .expect("visibles_soldiers implies from_soldier"),
+            )
+            .get_side()
+                == side
+        }) {
             if visibility.to_soldier == Some(soldier.uuid()) {
                 return true;
             }

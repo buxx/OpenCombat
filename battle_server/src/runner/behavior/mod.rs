@@ -219,7 +219,6 @@ impl Runner {
     }
 
     pub fn engage_behavior(&self, soldier: &Soldier, squad_index: &SquadUuid) -> Behavior {
-        // TODO : If can't see any squad opponent, but can move to covered position, move to it
         if let Some(opponent) = self.get_soldier_opponent(soldier, Some(squad_index)) {
             return Behavior::EngageSoldier(opponent.uuid());
         }

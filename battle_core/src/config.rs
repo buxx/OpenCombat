@@ -75,7 +75,7 @@ pub const VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_COEFFICIENT: f32 = 100.;
 pub const VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_DIFF: f32 = 50.;
 
 // Grid distance to search cover point
-pub const COVER_DISTANCE: i32 = 5;
+pub const COVER_DISTANCE: i32 = 6;
 
 // Visibility computing must consider firsts tiles differently
 pub const VISIBILITY_FIRSTS: usize = 4;

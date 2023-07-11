@@ -248,6 +248,28 @@ pub fn find_arbitrary_cover_grid_point(
     exclude_grid_points: &Vec<GridPoint>,
     cover_distance: i32,
 ) -> Option<(GridPoint, Vec<GridPoint>)> {
+    let tiles = find_arbitrary_cover_grid_points(config, from_grid_point, map, cover_distance);
+    for (grid_point, _) in tiles.iter().rev() {
+        if !exclude_grid_points.contains(grid_point) {
+            // TODO : This is for debug, don't take too much cpu ?
+            let grid_points = tiles
+                .iter()
+                .map(|(p, _)| p.clone())
+                .collect::<Vec<GridPoint>>();
+            return Some((grid_point.clone(), grid_points));
+        }
+    }
+
+    None
+}
+
+/// Return list of sorted by opacity points around
+pub fn find_arbitrary_cover_grid_points<'a>(
+    config: &'a ServerConfig,
+    from_grid_point: &'a GridPoint,
+    map: &'a Map,
+    cover_distance: i32,
+) -> Vec<(GridPoint, &'a TerrainTile)> {
     let mut tiles: Vec<(GridPoint, &TerrainTile)> = vec![];
     if let Some(tile) = map
         .terrain_tiles()
@@ -273,15 +295,5 @@ pub fn find_arbitrary_cover_grid_point(
             .unwrap()
     });
 
-    for (grid_point, _) in tiles.iter().rev() {
-        if !exclude_grid_points.contains(grid_point) {
-            let grid_points = tiles
-                .iter()
-                .map(|(p, _)| p.clone())
-                .collect::<Vec<GridPoint>>();
-            return Some((grid_point.clone(), grid_points));
-        }
-    }
-
-    None
+    tiles
 }

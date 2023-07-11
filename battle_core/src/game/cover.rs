@@ -1,7 +1,8 @@
 use crate::{
     config::{ServerConfig, COVER_DISTANCE},
     entity::soldier::Soldier,
-    map::find_arbitrary_cover_grid_point,
+    map::{find_arbitrary_cover_grid_point, find_arbitrary_cover_grid_points},
+    physics::visibility::Visibility,
     state::battle::BattleState,
     types::{GridPoint, SoldierIndex, SquadComposition, WorldPoint},
     utils::NewDebugPoint,
@@ -86,5 +87,54 @@ impl<'a> CoverFinder<'a> {
         }
 
         (moves, debug_points)
+    }
+
+    /// Search better covered position than current soldier point according to given point.
+    /// Used to search a better place to hide from some shooters or find
+    /// # Arguments
+    ///
+    /// * `soldier` - Concerned soldier
+    /// * `from_point`- Point of origin to hide from
+    /// * `keep_visible` - from_point must be still visible from new found point (if soldier is engaging)
+    pub fn find_better_cover_point_from_point(
+        &self,
+        soldier: &Soldier,
+        from_point: &WorldPoint,
+        keep_visible: bool,
+    ) -> Option<GridPoint> {
+        let soldier_position = soldier.get_world_point();
+        let soldier_grid_point = self
+            .battle_state
+            .map()
+            .grid_point_from_world_point(&soldier_position);
+        let possible_cover_grid_points = find_arbitrary_cover_grid_points(
+            self.config,
+            &soldier_grid_point,
+            self.battle_state.map(),
+            COVER_DISTANCE,
+        );
+
+        for (possible_cover_grid_point, _) in possible_cover_grid_points.iter().rev() {
+            if !self.exclude_grid_points.contains(possible_cover_grid_point) {
+                let possible_cover_point = self
+                    .battle_state
+                    .map()
+                    .world_point_from_grid_point(*possible_cover_grid_point);
+                if Visibility::between_points(
+                    self.config,
+                    &possible_cover_point,
+                    from_point,
+                    self.battle_state.map(),
+                )
+                // FIXME BS NOW : if keep_visible is false and not hided point found, take most opaque
+                .visible
+                    == keep_visible
+                {
+                    return Some(*possible_cover_grid_point);
+                }
+            }
+        }
+
+        None
     }
 }

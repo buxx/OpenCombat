@@ -115,6 +115,7 @@ impl Soldier {
     }
 
     pub fn set_order(&mut self, order: Order) {
+        println!("Soldier({})::set_order({})", self.uuid, &order);
         self.order = order
     }
 

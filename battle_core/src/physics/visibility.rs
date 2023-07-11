@@ -35,7 +35,9 @@ impl Visibilities {
     pub fn visibles_soldiers_by_soldier(&self, soldier: &Soldier) -> Vec<&Visibility> {
         self.visibilities
             .values()
-            .filter(|v| v.from_soldier == soldier.uuid() && v.to_soldier.is_some() && v.visible)
+            .filter(|v| {
+                v.from_soldier == Some(soldier.uuid()) && v.to_soldier.is_some() && v.visible
+            })
             .collect()
     }
 
@@ -54,7 +56,7 @@ impl Visibilities {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Visibility {
     pub from: WorldPoint,
-    pub from_soldier: SoldierIndex,
+    pub from_soldier: Option<SoldierIndex>,
     pub to: WorldPoint,
     pub to_soldier: Option<SoldierIndex>,
     pub path_final_opacity: f32,
@@ -86,7 +88,7 @@ impl Visibility {
         };
 
         let (mut to_soldier_item_opacity, opacity_segments, path_final_opacity) =
-            Visibility::between_points(
+            Self::between_points_raw(
                 config,
                 &from_point,
                 &to_point,
@@ -104,7 +106,7 @@ impl Visibility {
         );
         Self {
             from: from_point,
-            from_soldier: from_soldier.uuid(),
+            from_soldier: Some(from_soldier.uuid()),
             to: to_point,
             to_soldier: Some(to_soldier.uuid()),
             opacity_segments,
@@ -124,13 +126,37 @@ impl Visibility {
         let from_point = from_soldier.get_world_point();
 
         let (to_soldier_item_opacity, opacity_segments, path_final_opacity) =
-            Visibility::between_points(config, &from_point, &to_point, map, VISIBILITY_FIRSTS, 0);
+            Self::between_points_raw(config, &from_point, &to_point, map, VISIBILITY_FIRSTS, 0);
 
         let visible = to_soldier_item_opacity < 0.5;
         let distance = meters_between_world_points(&from_point, &to_point);
         Self {
             from: from_point,
-            from_soldier: from_soldier.uuid(),
+            from_soldier: Some(from_soldier.uuid()),
+            to: *to_point,
+            to_soldier: None,
+            opacity_segments,
+            path_final_opacity,
+            to_scene_item_opacity: to_soldier_item_opacity,
+            visible,
+            distance,
+        }
+    }
+
+    pub fn between_points(
+        config: &ServerConfig,
+        from_point: &WorldPoint,
+        to_point: &WorldPoint,
+        map: &Map,
+    ) -> Self {
+        let (to_soldier_item_opacity, opacity_segments, path_final_opacity) =
+            Self::between_points_raw(config, &from_point, &to_point, map, VISIBILITY_FIRSTS, 0);
+
+        let visible = to_soldier_item_opacity < 0.5;
+        let distance = meters_between_world_points(&from_point, &to_point);
+        Self {
+            from: *from_point,
+            from_soldier: None,
             to: *to_point,
             to_soldier: None,
             opacity_segments,
@@ -142,7 +168,7 @@ impl Visibility {
     }
 
     // TODO : Optimize performances here
-    fn between_points(
+    pub fn between_points_raw(
         config: &ServerConfig,
         from_point: &WorldPoint,
         to_point: &WorldPoint,
