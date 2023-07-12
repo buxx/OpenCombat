@@ -127,7 +127,7 @@ impl Engine {
 
         let all = DrawParam::new()
             .src(Rect::new(0.0, 0.0, 1.0, 1.0))
-            .dest(Vec2::new(0., 0.));
+            .dest(Vec2::new(0., 0.) * self.gui_state.zoom.factor());
         if allowed_zone_names.contains(&SpawnZoneName::All) {
             map_background_sprites.push(all.clone());
 
@@ -144,7 +144,10 @@ impl Engine {
                             opponent_spawn_zone.relative_width(),
                             opponent_spawn_zone.relative_height(),
                         ))
-                        .dest(Vec2::new(opponent_spawn_zone.x(), opponent_spawn_zone.y())),
+                        .dest(
+                            Vec2::new(opponent_spawn_zone.x(), opponent_spawn_zone.y())
+                                * self.gui_state.zoom.factor(),
+                        ),
                 );
             }
         } else {
@@ -161,7 +164,10 @@ impl Engine {
                                 allowed_spawn_zone.relative_width(),
                                 allowed_spawn_zone.relative_height(),
                             ))
-                            .dest(Vec2::new(allowed_spawn_zone.x(), allowed_spawn_zone.y())),
+                            .dest(
+                                Vec2::new(allowed_spawn_zone.x(), allowed_spawn_zone.y())
+                                    * self.gui_state.zoom.factor(),
+                            ),
                     );
                 }
             }
