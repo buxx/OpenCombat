@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use battle_core::{map::Map, types::ScenePoint};
 use ggez::{
     graphics::{DrawParam, Image, InstanceArray, Rect},
@@ -6,7 +8,7 @@ use ggez::{
 
 use crate::utils::qualified::ToQualified;
 
-use super::{batch::QualifiedBatch, qualified::Zoom};
+use super::{batch::QualifiedBatch, map::ensure_map_dark_backgrounds, qualified::Zoom};
 
 pub struct Background {
     sd: InstanceArray,
@@ -48,11 +50,21 @@ impl QualifiedBatch<InstanceArray> for Background {
 pub struct BackgroundBuilder<'a> {
     ctx: &'a mut Context,
     map: &'a Map,
+    dark: bool,
 }
 
 impl<'a> BackgroundBuilder<'a> {
     pub fn new(ctx: &'a mut Context, map: &'a Map) -> Self {
-        Self { ctx, map }
+        Self {
+            ctx,
+            map,
+            dark: false,
+        }
+    }
+
+    pub fn dark(mut self, value: bool) -> Self {
+        self.dark = value;
+        self
     }
 
     pub fn build(&self) -> GameResult<Background> {
@@ -62,10 +74,17 @@ impl<'a> BackgroundBuilder<'a> {
         ))
     }
 
+    fn background_image_path(&self) -> GameResult<PathBuf> {
+        if self.dark {
+            ensure_map_dark_backgrounds(self.map)
+        } else {
+            Ok(self.map.background_image_path().clone())
+        }
+    }
+
     fn build_for(&self, zoom: &Zoom) -> GameResult<InstanceArray> {
         let image_path = self
-            .map
-            .background_image_path()
+            .background_image_path()?
             .to_qualified(zoom)
             .map_err(|error| {
                 GameError::ResourceLoadError(format!(

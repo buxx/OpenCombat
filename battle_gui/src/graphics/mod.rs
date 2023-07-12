@@ -91,8 +91,8 @@ pub struct Graphics {
     ui_file: String,
     // Map background sprite batch
     background: Background,
-    map_dark_background_batch: InstanceArray,
-    map_dark_background_first: bool,
+    dark_background: Background,
+    dark_background_first: bool,
     // Map interiors sprite batch
     interiors: Interiors,
     // Map decor sprite batches
@@ -126,7 +126,7 @@ impl Graphics {
         let ui_batch = create_batch(&ui_file, ctx)?;
 
         let background = BackgroundBuilder::new(ctx, map).build()?;
-        let map_dark_background_batch = map::get_map_dark_background_batch(ctx, map)?;
+        let dark_background = BackgroundBuilder::new(ctx, map).dark(true).build()?;
         let map_interiors_batch = InteriorsBuilder::new(ctx, map).build()?;
         let decor = DecorsBuilder::new(ctx, map).build()?;
         let debug_terrain_batch = map::create_debug_terrain_batch(ctx, map)?;
@@ -147,8 +147,8 @@ impl Graphics {
             ui_files,
             ui_file,
             background,
-            map_dark_background_batch,
-            map_dark_background_first: false,
+            dark_background,
+            dark_background_first: false,
             interiors: map_interiors_batch,
             decor,
             soldier_animation_sequences: HashMap::new(),
@@ -156,10 +156,6 @@ impl Graphics {
             debug_terrain_batch,
             debug_terrain_opacity_mesh_builder,
         })
-    }
-
-    pub fn append_dark_map_background_batch(&mut self, sprite: graphics::DrawParam) {
-        self.map_dark_background_batch.push(sprite);
     }
 
     pub fn append_ui_batch(&mut self, sprite: graphics::DrawParam) {
@@ -340,9 +336,9 @@ impl Graphics {
         draw_param: graphics::DrawParam,
         zoom: &Zoom,
     ) -> GameResult {
-        if self.map_dark_background_first {
-            if self.map_dark_background_batch.instances().len() > 0 {
-                canvas.draw(&self.map_dark_background_batch, draw_param);
+        if self.dark_background_first {
+            if self.dark_background.drawable(zoom).instances().len() > 0 {
+                canvas.draw(self.dark_background.drawable(zoom), draw_param);
             }
 
             if self.background.drawable(zoom).instances().len() > 0 {
@@ -353,8 +349,8 @@ impl Graphics {
                 canvas.draw(self.background.drawable(zoom), draw_param);
             }
 
-            if self.map_dark_background_batch.instances().len() > 0 {
-                canvas.draw(&self.map_dark_background_batch, draw_param);
+            if self.dark_background.drawable(zoom).instances().len() > 0 {
+                canvas.draw(self.dark_background.drawable(zoom), draw_param);
             }
         }
 
@@ -422,7 +418,7 @@ impl Graphics {
     }
 
     pub fn set_map_dark_background_first(&mut self, map_dark_background_first: bool) {
-        self.map_dark_background_first = map_dark_background_first;
+        self.dark_background_first = map_dark_background_first;
     }
 
     pub fn clear(&mut self, zoom: &Zoom) {
@@ -430,7 +426,7 @@ impl Graphics {
         self.vehicles.clear(zoom);
         self.explosions.clear(zoom);
         self.background.clear(zoom);
-        self.map_dark_background_batch.clear();
+        self.dark_background.clear(zoom);
         self.ui_batch.clear();
     }
 
@@ -524,6 +520,10 @@ impl Graphics {
 
     pub fn background_mut(&mut self) -> &mut Background {
         &mut self.background
+    }
+
+    pub fn dark_background_mut(&mut self) -> &mut Background {
+        &mut self.dark_background
     }
 
     pub fn interiors_mut(&mut self) -> &mut Interiors {

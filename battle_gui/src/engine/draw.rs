@@ -175,7 +175,8 @@ impl Engine {
 
         for dark_map_background_sprite in dark_map_background_sprites {
             self.graphics
-                .append_dark_map_background_batch(dark_map_background_sprite);
+                .dark_background_mut()
+                .push(&self.gui_state.zoom, dark_map_background_sprite);
         }
         self.graphics
             .set_map_dark_background_first(map_dark_background_first);

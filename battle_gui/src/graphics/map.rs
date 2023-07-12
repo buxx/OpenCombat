@@ -1,14 +1,19 @@
+use std::path::PathBuf;
+
 use battle_core::{config::ServerConfig, map::Map, types::WorldPoint};
 use ggez::{
     graphics::{Color, DrawMode, DrawParam, Image, InstanceArray, MeshBuilder, Rect},
     Context, GameError, GameResult,
 };
-use glam::Vec2;
 use image::{ImageBuffer, RgbaImage};
 use oc_core::resources::Resources;
 use rayon::prelude::*;
 
-pub fn get_map_dark_background_batch(ctx: &mut Context, map: &Map) -> GameResult<InstanceArray> {
+use crate::utils::qualified::ToQualified;
+
+use super::qualified::Zoom;
+
+pub fn ensure_map_dark_backgrounds(map: &Map) -> GameResult<PathBuf> {
     let resources = match Resources::new() {
         Ok(resources) => resources,
         Err(error) => return Err(GameError::ResourceLoadError(error.to_string())),
@@ -18,12 +23,27 @@ pub fn get_map_dark_background_batch(ctx: &mut Context, map: &Map) -> GameResult
             .strip_prefix("/")
             .expect("Must start with /"),
     );
+    let bg_image_hd_path_abs = resources.lib().join(
+        map.background_image_path()
+            .to_qualified(&Zoom::hd())
+            .map_err(|error| {
+                GameError::ResourceLoadError(format!(
+                    "Background image source qualification error : {}",
+                    error.to_string()
+                ))
+            })?
+            .strip_prefix("/")
+            .expect("Must start with /"),
+    );
     let bg_dark_image_path_abs = resources
         .cache_abs()
         .join(format!("{}__dark.png", map.name()));
     let bg_dark_image_path_rel = resources
         .cache_ggez()
         .join(format!("{}__dark.png", map.name()));
+    let bg_dark_image_hd_path_abs = resources
+        .cache_abs()
+        .join(format!("{}__dark__HD.png", map.name()));
 
     if !bg_dark_image_path_abs.exists() {
         let mut bg_image = image::open(&bg_image_path_abs)?.into_rgba8();
@@ -38,15 +58,20 @@ pub fn get_map_dark_background_batch(ctx: &mut Context, map: &Map) -> GameResult
         dark_bg_image.save(bg_dark_image_path_abs)?;
     }
 
-    let map_dark_background_image = Image::from_path(ctx, bg_dark_image_path_rel)?;
-    let mut map_dark_background_batch = InstanceArray::new(ctx, map_dark_background_image);
-    map_dark_background_batch.push(
-        DrawParam::new()
-            .src(Rect::new(0.0, 0.0, 1.0, 1.0))
-            .dest(Vec2::new(0., 0.)),
-    );
+    if !bg_dark_image_hd_path_abs.exists() {
+        let mut bg_image = image::open(&bg_image_hd_path_abs)?.into_rgba8();
+        bg_image
+            .as_flat_samples_mut()
+            .samples
+            .par_chunks_mut(4)
+            .for_each(|channels: &mut [u8]| channels[3] = 84);
+        let mut dark_bg_image_hd: RgbaImage =
+            ImageBuffer::from_pixel(bg_image.width(), bg_image.height(), [0, 0, 0, 255].into());
+        image::imageops::overlay(&mut dark_bg_image_hd, &bg_image, 0, 0);
+        dark_bg_image_hd.save(bg_dark_image_hd_path_abs)?;
+    }
 
-    Ok(map_dark_background_batch)
+    Ok(bg_dark_image_path_rel)
 }
 
 pub fn create_debug_terrain_batch(ctx: &mut Context, map: &Map) -> GameResult<InstanceArray> {
