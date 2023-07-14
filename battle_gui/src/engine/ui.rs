@@ -59,12 +59,15 @@ impl Engine {
             return Ok(());
         }
 
-        if let Some((start, end)) = self.gui_state.current_cursor_vector_window_points() {
-            mesh_builder.rectangle(
-                DrawMode::stroke(1.0),
-                Rect::new(start.x, start.y, end.x - start.x, end.y - start.y),
-                GREEN,
-            )?;
+        if self.gui_state.dragged_squad().is_none() && self.gui_state.get_pending_order().is_empty()
+        {
+            if let Some((start, end)) = self.gui_state.current_cursor_vector_window_points() {
+                mesh_builder.rectangle(
+                    DrawMode::stroke(1.0),
+                    Rect::new(start.x, start.y, end.x - start.x, end.y - start.y),
+                    GREEN,
+                )?;
+            }
         }
 
         Ok(())
