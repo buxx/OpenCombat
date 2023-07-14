@@ -29,7 +29,7 @@ impl Engine {
         let area = Rect::new(from.x, from.y, to.x - from.x, to.y - from.y);
 
         for (i, scene_item) in self.battle_state.soldiers().iter().enumerate() {
-            let soldier_point = scene_item.get_world_point();
+            let soldier_point = scene_item.world_point();
             if area.contains(soldier_point.to_vec2()) {
                 soldier_indexes.push(SoldierIndex(i));
             }
@@ -38,7 +38,7 @@ impl Engine {
         soldier_indexes
     }
 
-    pub fn get_soldiers_at_point(&self, point: WorldPoint) -> Vec<SoldierIndex> {
+    pub fn soldiers_at_point(&self, point: WorldPoint) -> Vec<SoldierIndex> {
         let mut soldier_indexes = vec![];
 
         for (i, soldier) in self.battle_state.soldiers().iter().enumerate() {
@@ -60,7 +60,7 @@ impl Engine {
 
         for soldier_index in soldier_indexes {
             let soldier = self.battle_state.soldier(soldier_index);
-            if soldier.get_side() == side {
+            if soldier.side() == side {
                 filtered_soldier_indexes.push(soldier_index);
             }
         }
@@ -96,12 +96,12 @@ impl Engine {
     ) -> Option<WorldPaths> {
         let squad = self.battle_state.squad(squad_id);
         let soldier = self.battle_state.soldier(squad.leader());
-        let soldier_world_point = soldier.get_world_point();
+        let soldier_world_point = soldier.world_point();
         let soldier_grid_point = self
             .battle_state
             .map()
             .grid_point_from_world_point(&soldier_world_point);
-        let cursor_world_point = self.gui_state.get_current_cursor_world_point();
+        let cursor_world_point = self.gui_state.current_cursor_world_point();
         let cursor_grid_point = self
             .battle_state
             .map()
@@ -240,7 +240,7 @@ impl Engine {
         cached_points: &Vec<WorldPoint>,
     ) -> Option<WorldPaths> {
         // Take path from displayed path if exist
-        for display_paths in self.gui_state.get_display_paths() {
+        for display_paths in self.gui_state.display_paths() {
             for (display_path, path_squad_id) in display_paths {
                 if *path_squad_id == *squad_id {
                     return Some(display_path.clone());
@@ -263,8 +263,8 @@ impl Engine {
     pub fn angle_from_cursor_and_squad(&self, squad_id: SquadUuid) -> Angle {
         let squad = self.battle_state.squad(squad_id);
         let squad_leader = self.battle_state.soldier(squad.leader());
-        let to_point = self.gui_state.get_current_cursor_world_point().to_vec2();
-        let from_point = squad_leader.get_world_point().to_vec2();
+        let to_point = self.gui_state.current_cursor_world_point().to_vec2();
+        let from_point = squad_leader.world_point().to_vec2();
         Angle::from_points(&to_point, &from_point)
     }
 

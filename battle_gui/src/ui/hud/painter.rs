@@ -19,7 +19,7 @@ impl<'a> HudPainter<'a> {
     }
 
     pub fn sprites(&self) -> Vec<DrawParam> {
-        let hovered = &self.gui_state.get_current_cursor_window_point();
+        let hovered = &self.gui_state.current_cursor_window_point();
         [
             self.hud.background().sprites(hovered),
             self.hud.battle().sprites(hovered),
@@ -36,6 +36,6 @@ impl<'a> HudPainter<'a> {
     }
 
     fn hover_point(&self) -> &WindowPoint {
-        self.gui_state.get_current_cursor_window_point()
+        self.gui_state.current_cursor_window_point()
     }
 }

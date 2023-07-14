@@ -9,7 +9,7 @@ impl Engine {
     pub fn tick_interiors(&mut self) -> Vec<EngineMessage> {
         puffin::profile_scope!("tick_interiors");
         let messages = vec![];
-        let tick_update = self.gui_state.get_frame_i() % self.config.interiors_update_freq == 0;
+        let tick_update = self.gui_state.frame_i() % self.config.interiors_update_freq == 0;
 
         if tick_update {
             self.update_interior_sprites();
@@ -31,13 +31,13 @@ impl Engine {
 
             for soldier in self.battle_state.soldiers() {
                 let can_see_interior = soldier.can_see_interior();
-                let is_current_side = soldier.get_side() == self.gui_state.side();
+                let is_current_side = soldier.side() == self.gui_state.side();
 
                 if !can_see_interior || !is_current_side {
                     continue;
                 }
 
-                let soldier_position = soldier.get_world_point();
+                let soldier_position = soldier.world_point();
                 if soldier_position.x >= start_x
                     && soldier_position.x <= end_x
                     && soldier_position.y >= start_y

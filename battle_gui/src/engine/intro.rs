@@ -10,7 +10,7 @@ use super::{
 
 impl Engine {
     pub fn tick_intro(&self) -> Vec<EngineMessage> {
-        if self.gui_state.get_frame_i() == 0 {
+        if self.gui_state.frame_i() == 0 {
             return vec![EngineMessage::PlaySound(Sound::DrumMultiHits)];
         }
 

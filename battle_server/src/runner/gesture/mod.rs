@@ -110,7 +110,7 @@ impl Runner {
                 SoldierMessage::WeaponShot(class.clone()),
             )),
             RunnerMessage::BattleState(BattleStateMessage::PushBulletFire(BulletFire::new(
-                soldier.get_world_point(),
+                soldier.world_point(),
                 *point,
                 target.clone(),
                 weapon.ammunition(),

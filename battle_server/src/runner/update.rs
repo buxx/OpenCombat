@@ -21,7 +21,7 @@ impl Runner {
         let soldier = self.battle_state.soldier(i);
         let mut messages = vec![];
 
-        if let Some(angle_) = self.behavior_angle(soldier.behavior(), &soldier.get_world_point()) {
+        if let Some(angle_) = self.behavior_angle(soldier.behavior(), &soldier.world_point()) {
             let soldier_message = SoldierMessage::SetOrientation(angle_);
             messages.push(RunnerMessage::BattleState(BattleStateMessage::Soldier(
                 i,

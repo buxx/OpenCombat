@@ -22,11 +22,11 @@ impl Runner {
             .config
             .behavior_velocity(soldier.behavior())
             .expect("Entity behavior must have velocity when move code called");
-        let vector = (point.to_vec2() - soldier.get_world_point().to_vec2()).normalize() * velocity;
+        let vector = (point.to_vec2() - soldier.world_point().to_vec2()).normalize() * velocity;
 
         // Point reached
         if vector.is_nan()
-            || (soldier.get_world_point().to_vec2() - point.to_vec2()).length() <= vector.length()
+            || (soldier.world_point().to_vec2() - point.to_vec2()).length() <= vector.length()
         {
             // If it is the last point, move is finished
             if path.is_last_point().expect("Must contain points") {
@@ -49,7 +49,7 @@ impl Runner {
 
             // Movement required
         } else {
-            let new_point = soldier.get_world_point().apply(vector);
+            let new_point = soldier.world_point().apply(vector);
             messages.push(RunnerMessage::BattleState(BattleStateMessage::Soldier(
                 soldier_index,
                 SoldierMessage::SetWorldPosition(new_point),

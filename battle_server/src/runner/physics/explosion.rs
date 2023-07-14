@@ -51,7 +51,7 @@ impl Runner {
                 continue;
             }
 
-            let distance = meters_between_world_points(&soldier.get_world_point(), point);
+            let distance = meters_between_world_points(&soldier.world_point(), point);
 
             // TODO : Move into dedicated struct ?
             if let (
@@ -101,7 +101,7 @@ impl Runner {
         }
 
         for vehicle in self.battle_state.vehicles() {
-            if vehicle.get_chassis_shape().contains(point) {
+            if vehicle.chassis_shape().contains(point) {
                 messages.extend(self.vehicle_shell_impact_effects(vehicle, explosive_type));
             }
         }

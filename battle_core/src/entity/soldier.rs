@@ -58,9 +58,9 @@ impl Soldier {
     pub fn from_soldier(soldier: &Soldier) -> Self {
         Self::new(
             soldier.uuid(),
-            soldier.get_world_point(),
+            soldier.world_point(),
             soldier.squad_uuid(),
-            *soldier.get_side(),
+            *soldier.side(),
             soldier.main_weapon().clone(),
             soldier.magazines().clone(),
         )
@@ -70,11 +70,11 @@ impl Soldier {
         self.uuid
     }
 
-    pub fn get_side(&self) -> &Side {
+    pub fn side(&self) -> &Side {
         &self.side
     }
 
-    pub fn get_world_point(&self) -> WorldPoint {
+    pub fn world_point(&self) -> WorldPoint {
         self.world_point
     }
 
@@ -90,7 +90,7 @@ impl Soldier {
         &self.behavior
     }
 
-    pub fn get_behavior_mut(&mut self) -> &mut Behavior {
+    pub fn behavior_mut(&mut self) -> &mut Behavior {
         &mut self.behavior
     }
 

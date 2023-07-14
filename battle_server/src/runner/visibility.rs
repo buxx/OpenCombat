@@ -36,13 +36,13 @@ impl Runner {
             .battle_state
             .soldiers()
             .iter()
-            .filter(|s| s.get_side() == &Side::A)
+            .filter(|s| s.side() == &Side::A)
             .collect();
         let side_b_soldiers: Vec<&Soldier> = self
             .battle_state
             .soldiers()
             .iter()
-            .filter(|s| s.get_side() == &Side::B)
+            .filter(|s| s.side() == &Side::B)
             .collect();
 
         let from_side_a_visibilities: HashMap<(SoldierIndex, SoldierIndex), Visibility> =

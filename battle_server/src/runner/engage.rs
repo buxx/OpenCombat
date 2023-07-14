@@ -14,7 +14,7 @@ impl Runner {
     ) -> Vec<RunnerMessage> {
         let soldier = self.battle_state.soldier(*soldier_index);
         let target = self.battle_state.soldier(*target_index);
-        let angle = angle(&target.get_world_point(), &soldier.get_world_point());
+        let angle = angle(&target.world_point(), &soldier.world_point());
         vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
             *soldier_index,
             SoldierMessage::SetOrientation(angle),

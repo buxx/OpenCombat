@@ -35,7 +35,7 @@ impl Engine {
 
         // Dragged soldiers
         if let Some(squad_index) = &self.gui_state.dragged_squad() {
-            let cursor = self.gui_state.get_current_cursor_world_point();
+            let cursor = self.gui_state.current_cursor_world_point();
             let squad = self.battle_state.squad(*squad_index);
             let leader = self.battle_state.soldier(squad.leader());
 
@@ -47,7 +47,7 @@ impl Engine {
                 .extend(&self.gui_state.zoom, sprites);
 
             let cursor_immobile_since =
-                self.gui_state.get_frame_i() - self.gui_state.get_last_cursor_move_frame();
+                self.gui_state.frame_i() - self.gui_state.last_cursor_move_frame();
             if cursor_immobile_since >= 15 {
                 for (member_id, formation_position) in
                     squad_positions(squad, Formation::Line, leader, Some(cursor))
@@ -77,7 +77,7 @@ impl Engine {
         }
 
         // Don't draw soldier in opposite side and not visible
-        if soldier.get_side() != self.gui_state.side()
+        if soldier.side() != self.gui_state.side()
             && !self
                 .battle_state
                 .soldier_is_visible_by_side(soldier, self.gui_state.side())
@@ -201,10 +201,10 @@ impl Engine {
     }
 
     pub fn generate_menu_sprites(&mut self) -> GameResult {
-        if let Some((to_point, squad_ids)) = self.gui_state.get_squad_menu() {
+        if let Some((to_point, squad_ids)) = self.gui_state.squad_menu() {
             for sprite in self.graphics.squad_menu_sprites(
                 *to_point,
-                *self.gui_state.get_current_cursor_window_point(),
+                *self.gui_state.current_cursor_window_point(),
                 squad_ids,
             ) {
                 self.graphics.append_ui_batch(sprite);
@@ -230,7 +230,7 @@ impl Engine {
     }
 
     pub fn generate_display_paths_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        for display_paths in self.gui_state.get_display_paths() {
+        for display_paths in self.gui_state.display_paths() {
             for (display_path, _) in display_paths {
                 self.generate_display_path_meshes(display_path, mesh_builder)?
             }
@@ -318,7 +318,7 @@ impl Engine {
                             .scale(self.gui_state.zoom.to_vec2()),
                     )
                 }
-                let cursor_point = self.gui_state.get_current_cursor_window_point();
+                let cursor_point = self.gui_state.current_cursor_window_point();
                 draw_params.push(
                     self.graphics
                         .order_marker_draw_params(&pending_order_marker, *cursor_point, Angle(0.))
@@ -327,11 +327,11 @@ impl Engine {
             }
             PendingOrder::Defend(_) | PendingOrder::Hide(_) => {
                 let pending_order_marker = self.pending_order_marker(pending_order);
-                let to_point = self.gui_state.get_current_cursor_world_point().to_vec2();
-                let from_point = squad_leader.get_world_point().to_vec2();
+                let to_point = self.gui_state.current_cursor_world_point().to_vec2();
+                let from_point = squad_leader.world_point().to_vec2();
                 let point = self
                     .gui_state
-                    .window_point_from_world_point(squad_leader.get_world_point());
+                    .window_point_from_world_point(squad_leader.world_point());
                 draw_params.push(
                     self.graphics
                         .order_marker_draw_params(
@@ -345,7 +345,7 @@ impl Engine {
             }
             PendingOrder::EngageOrFire(_) => {
                 let pending_order_marker = self.pending_order_marker(pending_order);
-                let to_point = self.gui_state.get_current_cursor_window_point();
+                let to_point = self.gui_state.current_cursor_window_point();
                 draw_params.push(self.graphics.order_marker_draw_params(
                     &pending_order_marker,
                     *to_point,
@@ -365,7 +365,7 @@ impl Engine {
             PendingOrder::Defend(_) => OrderMarker::Defend,
             PendingOrder::Hide(_) => OrderMarker::Hide,
             PendingOrder::EngageOrFire(_) => {
-                let cursor_point = self.gui_state.get_current_cursor_world_point();
+                let cursor_point = self.gui_state.current_cursor_world_point();
                 if let Some(_) = self
                     .get_opponent_soldiers_at_point(cursor_point)
                     .iter()
@@ -408,7 +408,7 @@ impl Engine {
         self.graphics.draw_debug_terrain(
             ctx,
             canvas,
-            self.gui_state.get_debug_terrain(),
+            self.gui_state.debug_terrain(),
             draw_param,
         )?;
 

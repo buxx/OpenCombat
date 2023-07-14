@@ -70,7 +70,7 @@ impl Engine {
     }
 
     pub fn create_engage_order(&self, squad_id: &SquadUuid) -> Option<Order> {
-        let world_point = self.gui_state.get_current_cursor_world_point();
+        let world_point = self.gui_state.current_cursor_world_point();
         if let Some(soldier) = self
             .get_opponent_soldiers_at_point(world_point)
             .iter()
@@ -187,7 +187,7 @@ impl Engine {
                 // Debug points
                 messages.extend(debug_points.iter().map(|d| {
                     EngineMessage::GuiState(GuiStateMessage::PushDebugPoint(DebugPoint {
-                        frame_i: self.gui_state.get_frame_i() + 60,
+                        frame_i: self.gui_state.frame_i() + 60,
                         point: d.point,
                     }))
                 }));

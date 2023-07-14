@@ -25,7 +25,7 @@ impl BattleState {
             }
             SoldierMessage::SetOrientation(angle) => soldier.set_looking_direction(*angle),
             SoldierMessage::ReachBehaviorStep => {
-                if soldier.order_mut().reach_step() || soldier.get_behavior_mut().reach_step() {
+                if soldier.order_mut().reach_step() || soldier.behavior_mut().reach_step() {
                     return vec![SideEffect::SoldierFinishHisBehavior(*soldier_index)];
                 }
             }

@@ -89,8 +89,8 @@ impl<'a> SoldiersBuilder<'a> {
 impl Graphics {
     pub fn soldier_selection_rect(&self, soldier: &Soldier) -> Rect {
         Rect::new(
-            soldier.get_world_point().x - SOLDIER_SELECTABLE_SQUARE_SIDE_HALF,
-            soldier.get_world_point().y - SOLDIER_SELECTABLE_SQUARE_SIDE_HALF,
+            soldier.world_point().x - SOLDIER_SELECTABLE_SQUARE_SIDE_HALF,
+            soldier.world_point().y - SOLDIER_SELECTABLE_SQUARE_SIDE_HALF,
             SOLDIER_SELECTABLE_SQUARE_SIDE,
             SOLDIER_SELECTABLE_SQUARE_SIDE,
         )

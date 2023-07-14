@@ -37,9 +37,9 @@ impl Runner {
             let member_grid_point = self
                 .battle_state
                 .map()
-                .grid_point_from_world_point(&member.get_world_point());
+                .grid_point_from_world_point(&member.world_point());
             if self
-                .get_soldier_opponent(member, Some(&engaged_squad_index))
+                .soldier_opponent(member, Some(&engaged_squad_index))
                 .is_some()
             {
                 log::debug!(
@@ -57,7 +57,7 @@ impl Runner {
                     .map(|i| self.battle_state.soldier(*i))
                     .filter(|s| {
                         self.battle_state
-                            .soldier_is_visible_by_side(s, member.get_side())
+                            .soldier_is_visible_by_side(s, member.side())
                     })
                     .collect();
 
@@ -66,7 +66,7 @@ impl Runner {
                         .exclude_grid_points(after_grid_positions.clone())
                         .find_better_cover_point_from_point(
                             member,
-                            &visible_opponent.get_world_point(),
+                            &visible_opponent.world_point(),
                             true,
                         )
                     {

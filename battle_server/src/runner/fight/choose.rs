@@ -6,7 +6,7 @@ impl Runner {
     // TODO : choose soldier according to distance, weapon type, etc
     // TODO : choose soldier according to other squad targets (distribution)
     // TODO : don't make it if soldier is driver, working assistant, etc
-    pub fn get_soldier_opponent(
+    pub fn soldier_opponent(
         &self,
         soldier: &Soldier,
         squad_index: Option<&SquadUuid>,

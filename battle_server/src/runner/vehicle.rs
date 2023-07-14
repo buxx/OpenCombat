@@ -24,15 +24,15 @@ impl Runner {
             .expect("this code must be called only when soldier is on board")
             .0;
         let vehicle = self.battle_state.vehicle(vehicle_index);
-        let vehicle_position = vehicle.get_world_point();
+        let vehicle_position = vehicle.world_point();
         let move_target_point = paths
             .next_point()
             .expect("Execute drive update imply move path is filled");
         let angle = angle(&move_target_point, &vehicle_position);
         let move_vector = (move_target_point.to_vec2() - vehicle_position.to_vec2()).normalize()
-            * vehicle.get_type().drive_speed();
+            * vehicle.type_().drive_speed();
 
-        let rounded_chassis_orientation = (vehicle.get_chassis_orientation().0
+        let rounded_chassis_orientation = (vehicle.chassis_orientation().0
             * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
             .round()
             .abs();
@@ -45,13 +45,12 @@ impl Runner {
 
         // Need to rotate chassis ?
         if rounded_chassis_orientation != target_vehicle_orientation {
-            let new_orientation = match short_angle_way(vehicle.get_chassis_orientation(), &angle) {
+            let new_orientation = match short_angle_way(vehicle.chassis_orientation(), &angle) {
                 AngleWay::ClockWise => {
-                    *vehicle.get_chassis_orientation() + vehicle.get_type().chassis_rotation_speed()
+                    *vehicle.chassis_orientation() + vehicle.type_().chassis_rotation_speed()
                 }
                 AngleWay::CounterClockWise => {
-                    *vehicle.get_chassis_orientation()
-                        + (-vehicle.get_type().chassis_rotation_speed())
+                    *vehicle.chassis_orientation() + (-vehicle.type_().chassis_rotation_speed())
                 }
             };
             messages.push(RunnerMessage::BattleState(BattleStateMessage::Vehicle(
@@ -61,7 +60,7 @@ impl Runner {
         }
 
         // Can advance ?
-        if (short_angle(vehicle.get_chassis_orientation(), &angle).0
+        if (short_angle(vehicle.chassis_orientation(), &angle).0
             * VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_COEFFICIENT)
             .abs()
             < VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_DIFF
@@ -106,13 +105,12 @@ impl Runner {
 
         // Need to rotate chassis ?
         if !vehicle.chassis_orientation_match(angle) {
-            let new_orientation = match short_angle_way(vehicle.get_chassis_orientation(), &angle) {
+            let new_orientation = match short_angle_way(vehicle.chassis_orientation(), &angle) {
                 AngleWay::ClockWise => {
-                    *vehicle.get_chassis_orientation() + vehicle.get_type().chassis_rotation_speed()
+                    *vehicle.chassis_orientation() + vehicle.type_().chassis_rotation_speed()
                 }
                 AngleWay::CounterClockWise => {
-                    *vehicle.get_chassis_orientation()
-                        + (-vehicle.get_type().chassis_rotation_speed())
+                    *vehicle.chassis_orientation() + (-vehicle.type_().chassis_rotation_speed())
                 }
             };
             messages.push(RunnerMessage::BattleState(BattleStateMessage::Vehicle(

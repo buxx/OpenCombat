@@ -129,7 +129,7 @@ impl Runner {
     }
 
     pub fn idle_behavior(&self, soldier: &Soldier) -> Behavior {
-        if let Some(opponent) = self.get_soldier_opponent(soldier, None) {
+        if let Some(opponent) = self.soldier_opponent(soldier, None) {
             return Behavior::EngageSoldier(opponent.uuid());
         }
 
@@ -142,7 +142,7 @@ impl Runner {
     }
 
     pub fn move_behavior(&self, soldier: &Soldier, paths: &WorldPaths) -> Behavior {
-        if let Some(opponent) = self.get_soldier_opponent(soldier, None) {
+        if let Some(opponent) = self.soldier_opponent(soldier, None) {
             return Behavior::EngageSoldier(opponent.uuid());
         }
 
@@ -219,7 +219,7 @@ impl Runner {
     }
 
     pub fn engage_behavior(&self, soldier: &Soldier, squad_index: &SquadUuid) -> Behavior {
-        if let Some(opponent) = self.get_soldier_opponent(soldier, Some(squad_index)) {
+        if let Some(opponent) = self.soldier_opponent(soldier, Some(squad_index)) {
             return Behavior::EngageSoldier(opponent.uuid());
         }
 

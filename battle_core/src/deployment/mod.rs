@@ -153,8 +153,8 @@ impl From<&Soldier> for SoldierDeployment {
     fn from(soldier: &Soldier) -> Self {
         Self {
             uuid: soldier.uuid().clone(),
-            side: soldier.get_side().clone(),
-            world_point: soldier.get_world_point().clone(),
+            side: soldier.side().clone(),
+            world_point: soldier.world_point().clone(),
             squad_uuid: soldier.squad_uuid().clone(),
             main_weapon: soldier.main_weapon().clone(),
             magazines: soldier.magazines().clone(),
@@ -195,8 +195,8 @@ impl From<&Vehicle> for VehicleDeployment {
     fn from(vehicle: &Vehicle) -> Self {
         Self {
             uuid: vehicle.uuid().clone(),
-            type_: vehicle.get_type().clone(),
-            world_point: vehicle.get_world_point().clone(),
+            type_: vehicle.type_().clone(),
+            world_point: vehicle.world_point().clone(),
         }
     }
 }

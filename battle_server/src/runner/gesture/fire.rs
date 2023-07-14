@@ -85,8 +85,7 @@ impl Runner {
         let mut rng = rand::thread_rng();
         // TODO : change precision according to weapon, stress, distance, etc
         let range = 10.0
-            * (meters_between_world_points(&soldier.get_world_point(), target_point).meters()
-                as f32
+            * (meters_between_world_points(&soldier.world_point(), target_point).meters() as f32
                 / 500.);
 
         if range == 0. {

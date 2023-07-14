@@ -119,7 +119,7 @@ impl GuiState {
         }
     }
 
-    pub fn get_frame_i(&self) -> u64 {
+    pub fn frame_i(&self) -> u64 {
         self.frame_i
     }
 
@@ -139,11 +139,11 @@ impl GuiState {
         }
     }
 
-    pub fn get_debug_terrain(&self) -> &DebugTerrain {
+    pub fn debug_terrain(&self) -> &DebugTerrain {
         &self.debug_terrain
     }
 
-    pub fn get_debug_physics(&self) -> &DebugPhysics {
+    pub fn debug_physics(&self) -> &DebugPhysics {
         &self.debug_physics
     }
 
@@ -151,19 +151,19 @@ impl GuiState {
         &mut self.debug_physics
     }
 
-    pub fn get_current_cursor_window_point(&self) -> &WindowPoint {
+    pub fn current_cursor_window_point(&self) -> &WindowPoint {
         &self.current_cursor_point
     }
 
-    pub fn get_current_cursor_world_point(&self) -> WorldPoint {
+    pub fn current_cursor_world_point(&self) -> WorldPoint {
         self.world_point_from_window_point(self.current_cursor_point)
     }
 
-    pub fn get_left_click_down_window_point(&self) -> &Option<WindowPoint> {
+    pub fn left_click_down_window_point(&self) -> &Option<WindowPoint> {
         &self.left_click_down
     }
 
-    pub fn _get_left_click_down_world_point(&self) -> Option<WorldPoint> {
+    pub fn _left_click_down_world_point(&self) -> Option<WorldPoint> {
         if let Some(left_click_down) = self.left_click_down {
             Some(self.world_point_from_window_point(left_click_down))
         } else {
@@ -231,19 +231,19 @@ impl GuiState {
         &self.selected_squads
     }
 
-    pub fn get_squad_menu(&self) -> &Option<(WindowPoint, Vec<SquadUuid>)> {
+    pub fn squad_menu(&self) -> &Option<(WindowPoint, Vec<SquadUuid>)> {
         &self.squad_menu
     }
 
-    pub fn get_last_cursor_move_frame(&self) -> u64 {
+    pub fn last_cursor_move_frame(&self) -> u64 {
         self.last_cursor_move_frame
     }
 
-    pub fn get_pending_order(&self) -> &Vec<PendingOrder> {
+    pub fn pending_order(&self) -> &Vec<PendingOrder> {
         &self.pending_order
     }
 
-    pub fn get_display_paths(&self) -> &Vec<Vec<(WorldPaths, SquadUuid)>> {
+    pub fn display_paths(&self) -> &Vec<Vec<(WorldPaths, SquadUuid)>> {
         &self.display_paths
     }
 

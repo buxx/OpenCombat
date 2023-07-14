@@ -17,7 +17,7 @@ pub fn squad_positions(
     point: Option<WorldPoint>,
 ) -> HashMap<SoldierIndex, WorldPoint> {
     let mut positions = HashMap::new();
-    let ref_point = point.unwrap_or(leader.get_world_point());
+    let ref_point = point.unwrap_or(leader.world_point());
     let ref_angle = leader.get_looking_direction();
 
     match formation {

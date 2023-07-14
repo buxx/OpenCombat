@@ -91,7 +91,7 @@ impl Engine {
 
                 if changes.iter().any(|v| *v) {
                     messages.extend(vec![EngineMessage::GuiState(GuiStateMessage::SetControl(
-                        self.physics_control(self.gui_state.get_debug_physics()),
+                        self.physics_control(self.gui_state.debug_physics()),
                     ))]);
                 }
             });

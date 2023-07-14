@@ -69,12 +69,10 @@ impl Vehicle {
     pub fn from_vehicle(vehicle: &Vehicle) -> Self {
         Self {
             uuid: *vehicle.uuid(),
-            type_: vehicle.get_type().clone(),
-            world_point: vehicle.get_world_point(),
-            chassis_orientation: vehicle.get_chassis_orientation().clone(),
-            main_turret_relative_orientation: vehicle
-                .get_main_turret_relative_orientation()
-                .clone(),
+            type_: vehicle.type_().clone(),
+            world_point: vehicle.world_point(),
+            chassis_orientation: vehicle.chassis_orientation().clone(),
+            main_turret_relative_orientation: vehicle.main_turret_relative_orientation().clone(),
         }
     }
 
@@ -82,7 +80,7 @@ impl Vehicle {
         &self.uuid
     }
 
-    pub fn get_world_point(&self) -> WorldPoint {
+    pub fn world_point(&self) -> WorldPoint {
         self.world_point
     }
 
@@ -90,16 +88,16 @@ impl Vehicle {
         self.world_point = point
     }
 
-    pub fn get_type(&self) -> &VehicleType {
+    pub fn type_(&self) -> &VehicleType {
         &self.type_
     }
 
-    pub fn get_chassis_orientation(&self) -> &Angle {
+    pub fn chassis_orientation(&self) -> &Angle {
         &self.chassis_orientation
     }
 
     pub fn chassis_orientation_match(&self, angle: &Angle) -> bool {
-        let rounded_chassis_orientation = (self.get_chassis_orientation().0
+        let rounded_chassis_orientation = (self.chassis_orientation().0
             * VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT)
             .round()
             .abs();
@@ -111,7 +109,7 @@ impl Vehicle {
         rounded_chassis_orientation != target_vehicle_orientation
     }
 
-    pub fn get_main_turret_relative_orientation(&self) -> &Angle {
+    pub fn main_turret_relative_orientation(&self) -> &Angle {
         &self.main_turret_relative_orientation
     }
 
@@ -123,7 +121,7 @@ impl Vehicle {
         self.main_turret_relative_orientation = orientation
     }
 
-    pub fn get_chassis_shape(&self) -> WorldShape {
+    pub fn chassis_shape(&self) -> WorldShape {
         VehicleGraphicInfos::from_type(&self.type_)
             .chassis_physics()
             .from_point(self.world_point)

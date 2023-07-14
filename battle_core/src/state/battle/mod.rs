@@ -178,7 +178,7 @@ impl BattleState {
     pub fn squad_side(&self, squad_uuid: &SquadUuid) -> &Side {
         let composition = self.squad(*squad_uuid);
         let squad_leader = self.soldier(composition.leader());
-        squad_leader.get_side()
+        squad_leader.side()
     }
 
     pub fn squad(&self, squad_uuid: SquadUuid) -> &SquadComposition {
@@ -219,8 +219,8 @@ impl BattleState {
         if let Some(vehicle_index) = self.soldier_vehicle(squad_leader_index) {
             let vehicle = self.vehicle(vehicle_index);
             (
-                PathMode::Drive(*VehicleGraphicInfos::from_type(vehicle.get_type()).size()),
-                Some(Direction::from_angle(vehicle.get_chassis_orientation())),
+                PathMode::Drive(*VehicleGraphicInfos::from_type(vehicle.type_()).size()),
+                Some(Direction::from_angle(vehicle.chassis_orientation())),
             )
         } else {
             (PathMode::Walk, None)

@@ -10,7 +10,7 @@ impl Engine {
     pub fn tick_explosions(&self) -> Vec<EngineMessage> {
         puffin::profile_scope!("tick_explosions");
         let mut messages = vec![];
-        let frame_i = self.gui_state.get_frame_i();
+        let frame_i = self.gui_state.frame_i();
 
         for explosion in self.battle_state.explosions() {
             messages.extend(self.explosion_fx(explosion));
@@ -38,7 +38,7 @@ impl Engine {
     pub fn explosion_fx(&self, explosion: &Explosion) -> Vec<EngineMessage> {
         let mut messages = vec![];
 
-        if explosion.start() == self.gui_state.get_frame_i() {
+        if explosion.start() == self.gui_state.frame_i() {
             for sound in explosion.explosive_type().sounds() {
                 messages.push(EngineMessage::PlaySound(sound.clone()));
             }

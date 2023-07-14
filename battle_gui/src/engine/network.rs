@@ -16,7 +16,7 @@ impl Engine {
     pub fn sync(&mut self, ctx: &mut Context) -> GameResult {
         puffin::profile_scope!("sync");
         let mut side_effects = vec![];
-        let frame_i = self.gui_state.get_frame_i();
+        let frame_i = self.gui_state.frame_i();
 
         while let Ok(messages) = self.input.try_recv() {
             for message in &messages {

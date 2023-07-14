@@ -14,7 +14,7 @@ impl Engine {
                     // Update gui battle state and modify server battle state to
                     side_effects.extend(
                         self.battle_state
-                            .react(&battle_state_message, self.gui_state.get_frame_i()),
+                            .react(&battle_state_message, self.gui_state.frame_i()),
                     );
                     match self
                         .output

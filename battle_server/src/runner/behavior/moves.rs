@@ -24,7 +24,7 @@ impl Runner {
             let map = self.battle_state.map();
             if let Some(grid_path) = find_path(
                 map,
-                &map.grid_point_from_world_point(&soldier.get_world_point()),
+                &map.grid_point_from_world_point(&soldier.world_point()),
                 &map.grid_point_from_world_point(&point),
                 true,
                 &PathMode::Walk,

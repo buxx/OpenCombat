@@ -27,14 +27,14 @@ pub mod gui;
 impl Engine {
     pub fn generate_debug_mouse_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
         // Draw circle where left click down
-        if let Some(point) = self.gui_state.get_left_click_down_window_point() {
+        if let Some(point) = self.gui_state.left_click_down_window_point() {
             mesh_builder.circle(DrawMode::fill(), point.to_vec2(), 2.0, 2.0, YELLOW)?;
         }
 
         // Draw circle at cursor position
         mesh_builder.circle(
             DrawMode::fill(),
-            self.gui_state.get_current_cursor_window_point().to_vec2(),
+            self.gui_state.current_cursor_window_point().to_vec2(),
             2.0,
             2.0,
             BLUE,
@@ -104,7 +104,7 @@ impl Engine {
     pub fn generate_debug_point_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
         let mut debug_points_left = vec![];
         while let Some(debug_point) = self.gui_state.debug_points_mut().pop() {
-            if debug_point.frame_i >= self.gui_state.get_frame_i() {
+            if debug_point.frame_i >= self.gui_state.frame_i() {
                 let window_point = self
                     .gui_state
                     .window_point_from_world_point(debug_point.point);
@@ -123,7 +123,7 @@ impl Engine {
         mesh_builder: &mut MeshBuilder,
     ) -> GameResult {
         for soldier in self.battle_state.soldiers() {
-            let color = if soldier.get_side() == self.gui_state.side() {
+            let color = if soldier.side() == self.gui_state.side() {
                 GREEN
             } else {
                 RED
@@ -131,7 +131,7 @@ impl Engine {
 
             let point = self
                 .gui_state
-                .window_point_from_world_point(soldier.get_world_point());
+                .window_point_from_world_point(soldier.world_point());
             mesh_builder.circle(DrawMode::fill(), point.to_vec2(), 2.0, 2.0, color)?;
         }
 
@@ -140,8 +140,8 @@ impl Engine {
 
     /// Draw selection areas
     pub fn generate_areas_meshes(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        let cursor_world_point = self.gui_state.get_current_cursor_world_point();
-        let cursor_window_point = self.gui_state.get_current_cursor_window_point();
+        let cursor_world_point = self.gui_state.current_cursor_world_point();
+        let cursor_window_point = self.gui_state.current_cursor_window_point();
 
         // Draw soldiers selection areas
         for soldier in self.battle_state.soldiers() {
@@ -155,13 +155,13 @@ impl Engine {
         for vehicle in self.battle_state.vehicles() {
             let shape = self
                 .gui_state
-                .window_shape_from_world_shape(&vehicle.get_chassis_shape());
+                .window_shape_from_world_shape(&vehicle.chassis_shape());
 
             mesh_builder.line(&shape.draw_points(), 1.0, MAGENTA)?;
         }
 
         // Draw selection area on cursor hover scene items
-        for soldier_index in self.get_soldiers_at_point(cursor_world_point) {
+        for soldier_index in self.soldiers_at_point(cursor_world_point) {
             let soldier = self.battle_state.soldier(soldier_index);
             let rect = self
                 .gui_state
@@ -200,14 +200,14 @@ impl Engine {
                     .battle_state
                     .soldiers()
                     .iter()
-                    .filter(|s| s.get_side() != from_soldier.get_side());
+                    .filter(|s| s.side() != from_soldier.side());
                 for to_soldier in to_soldiers {
                     if let Some(visibility) = self
                         .battle_state
                         .visibilities()
                         .get(&(from_soldier.uuid(), to_soldier.uuid()))
                     {
-                        let start_world_point = from_soldier.get_world_point();
+                        let start_world_point = from_soldier.world_point();
                         let mut previous_point = self
                             .gui_state
                             .window_point_from_world_point(start_world_point);
@@ -253,10 +253,10 @@ impl Engine {
                     let target_soldier = self.battle_state.soldier(*target_soldier);
                     let from_point = self
                         .gui_state
-                        .window_point_from_world_point(soldier.get_world_point());
+                        .window_point_from_world_point(soldier.world_point());
                     let to_point = self
                         .gui_state
-                        .window_point_from_world_point(target_soldier.get_world_point());
+                        .window_point_from_world_point(target_soldier.world_point());
                     mesh_builder.line(&vec![from_point.to_vec2(), to_point.to_vec2()], 1.0, RED)?;
                 }
             }
@@ -268,7 +268,7 @@ impl Engine {
     pub fn generate_debug_physics(&self, from: WorldPoint, to: WorldPoint) -> Vec<EngineMessage> {
         let mut messages = vec![];
 
-        match self.gui_state.get_debug_physics() {
+        match self.gui_state.debug_physics() {
             DebugPhysics::None => {}
             DebugPhysics::MosinNagantM1924GunFire => {
                 let weapon = Weapon::MosinNagantM1924(true, None);
@@ -299,9 +299,9 @@ impl Engine {
     }
 
     pub fn generate_physics_areas_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        if let Some(explosive) = &self.gui_state.get_debug_physics().explosive() {
+        if let Some(explosive) = &self.gui_state.debug_physics().explosive() {
             let explosion = Explosion::new(
-                self.gui_state.get_current_cursor_world_point(),
+                self.gui_state.current_cursor_world_point(),
                 explosive.clone(),
             );
             self.generate_explosive_areas_meshes(mesh_builder, &explosion)?;

@@ -60,8 +60,8 @@ impl Engine {
                 ui.label("Coordinates");
                 ui.label(format!(
                     "{}x{}",
-                    soldier.get_world_point().x.floor(),
-                    soldier.get_world_point().y.floor(),
+                    soldier.world_point().x.floor(),
+                    soldier.world_point().y.floor(),
                 ));
                 ui.end_row();
 
@@ -76,7 +76,7 @@ impl Engine {
                 ui.label("LastShootFrameI");
                 ui.horizontal(|ui| {
                     if ui.button("set").clicked() {
-                        soldier.set_last_shoot_frame_i(self.gui_state.get_frame_i())
+                        soldier.set_last_shoot_frame_i(self.gui_state.frame_i())
                     }
                     ui.label(format!("{}", soldier.last_shoot_frame_i()));
                 });

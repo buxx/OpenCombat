@@ -15,7 +15,7 @@ impl BattleState {
                 v.from_soldier
                     .expect("visibles_soldiers implies from_soldier"),
             )
-            .get_side()
+            .side()
                 == side
         }) {
             if visibility.to_soldier == Some(soldier.uuid()) {

@@ -21,7 +21,7 @@ impl Engine {
     pub fn bullet_fire_fx(&self, bullet_fire: &BulletFire) -> Vec<EngineMessage> {
         let mut messages = vec![];
 
-        if bullet_fire.start() == self.gui_state.get_frame_i() {
+        if bullet_fire.start() == self.gui_state.frame_i() {
             for sound in bullet_fire.gun_fire_sound_type().fire_sounds() {
                 messages.push(EngineMessage::PlaySound(sound.clone()));
             }

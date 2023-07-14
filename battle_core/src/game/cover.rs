@@ -75,7 +75,7 @@ impl<'a> CoverFinder<'a> {
                     }
                 }
 
-                let from_world_point = soldier.get_world_point();
+                let from_world_point = soldier.world_point();
                 let cover_world_point = self
                     .battle_state
                     .map()
@@ -102,7 +102,7 @@ impl<'a> CoverFinder<'a> {
         from_point: &WorldPoint,
         keep_visible: bool,
     ) -> Option<GridPoint> {
-        let soldier_position = soldier.get_world_point();
+        let soldier_position = soldier.world_point();
         let soldier_grid_point = self
             .battle_state
             .map()

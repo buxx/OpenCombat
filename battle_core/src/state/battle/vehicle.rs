@@ -15,7 +15,7 @@ impl BattleState {
         // Check if on boards are coherent with vehicle types
         for (vehicle_index, board) in self.vehicle_board() {
             let vehicle = self.vehicle(*vehicle_index);
-            let board_composition = vehicle.get_type().board_composition();
+            let board_composition = vehicle.type_().board_composition();
 
             for (place, _) in board {
                 if !board_composition.contains(&place) {
@@ -52,9 +52,9 @@ impl BattleState {
 
     pub fn propagate_vehicle_position(&mut self, vehicle_index: VehicleIndex) {
         let vehicle = &mut self.vehicle_mut(vehicle_index);
-        let vehicle_point = vehicle.get_world_point();
-        let vehicle_orientation = vehicle.get_chassis_orientation().clone();
-        let sprite_infos = VehicleGraphicInfos::from_type(vehicle.get_type());
+        let vehicle_point = vehicle.world_point();
+        let vehicle_orientation = vehicle.chassis_orientation().clone();
+        let sprite_infos = VehicleGraphicInfos::from_type(vehicle.type_());
         let places = sprite_infos.places();
         let mut new_positions: Vec<(SoldierIndex, WorldPoint)> = vec![];
         for (place, soldier_index) in self.vehicle_board().get(&vehicle_index).unwrap_or(&vec![]) {

@@ -52,7 +52,7 @@ impl BattleState {
                         order.clone(),
                         marker.clone().unwrap(), // FIXME unwrap to remove
                         squad_id,
-                        squad_leader.get_world_point(),
+                        squad_leader.world_point(),
                         OrderMarkerIndex(0),
                     ));
                 }
@@ -64,7 +64,7 @@ impl BattleState {
                         order.clone(),
                         marker.clone().unwrap(), // FIXME unwrap to remove
                         squad_id,
-                        leader.get_world_point(),
+                        leader.world_point(),
                         OrderMarkerIndex(0),
                     ));
                 }

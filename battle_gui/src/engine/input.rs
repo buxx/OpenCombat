@@ -54,7 +54,7 @@ impl Engine {
 
         // Useful for actions expecting cursor immobilization
         let cursor_immobile_since =
-            self.gui_state.get_frame_i() - self.gui_state.get_last_cursor_move_frame();
+            self.gui_state.frame_i() - self.gui_state.last_cursor_move_frame();
         messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
             UIEvent::ImmobileCursorSince(cursor_immobile_since),
         )));
@@ -152,7 +152,7 @@ impl Engine {
     }
 
     pub fn determine_controlling(&self) -> Control {
-        match self.gui_state.get_debug_physics() {
+        match self.gui_state.debug_physics() {
             DebugPhysics::None => Control::Soldiers,
             DebugPhysics::MosinNagantM1924GunFire | DebugPhysics::BrandtMle2731Shelling => {
                 Control::Physics
@@ -181,13 +181,13 @@ impl Engine {
             ))),
         ]);
 
-        if let Some(left_click_down) = self.gui_state.get_left_click_down_window_point() {
+        if let Some(left_click_down) = self.gui_state.left_click_down_window_point() {
             if left_click_down != &cursor_point {
                 messages.push(EngineMessage::GuiState(
                     GuiStateMessage::SetCurrentCursorVector(Some((*left_click_down, cursor_point))),
                 ));
                 if self.gui_state.is_controlling(&Control::Map) {
-                    let last_cursor_point = self.gui_state.get_current_cursor_window_point();
+                    let last_cursor_point = self.gui_state.current_cursor_window_point();
                     messages.push(EngineMessage::GuiState(
                         GuiStateMessage::ApplyOnDisplaySceneOffset(Offset::from_vec2(
                             cursor_point.to_vec2() - last_cursor_point.to_vec2(),
@@ -198,10 +198,10 @@ impl Engine {
                 // Begin drag squad if this mouve is after a click on soldier and cursor is still hover the soldier
                 if self.battle_state.phase().placement() && self.gui_state.dragged_squad().is_none()
                 {
-                    let world_point = self.gui_state.get_current_cursor_world_point();
+                    let world_point = self.gui_state.current_cursor_world_point();
                     if let (Some(started_with_soldier_index), Some(soldier_index)) = (
                         self.gui_state.begin_click_on_soldier(),
-                        self.get_soldiers_at_point(world_point).first(),
+                        self.soldiers_at_point(world_point).first(),
                     ) {
                         if started_with_soldier_index == started_with_soldier_index {
                             let squad_index =
@@ -215,7 +215,7 @@ impl Engine {
             }
         }
 
-        let point = self.gui_state.get_current_cursor_window_point();
+        let point = self.gui_state.current_cursor_window_point();
         let cursor_in_control = self.hud.contains(&vec![&point]);
         messages.push(EngineMessage::GuiState(GuiStateMessage::SetCursorInHud(
             cursor_in_control,
@@ -268,9 +268,8 @@ impl Engine {
                     }
 
                     if self.battle_state.phase().placement() && !self.gui_state.cursor_in_hud() {
-                        let world_point = self.gui_state.get_current_cursor_world_point();
-                        if let Some(soldier_index) = self.get_soldiers_at_point(world_point).first()
-                        {
+                        let world_point = self.gui_state.current_cursor_world_point();
+                        if let Some(soldier_index) = self.soldiers_at_point(world_point).first() {
                             messages.push(EngineMessage::GuiState(
                                 GuiStateMessage::SetBeginClickOnSoldier(Some(*soldier_index)),
                             ));
@@ -298,7 +297,7 @@ impl Engine {
                 let end_point = WindowPoint::new(x, y);
                 let start_point = self
                     .gui_state
-                    .get_left_click_down_window_point()
+                    .left_click_down_window_point()
                     .unwrap_or(end_point);
 
                 // No more longer left click down or current drag

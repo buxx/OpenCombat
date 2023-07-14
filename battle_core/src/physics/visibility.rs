@@ -74,8 +74,8 @@ impl Visibility {
         to_soldier: &Soldier,
         map: &Map,
     ) -> Self {
-        let from_point = from_soldier.get_world_point();
-        let to_point = to_soldier.get_world_point();
+        let from_point = from_soldier.world_point();
+        let to_point = to_soldier.world_point();
         let last_shoot_frame_i = to_soldier.last_shoot_frame_i();
 
         let by_behavior_modifier: f32 = config.visibility_behavior_modifier(to_soldier.behavior());
@@ -100,10 +100,8 @@ impl Visibility {
         to_soldier_item_opacity = to_soldier_item_opacity - by_behavior_modifier;
         let visible = to_soldier_item_opacity < config.visible_starts_at;
 
-        let distance = meters_between_world_points(
-            &from_soldier.get_world_point(),
-            &to_soldier.get_world_point(),
-        );
+        let distance =
+            meters_between_world_points(&from_soldier.world_point(), &to_soldier.world_point());
         Self {
             from: from_point,
             from_soldier: Some(from_soldier.uuid()),
@@ -123,7 +121,7 @@ impl Visibility {
         to_point: &WorldPoint,
         map: &Map,
     ) -> Self {
-        let from_point = from_soldier.get_world_point();
+        let from_point = from_soldier.world_point();
 
         let (to_soldier_item_opacity, opacity_segments, path_final_opacity) =
             Self::between_points_raw(config, &from_point, &to_point, map, VISIBILITY_FIRSTS, 0);

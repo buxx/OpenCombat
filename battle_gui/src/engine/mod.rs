@@ -115,7 +115,7 @@ impl Engine {
 
 impl EventHandler<ggez::GameError> for Engine {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        let frame_i = self.gui_state.get_frame_i();
+        let frame_i = self.gui_state.frame_i();
         puffin::profile_scope!("update", format!("frame {frame_i}"));
         puffin::GlobalProfiler::lock().new_frame();
 

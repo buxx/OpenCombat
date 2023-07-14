@@ -39,7 +39,7 @@ impl Engine {
                 let soldier = self.battle_state.soldier(*soldier_index);
                 let point = self
                     .gui_state
-                    .window_point_from_world_point(soldier.get_world_point());
+                    .window_point_from_world_point(soldier.world_point());
                 let rect = Rect::new(
                     point.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
                     point.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
@@ -59,8 +59,7 @@ impl Engine {
             return Ok(());
         }
 
-        if self.gui_state.dragged_squad().is_none() && self.gui_state.get_pending_order().is_empty()
-        {
+        if self.gui_state.dragged_squad().is_none() && self.gui_state.pending_order().is_empty() {
             if let Some((start, end)) = self.gui_state.current_cursor_vector_window_points() {
                 mesh_builder.rectangle(
                     DrawMode::stroke(1.0),
@@ -74,7 +73,7 @@ impl Engine {
     }
 
     pub fn get_opponent_soldiers_at_point(&self, point: WorldPoint) -> Vec<&Soldier> {
-        let soldier_indexes = self.get_soldiers_at_point(point);
+        let soldier_indexes = self.soldiers_at_point(point);
         self.filter_entities_by_side(soldier_indexes, self.gui_state.opponent_side())
             .iter()
             .map(|i| self.battle_state.soldier(*i))
@@ -83,7 +82,7 @@ impl Engine {
 
     fn digest_scene_select_by_click(&self, point: WindowPoint) -> Vec<EngineMessage> {
         let world_point = self.gui_state.world_point_from_window_point(point);
-        let soldier_indexes = self.get_soldiers_at_point(world_point);
+        let soldier_indexes = self.soldiers_at_point(world_point);
         if soldier_indexes.len() > 0 {
             let squad_ids = self.squad_ids_from_entities(vec![soldier_indexes[0]]);
             return vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
@@ -180,7 +179,7 @@ impl Engine {
     }
 
     pub fn generate_orders_sprites(&mut self) -> GameResult {
-        for pending_order in self.gui_state.get_pending_order() {
+        for pending_order in self.gui_state.pending_order() {
             let sprites = self.generate_pending_order_sprites(pending_order);
             self.graphics.extend_ui_batch(sprites);
         }
@@ -253,7 +252,7 @@ impl Engine {
                 }
                 UIEvent::FinishedCursorRightClick(point) => {
                     let world_point = self.gui_state.world_point_from_window_point(point);
-                    let soldier_indexes = self.get_soldiers_at_point(world_point);
+                    let soldier_indexes = self.soldiers_at_point(world_point);
                     let mut squad_ids: Vec<SquadUuid> = vec![];
 
                     // If squad under cursor, select it
@@ -274,7 +273,7 @@ impl Engine {
                     if squad_ids.len() > 0 {
                         messages.push(EngineMessage::GuiState(GuiStateMessage::SetSquadMenu(
                             Some((
-                                self.gui_state.get_current_cursor_window_point().clone(),
+                                self.gui_state.current_cursor_window_point().clone(),
                                 squad_ids,
                             )),
                         )));
@@ -284,7 +283,7 @@ impl Engine {
                     // Paths to draw if pending order
                     let mut draw_path_findings = vec![];
 
-                    for pending_order in self.gui_state.get_pending_order() {
+                    for pending_order in self.gui_state.pending_order() {
                         if since == PENDING_ORDER_PATH_FINDING_DRAW_FRAMES {
                             if pending_order.expect_path_finding() {
                                 draw_path_findings.push((
@@ -345,7 +344,7 @@ impl Engine {
     ) -> Vec<EngineMessage> {
         let mut messages = vec![];
 
-        if let Some((squad_menu_point, squads)) = self.gui_state.get_squad_menu() {
+        if let Some((squad_menu_point, squads)) = self.gui_state.squad_menu() {
             messages.extend(self.digest_squad_menu_select_by_click(
                 &point,
                 squad_menu_point,
@@ -357,14 +356,14 @@ impl Engine {
         }
 
         // This is a pending order click
-        for pending_order in self.gui_state.get_pending_order() {
+        for pending_order in self.gui_state.pending_order() {
             let is_appending = ctx.keyboard.is_key_pressed(VirtualKeyCode::LShift)
                 || ctx.keyboard.is_key_pressed(VirtualKeyCode::RShift);
 
             if is_appending {
                 messages.extend(vec![EngineMessage::GuiState(
                     GuiStateMessage::AddCachePointToPendingOrder(
-                        self.gui_state.get_current_cursor_world_point(),
+                        self.gui_state.current_cursor_world_point(),
                     ),
                 )]);
             } else {
@@ -418,7 +417,7 @@ impl Engine {
         let mut messages = vec![];
 
         // First try to check if its a missed click in a squad menu
-        if let Some((squad_menu_point, squads)) = self.gui_state.get_squad_menu() {
+        if let Some((squad_menu_point, squads)) = self.gui_state.squad_menu() {
             if let Some(messages) =
                 self.digest_squad_menu_select_by_vector(&start, &end, squad_menu_point, squads)
             {
@@ -431,8 +430,8 @@ impl Engine {
             }
         }
 
-        if self.gui_state.get_pending_order().len() > 0 {
-            for pending_order in self.gui_state.get_pending_order() {
+        if self.gui_state.pending_order().len() > 0 {
+            for pending_order in self.gui_state.pending_order() {
                 if let Some(order_) = self.order_from_pending_order(pending_order) {
                     let squad_leader = self
                         .battle_state
@@ -499,7 +498,7 @@ impl Engine {
     ) -> Vec<EngineMessage> {
         let vehicle = self.battle_state.vehicle(*vehicle_index);
         let grid_point = self.battle_state.map().grid_point_from_world_point(point);
-        let vehicle_graphics = VehicleGraphicInfos::from_type(vehicle.get_type());
+        let vehicle_graphics = VehicleGraphicInfos::from_type(vehicle.type_());
         let chassis_size = vehicle_graphics.size();
         if !self
             .battle_state
@@ -543,7 +542,7 @@ impl Engine {
         for new_debug_point in debug_points {
             messages.push(EngineMessage::GuiState(GuiStateMessage::PushDebugPoint(
                 DebugPoint {
-                    frame_i: self.gui_state.get_frame_i() + 120,
+                    frame_i: self.gui_state.frame_i() + 120,
                     point: new_debug_point.point,
                 },
             )))
