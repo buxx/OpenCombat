@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use self::{decor::Decor, interior::Interior, spawn::SpawnZone, terrain::TerrainTile};
 use crate::{
     config::ServerConfig,
+    game::flag::Flag,
     physics::path::{Direction, PathMode},
     types::{GridPoint, VehicleSize, WorldPoint},
     utils::grid_points_for_square,
@@ -32,6 +33,7 @@ pub struct Map {
     tile_width: u32,
     tile_height: u32,
     decor: Decor,
+    flags: Vec<Flag>,
 }
 
 impl Map {
@@ -48,6 +50,7 @@ impl Map {
         tile_width: u32,
         tile_height: u32,
         decor: Decor,
+        flags: Vec<Flag>,
     ) -> Self {
         Self {
             name,
@@ -64,6 +67,7 @@ impl Map {
             tile_width,
             tile_height,
             decor,
+            flags,
         }
     }
 
@@ -117,6 +121,10 @@ impl Map {
 
     pub fn terrain_tiles(&self) -> &Vec<TerrainTile> {
         &self.terrain_tiles
+    }
+
+    pub fn flags(&self) -> &Vec<Flag> {
+        &self.flags
     }
 
     pub fn find_spawn_zones(&self, names: &Vec<SpawnZoneName>) -> Vec<&SpawnZone> {

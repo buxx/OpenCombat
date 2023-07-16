@@ -6,6 +6,8 @@ use tiled::{
     TileLayer, Tileset,
 };
 
+use crate::game::flag::Flag;
+
 use super::{
     decor::{Decor, DecorTile},
     interior::Interior,
@@ -18,6 +20,7 @@ const BACKGROUND_IMAGE_LAYER_NAME: &'static str = "background_image";
 const INTERIORS_IMAGE_LAYER_NAME: &'static str = "interiors_image";
 const INTERIORS_ZONES_LAYER_NAME: &'static str = "interiors_zones";
 const SPAWN_ZONES_LAYER_NAME: &'static str = "spawn_zones";
+const FLAGS_LAYER_NAME: &'static str = "flags";
 const DECOR_LAYER_NAME: &'static str = "decor";
 const TERRAIN_LAYER_NAME: &'static str = "terrain";
 const TERRAIN_TILESET_NAME: &'static str = "terrain";
@@ -176,6 +179,16 @@ impl MapReader {
         }
     }
 
+    fn flags_layer(&self) -> Result<ObjectLayer, MapReaderError> {
+        match self.layer(FLAGS_LAYER_NAME)?.layer_type() {
+            LayerType::ObjectLayer(layer) => Ok(layer),
+            _ => Result::Err(MapReaderError::InvalidLayer(format!(
+                "Layer '{}' in map {} is not an object layer",
+                FLAGS_LAYER_NAME, self.name,
+            ))),
+        }
+    }
+
     fn interiors(&self) -> Result<Vec<Interior>, MapReaderError> {
         let interiors_image = self.interiors_image()?;
         let mut interiors = vec![];
@@ -228,13 +241,35 @@ impl MapReader {
                 _ => {
                     return Result::Err(MapReaderError::InvalidLayer(format!(
                         "Layer '{}' in map {} contains non Rect shapes, this is not supported now",
-                        INTERIORS_ZONES_LAYER_NAME, self.name,
+                        SPAWN_ZONES_LAYER_NAME, self.name,
                     )))
                 }
             })
         }
 
         Ok(spawn_zones)
+    }
+
+    fn flags(&self) -> Result<Vec<Flag>, MapReaderError> {
+        let mut flags = vec![];
+
+        for object in self.flags_layer()?.objects() {
+            let flag_name = object.name.clone();
+
+            flags.push(match object.shape {
+                tiled::ObjectShape::Rect { width, height } => {
+                    Flag::new(flag_name, object.x, object.y, width, height)
+                }
+                _ => {
+                    return Result::Err(MapReaderError::InvalidLayer(format!(
+                        "Layer '{}' in map {} contains non Rect shapes, this is not supported now",
+                        FLAGS_LAYER_NAME, self.name,
+                    )))
+                }
+            })
+        }
+
+        Ok(flags)
     }
 
     fn terrain_layer(&self) -> Result<FiniteTileLayer, MapReaderError> {
@@ -532,6 +567,7 @@ impl MapReader {
         let tile_height = self.tile_height()?;
         let terrain_tiles = self.terrain_tiles()?;
         let decor = self.decor()?;
+        let flags = self.flags()?;
 
         Ok(Map::new(
             self.name.clone(),
@@ -546,6 +582,7 @@ impl MapReader {
             tile_width,
             tile_height,
             decor,
+            flags,
         ))
     }
 }

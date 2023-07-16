@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.0" orientation="orthogonal" renderorder="right-down" width="200" height="200" tilewidth="5" tileheight="5" infinite="0" nextlayerid="5" nextobjectid="11">
+<map version="1.10" tiledversion="1.10.0" orientation="orthogonal" renderorder="right-down" width="200" height="200" tilewidth="5" tileheight="5" infinite="0" nextlayerid="6" nextobjectid="14">
  <tileset firstgid="1" source="terrain.tsx"/>
  <tileset firstgid="2001" source="trees.tsx"/>
  <tileset firstgid="2021" source="../map1/terrain.tsx"/>
@@ -207,13 +207,17 @@
 2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,2021,102,102,102,102,102,102,102,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104,104
 </data>
  </layer>
+ <objectgroup id="5" name="flags">
+  <object id="11" name="House" x="325" y="456" width="90" height="52"/>
+  <object id="12" name="Orchad" x="293" y="829" width="450" height="146"/>
+ </objectgroup>
  <imagelayer id="2" name="background_image">
   <image source="Demo1.png" width="1000" height="1000"/>
  </imagelayer>
  <imagelayer id="3" name="interiors_image" visible="0" opacity="0.27">
   <image source="interiors.png" width="1000" height="1000"/>
  </imagelayer>
- <objectgroup id="3" name="spawn_zones">
+ <objectgroup id="3" name="spawn_zones" visible="0">
   <object id="3" name="NW" x="0" y="0" width="350" height="350"/>
   <object id="4" name="N" x="350" y="0" width="350" height="350"/>
   <object id="5" name="NE" x="700" y="0" width="300" height="350"/>
@@ -223,7 +227,7 @@
   <object id="9" name="SE" x="820" y="800" width="180" height="200"/>
   <object id="10" name="E" x="750" y="350" width="250" height="450"/>
  </objectgroup>
- <objectgroup id="4" name="interiors_zones">
+ <objectgroup id="4" name="interiors_zones" visible="0">
   <object id="2" x="319.25" y="450.25" width="99.75" height="63"/>
  </objectgroup>
  <layer id="2" name="decor" width="200" height="200">
