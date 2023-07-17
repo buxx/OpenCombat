@@ -21,8 +21,7 @@ glam = { version = "0.22.0", features = ["mint"]}
 rand = "0.8.5"
 structopt = "0.3.21"
 crossbeam-channel = "0.5"
-serde = "1.0.136"
-serde_derive = "1.0.152"
+serde = { version = "1", features = ["derive"] }
 keyframe = "1.0.4"
 keyframe_derive = "1.0.0"
 strum = "0.24"

@@ -1,6 +1,6 @@
 use std::{fs, io, path::PathBuf};
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{

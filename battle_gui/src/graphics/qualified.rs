@@ -1,5 +1,5 @@
 use glam::Vec2;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "hd")]
 #[derive(Debug, Serialize, Deserialize, Clone)]

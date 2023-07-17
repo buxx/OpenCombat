@@ -9,7 +9,6 @@ edition = "2021"
 oc_core = { path = "../oc_core" }
 battle_core = { path = "../battle_core" }
 structopt = "0.3.21"
-serde = "1.0.136"
-serde_derive = "1.0.152"
+serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.96"
 glam = { version = "0.22.0", features = ["mint"]}

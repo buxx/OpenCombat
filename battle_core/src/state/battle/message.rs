@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     behavior::{gesture::Gesture, Behavior},

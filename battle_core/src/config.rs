@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     behavior::Behavior, game::explosive::ExplosiveType, map::terrain::TileType, types::Distance,
 };
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 
 pub const DEFAULT_SERVER_REP_ADDRESS: &str = "tcp://0.0.0.0:4255";

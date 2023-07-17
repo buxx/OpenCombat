@@ -1,5 +1,5 @@
 use battle_core::{game::explosive::ExplosiveType, types::WorldPoint};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum GraphicsMessage {
