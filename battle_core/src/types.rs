@@ -289,8 +289,18 @@ impl GridPath {
         self.points.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.points.len() == 0
+    }
+
     pub fn push(&mut self, point: GridPoint) {
         self.points.push(point)
+    }
+}
+
+impl Default for GridPath {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -321,7 +331,7 @@ impl WorldPaths {
     }
 
     pub fn remove_next_point(&mut self) -> Option<WorldPoint> {
-        while let Some(path) = self.paths.first_mut() {
+        if let Some(path) = self.paths.first_mut() {
             let point = path
                 .remove_next_point()
                 .expect("We must use WorldPath.remove_next_point() only on feeded paths");

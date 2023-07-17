@@ -14,10 +14,7 @@ pub enum SpawnZoneName {
 }
 impl SpawnZoneName {
     pub fn allowed_for_zone_object(&self) -> bool {
-        match self {
-            SpawnZoneName::All => false,
-            _ => true,
-        }
+        !matches!(self, SpawnZoneName::All)
     }
 }
 
