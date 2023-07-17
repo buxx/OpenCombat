@@ -7,7 +7,7 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - name: Install zeromq
+      - name: Install dependencies
         run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -23,7 +23,7 @@ jobs:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
-      - name: Install zeromq
+      - name: Install dependencies
         run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -39,7 +39,7 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - name: Install zeromq
+      - name: Install dependencies
         run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -59,7 +59,7 @@ jobs:
     # TODO : be clippy compliant
     continue-on-error: true
     steps:
-      - name: Install zeromq
+      - name: Install dependencies
         run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
