@@ -1,3 +1,4 @@
+use battle_core::game::control::MapControl;
 use crossbeam_channel::unbounded;
 use env_logger::Env;
 use std::path::PathBuf;
@@ -61,7 +62,14 @@ fn main() -> Result<(), Error> {
 
     let stop_required_ = stop_required.clone();
     let config = ServerConfig::new();
-    let battle_state = BattleStateBuilder::new(map_name, &resources)?.build();
+    let battle_state = BattleStateBuilder::new(
+        map_name,
+        &resources,
+        // FIXME BS NOW : must initialize them when game initialized by gui !!!
+        &MapControl::empty(),
+        &MapControl::empty(),
+    )
+    .build()?;
     let mut runner = Runner::new(
         config,
         server_input_receiver,

@@ -1,21 +1,17 @@
 use std::{collections::HashMap, fmt::Display, path::PathBuf};
 
 use crate::{
-    entity::{soldier::Soldier, vehicle::Vehicle},
-    map::{
-        reader::{MapReader, MapReaderError},
-        Map,
-    },
-    types::SoldiersOnBoard,
+    game::{control::MapControl, flag::FlagsOwnership},
+    map::reader::{MapReader, MapReaderError},
 };
 
 use super::{phase::Phase, BattleState};
 
-pub struct BattleStateBuilder {
-    map: Map,
-    soldiers: Vec<Soldier>,
-    vehicles: Vec<Vehicle>,
-    soldier_on_board: SoldiersOnBoard,
+pub struct BattleStateBuilder<'a> {
+    map_name: String,
+    resources: &'a PathBuf,
+    a_control: &'a MapControl,
+    b_control: &'a MapControl,
 }
 
 #[derive(Debug)]
@@ -39,25 +35,27 @@ impl Display for BattleStateBuilderError {
     }
 }
 
-impl BattleStateBuilder {
-    pub fn new(map_name: &str, resources: &PathBuf) -> Result<Self, BattleStateBuilderError> {
-        Ok(Self {
-            map: MapReader::new(map_name, &resources)?.build()?,
-            soldiers: vec![],
-            vehicles: vec![],
-            soldier_on_board: HashMap::new(),
-        })
+impl<'a> BattleStateBuilder<'a> {
+    pub fn new(
+        map_name: &str,
+        resources: &'a PathBuf,
+        a_control: &'a MapControl,
+        b_control: &'a MapControl,
+    ) -> Self {
+        Self {
+            map_name: map_name.to_string(),
+            resources,
+            a_control,
+            b_control,
+        }
     }
 
-    pub fn build(&self) -> BattleState {
-        let mut state = BattleState::new(
-            self.map.clone(),
-            self.soldiers.clone(),
-            self.vehicles.clone(),
-            self.soldier_on_board.clone(),
-            Phase::Placement,
-        );
+    pub fn build(&self) -> Result<BattleState, BattleStateBuilderError> {
+        let map = MapReader::new(&self.map_name, self.resources)?.build()?;
+        let flags = FlagsOwnership::from_control(&map, &self.a_control, &self.b_control);
+        let mut state =
+            BattleState::new(map, vec![], vec![], HashMap::new(), Phase::Placement, flags);
         state.resolve();
-        state
+        Ok(state)
     }
 }

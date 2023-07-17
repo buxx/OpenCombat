@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+pub mod control;
 pub mod cover;
 pub mod explosive;
 pub mod flag;

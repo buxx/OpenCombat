@@ -2,6 +2,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use battle_core::config::{GuiConfig, ServerConfig};
+use battle_core::game::control::MapControl;
 use battle_core::game::Side;
 use battle_core::message::{InputMessage, OutputMessage};
 use battle_core::state::battle::BattleState;
@@ -14,7 +15,6 @@ use ggez::graphics::{self, Canvas, Color, MeshBuilder};
 use ggez::input::keyboard::KeyInput;
 use ggez::GameError;
 use ggez::{Context, GameResult};
-use oc_core::spawn::SpawnZoneName;
 
 use crate::audio::player::Player;
 use crate::graphics::Graphics;
@@ -65,8 +65,8 @@ pub struct Engine {
     egui_backend: Gui,
     ///
     hud: Hud,
-    a_control: Vec<SpawnZoneName>,
-    b_control: Vec<SpawnZoneName>,
+    a_control: MapControl,
+    b_control: MapControl,
 }
 
 impl Engine {
@@ -81,8 +81,8 @@ impl Engine {
         battle_state: BattleState,
         sync_required: Arc<AtomicBool>,
         stop_required: Arc<AtomicBool>,
-        a_control: Vec<SpawnZoneName>,
-        b_control: Vec<SpawnZoneName>,
+        a_control: MapControl,
+        b_control: MapControl,
     ) -> GameResult<Engine> {
         let mut gui_state = GuiState::new(side.clone());
         gui_state.set_saves(

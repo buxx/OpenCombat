@@ -6,7 +6,7 @@ use tiled::{
     TileLayer, Tileset,
 };
 
-use crate::game::flag::Flag;
+use crate::game::flag::{Flag, FlagName};
 
 use super::{
     decor::{Decor, DecorTile},
@@ -254,7 +254,7 @@ impl MapReader {
         let mut flags = vec![];
 
         for object in self.flags_layer()?.objects() {
-            let flag_name = object.name.clone();
+            let flag_name = FlagName(object.name.clone());
 
             flags.push(match object.shape {
                 tiled::ObjectShape::Rect { width, height } => {

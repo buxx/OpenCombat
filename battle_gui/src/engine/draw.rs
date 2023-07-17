@@ -120,7 +120,7 @@ impl Engine {
     }
 
     pub fn generate_placement_map_sprites(&mut self, _draw_decor: bool) -> GameResult {
-        let (allowed_zone_names, opponent_zone_names) = self.zone_controls();
+        let (allowed_control, opponent_control) = self.zone_controls();
         let mut map_background_sprites = vec![];
         let mut dark_map_background_sprites = vec![];
         let mut map_dark_background_first = false;
@@ -128,13 +128,13 @@ impl Engine {
         let all = DrawParam::new()
             .src(Rect::new(0.0, 0.0, 1.0, 1.0))
             .dest(Vec2::new(0., 0.) * self.gui_state.zoom.factor());
-        if allowed_zone_names.contains(&SpawnZoneName::All) {
+        if allowed_control.contains_spawn_zone(&SpawnZoneName::All) {
             map_background_sprites.push(all.clone());
 
             for opponent_spawn_zone in self
                 .battle_state
                 .map()
-                .find_spawn_zones(opponent_zone_names)
+                .find_spawn_zones(opponent_control.spawn_zone_names())
             {
                 dark_map_background_sprites.push(
                     DrawParam::new()
@@ -154,8 +154,12 @@ impl Engine {
             dark_map_background_sprites.push(all.clone());
             map_dark_background_first = true;
 
-            for allowed_spawn_zone in self.battle_state.map().find_spawn_zones(allowed_zone_names) {
-                if !opponent_zone_names.contains(allowed_spawn_zone.name()) {
+            for allowed_spawn_zone in self
+                .battle_state
+                .map()
+                .find_spawn_zones(allowed_control.spawn_zone_names())
+            {
+                if !opponent_control.contains_spawn_zone(allowed_spawn_zone.name()) {
                     map_background_sprites.push(
                         DrawParam::new()
                             .src(Rect::new(

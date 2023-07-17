@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     deployment::Deployment,
     entity::{soldier::Soldier, vehicle::Vehicle},
-    game::Side,
+    game::{flag::FlagsOwnership, Side},
     graphics::vehicle::VehicleGraphicInfos,
     map::Map,
     order::Order,
@@ -49,6 +49,7 @@ pub struct BattleState {
     b_connected: bool,
     a_ready: bool,
     b_ready: bool,
+    flags: FlagsOwnership,
 }
 
 impl BattleState {
@@ -58,6 +59,7 @@ impl BattleState {
         vehicles: Vec<Vehicle>,
         soldier_on_board: SoldiersOnBoard,
         phase: Phase,
+        flags: FlagsOwnership,
     ) -> Self {
         let vehicle_board = vehicle_board_from_soldiers_on_board(&soldier_on_board);
         Self {
@@ -75,6 +77,7 @@ impl BattleState {
             b_connected: false,
             a_ready: false,
             b_ready: false,
+            flags,
         }
     }
 
@@ -90,10 +93,11 @@ impl BattleState {
             bullet_fires: vec![],
             explosions: vec![],
             visibilities: Visibilities::new(),
-            a_connected: false,
-            b_connected: false,
+            a_connected: false, // TODO : should be in (server) Runner ?
+            b_connected: false, // TODO : should be in (server) Runner ?
             a_ready: false,
             b_ready: false,
+            flags: FlagsOwnership::empty(),
         }
     }
 
@@ -104,6 +108,7 @@ impl BattleState {
             copy.vehicles().clone(),
             copy.soldier_on_board().clone(),
             copy.phase().clone(),
+            copy.flags().clone(),
         )
     }
 
@@ -295,6 +300,7 @@ impl BattleState {
             self.vehicles.clone(),
             self.soldier_on_board.clone(),
             self.phase.clone(),
+            self.flags.clone(),
         )
     }
 

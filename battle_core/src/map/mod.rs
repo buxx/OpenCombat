@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use self::{decor::Decor, interior::Interior, spawn::SpawnZone, terrain::TerrainTile};
 use crate::{
     config::ServerConfig,
-    game::flag::Flag,
+    game::{control::MapControl, flag::Flag},
     physics::path::{Direction, PathMode},
     types::{GridPoint, VehicleSize, WorldPoint},
     utils::grid_points_for_square,
@@ -134,6 +134,25 @@ impl Map {
             .collect()
     }
 
+    pub fn one_of_spawn_zone_contains_flag(
+        &self,
+        spawn_zone_names: &Vec<SpawnZoneName>,
+        flag: &Flag,
+    ) -> bool {
+        for spawn_zone_name in spawn_zone_names {
+            // FIXME BS NOW : algo moche ?!
+            let foo = &vec![spawn_zone_name.clone()];
+            let found = self.find_spawn_zones(foo);
+            let spawn_zone = found.first().unwrap(); // FIXME BS NOW : manage error
+
+            if spawn_zone.contains(&flag.shape()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     pub fn successors(
         &self,
         from: &(GridPoint, Direction),
@@ -226,15 +245,15 @@ impl Map {
     pub fn point_in_spawn_zones(
         &self,
         point: &WorldPoint,
-        allowed_zone_names: &Vec<SpawnZoneName>,
+        allowed_zone_names: &MapControl,
         consider_all: bool,
     ) -> bool {
-        if consider_all && allowed_zone_names.contains(&SpawnZoneName::All) {
+        if consider_all && allowed_zone_names.contains_spawn_zone(&SpawnZoneName::All) {
             return true;
         }
 
         for spawn_zone in &self.spawn_zones {
-            if allowed_zone_names.contains(spawn_zone.name()) {
+            if allowed_zone_names.contains_spawn_zone(spawn_zone.name()) {
                 if point.x >= spawn_zone.x()
                     && point.x <= spawn_zone.x() + spawn_zone.width()
                     && point.y >= spawn_zone.y()

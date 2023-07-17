@@ -1,5 +1,7 @@
 use oc_core::spawn::SpawnZoneName;
 
+use crate::{types::WorldPoint, utils::WorldShape};
+
 #[derive(Clone)]
 pub struct SpawnZone {
     name: SpawnZoneName,
@@ -70,5 +72,22 @@ impl SpawnZone {
 
     pub fn relative_height(&self) -> f32 {
         self.relative_height
+    }
+
+    pub fn shape(&self) -> WorldShape {
+        WorldShape {
+            top_left: WorldPoint::new(self.x, self.y),
+            top_right: WorldPoint::new(self.x + self.width, self.y),
+            bottom_right: WorldPoint::new(self.x + self.width, self.y + self.height),
+            bottom_left: WorldPoint::new(self.x, self.y + self.height),
+        }
+    }
+
+    pub fn contains(&self, shape: &WorldShape) -> bool {
+        let this = self.shape();
+        return this.top_left.x <= shape.top_left.x
+            && this.top_left.y <= shape.top_left.y
+            && this.bottom_right.x >= shape.bottom_right.x
+            && this.bottom_right.y >= shape.bottom_right.y;
     }
 }

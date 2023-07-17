@@ -1,5 +1,7 @@
-use battle_core::{game::Side, types::WorldPoint};
-use oc_core::spawn::SpawnZoneName;
+use battle_core::{
+    game::{control::MapControl, Side},
+    types::WorldPoint,
+};
 
 use super::Engine;
 
@@ -19,7 +21,7 @@ impl Engine {
         in_allowed_zone && !in_opponent_zone
     }
 
-    pub fn zone_controls(&self) -> (&Vec<SpawnZoneName>, &Vec<SpawnZoneName>) {
+    pub fn zone_controls(&self) -> (&MapControl, &MapControl) {
         if self.gui_state.side() == &Side::A {
             (&self.a_control, &self.b_control)
         } else {

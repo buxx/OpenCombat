@@ -8,14 +8,16 @@ use battle_core::config::DEFAULT_SERVER_PUB_ADDRESS;
 use battle_core::config::DEFAULT_SERVER_REP_ADDRESS;
 use battle_core::deployment::DeploymentReader;
 use battle_core::deployment::DeploymentReaderError;
+use battle_core::game::control::MapControl;
 use battle_core::game::Side;
 use battle_core::map::reader::MapReader;
 use battle_core::map::reader::MapReaderError;
 use battle_core::message::InputMessage;
 use battle_core::network::client::Client;
 use battle_core::network::error::NetworkError;
+use battle_core::state::battle::builder::BattleStateBuilder;
+use battle_core::state::battle::builder::BattleStateBuilderError;
 use battle_core::state::battle::message::BattleStateMessage;
-use battle_core::state::battle::BattleState;
 use crossbeam_channel::unbounded;
 use crossbeam_channel::SendError;
 use ggez::conf::WindowMode;
@@ -149,12 +151,16 @@ fn main() -> Result<(), GuiError> {
     }
     let (mut context, event_loop) = context_builder.build()?;
 
+    let a_control = MapControl::new(opt.a_control.clone());
+    let b_control = MapControl::new(opt.b_control.clone());
+
     // TODO : If remote server, download map before read it
     let map = MapReader::new(map_name, &resources.lib())?.build()?;
     let config = GuiConfig::new();
     let server_config = ServerConfig::new();
     let graphics = graphics::Graphics::new(&mut context, &map, &server_config)?;
-    let battle_state = BattleState::empty(&map);
+    let battle_state =
+        BattleStateBuilder::new(map_name, &resources.lib(), &a_control, &b_control).build()?;
     let engine = engine::Engine::new(
         &mut context,
         &opt.side,
@@ -166,8 +172,8 @@ fn main() -> Result<(), GuiError> {
         battle_state,
         sync_required,
         stop_required.clone(),
-        opt.a_control.clone(),
-        opt.b_control.clone(),
+        a_control,
+        b_control,
     )?;
 
     // FIXME BS NOW : Closing GUI don't close thread correctly and keep process running
@@ -191,6 +197,8 @@ enum GuiError {
     Network(NetworkError),
     #[error("Embedded server error : {0}")]
     EmbeddedServer(EmbeddedServerError),
+    #[error("Battle state builder error : {0}")]
+    BattleStateBuilderError(BattleStateBuilderError),
 }
 
 impl From<MapReaderError> for GuiError {
@@ -232,5 +240,11 @@ impl From<ResourcesError> for GuiError {
 impl From<DeploymentReaderError> for GuiError {
     fn from(error: DeploymentReaderError) -> Self {
         Self::Deployment(error)
+    }
+}
+
+impl From<BattleStateBuilderError> for GuiError {
+    fn from(error: BattleStateBuilderError) -> Self {
+        Self::BattleStateBuilderError(error)
     }
 }
