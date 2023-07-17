@@ -7,9 +7,9 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - name: Install dependencies
-        run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - id: setup
+        uses: ./.github/actions/setup
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -23,9 +23,9 @@ jobs:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
-      - name: Install dependencies
-        run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - id: setup
+        uses: ./.github/actions/setup
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -39,9 +39,9 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - name: Install dependencies
-        run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - id: setup
+        uses: ./.github/actions/setup
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -56,12 +56,10 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
-    # TODO : be clippy compliant
-    continue-on-error: true
     steps:
-      - name: Install dependencies
-        run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - id: setup
+        uses: ./.github/actions/setup
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
