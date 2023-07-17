@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install zeromq
-        run: sudo apt-get install -y libzmq3-dev
+        run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install zeromq
-        run: sudo apt-get install -y libzmq3-dev
+        run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install zeromq
-        run: sudo apt-get install -y libzmq3-dev
+        run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
@@ -60,7 +60,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Install zeromq
-        run: sudo apt-get install -y libzmq3-dev
+        run: sudo apt-get install -y libasound2-dev libfontconfig-dev libudev-dev libzmq3-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
