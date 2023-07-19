@@ -56,6 +56,10 @@ impl Flag {
             bottom_left: WorldPoint::new(self.x, self.y + self.height),
         }
     }
+
+    pub fn position(&self) -> WorldPoint {
+        WorldPoint::new(self.x + (self.width() / 2.), self.y + (self.height() / 2.))
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -72,6 +76,10 @@ pub struct FlagsOwnership {
 }
 
 impl FlagsOwnership {
+    pub fn new(ownerships: Vec<(FlagName, FlagOwnership)>) -> Self {
+        Self { ownerships }
+    }
+
     pub fn empty() -> Self {
         Self { ownerships: vec![] }
     }
@@ -102,6 +110,10 @@ impl FlagsOwnership {
         }
 
         Self { ownerships }
+    }
+
+    pub fn ownerships(&self) -> &Vec<(FlagName, FlagOwnership)> {
+        &self.ownerships
     }
 }
 

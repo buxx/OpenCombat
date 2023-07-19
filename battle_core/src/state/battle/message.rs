@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     behavior::{gesture::Gesture, Behavior},
     entity::soldier::WeaponClass,
+    game::flag::FlagsOwnership,
     order::Order,
     physics::{
         event::{bullet::BulletFire, explosion::Explosion},
@@ -27,6 +28,7 @@ pub enum BattleStateMessage {
     SetBConnected(bool),
     SetAReady(bool),
     SetBReady(bool),
+    SetFlagsOwnership(FlagsOwnership),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

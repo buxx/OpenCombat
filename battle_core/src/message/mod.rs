@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     config::ChangeConfigMessage,
     deployment::Deployment,
+    game::control::MapControl,
     state::{battle::message::BattleStateMessage, client::ClientStateMessage},
     sync::BattleStateCopy,
 };
@@ -21,6 +22,7 @@ pub enum Message {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum InputMessage {
     LoadDeployment(Deployment),
+    LoadControl((MapControl, MapControl)),
     RequireCompleteSync,
     SetBattleState(BattleStateCopy),
     BattleState(BattleStateMessage),

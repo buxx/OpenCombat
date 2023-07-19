@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum SpawnZoneName {
     North,
     NorthEst,

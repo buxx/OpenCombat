@@ -25,6 +25,11 @@ impl Runner {
                     InputMessage::LoadDeployment(deployment) => {
                         self.battle_state.inject(&deployment)
                     }
+                    InputMessage::LoadControl((a_control, b_control)) => {
+                        //
+                        self.battle_state
+                            .update_flags_from_control(a_control, b_control);
+                    }
                     InputMessage::RequireCompleteSync => {
                         self.output
                             .send(vec![OutputMessage::LoadFromCopy(self.battle_state.copy())])?;

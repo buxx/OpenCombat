@@ -5,7 +5,6 @@ use std::sync::Arc;
 use std::thread;
 
 use battle_core::config::{ServerConfig, DEFAULT_SERVER_PUB_ADDRESS, DEFAULT_SERVER_REP_ADDRESS};
-use battle_core::game::control::MapControl;
 use battle_core::message::{InputMessage, OutputMessage};
 use battle_core::network::error::NetworkError;
 use battle_core::network::server::Server;
@@ -95,14 +94,7 @@ impl EmbeddedServer {
             .as_ref()
             .ok_or(EmbeddedServerError::MissingMapName)?;
         let config = ServerConfig::new();
-        let state = BattleStateBuilder::new(
-            &map_name,
-            &self.resources,
-            //FIXME BS NOW : t sur de donner des empty a chaque fois ?!
-            &MapControl::empty(),
-            &MapControl::empty(),
-        )
-        .build()?;
+        let state = BattleStateBuilder::new(&map_name, self.resources.clone()).build()?;
 
         let stop_required_ = self.stop_required.clone();
         thread::Builder::new()

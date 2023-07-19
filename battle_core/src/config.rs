@@ -11,6 +11,7 @@ pub const DEFAULT_SERVER_PUB_ADDRESS: &str = "tcp://0.0.0.0:4256";
 ///
 pub const TARGET_FPS: u64 = 60;
 pub const SOLDIER_UPDATE_FREQ: u64 = 1;
+pub const FLAGS_UPDATE_FREQ: u64 = 120;
 pub const SOLDIER_ANIMATE_FREQ: u64 = 20;
 pub const INTERIORS_UPDATE_FREQ: u64 = 60;
 pub const VISIBILITY_UPDATE_FREQ: u64 = 60;
@@ -48,10 +49,12 @@ pub const TILE_TYPE_OPACITY_MIDDLE_ROCK: f32 = 0.3;
 pub const VISIBILITY_BY_LAST_FRAME_SHOOT: u64 = 180;
 pub const VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE: usize = 4;
 
-// Width of sprite sheet
+// Width/Height of ui sprite sheet
 pub const UI_SPRITE_SHEET_WIDTH: f32 = 800.0;
-// Height of sprite sheet
 pub const UI_SPRITE_SHEET_HEIGHT: f32 = 1000.0;
+// Width/Height of flags sprite sheet
+pub const FLAGS_SPRITE_SHEET_WIDTH: f32 = 50.0;
+pub const FLAGS_SPRITE_SHEET_HEIGHT: f32 = 100.0;
 // Target FPS
 // Velocity of move vector
 pub const MOVE_VELOCITY: f32 = 5.0 / TARGET_FPS as f32;
@@ -90,6 +93,7 @@ pub const COVERAGE_TILE_STEPS: usize = 3;
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
     pub send_debug_points: bool,
+    pub flags_update_freq: u64,
     pub soldier_update_freq: u64,
     pub soldier_animate_freq: u64,
     pub interiors_update_freq: u64,
@@ -147,6 +151,8 @@ impl ServerConfig {
 
         Self {
             send_debug_points: false,
+            /// Frequency of flags update
+            flags_update_freq: FLAGS_UPDATE_FREQ,
             /// Frequency of soldier update :
             ///  - World pixel point according to movement
             ///  - ...
@@ -205,6 +211,10 @@ impl ServerConfig {
 
     pub fn soldier_update_freq(&self) -> u64 {
         self.soldier_update_freq
+    }
+
+    pub fn flags_update_freq(&self) -> u64 {
+        self.flags_update_freq
     }
 
     pub fn soldier_animate_freq(&self) -> u64 {

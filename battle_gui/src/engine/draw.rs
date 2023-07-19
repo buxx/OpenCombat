@@ -12,7 +12,7 @@ use battle_core::{
 use glam::Vec2;
 use oc_core::spawn::SpawnZoneName;
 
-use crate::{graphics::batch::QualifiedBatch, ui::hud::painter::HudPainter};
+use crate::{graphics::batch::QualifiedBatch, ui::hud::painter::HudPainter, utils::IntoSprite};
 
 use super::{input::Control, Engine};
 
@@ -116,6 +116,30 @@ impl Engine {
         } else {
             self.generate_battle_map_sprites(draw_decor)?
         }
+        Ok(())
+    }
+
+    pub fn generate_flags_sprites(&mut self) -> GameResult {
+        for (flag_name, ownership) in self.battle_state.flags().ownerships() {
+            // TODO : This is not very clean way ...
+            let flag = self
+                .battle_state
+                .map()
+                .flags()
+                .iter()
+                .filter(|f| f.name() == flag_name)
+                .next()
+                .expect("Flags ownership and map flag must be consistent");
+
+            let mut draw_param = DrawParam::new()
+                .src(Rect::from(ownership.to_relative_array()))
+                .dest(flag.position().to_vec2() * self.gui_state.zoom.factor());
+            if !self.gui_state.zoom.is_hd() {
+                draw_param = draw_param.scale(Vec2::new(0.5, 0.5))
+            }
+            self.graphics.flags_mut().push(draw_param);
+        }
+
         Ok(())
     }
 

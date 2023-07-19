@@ -44,6 +44,7 @@ pub mod background;
 pub mod batch;
 pub mod decors;
 pub mod explosions;
+pub mod flag;
 pub mod interiors;
 pub mod map;
 pub mod message;
@@ -57,6 +58,7 @@ pub enum AssetsType {
     Vehicles,
     Explosions,
     Ui,
+    Flags,
 }
 
 impl AssetsType {
@@ -66,6 +68,7 @@ impl AssetsType {
             AssetsType::Vehicles => "/vehicles",
             AssetsType::Explosions => "/explosions",
             AssetsType::Ui => "/ui",
+            AssetsType::Flags => "/flags",
         }
     }
 
@@ -93,6 +96,7 @@ pub struct Graphics {
     background: Background,
     dark_background: Background,
     dark_background_first: bool,
+    flags: InstanceArray,
     // Map interiors sprite batch
     interiors: Interiors,
     // Map decor sprite batches
@@ -122,8 +126,10 @@ impl Graphics {
         let explosions = ExplosionsBuilder::new(ctx).build()?;
 
         let ui_file = AssetsType::Ui.prefix().to_string() + ".png";
+        let flags_file = AssetsType::Flags.prefix().to_string() + ".png";
         let ui_files = collect_resources_by_prefix(AssetsType::Ui.prefix())?;
         let ui_batch = create_batch(&ui_file, ctx)?;
+        let flags = create_batch(&flags_file, ctx)?;
 
         let background = BackgroundBuilder::new(ctx, map).build()?;
         let dark_background = BackgroundBuilder::new(ctx, map).dark(true).build()?;
@@ -149,6 +155,7 @@ impl Graphics {
             background,
             dark_background,
             dark_background_first: false,
+            flags,
             interiors: map_interiors_batch,
             decor,
             soldier_animation_sequences: HashMap::new(),
@@ -362,6 +369,18 @@ impl Graphics {
         Ok(())
     }
 
+    pub fn draw_flags(
+        &mut self,
+        canvas: &mut Canvas,
+        draw_param: graphics::DrawParam,
+    ) -> GameResult {
+        if self.flags.instances().len() > 0 {
+            canvas.draw(&self.flags, draw_param);
+        }
+
+        Ok(())
+    }
+
     pub fn draw_decor(
         &mut self,
         canvas: &mut Canvas,
@@ -428,6 +447,7 @@ impl Graphics {
         self.background.clear(zoom);
         self.dark_background.clear(zoom);
         self.ui_batch.clear();
+        self.flags.clear();
     }
 
     pub fn clear_map_interiors_batch(&mut self, zoom: &Zoom) {
@@ -540,6 +560,10 @@ impl Graphics {
 
     pub fn explosions_mut(&mut self) -> &mut Explosions {
         &mut self.explosions
+    }
+
+    pub fn flags_mut(&mut self) -> &mut InstanceArray {
+        &mut self.flags
     }
 }
 
