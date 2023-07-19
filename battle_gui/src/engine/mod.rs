@@ -150,6 +150,7 @@ impl EventHandler<ggez::GameError> for Engine {
 
         // Draw entire scene
         self.generate_map_sprites(self.gui_state.draw_decor)?;
+        self.generate_flags_sprites()?;
         self.generate_soldiers_sprites()?;
         self.generate_vehicles_sprites()?;
         self.generate_explosion_sprites()?;
@@ -160,6 +161,7 @@ impl EventHandler<ggez::GameError> for Engine {
             .draw_units(&mut canvas, dest, &self.gui_state.zoom)?;
         self.graphics
             .draw_decor(&mut canvas, decor, dest, &self.gui_state.zoom)?;
+        self.graphics.draw_flags(&mut canvas, dest)?;
 
         // Draw ui
         let mut mesh_builder = MeshBuilder::new();

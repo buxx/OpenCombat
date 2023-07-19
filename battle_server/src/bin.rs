@@ -62,14 +62,7 @@ fn main() -> Result<(), Error> {
 
     let stop_required_ = stop_required.clone();
     let config = ServerConfig::new();
-    let battle_state = BattleStateBuilder::new(
-        map_name,
-        &resources,
-        // FIXME BS NOW : must initialize them when game initialized by gui !!!
-        &MapControl::empty(),
-        &MapControl::empty(),
-    )
-    .build()?;
+    let battle_state = BattleStateBuilder::new(map_name, resources.clone()).build()?;
     let mut runner = Runner::new(
         config,
         server_input_receiver,

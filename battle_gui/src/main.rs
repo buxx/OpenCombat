@@ -128,14 +128,20 @@ fn main() -> Result<(), GuiError> {
     };
 
     let deployment = DeploymentReader::from_file(&opt.deployment)?;
+    let a_control = MapControl::new(opt.a_control.clone());
+    let b_control = MapControl::new(opt.b_control.clone());
 
     let ready_message = if &opt.side == &Side::A {
         InputMessage::BattleState(BattleStateMessage::SetAConnected(true))
     } else {
         InputMessage::BattleState(BattleStateMessage::SetBConnected(true))
     };
+
+    // These messages will initialize the battle state
+    // Then, the RequireCompleteSync permit client to be same state than server
     input_sender.send(vec![
         InputMessage::LoadDeployment(deployment),
+        InputMessage::LoadControl((a_control.clone(), b_control.clone())),
         InputMessage::RequireCompleteSync,
         ready_message,
     ])?;
@@ -151,16 +157,12 @@ fn main() -> Result<(), GuiError> {
     }
     let (mut context, event_loop) = context_builder.build()?;
 
-    let a_control = MapControl::new(opt.a_control.clone());
-    let b_control = MapControl::new(opt.b_control.clone());
-
     // TODO : If remote server, download map before read it
     let map = MapReader::new(map_name, &resources.lib())?.build()?;
     let config = GuiConfig::new();
     let server_config = ServerConfig::new();
     let graphics = graphics::Graphics::new(&mut context, &map, &server_config)?;
-    let battle_state =
-        BattleStateBuilder::new(map_name, &resources.lib(), &a_control, &b_control).build()?;
+    let battle_state = BattleStateBuilder::new(map_name, resources.lib()).build()?;
     let engine = engine::Engine::new(
         &mut context,
         &opt.side,

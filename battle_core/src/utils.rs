@@ -146,10 +146,10 @@ impl WorldShape {
         let center_offset = Vec2::new(width / 2., height / 2.);
         let reference_point = self.top_left.apply(center_offset);
 
-        let after_top_left = apply_angle_on_point(&self.top_left, &reference_point, &angle);
-        let after_top_right = apply_angle_on_point(&self.top_right, &reference_point, &angle);
-        let after_bottom_right = apply_angle_on_point(&self.bottom_right, &reference_point, &angle);
-        let after_bottom_left = apply_angle_on_point(&self.bottom_left, &reference_point, &angle);
+        let after_top_left = apply_angle_on_point(&self.top_left, &reference_point, angle);
+        let after_top_right = apply_angle_on_point(&self.top_right, &reference_point, angle);
+        let after_bottom_right = apply_angle_on_point(&self.bottom_right, &reference_point, angle);
+        let after_bottom_left = apply_angle_on_point(&self.bottom_left, &reference_point, angle);
 
         Self {
             top_left: after_top_left,

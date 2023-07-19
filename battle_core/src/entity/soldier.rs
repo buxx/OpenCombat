@@ -115,7 +115,6 @@ impl Soldier {
     }
 
     pub fn set_order(&mut self, order: Order) {
-        println!("Soldier({})::set_order({})", self.uuid, &order);
         self.order = order
     }
 
@@ -177,6 +176,10 @@ impl Soldier {
 
     pub fn can_be_designed_as_target(&self) -> bool {
         self.alive && !self.unconscious
+    }
+
+    pub fn can_take_flag(&self) -> bool {
+        self.can_be_animated()
     }
 
     pub fn under_fire(&self) -> &Feeling {

@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 use thiserror::Error;
 
-pub const RESOURCE_PATH: &'static str = "./resources";
+pub const RESOURCE_PATH: &str = "./resources";
 
 pub struct Resources {
     home: PathBuf,
@@ -83,9 +83,8 @@ where
 
 impl EnsureDir for PathBuf {
     fn ensure(self) -> Result<Self, ResourcesError> {
-        match fs::create_dir_all(&self) {
-            Err(error) => return Err(ResourcesError::MkDir(self.clone(), error.to_string())),
-            _ => {}
+        if let Err(error) = fs::create_dir_all(&self) {
+            return Err(ResourcesError::MkDir(self.clone(), error.to_string()));
         }
 
         Ok(self)

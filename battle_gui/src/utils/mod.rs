@@ -50,3 +50,7 @@ pub const GREY: Color = Color {
     b: 0.5,
     a: 1.0,
 };
+
+pub trait IntoSprite {
+    fn to_relative_array(&self) -> [f32; 4];
+}

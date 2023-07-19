@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum SpawnZoneName {
     North,
     NorthEst,
@@ -14,10 +15,7 @@ pub enum SpawnZoneName {
 }
 impl SpawnZoneName {
     pub fn allowed_for_zone_object(&self) -> bool {
-        match self {
-            SpawnZoneName::All => false,
-            _ => true,
-        }
+        !matches!(self, SpawnZoneName::All)
     }
 }
 

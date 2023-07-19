@@ -1,5 +1,7 @@
 use oc_core::spawn::SpawnZoneName;
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MapControl {
     spawn_zone_names: Vec<SpawnZoneName>,
 }

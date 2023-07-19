@@ -1,17 +1,15 @@
 use std::{collections::HashMap, fmt::Display, path::PathBuf};
 
 use crate::{
-    game::{control::MapControl, flag::FlagsOwnership},
+    game::flag::FlagsOwnership,
     map::reader::{MapReader, MapReaderError},
 };
 
 use super::{phase::Phase, BattleState};
 
-pub struct BattleStateBuilder<'a> {
+pub struct BattleStateBuilder {
     map_name: String,
-    resources: &'a PathBuf,
-    a_control: &'a MapControl,
-    b_control: &'a MapControl,
+    resources: PathBuf,
 }
 
 #[derive(Debug)]
@@ -35,26 +33,24 @@ impl Display for BattleStateBuilderError {
     }
 }
 
-impl<'a> BattleStateBuilder<'a> {
-    pub fn new(
-        map_name: &str,
-        resources: &'a PathBuf,
-        a_control: &'a MapControl,
-        b_control: &'a MapControl,
-    ) -> Self {
+impl BattleStateBuilder {
+    pub fn new(map_name: &str, resources: PathBuf) -> Self {
         Self {
             map_name: map_name.to_string(),
             resources,
-            a_control,
-            b_control,
         }
     }
 
     pub fn build(&self) -> Result<BattleState, BattleStateBuilderError> {
-        let map = MapReader::new(&self.map_name, self.resources)?.build()?;
-        let flags = FlagsOwnership::from_control(&map, &self.a_control, &self.b_control);
-        let mut state =
-            BattleState::new(map, vec![], vec![], HashMap::new(), Phase::Placement, flags);
+        let map = MapReader::new(&self.map_name, &self.resources)?.build()?;
+        let mut state = BattleState::new(
+            map,
+            vec![],
+            vec![],
+            HashMap::new(),
+            Phase::Placement,
+            FlagsOwnership::empty(),
+        );
         state.resolve();
         Ok(state)
     }

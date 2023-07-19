@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     deployment::Deployment,
     entity::{soldier::Soldier, vehicle::Vehicle},
-    game::{flag::FlagsOwnership, Side},
+    game::{control::MapControl, flag::FlagsOwnership, Side},
     graphics::vehicle::VehicleGraphicInfos,
     map::Map,
     order::Order,
@@ -17,7 +17,7 @@ use crate::{
         SoldierBoard, SoldierIndex, SoldiersOnBoard, SquadComposition, SquadUuid, VehicleBoard,
         VehicleIndex,
     },
-    utils::vehicle_board_from_soldiers_on_board,
+    utils::{vehicle_board_from_soldiers_on_board, WorldShape},
 };
 
 use self::{
@@ -262,6 +262,7 @@ impl BattleState {
             BattleStateMessage::SetBConnected(value) => self.b_connected = *value,
             BattleStateMessage::SetAReady(value) => self.a_ready = *value,
             BattleStateMessage::SetBReady(value) => self.b_ready = *value,
+            BattleStateMessage::SetFlagsOwnership(flags) => self.flags = flags.clone(),
         };
 
         vec![]
@@ -338,6 +339,24 @@ impl BattleState {
             Side::B => self.b_ready,
             Side::All => panic!("Never call ready for Side::All"),
         }
+    }
+
+    pub fn update_flags_from_control(&mut self, a_control: MapControl, b_control: MapControl) {
+        self.flags = FlagsOwnership::from_control(&self.map, &a_control, &b_control);
+    }
+
+    pub fn flags(&self) -> &FlagsOwnership {
+        &self.flags
+    }
+
+    pub fn there_is_side_soldier_in(&self, side: &Side, shape: WorldShape) -> bool {
+        self.soldiers
+            .iter()
+            .filter(|s| s.side() == side)
+            .filter(|s| s.can_take_flag())
+            .filter(|s| shape.contains(&s.world_point()))
+            .next()
+            .is_some()
     }
 }
 
