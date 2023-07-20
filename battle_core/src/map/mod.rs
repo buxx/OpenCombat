@@ -3,7 +3,10 @@ use std::path::PathBuf;
 use self::{decor::Decor, interior::Interior, spawn::SpawnZone, terrain::TerrainTile};
 use crate::{
     config::ServerConfig,
-    game::{control::MapControl, flag::Flag},
+    game::{
+        control::MapControl,
+        flag::{Flag, FlagName},
+    },
     physics::path::{Direction, PathMode},
     types::{GridPoint, VehicleSize, WorldPoint},
     utils::grid_points_for_square,
@@ -125,6 +128,15 @@ impl Map {
 
     pub fn flags(&self) -> &Vec<Flag> {
         &self.flags
+    }
+
+    // TODO : Get flags by name is not clean way, it could be better to use indexes (like soldiers, etc)
+    pub fn flag(&self, flag_name: &FlagName) -> &Flag {
+        self.flags()
+            .iter()
+            .filter(|f| f.name() == flag_name)
+            .next()
+            .expect("Flags ownership and map flag must be consistent")
     }
 
     pub fn find_spawn_zones(&self, names: &Vec<SpawnZoneName>) -> Vec<&SpawnZone> {

@@ -1,4 +1,3 @@
-use battle_core::game::control::MapControl;
 use crossbeam_channel::unbounded;
 use env_logger::Env;
 use std::path::PathBuf;

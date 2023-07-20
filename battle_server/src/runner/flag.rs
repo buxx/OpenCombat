@@ -13,16 +13,7 @@ impl Runner {
         if self.frame_i % self.config.soldier_update_freq() == 0 {
             let mut new_ownerships = vec![];
             for (flag_name, ownership) in self.battle_state.flags().ownerships() {
-                // TODO : This is not very clean way ...
-                let flag = self
-                    .battle_state
-                    .map()
-                    .flags()
-                    .iter()
-                    .filter(|f| f.name() == flag_name)
-                    .next()
-                    .expect("Flags ownership and map flag must be consistent");
-
+                let flag = self.battle_state.map().flag(flag_name);
                 let a_inside = self
                     .battle_state
                     .there_is_side_soldier_in(&Side::A, flag.shape());

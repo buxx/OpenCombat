@@ -121,16 +121,7 @@ impl Engine {
 
     pub fn generate_flags_sprites(&mut self) -> GameResult {
         for (flag_name, ownership) in self.battle_state.flags().ownerships() {
-            // TODO : This is not very clean way ...
-            let flag = self
-                .battle_state
-                .map()
-                .flags()
-                .iter()
-                .filter(|f| f.name() == flag_name)
-                .next()
-                .expect("Flags ownership and map flag must be consistent");
-
+            let flag = self.battle_state.map().flag(flag_name);
             let mut draw_param = DrawParam::new()
                 .src(Rect::from(ownership.to_relative_array()))
                 .dest(flag.position().to_vec2() * self.gui_state.zoom.factor());
