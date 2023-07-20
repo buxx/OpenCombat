@@ -1,5 +1,5 @@
 use ggez::{
-    graphics::{self, Canvas, DrawParam, MeshBuilder, Rect},
+    graphics::{self, Canvas, Color, DrawParam, MeshBuilder, Rect, Text, TextFragment, TextLayout},
     Context, GameResult,
 };
 
@@ -277,6 +277,21 @@ impl Engine {
         mesh_builder: &mut MeshBuilder,
     ) -> GameResult {
         HudPainter::new(&self.hud, &self.gui_state).meshes(ctx, mesh_builder)?;
+        Ok(())
+    }
+
+    pub fn draw_flags_names(&mut self, canvas: &mut Canvas, _: DrawParam) -> GameResult {
+        for flag in self.battle_state.map().flags() {
+            canvas.draw(
+                Text::new(TextFragment::new(&flag.name().0).color(Color::BLACK))
+                    .set_layout(TextLayout::center()),
+                DrawParam::default().dest(
+                    flag.position().to_vec2() * self.gui_state.zoom.factor()
+                        + self.gui_state.display_scene_offset.to_vec2(),
+                ),
+            )
+        }
+
         Ok(())
     }
 

@@ -162,6 +162,7 @@ impl EventHandler<ggez::GameError> for Engine {
         self.graphics
             .draw_decor(&mut canvas, decor, dest, &self.gui_state.zoom)?;
         self.graphics.draw_flags(&mut canvas, dest)?;
+        self.draw_flags_names(&mut canvas, dest)?;
 
         // Draw ui
         let mut mesh_builder = MeshBuilder::new();
