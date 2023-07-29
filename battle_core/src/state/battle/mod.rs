@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use oc_core::morale::SideMorale;
+
 use crate::{
     deployment::Deployment,
     entity::{soldier::Soldier, vehicle::Vehicle},
@@ -49,6 +51,8 @@ pub struct BattleState {
     b_connected: bool,
     a_ready: bool,
     b_ready: bool,
+    a_morale: SideMorale,
+    b_morale: SideMorale,
     flags: FlagsOwnership,
 }
 
@@ -77,6 +81,8 @@ impl BattleState {
             b_connected: false,
             a_ready: false,
             b_ready: false,
+            a_morale: SideMorale(1.0), // FIXME BS NOW : from context ?
+            b_morale: SideMorale(1.0), // FIXME BS NOW : from context ?
             flags,
         }
     }
@@ -97,6 +103,8 @@ impl BattleState {
             b_connected: false, // TODO : should be in (server) Runner ?
             a_ready: false,
             b_ready: false,
+            a_morale: SideMorale(1.0),
+            b_morale: SideMorale(1.0),
             flags: FlagsOwnership::empty(),
         }
     }
@@ -263,6 +271,8 @@ impl BattleState {
             BattleStateMessage::SetAReady(value) => self.a_ready = *value,
             BattleStateMessage::SetBReady(value) => self.b_ready = *value,
             BattleStateMessage::SetFlagsOwnership(flags) => self.flags = flags.clone(),
+            BattleStateMessage::SetAMorale(morale) => self.a_morale = morale.clone(),
+            BattleStateMessage::SetBMorale(morale) => self.b_morale = morale.clone(),
         };
 
         vec![]
@@ -357,6 +367,14 @@ impl BattleState {
             .filter(|s| shape.contains(&s.world_point()))
             .next()
             .is_some()
+    }
+
+    pub fn a_morale(&self) -> &SideMorale {
+        &self.a_morale
+    }
+
+    pub fn b_morale(&self) -> &SideMorale {
+        &self.b_morale
     }
 }
 

@@ -283,6 +283,7 @@ dependencies = [
  "env_logger",
  "glam",
  "log",
+ "oc_core",
  "puffin",
  "puffin_http",
  "rand",

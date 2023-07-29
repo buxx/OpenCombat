@@ -15,6 +15,7 @@ pub const FLAGS_UPDATE_FREQ: u64 = 120;
 pub const SOLDIER_ANIMATE_FREQ: u64 = 20;
 pub const INTERIORS_UPDATE_FREQ: u64 = 60;
 pub const VISIBILITY_UPDATE_FREQ: u64 = 60;
+pub const MORALE_UPDATE_FREQ: u64 = 300;
 pub const FEELING_DECREASING_FREQ: u64 = 60;
 pub const PHYSICS_UPDATE_FREQ: u64 = 1;
 ///
@@ -98,6 +99,7 @@ pub struct ServerConfig {
     pub soldier_animate_freq: u64,
     pub interiors_update_freq: u64,
     pub visibility_update_freq: u64,
+    pub morale_update_freq: u64,
     pub physics_update_freq: u64,
     pub feeling_decreasing_freq: u64,
     pub visibility_firsts: usize,
@@ -166,6 +168,8 @@ impl ServerConfig {
             /// Frequency of update visibility between soldiers
             visibility_update_freq: VISIBILITY_UPDATE_FREQ,
             ///
+            morale_update_freq: MORALE_UPDATE_FREQ,
+            ///
             physics_update_freq: PHYSICS_UPDATE_FREQ,
             /// Frequency of decreasing feelings
             feeling_decreasing_freq: FEELING_DECREASING_FREQ,
@@ -227,6 +231,10 @@ impl ServerConfig {
 
     pub fn visibility_update_freq(&self) -> u64 {
         self.visibility_update_freq
+    }
+
+    pub fn morale_update_freq(&self) -> u64 {
+        self.morale_update_freq
     }
 
     pub fn physics_update_freq(&self) -> u64 {

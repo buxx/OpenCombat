@@ -154,6 +154,10 @@ impl Soldier {
         self.alive && !self.unconscious
     }
 
+    pub fn can_be_count_for_morale(&self) -> bool {
+        self.alive && !self.unconscious
+    }
+
     pub fn can_produce_sound(&self) -> bool {
         self.alive && !self.unconscious
     }

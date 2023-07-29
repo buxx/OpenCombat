@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use oc_core::morale::SideMorale;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -28,6 +29,8 @@ pub enum BattleStateMessage {
     SetBConnected(bool),
     SetAReady(bool),
     SetBReady(bool),
+    SetAMorale(SideMorale),
+    SetBMorale(SideMorale),
     SetFlagsOwnership(FlagsOwnership),
 }
 

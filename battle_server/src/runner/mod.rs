@@ -21,6 +21,7 @@ mod flag;
 mod gesture;
 mod input;
 mod message;
+mod morale;
 mod movement;
 mod output;
 mod phase;

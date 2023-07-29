@@ -3,7 +3,6 @@ use battle_core::{
     types::WindowPoint,
 };
 use glam::Vec2;
-use oc_core::morale::SideMorale;
 
 use crate::{engine::state::GuiState, ui::component::Component};
 
@@ -74,6 +73,10 @@ impl<'a> HudBuilder<'a> {
     }
 
     fn morale_indicator(&self, point: &WindowPoint) -> MoraleIndicator {
-        MoraleIndicator::new(point.clone(), SideMorale(0.2), SideMorale(0.75))
+        MoraleIndicator::new(
+            point.clone(),
+            self.battle_state.a_morale().clone(),
+            self.battle_state.b_morale().clone(),
+        )
     }
 }
