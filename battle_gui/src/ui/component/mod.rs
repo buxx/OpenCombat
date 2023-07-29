@@ -1,5 +1,8 @@
 use battle_core::{audio::Sound, types::WindowPoint};
-use ggez::graphics::{Canvas, DrawParam};
+use ggez::{
+    graphics::{Canvas, DrawParam},
+    Context, GameResult,
+};
 use glam::Vec2;
 
 pub mod background;
@@ -12,7 +15,15 @@ pub trait Component<E> {
     fn bounds(&self) -> Vec2 {
         Vec2::new(self.width(), self.height())
     }
-    fn contains(&self, points: &Vec<&WindowPoint>) -> bool;
+
+    fn contains(&self, points: &Vec<&WindowPoint>) -> bool {
+        points.iter().all(|point| {
+            point.x >= self.point().x
+                && point.x <= self.point().x + self.width()
+                && point.y >= self.point().y
+                && point.y <= self.point().y + self.height()
+        })
+    }
     fn event(&self) -> Option<E> {
         None
     }
@@ -22,5 +33,7 @@ pub trait Component<E> {
     fn sprites(&self, _hovered: &WindowPoint) -> Vec<DrawParam> {
         vec![]
     }
-    fn draw(&self, _hovered: &WindowPoint, _canvas: &mut Canvas) {}
+    fn draw(&self, _ctx: &mut Context, _hovered: &WindowPoint, _canvas: &mut Canvas) -> GameResult {
+        Ok(())
+    }
 }

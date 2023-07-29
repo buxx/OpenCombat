@@ -181,9 +181,9 @@ impl EventHandler<ggez::GameError> for Engine {
         self.graphics
             .draw_ui(ctx, &mut canvas, ui_draw_param, mesh_builder)?;
 
-        HudPainter::new(&self.hud, &self.gui_state).draw(ctx, &mut canvas);
+        HudPainter::new(&self.hud, &self.gui_state).draw(ctx, &mut canvas)?;
 
-        self.draw_gui(ctx, &mut canvas);
+        self.draw_egui(ctx, &mut canvas);
 
         canvas.finish(ctx)?;
 

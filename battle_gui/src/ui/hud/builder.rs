@@ -3,13 +3,14 @@ use battle_core::{
     types::WindowPoint,
 };
 use glam::Vec2;
+use oc_core::morale::SideMorale;
 
-use crate::engine::state::GuiState;
+use crate::{engine::state::GuiState, ui::component::Component};
 
-use super::{background::Background, button::Button, Hud};
+use super::{background::Background, battle::BattleButton, morale::MoraleIndicator, Hud};
 
-const MARGIN: f32 = 5.;
-const RIGHT_BOX_WIDTH: f32 = 200.;
+pub const MARGIN: f32 = 5.;
+pub const RIGHT_BOX_WIDTH: f32 = 200.;
 
 pub struct HudBuilder<'a> {
     gui_state: &'a GuiState,
@@ -46,24 +47,33 @@ impl<'a> HudBuilder<'a> {
     }
 
     pub fn build(&self) -> Hud {
+        let right_column_start = self
+            .point
+            .apply(Vec2::new(self.width - RIGHT_BOX_WIDTH, MARGIN));
+        let battle_button = self.battle_button(&right_column_start);
+        let morale_indicator_start = right_column_start.apply(Vec2::new(battle_button.width(), 0.));
+        let morale_indicator = self.morale_indicator(&morale_indicator_start);
+
         Hud::new(
             Background::new(self.point.clone(), self.width, self.height),
-            self.battle_button(),
+            battle_button,
+            morale_indicator,
         )
     }
 
-    fn battle_button(&self) -> Button {
-        let point = self
-            .point
-            .apply(Vec2::new(self.width - RIGHT_BOX_WIDTH, MARGIN));
+    fn battle_button(&self, point: &WindowPoint) -> BattleButton {
         match self.battle_state.phase() {
             Phase::Placement => {
                 let enabled = !self.battle_state.ready(self.gui_state.side());
-                Button::begin(point, enabled)
+                BattleButton::begin(point.clone(), enabled)
             }
             // FIXME BS NOW : enabled computing
-            Phase::Battle => Button::end(point, true),
-            Phase::End => Button::end(point, false),
+            Phase::Battle => BattleButton::end(point.clone(), true),
+            Phase::End => BattleButton::end(point.clone(), false),
         }
+    }
+
+    fn morale_indicator(&self, point: &WindowPoint) -> MoraleIndicator {
+        MoraleIndicator::new(point.clone(), SideMorale(0.2), SideMorale(0.75))
     }
 }

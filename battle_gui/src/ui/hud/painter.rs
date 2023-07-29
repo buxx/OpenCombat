@@ -22,7 +22,8 @@ impl<'a> HudPainter<'a> {
         let hovered = &self.gui_state.current_cursor_window_point();
         [
             self.hud.background().sprites(hovered),
-            self.hud.battle().sprites(hovered),
+            self.hud.battle_button().sprites(hovered),
+            self.hud.morale_indicator().sprites(hovered),
         ]
         .concat()
     }
@@ -31,8 +32,15 @@ impl<'a> HudPainter<'a> {
         Ok(())
     }
 
-    pub fn draw(&self, _ctx: &mut Context, canvas: &mut Canvas) {
-        self.hud.battle().draw(self.hover_point(), canvas)
+    pub fn draw(&self, ctx: &mut Context, canvas: &mut Canvas) -> GameResult {
+        self.hud
+            .battle_button()
+            .draw(ctx, self.hover_point(), canvas)?;
+        self.hud
+            .morale_indicator()
+            .draw(ctx, self.hover_point(), canvas)?;
+
+        Ok(())
     }
 
     fn hover_point(&self) -> &WindowPoint {
