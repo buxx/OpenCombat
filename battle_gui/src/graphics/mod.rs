@@ -101,6 +101,7 @@ pub struct Graphics {
     interiors: Interiors,
     // Map decor sprite batches
     decor: Decors,
+    dark_decor: Decors,
     // Soldiers animations
     soldier_animation_sequences: HashMap<SoldierIndex, AnimationSequence<TweenableRect>>,
     // Explosion animations
@@ -135,6 +136,7 @@ impl Graphics {
         let dark_background = BackgroundBuilder::new(ctx, map).dark(true).build()?;
         let map_interiors_batch = InteriorsBuilder::new(ctx, map).build()?;
         let decor = DecorsBuilder::new(ctx, map).build()?;
+        let dark_decor = DecorsBuilder::new(ctx, map).dark(true).build()?;
         let debug_terrain_batch = map::create_debug_terrain_batch(ctx, map)?;
         let debug_terrain_opacity_mesh_builder =
             map::create_debug_terrain_opacity_mesh_builder(map, config)?;
@@ -158,6 +160,7 @@ impl Graphics {
             flags,
             interiors: map_interiors_batch,
             decor,
+            dark_decor,
             soldier_animation_sequences: HashMap::new(),
             explosion_sequences: vec![],
             debug_terrain_batch,

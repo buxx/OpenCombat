@@ -74,6 +74,52 @@ pub fn ensure_map_dark_backgrounds(map: &Map) -> GameResult<PathBuf> {
     Ok(bg_dark_image_path_rel)
 }
 
+pub fn ensure_dark(map_name: &str, image_path: &PathBuf) -> GameResult<()> {
+    let resources = match Resources::new() {
+        Ok(resources) => resources,
+        Err(error) => return Err(GameError::ResourceLoadError(error.to_string())),
+    };
+    let image_path_abs = resources.lib().join(
+        image_path
+            .strip_prefix("/")
+            .expect("Given file must start with /"),
+    );
+    let file_name = image_path_abs
+        .file_name()
+        .ok_or(GameError::ResourceLoadError(format!(
+            "Fail to ensure dark version of '{}' (determine file name)",
+            image_path_abs.display()
+        )))?
+        .to_string_lossy()
+        .to_string();
+    let file_name_without_extension = PathBuf::from(file_name)
+        .file_stem()
+        .ok_or(GameError::ResourceLoadError(format!(
+            "Fail to ensure dark version of '{}' (determine file name without extension)",
+            image_path_abs.display()
+        )))?
+        .to_string_lossy()
+        .to_string();
+    let dark_image_path_abs = resources.cache_abs().join(format!(
+        "{}__{}__dark.png",
+        map_name, file_name_without_extension
+    ));
+    if !dark_image_path_abs.exists() {
+        let mut image = image::open(&image_path_abs)?.into_rgba8();
+        image
+            .as_flat_samples_mut()
+            .samples
+            .par_chunks_mut(4)
+            .for_each(|channels: &mut [u8]| channels[3] = 84);
+        let mut dark_image: RgbaImage =
+            ImageBuffer::from_pixel(image.width(), image.height(), [0, 0, 0, 255].into());
+        image::imageops::overlay(&mut dark_image, &image, 0, 0);
+        dark_image.save(dark_image_path_abs)?;
+    }
+
+    Ok(())
+}
+
 pub fn create_debug_terrain_batch(ctx: &mut Context, map: &Map) -> GameResult<InstanceArray> {
     let mut batch = InstanceArray::new(
         ctx,

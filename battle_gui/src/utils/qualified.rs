@@ -1,11 +1,14 @@
 use std::path::PathBuf;
 
+use ggez::GameError;
+use oc_core::resources::Resources;
 use thiserror::Error;
 
-use crate::graphics::qualified::Zoom;
+use crate::graphics::{map::ensure_dark, qualified::Zoom};
 
 pub trait ToQualified<T, E> {
     fn to_qualified(&self, zoom: &Zoom) -> Result<T, E>;
+    fn to_dark(&self, map_name: &str) -> Result<T, E>;
 }
 
 impl ToQualified<PathBuf, PathQualificationError> for PathBuf {
@@ -18,9 +21,28 @@ impl ToQualified<PathBuf, PathQualificationError> for PathBuf {
                 self.file_stem()
                     .ok_or_else(|| PathQualificationError::NoStem(self.clone()))?
                     .to_str()
-                    .ok_or_else(|| PathQualificationError::Unexpected(self.clone()))?,
+                    .ok_or_else(|| PathQualificationError::Unexpected(
+                        self.display().to_string()
+                    ))?,
                 zoom.suffix()
             )))
+    }
+
+    fn to_dark(&self, map_name: &str) -> Result<PathBuf, PathQualificationError> {
+        ensure_dark(map_name, &self)?;
+        let resources = match Resources::new() {
+            Ok(resources) => resources,
+            Err(error) => return Err(PathQualificationError::Unexpected(error.to_string())),
+        };
+        Ok(resources.cache_ggez().join(format!(
+            "{}__{}{}.png",
+            map_name,
+            self.file_stem()
+                .ok_or_else(|| PathQualificationError::NoStem(self.clone()))?
+                .to_str()
+                .ok_or_else(|| PathQualificationError::Unexpected(self.display().to_string()))?,
+            "__dark"
+        )))
     }
 }
 
@@ -31,5 +53,11 @@ pub enum PathQualificationError {
     #[error("Unexpected to extract non extension file name from : {0}")]
     NoStem(PathBuf),
     #[error("Unexpected format : {0}")]
-    Unexpected(PathBuf),
+    Unexpected(String),
+}
+
+impl From<GameError> for PathQualificationError {
+    fn from(value: GameError) -> Self {
+        Self::Unexpected(value.to_string())
+    }
 }

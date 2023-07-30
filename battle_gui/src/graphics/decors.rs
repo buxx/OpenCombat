@@ -48,11 +48,21 @@ impl QualifiedBatch<Vec<InstanceArray>> for Decors {
 pub struct DecorsBuilder<'a> {
     ctx: &'a mut Context,
     map: &'a Map,
+    dark: bool,
 }
 
 impl<'a> DecorsBuilder<'a> {
     pub fn new(ctx: &'a mut Context, map: &'a Map) -> Self {
-        Self { ctx, map }
+        Self {
+            ctx,
+            map,
+            dark: false,
+        }
+    }
+
+    pub fn dark(mut self, value: bool) -> Self {
+        self.dark = value;
+        self
     }
 
     pub fn build(&self) -> GameResult<Decors> {
@@ -71,7 +81,17 @@ impl<'a> DecorsBuilder<'a> {
                     error.to_string()
                 ))
             })?;
-            let decor_image = Image::from_path(self.ctx, image_path)?;
+            let decor_image_path = if self.dark {
+                image_path.to_dark(self.map.name()).map_err(|error| {
+                    GameError::ResourceLoadError(format!(
+                        "Decor image source dark version error : {}",
+                        error.to_string()
+                    ))
+                })?
+            } else {
+                image_path
+            };
+            let decor_image = Image::from_path(self.ctx, decor_image_path)?;
             let batch = InstanceArray::new(self.ctx, decor_image);
             map_decor_batches.push(batch);
         }
