@@ -32,6 +32,7 @@ mod tick;
 mod update;
 mod utils;
 mod vehicle;
+mod victory;
 mod visibility;
 
 const TARGET_CYCLE_DURATION_US: u64 = 16666;

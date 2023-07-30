@@ -28,6 +28,7 @@ use self::state::GuiState;
 
 pub mod debug;
 pub mod draw;
+pub mod end;
 pub mod event;
 pub mod game;
 pub mod gui;
@@ -129,6 +130,7 @@ impl EventHandler<ggez::GameError> for Engine {
 
         self.update_debug_gui(ctx)?;
         self.update_intro_gui(ctx)?;
+        self.update_end_gui(ctx)?;
         self.graphics.tick(ctx);
 
         Ok(())

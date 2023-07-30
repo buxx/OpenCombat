@@ -68,7 +68,7 @@ impl<'a> HudBuilder<'a> {
             }
             // FIXME BS NOW : enabled computing
             Phase::Battle => BattleButton::end(point.clone(), true),
-            Phase::End => BattleButton::end(point.clone(), false),
+            Phase::End(_, _) => BattleButton::end(point.clone(), false),
         }
     }
 

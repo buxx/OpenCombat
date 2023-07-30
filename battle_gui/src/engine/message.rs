@@ -30,6 +30,7 @@ pub enum EngineMessage {
     MakeASave,
     UpdateInteriors,
     SwitchDecorDisplay,
+    Exit,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

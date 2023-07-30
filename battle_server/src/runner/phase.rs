@@ -1,7 +1,10 @@
 use battle_core::{
     audio::Sound,
     state::{
-        battle::{message::BattleStateMessage, phase::Phase},
+        battle::{
+            message::BattleStateMessage,
+            phase::{EndReason, Phase, Victorious},
+        },
         client::ClientStateMessage,
     },
 };
@@ -15,7 +18,7 @@ impl Runner {
         match self.battle_state.phase() {
             Phase::Placement => self.tick_placement_phase(),
             Phase::Battle => self.tick_battle_phase(),
-            Phase::End => self.tick_end_phase(),
+            Phase::End(victorious, reason) => self.tick_end_phase(victorious, reason),
         }
     }
 
@@ -50,7 +53,11 @@ impl Runner {
         vec![]
     }
 
-    pub fn tick_end_phase(&self) -> Vec<RunnerMessage> {
+    pub fn tick_end_phase(
+        &self,
+        _victorious: &Victorious,
+        _reason: &EndReason,
+    ) -> Vec<RunnerMessage> {
         puffin::profile_scope!("tick_battle_phase");
         vec![]
     }

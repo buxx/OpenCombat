@@ -98,6 +98,7 @@ impl Engine {
                 EngineMessage::SwitchDecorDisplay => {
                     self.gui_state.draw_decor = !self.gui_state.draw_decor
                 }
+                EngineMessage::Exit => ctx.request_quit(),
             }
         }
 
