@@ -1,4 +1,8 @@
-use battle_core::{map::Map, types::ScenePoint};
+use battle_core::{
+    game::control::MapControl,
+    map::Map,
+    types::{ScenePoint, WorldPoint},
+};
 use ggez::{
     graphics::{DrawParam, Image, InstanceArray, Rect},
     Context, GameError, GameResult,
@@ -49,6 +53,7 @@ pub struct DecorsBuilder<'a> {
     ctx: &'a mut Context,
     map: &'a Map,
     dark: bool,
+    rule: DecorDrawRule,
 }
 
 impl<'a> DecorsBuilder<'a> {
@@ -57,11 +62,17 @@ impl<'a> DecorsBuilder<'a> {
             ctx,
             map,
             dark: false,
+            rule: DecorDrawRule::DrawAll,
         }
     }
 
     pub fn dark(mut self, value: bool) -> Self {
         self.dark = value;
+        self
+    }
+
+    pub fn rule(mut self, value: DecorDrawRule) -> Self {
+        self.rule = value;
         self
     }
 
@@ -108,20 +119,33 @@ impl<'a> DecorsBuilder<'a> {
             // Destination computation refer to terrain grid (map.terrain.tileset)
             let dest_x = tile.x as f32 * self.map.tile_width() as f32;
             let dest_y = (tile.y as f32 * self.map.tile_height() as f32) - dest_decal;
+            let dest_point = WorldPoint::new(dest_x, dest_y);
             let dest = ScenePoint::new(dest_x, dest_y).to_vec2() * zoom.factor();
 
-            decor_batch.push(
-                DrawParam::new()
-                    .src(Rect::new(
-                        src_x,
-                        src_y,
-                        tile.relative_tile_width,
-                        tile.relative_tile_height,
-                    ))
-                    .dest(dest),
-            );
+            if match &self.rule {
+                DecorDrawRule::DrawAll => true,
+                DecorDrawRule::DrawOnly(control) => {
+                    self.map.point_in_spawn_zones(&dest_point, control, true)
+                }
+            } {
+                decor_batch.push(
+                    DrawParam::new()
+                        .src(Rect::new(
+                            src_x,
+                            src_y,
+                            tile.relative_tile_width,
+                            tile.relative_tile_height,
+                        ))
+                        .dest(dest),
+                );
+            }
         }
 
         Ok(map_decor_batches)
     }
+}
+
+pub enum DecorDrawRule {
+    DrawAll,
+    DrawOnly(MapControl),
 }

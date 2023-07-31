@@ -57,6 +57,9 @@ impl Engine {
                             ClientStateMessage::PlayBattleSound(sound) => {
                                 self.player.play(sound, ctx)?
                             }
+                            ClientStateMessage::BattleStarted => {
+                                self.graphics.battle_started(ctx, self.battle_state.map())?;
+                            }
                         }
                     }
                     OutputMessage::ChangeConfig(change_config) => {

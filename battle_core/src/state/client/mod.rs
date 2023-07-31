@@ -8,4 +8,5 @@ pub enum ClientStateMessage {
     PlayInterfaceSound(Sound),
     // TODO : ajouter le WorldPoint
     PlayBattleSound(Sound),
+    BattleStarted,
 }

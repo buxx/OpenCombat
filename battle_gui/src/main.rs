@@ -161,7 +161,8 @@ fn main() -> Result<(), GuiError> {
     let map = MapReader::new(map_name, &resources.lib())?.build()?;
     let config = GuiConfig::new();
     let server_config = ServerConfig::new();
-    let graphics = graphics::Graphics::new(&mut context, &map, &server_config)?;
+    let graphics =
+        graphics::Graphics::new(&mut context, &map, &server_config, &a_control, &b_control)?;
     let battle_state = BattleStateBuilder::new(map_name, resources.lib()).build()?;
     let engine = engine::Engine::new(
         &mut context,

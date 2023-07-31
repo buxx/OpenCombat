@@ -3,6 +3,7 @@ use std::{collections::HashMap, fs, path::PathBuf};
 use battle_core::{
     config::ServerConfig,
     entity::{soldier::Soldier, vehicle::Vehicle},
+    game::control::MapControl,
     graphics::vehicle::VehicleGraphicInfos,
     map::Map,
     types::{Scale, SoldierIndex, SquadUuid, VehicleIndex, WindowPoint, WorldPoint},
@@ -30,7 +31,7 @@ use crate::{debug::DebugTerrain, ui::menu::squad_menu_sprite_info};
 use self::{
     background::{Background, BackgroundBuilder},
     batch::QualifiedBatch,
-    decors::{Decors, DecorsBuilder},
+    decors::{DecorDrawRule::*, Decors, DecorsBuilder},
     explosions::{Explosions, ExplosionsBuilder},
     interiors::{Interiors, InteriorsBuilder},
     message::GraphicsMessage,
@@ -113,7 +114,13 @@ pub struct Graphics {
 }
 
 impl Graphics {
-    pub fn new(ctx: &mut Context, map: &Map, config: &ServerConfig) -> GameResult<Graphics> {
+    pub fn new(
+        ctx: &mut Context,
+        map: &Map,
+        config: &ServerConfig,
+        a_control: &MapControl,
+        b_control: &MapControl,
+    ) -> GameResult<Graphics> {
         let soldiers_file = AssetsType::Soldiers.prefix().to_string() + ".png";
         let soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
         let soldiers = SoldiersBuilder::new(ctx).build()?;
@@ -135,8 +142,13 @@ impl Graphics {
         let background = BackgroundBuilder::new(ctx, map).build()?;
         let dark_background = BackgroundBuilder::new(ctx, map).dark(true).build()?;
         let map_interiors_batch = InteriorsBuilder::new(ctx, map).build()?;
-        let decor = DecorsBuilder::new(ctx, map).build()?;
-        let dark_decor = DecorsBuilder::new(ctx, map).dark(true).build()?;
+        let decor = DecorsBuilder::new(ctx, map)
+            .rule(DrawOnly(a_control.clone()))
+            .build()?;
+        let dark_decor = DecorsBuilder::new(ctx, map)
+            .dark(true)
+            .rule(DrawOnly(b_control.clone()))
+            .build()?;
         let debug_terrain_batch = map::create_debug_terrain_batch(ctx, map)?;
         let debug_terrain_opacity_mesh_builder =
             map::create_debug_terrain_opacity_mesh_builder(map, config)?;
@@ -396,6 +408,11 @@ impl Graphics {
                 .drawable(zoom)
                 .iter()
                 .for_each(|d| canvas.draw(d, draw_param));
+            // TODO : Don't draw dark decor for now because two bugs : positions and black square ...
+            // self.dark_decor
+            //     .drawable(zoom)
+            //     .iter()
+            //     .for_each(|d| canvas.draw(d, draw_param));
         }
 
         Ok(())
@@ -509,6 +526,7 @@ impl Graphics {
                 self.background = BackgroundBuilder::new(ctx, map).build()?;
                 self.interiors = InteriorsBuilder::new(ctx, map).build()?;
                 self.decor = DecorsBuilder::new(ctx, map).build()?;
+                self.dark_decor = DecorsBuilder::new(ctx, map).dark(true).build()?;
                 self.debug_terrain_batch = map::create_debug_terrain_batch(ctx, map)?;
                 self.debug_terrain_opacity_mesh_builder =
                     map::create_debug_terrain_opacity_mesh_builder(map, config)?;
@@ -567,6 +585,12 @@ impl Graphics {
 
     pub fn flags_mut(&mut self) -> &mut InstanceArray {
         &mut self.flags
+    }
+
+    pub fn battle_started(&mut self, ctx: &mut Context, map: &Map) -> GameResult<()> {
+        // When battle started, all decors are displayed normally
+        self.decor = DecorsBuilder::new(ctx, map).rule(DrawAll).build()?;
+        Ok(())
     }
 }
 

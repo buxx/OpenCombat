@@ -42,6 +42,7 @@ impl Runner {
                 RunnerMessage::ClientsState(ClientStateMessage::PlayInterfaceSound(
                     Sound::TrumpetLongHall,
                 )),
+                RunnerMessage::ClientsState(ClientStateMessage::BattleStarted),
             ];
         }
 
