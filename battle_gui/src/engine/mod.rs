@@ -92,7 +92,7 @@ impl Engine {
                 .unwrap_or(vec![]),
         );
 
-        let hud = HudBuilder::new(&gui_state, &battle_state).build();
+        let hud = HudBuilder::new(&gui_state, &battle_state).build(ctx);
         let engine = Engine {
             config,
             server_config,
@@ -143,7 +143,7 @@ impl EventHandler<ggez::GameError> for Engine {
             .point(WindowPoint::new(0., window.height as f32 - HUD_HEIGHT))
             .width(window.width as f32)
             .height(HUD_HEIGHT)
-            .build();
+            .build(ctx);
 
         self.graphics.clear(&self.gui_state.zoom);
         let dest = graphics::DrawParam::new().dest(self.gui_state.display_scene_offset.to_vec2());
@@ -169,7 +169,7 @@ impl EventHandler<ggez::GameError> for Engine {
         // Draw ui
         let mut mesh_builder = MeshBuilder::new();
         self.generate_menu_sprites()?;
-        self.generate_hud_sprites()?;
+        self.generate_hud_sprites(ctx)?;
 
         self.draw_physics(&mut mesh_builder)?;
         self.generate_debug_meshes(&mut mesh_builder)?;

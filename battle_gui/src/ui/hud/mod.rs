@@ -1,7 +1,9 @@
 use self::{
     background::Background, battle::BattleButton, event::HudEvent, morale::MoraleIndicator,
+    squad::SquadStatuses,
 };
 use battle_core::types::WindowPoint;
+use ggez::Context;
 
 use super::component::Component;
 
@@ -11,6 +13,7 @@ pub mod builder;
 pub mod event;
 pub mod morale;
 pub mod painter;
+pub mod squad;
 
 pub const HUD_HEIGHT: f32 = 200.0;
 
@@ -18,6 +21,7 @@ pub struct Hud {
     background: Background,
     battle_button: BattleButton,
     morale_indicator: MoraleIndicator,
+    squad_statuses: SquadStatuses,
 }
 
 impl Hud {
@@ -25,11 +29,13 @@ impl Hud {
         background: Background,
         battle: BattleButton,
         morale_indicator: MoraleIndicator,
+        squad_statuses: SquadStatuses,
     ) -> Self {
         Self {
             background,
             battle_button: battle,
             morale_indicator,
+            squad_statuses,
         }
     }
 
@@ -45,21 +51,36 @@ impl Hud {
         &self.morale_indicator
     }
 
-    pub fn contains(&self, points: &Vec<&WindowPoint>) -> bool {
-        self.background.contains(points)
+    pub fn squad_statuses(&self) -> &SquadStatuses {
+        &self.squad_statuses
     }
 
-    pub fn hovered_by(&self, points: &Vec<&WindowPoint>) -> Option<Box<&dyn Component<HudEvent>>> {
-        if !self.contains(points) {
+    pub fn contains(&self, ctx: &Context, points: &Vec<&WindowPoint>) -> bool {
+        self.background.contains(ctx, points)
+    }
+
+    pub fn hovered_by(
+        &self,
+        ctx: &Context,
+        points: &Vec<&WindowPoint>,
+    ) -> Option<Box<&dyn Component<HudEvent>>> {
+        if !self.contains(ctx, points) {
             return None;
         }
 
-        if self.battle_button.contains(points) {
+        if self.battle_button.contains(ctx, points) {
             return Some(Box::new(&self.battle_button));
         }
 
-        // TODO : parse different components like squad icon, etc
-        if self.background.contains(points) {
+        if self.morale_indicator.contains(ctx, points) {
+            return Some(Box::new(&self.morale_indicator));
+        }
+
+        if self.squad_statuses.contains(ctx, points) {
+            return Some(Box::new(&self.squad_statuses));
+        }
+
+        if self.background.contains(ctx, points) {
             return Some(Box::new(&self.background));
         }
 

@@ -18,12 +18,13 @@ impl<'a> HudPainter<'a> {
         Self { hud, gui_state }
     }
 
-    pub fn sprites(&self) -> Vec<DrawParam> {
+    pub fn sprites(&self, ctx: &Context) -> Vec<DrawParam> {
         let hovered = &self.gui_state.current_cursor_window_point();
         [
-            self.hud.background().sprites(hovered),
-            self.hud.battle_button().sprites(hovered),
-            self.hud.morale_indicator().sprites(hovered),
+            self.hud.background().sprites(ctx, hovered),
+            self.hud.squad_statuses().sprites(ctx, hovered),
+            self.hud.battle_button().sprites(ctx, hovered),
+            self.hud.morale_indicator().sprites(ctx, hovered),
         ]
         .concat()
     }
@@ -33,6 +34,9 @@ impl<'a> HudPainter<'a> {
     }
 
     pub fn draw(&self, ctx: &mut Context, canvas: &mut Canvas) -> GameResult {
+        self.hud
+            .squad_statuses()
+            .draw(ctx, self.hover_point(), canvas)?;
         self.hud
             .battle_button()
             .draw(ctx, self.hover_point(), canvas)?;

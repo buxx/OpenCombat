@@ -1,8 +1,6 @@
-use battle_core::{
-    config::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH},
-    types::WindowPoint,
-};
-use ggez::graphics::DrawParam;
+use battle_core::types::WindowPoint;
+use ggez::{graphics::DrawParam, Context};
+use oc_core::graphics::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
 
 use crate::ui::component::{background::HorizontalBackground, Component};
 
@@ -55,19 +53,19 @@ impl Background {
 }
 
 impl Component<HudEvent> for Background {
-    fn point(&self) -> WindowPoint {
+    fn point(&self, _ctx: &Context) -> WindowPoint {
         self.point.clone()
     }
 
-    fn width(&self) -> f32 {
+    fn width(&self, _ctx: &Context) -> f32 {
         self.width
     }
 
-    fn height(&self) -> f32 {
+    fn height(&self, _ctx: &Context) -> f32 {
         self.height
     }
 
-    fn contains(&self, points: &Vec<&WindowPoint>) -> bool {
+    fn contains(&self, _ctx: &Context, points: &Vec<&WindowPoint>) -> bool {
         points.iter().all(|point| {
             point.x >= self.point.x
                 && point.x <= self.point.x + self.width
@@ -76,7 +74,7 @@ impl Component<HudEvent> for Background {
         })
     }
 
-    fn sprites(&self, _hovered: &WindowPoint) -> Vec<DrawParam> {
+    fn sprites(&self, _ctx: &Context, _hovered: &WindowPoint) -> Vec<DrawParam> {
         HorizontalBackground {
             rel_left_start_x: BACKGROUND_REL_LEFT_START_X,
             rel_left_start_y: BACKGROUND_REL_LEFT_START_Y,

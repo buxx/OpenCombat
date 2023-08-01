@@ -32,52 +32,67 @@ impl MoraleIndicator {
 }
 
 impl Component<HudEvent> for MoraleIndicator {
-    fn point(&self) -> WindowPoint {
+    fn point(&self, _ctx: &Context) -> WindowPoint {
         self.point
     }
 
-    fn width(&self) -> f32 {
+    fn width(&self, _ctx: &Context) -> f32 {
         RIGHT_BOX_WIDTH - BATTLE_BUTTON_WIDTH - MARGIN
     }
 
-    fn height(&self) -> f32 {
+    fn height(&self, _ctx: &Context) -> f32 {
         MORALE_INDICATOR_HEIGHT
     }
 
-    fn sprites(&self, _: &WindowPoint) -> Vec<DrawParam> {
+    fn sprites(&self, _ctx: &Context, _: &WindowPoint) -> Vec<DrawParam> {
         vec![]
     }
 
-    fn event(&self) -> Option<HudEvent> {
+    fn event(&self, _ctx: &Context) -> Option<HudEvent> {
         None
     }
 
-    fn sound(&self) -> Option<Sound> {
+    fn sound(&self, _ctx: &Context) -> Option<Sound> {
         None
     }
 
     fn draw(&self, ctx: &mut Context, _hovered: &WindowPoint, canvas: &mut Canvas) -> GameResult {
-        let a_total_width = self.width() / 2.;
-        let b_total_width = self.width() / 2.;
-        let start_a = self.point().x + (a_total_width * (1. - self.a_morale.0));
-        let end_a = self.point().x + (self.width() / 2.);
+        let a_total_width = self.width(ctx) / 2.;
+        let b_total_width = self.width(ctx) / 2.;
+        let start_a = self.point(ctx).x + (a_total_width * (1. - self.a_morale.0));
+        let end_a = self.point(ctx).x + (self.width(ctx) / 2.);
         let start_b = end_a;
         let end_b = start_b + (b_total_width * self.b_morale.0);
 
         let mut mesh_builder = MeshBuilder::new();
         mesh_builder.rectangle(
             DrawMode::Fill(FillOptions::default()),
-            Rect::new(self.point.x, self.point.y, self.width(), self.height()),
+            Rect::new(
+                self.point.x,
+                self.point.y,
+                self.width(ctx),
+                self.height(ctx),
+            ),
             Color::BLACK,
         )?;
         mesh_builder.rectangle(
             DrawMode::Fill(FillOptions::default()),
-            Rect::new(start_a, self.point().y, end_a - start_a, self.height()),
+            Rect::new(
+                start_a,
+                self.point(ctx).y,
+                end_a - start_a,
+                self.height(ctx),
+            ),
             Color::new(0.5, self.a_morale.0, 0., 1.),
         )?;
         mesh_builder.rectangle(
             DrawMode::Fill(FillOptions::default()),
-            Rect::new(start_b, self.point().y, end_b - start_b, self.height()),
+            Rect::new(
+                start_b,
+                self.point(ctx).y,
+                end_b - start_b,
+                self.height(ctx),
+            ),
             Color::new(0.5, self.b_morale.0, 0., 1.),
         )?;
 

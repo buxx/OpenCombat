@@ -1,12 +1,9 @@
-use battle_core::{
-    audio::Sound,
-    config::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH},
-    types::WindowPoint,
-};
+use battle_core::{audio::Sound, types::WindowPoint};
 use ggez::{
     graphics::{Color, DrawParam, Text, TextFragment, TextLayout},
     Context, GameResult,
 };
+use oc_core::graphics::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
 
 use crate::ui::component::{button::Button as UiButton, Component};
 
@@ -65,43 +62,36 @@ impl BattleButton {
             }
         }
     }
-
-    pub fn center(&self) -> WindowPoint {
-        WindowPoint::new(
-            self.point.x + self.width() / 2.,
-            self.point.y + self.height() / 2.,
-        )
-    }
 }
 
 impl Component<HudEvent> for BattleButton {
-    fn point(&self) -> WindowPoint {
+    fn point(&self, _ctx: &Context) -> WindowPoint {
         self.point
     }
 
-    fn width(&self) -> f32 {
+    fn width(&self, _ctx: &Context) -> f32 {
         BATTLE_BUTTON_WIDTH
     }
 
-    fn height(&self) -> f32 {
+    fn height(&self, _ctx: &Context) -> f32 {
         BATTLE_BUTTON_HEIGHT
     }
 
-    fn sprites(&self, hovered: &WindowPoint) -> Vec<DrawParam> {
+    fn sprites(&self, ctx: &Context, hovered: &WindowPoint) -> Vec<DrawParam> {
         UiButton {
             rel_start_x: BATTLE_BUTTON_REL_START_X,
             rel_start_y: BATTLE_BUTTON_REL_START_Y,
             rel_width: BATTLE_BUTTON_REL_WIDTH,
             rel_height: BATTLE_BUTTON_REL_HEIGHT,
         }
-        .sprites(self.point, self.enabled, self.contains(&vec![hovered]))
+        .sprites(self.point, self.enabled, self.contains(ctx, &vec![hovered]))
     }
 
-    fn event(&self) -> Option<HudEvent> {
+    fn event(&self, _ctx: &Context) -> Option<HudEvent> {
         self.action.clone()
     }
 
-    fn sound(&self) -> Option<Sound> {
+    fn sound(&self, _ctx: &Context) -> Option<Sound> {
         if self.enabled {
             return Some(Sound::Clic1);
         }
@@ -111,15 +101,15 @@ impl Component<HudEvent> for BattleButton {
 
     fn draw(
         &self,
-        _ctx: &mut Context,
+        ctx: &mut Context,
         _hovered: &WindowPoint,
         canvas: &mut ggez::graphics::Canvas,
     ) -> GameResult {
         canvas.draw(
             Text::new(TextFragment::new(&self.text).color(Color::WHITE))
                 .set_layout(TextLayout::center())
-                .set_bounds(self.bounds()),
-            DrawParam::default().dest(self.center().to_vec2()),
+                .set_bounds(self.bounds(ctx)),
+            DrawParam::default().dest(self.center(ctx).to_vec2()),
         );
 
         Ok(())

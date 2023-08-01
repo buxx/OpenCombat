@@ -1,7 +1,5 @@
-use battle_core::{
-    config::{FLAGS_SPRITE_SHEET_HEIGHT, FLAGS_SPRITE_SHEET_WIDTH},
-    game::flag::FlagOwnership,
-};
+use battle_core::game::flag::FlagOwnership;
+use oc_core::graphics::{FLAGS_SPRITE_SHEET_HEIGHT, FLAGS_SPRITE_SHEET_WIDTH};
 
 use crate::utils::IntoSprite;
 

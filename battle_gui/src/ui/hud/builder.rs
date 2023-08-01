@@ -1,15 +1,21 @@
 use battle_core::{
+    game::squad::SquadStatusesResume,
     state::battle::{phase::Phase, BattleState},
     types::WindowPoint,
 };
+use ggez::Context;
 use glam::Vec2;
 
 use crate::{engine::state::GuiState, ui::component::Component};
 
-use super::{background::Background, battle::BattleButton, morale::MoraleIndicator, Hud};
+use super::{
+    background::Background, battle::BattleButton, morale::MoraleIndicator, squad::SquadStatuses,
+    Hud,
+};
 
 pub const MARGIN: f32 = 5.;
 pub const RIGHT_BOX_WIDTH: f32 = 200.;
+pub const BOTTOM_LINE_HEIGHT: f32 = 25.;
 
 pub struct HudBuilder<'a> {
     gui_state: &'a GuiState,
@@ -45,18 +51,22 @@ impl<'a> HudBuilder<'a> {
         self
     }
 
-    pub fn build(&self) -> Hud {
+    pub fn build(&self, ctx: &Context) -> Hud {
         let right_column_start = self
             .point
             .apply(Vec2::new(self.width - RIGHT_BOX_WIDTH, MARGIN));
         let battle_button = self.battle_button(&right_column_start);
-        let morale_indicator_start = right_column_start.apply(Vec2::new(battle_button.width(), 0.));
+        let morale_indicator_start =
+            right_column_start.apply(Vec2::new(battle_button.width(ctx), 0.));
         let morale_indicator = self.morale_indicator(&morale_indicator_start);
+        let hud_interior_start = self.point.apply(Vec2::new(MARGIN, MARGIN));
+        let squad_statuses = self.squad_statuses(&hud_interior_start);
 
         Hud::new(
             Background::new(self.point.clone(), self.width, self.height),
             battle_button,
             morale_indicator,
+            squad_statuses,
         )
     }
 
@@ -77,6 +87,13 @@ impl<'a> HudBuilder<'a> {
             point.clone(),
             self.battle_state.a_morale().clone(),
             self.battle_state.b_morale().clone(),
+        )
+    }
+
+    fn squad_statuses(&self, point: &WindowPoint) -> SquadStatuses {
+        SquadStatuses::new(
+            SquadStatusesResume::from_battle_state(self.gui_state.side(), self.battle_state),
+            point.clone(),
         )
     }
 }

@@ -1,10 +1,7 @@
 use ggez::graphics;
 
-use battle_core::{
-    config::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH},
-    order::PendingOrder,
-    types::*,
-};
+use battle_core::{order::PendingOrder, types::*};
+use oc_core::graphics::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
 
 const SCENE_ITEM_MENU_WIDTH: f32 = 71.0;
 const SCENE_ITEM_MENU_HEIGHT: f32 = 90.0;

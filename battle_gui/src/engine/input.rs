@@ -162,7 +162,7 @@ impl Engine {
 
     pub fn collect_mouse_motion(
         &self,
-        _ctx: &mut Context,
+        ctx: &mut Context,
         x: f32,
         y: f32,
         _dx: f32,
@@ -216,7 +216,7 @@ impl Engine {
         }
 
         let point = self.gui_state.current_cursor_window_point();
-        let cursor_in_control = self.hud.contains(&vec![&point]);
+        let cursor_in_control = self.hud.contains(ctx, &vec![&point]);
         messages.push(EngineMessage::GuiState(GuiStateMessage::SetCursorInHud(
             cursor_in_control,
         )));
@@ -285,7 +285,7 @@ impl Engine {
 
     pub fn collect_mouse_up(
         &self,
-        _ctx: &mut Context,
+        ctx: &mut Context,
         button: MouseButton,
         x: f32,
         y: f32,
@@ -330,11 +330,11 @@ impl Engine {
                     }
                 }
 
-                if let Some(component) = self.hud.hovered_by(&vec![&start_point, &end_point]) {
-                    if let Some(event) = component.event() {
+                if let Some(component) = self.hud.hovered_by(ctx, &vec![&start_point, &end_point]) {
+                    if let Some(event) = component.event(ctx) {
                         messages.extend(self.hud_event(event));
                     }
-                    if let Some(sound) = component.sound() {
+                    if let Some(sound) = component.sound(ctx) {
                         messages.push(EngineMessage::PlaySound(sound));
                     }
                 };

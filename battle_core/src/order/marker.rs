@@ -1,4 +1,5 @@
-use crate::config::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
+use oc_core::graphics::{UI_SPRITE_SHEET_HEIGHT, UI_SPRITE_SHEET_WIDTH};
+
 use crate::types::*;
 
 const ORDER_MARKER_START_X: f32 = 0.0;
