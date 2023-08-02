@@ -3,7 +3,7 @@ use ggez::{
     graphics::{Canvas, Color, DrawMode, DrawParam, FillOptions, Mesh, MeshBuilder, Rect},
     Context, GameResult,
 };
-use oc_core::morale::SideMorale;
+use oc_core::morale::Morale;
 
 use crate::ui::component::Component;
 
@@ -17,12 +17,12 @@ pub const MORALE_INDICATOR_HEIGHT: f32 = 16.;
 
 pub struct MoraleIndicator {
     point: WindowPoint,
-    a_morale: SideMorale,
-    b_morale: SideMorale,
+    a_morale: Morale,
+    b_morale: Morale,
 }
 
 impl MoraleIndicator {
-    pub fn new(point: WindowPoint, a_morale: SideMorale, b_morale: SideMorale) -> Self {
+    pub fn new(point: WindowPoint, a_morale: Morale, b_morale: Morale) -> Self {
         Self {
             point,
             a_morale,

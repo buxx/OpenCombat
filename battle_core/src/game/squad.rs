@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use oc_core::morale::Morale;
+
 use crate::{
     entity::soldier::Soldier,
     state::battle::BattleState,
@@ -132,6 +134,10 @@ impl SquadHealth {
             .collect::<Vec<&SoldierIndex>>()
             .len();
         Self(readies as f32 / total as f32)
+    }
+
+    pub fn into_morale(&self) -> Morale {
+        Morale(self.0)
     }
 }
 

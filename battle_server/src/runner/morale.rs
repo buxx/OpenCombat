@@ -1,5 +1,5 @@
 use battle_core::{game::Side, state::battle::message::BattleStateMessage};
-use oc_core::morale::SideMorale;
+use oc_core::morale::Morale;
 
 use super::{message::RunnerMessage, Runner};
 
@@ -34,8 +34,8 @@ impl Runner {
                 .filter(|s| s.side() == &Side::B)
                 .filter(|s| s.can_be_count_for_morale())
                 .count();
-            let a_morale = SideMorale(a_left as f32 / a_total as f32);
-            let b_morale = SideMorale(b_left as f32 / b_total as f32);
+            let a_morale = Morale(a_left as f32 / a_total as f32);
+            let b_morale = Morale(b_left as f32 / b_total as f32);
 
             return vec![
                 RunnerMessage::BattleState(BattleStateMessage::SetAMorale(a_morale)),

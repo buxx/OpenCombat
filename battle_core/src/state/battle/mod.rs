@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use oc_core::morale::SideMorale;
+use oc_core::morale::Morale;
 
 use crate::{
     deployment::Deployment,
@@ -51,8 +51,8 @@ pub struct BattleState {
     b_connected: bool,
     a_ready: bool,
     b_ready: bool,
-    a_morale: SideMorale,
-    b_morale: SideMorale,
+    a_morale: Morale,
+    b_morale: Morale,
     flags: FlagsOwnership,
 }
 
@@ -81,8 +81,8 @@ impl BattleState {
             b_connected: false,
             a_ready: false,
             b_ready: false,
-            a_morale: SideMorale(1.0), // FIXME BS NOW : from context ?
-            b_morale: SideMorale(1.0), // FIXME BS NOW : from context ?
+            a_morale: Morale(1.0), // FIXME BS NOW : from context ?
+            b_morale: Morale(1.0), // FIXME BS NOW : from context ?
             flags,
         }
     }
@@ -103,8 +103,8 @@ impl BattleState {
             b_connected: false, // TODO : should be in (server) Runner ?
             a_ready: false,
             b_ready: false,
-            a_morale: SideMorale(1.0),
-            b_morale: SideMorale(1.0),
+            a_morale: Morale(1.0),
+            b_morale: Morale(1.0),
             flags: FlagsOwnership::empty(),
         }
     }
@@ -369,11 +369,11 @@ impl BattleState {
             .is_some()
     }
 
-    pub fn a_morale(&self) -> &SideMorale {
+    pub fn a_morale(&self) -> &Morale {
         &self.a_morale
     }
 
-    pub fn b_morale(&self) -> &SideMorale {
+    pub fn b_morale(&self) -> &Morale {
         &self.b_morale
     }
 }
