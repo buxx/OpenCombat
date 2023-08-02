@@ -1,11 +1,6 @@
-use crate::entity::soldier::Soldier;
+use oc_core::health::Health;
 
-pub enum Health {
-    Good,
-    // Injured,
-    Unconscious,
-    Dead,
-}
+use crate::entity::soldier::Soldier;
 
 pub struct SoldierHealthBuilder<'a> {
     soldier: &'a Soldier,

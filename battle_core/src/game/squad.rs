@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use oc_core::morale::Morale;
+use oc_core::{health::Health, morale::Morale};
 
 use crate::{
     entity::soldier::Soldier,
@@ -10,7 +10,7 @@ use crate::{
 };
 
 use super::{
-    health::{Health, SoldierHealthBuilder},
+    health::SoldierHealthBuilder,
     weapon::{Magazine, Weapon},
     Side,
 };
@@ -86,6 +86,7 @@ impl SquadStatusesResume {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct SquadStatusResume {
     health: SquadHealth,
     members: Vec<SquadMemberStatus>,
@@ -118,6 +119,7 @@ impl SquadStatusResume {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct SquadHealth(pub f32);
 
 impl SquadHealth {
@@ -141,6 +143,7 @@ impl SquadHealth {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct SquadMemberStatus {
     health: Health,
     main_weapon: Option<Weapon>,
