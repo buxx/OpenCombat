@@ -9,9 +9,12 @@ use ggez::{
     Context, GameResult,
 };
 use glam::Vec2;
-use oc_core::graphics::squad::{
-    SQUAD_REL_TYPE1_HEIGHT, SQUAD_REL_TYPE1_START_X, SQUAD_REL_TYPE1_START_Y,
-    SQUAD_REL_TYPE1_WIDTH, SQUAD_TYPE_WIDTH,
+use oc_core::graphics::{
+    ammunition::AmmunitionReserveStatus,
+    squad::{
+        SQUAD_REL_TYPE1_HEIGHT, SQUAD_REL_TYPE1_START_X, SQUAD_REL_TYPE1_START_Y,
+        SQUAD_REL_TYPE1_WIDTH, SQUAD_TYPE_WIDTH,
+    },
 };
 
 use crate::ui::{color::Colorized, component::Component};
@@ -94,7 +97,28 @@ impl Component<HudEvent> for SquadStatuses {
                         SQUAD_REL_TYPE1_HEIGHT,
                     ))
                     .dest(draw_card.dest.to_vec2()),
-            )
+            );
+
+            let soldiers_healths_start_point = draw_card.dest.apply(Vec2::new(
+                SQUAD_TYPE_WIDTH + SQUAD_CARD_MARGIN,
+                SQUAD_CARD_HEADER_HEIGHT + SQUAD_CARD_MARGIN,
+            ));
+            for (i, _) in draw_card.squad_status.members().iter().enumerate() {
+                let soldiers_health_dest = soldiers_healths_start_point.apply(Vec2::new(
+                    (SQUAD_CARD_SOLDIER_HEALTH_WIDTH + SQUAD_CARD_MARGIN) * i as f32,
+                    0.,
+                ));
+
+                // FIXME BS NOW : Oh, fuck, it is en dessous de carre vert
+                // --> Faire des images plutot que des carres vert
+                // --> etat munition dessus
+                // --> lisere jaune/rouge en fonction du tirs subits
+                params.push(
+                    DrawParam::new()
+                        .src(Rect::from(AmmunitionReserveStatus::Ok.relative_src()))
+                        .dest(soldiers_health_dest.to_vec2()),
+                );
+            }
         }
 
         params
@@ -135,6 +159,23 @@ impl Component<HudEvent> for SquadStatuses {
                         SQUAD_CARD_SOLDIER_HEALTH_HEIGHT,
                     ),
                     solider_status.health().color(),
+                )?;
+
+                // Under fire outline
+                mesh_builder.rectangle(
+                    DrawMode::Stroke(StrokeOptions::default()),
+                    Rect::new(
+                        soldiers_health_dest.x,
+                        soldiers_health_dest.y,
+                        SQUAD_CARD_SOLDIER_HEALTH_WIDTH,
+                        SQUAD_CARD_SOLDIER_HEALTH_HEIGHT,
+                    ),
+                    Color {
+                        r: 1.,
+                        g: 0.,
+                        b: 0.,
+                        a: solider_status.under_fire_coefficient(),
+                    },
                 )?;
             }
 

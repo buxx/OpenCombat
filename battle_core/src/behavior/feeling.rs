@@ -76,6 +76,12 @@ impl Feeling {
         }
     }
 
+    pub fn value(&self) -> &u32 {
+        match self {
+            Feeling::UnderFire(value) => value,
+        }
+    }
+
     pub fn exist(&self) -> bool {
         match self {
             Feeling::UnderFire(value) => *value > 0,

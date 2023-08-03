@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use oc_core::{health::Health, morale::Morale};
 
 use crate::{
+    behavior::feeling::UNDER_FIRE_MAX,
     entity::soldier::Soldier,
     state::battle::BattleState,
     types::{SoldierIndex, SquadComposition, WorldPoint},
@@ -148,6 +149,7 @@ pub struct SquadMemberStatus {
     health: Health,
     main_weapon: Option<Weapon>,
     magazines: Vec<Magazine>,
+    under_fire_coefficient: f32,
 }
 
 impl SquadMemberStatus {
@@ -160,6 +162,7 @@ impl SquadMemberStatus {
             health: SoldierHealthBuilder::new(soldier).build(),
             main_weapon: soldier.main_weapon().clone(),
             magazines: soldier.magazines().clone(),
+            under_fire_coefficient: (*soldier.under_fire().value() as f32 / UNDER_FIRE_MAX as f32),
         }
     }
 
@@ -173,5 +176,9 @@ impl SquadMemberStatus {
 
     pub fn magazines(&self) -> &[Magazine] {
         self.magazines.as_ref()
+    }
+
+    pub fn under_fire_coefficient(&self) -> f32 {
+        self.under_fire_coefficient
     }
 }
