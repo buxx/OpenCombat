@@ -1,6 +1,6 @@
 use battle_core::{
     game::squad::{SquadStatusResume, SquadStatusesResume},
-    types::WindowPoint,
+    types::{SquadUuid, WindowPoint},
 };
 use ggez::{
     graphics::{
@@ -17,7 +17,7 @@ use oc_core::graphics::{
     },
 };
 
-use crate::ui::{color::Colorized, component::Component};
+use crate::{ui::component::Component, utils::IntoSprite};
 
 use super::{
     builder::{BOTTOM_LINE_HEIGHT, MARGIN, RIGHT_BOX_WIDTH},
@@ -35,6 +35,7 @@ pub const SQUAD_CARD_SOLDIER_HEALTH_HEIGHT: f32 = 12.;
 pub struct SquadStatuses {
     squad_statuses: SquadStatusesResume,
     point: WindowPoint,
+    selected_squads: Vec<SquadUuid>,
 }
 
 struct DrawCard {
@@ -43,10 +44,15 @@ struct DrawCard {
 }
 
 impl SquadStatuses {
-    pub fn new(squad_statuses: SquadStatusesResume, point: WindowPoint) -> Self {
+    pub fn new(
+        squad_statuses: SquadStatusesResume,
+        point: WindowPoint,
+        selected_squads: Vec<SquadUuid>,
+    ) -> Self {
         Self {
             squad_statuses,
             point,
+            selected_squads,
         }
     }
 
@@ -103,7 +109,7 @@ impl Component<HudEvent> for SquadStatuses {
                 SQUAD_TYPE_WIDTH + SQUAD_CARD_MARGIN,
                 SQUAD_CARD_HEADER_HEIGHT + SQUAD_CARD_MARGIN,
             ));
-            for (i, _) in draw_card.squad_status.members().iter().enumerate() {
+            for (i, soldier_status) in draw_card.squad_status.members().iter().enumerate() {
                 let soldiers_health_dest = soldiers_healths_start_point.apply(Vec2::new(
                     (SQUAD_CARD_SOLDIER_HEALTH_WIDTH + SQUAD_CARD_MARGIN) * i as f32,
                     0.,
@@ -111,11 +117,22 @@ impl Component<HudEvent> for SquadStatuses {
 
                 // FIXME BS NOW : Oh, fuck, it is en dessous de carre vert
                 // --> Faire des images plutot que des carres vert
-                // --> etat munition dessus
-                // --> lisere jaune/rouge en fonction du tirs subits
+                // --> etat en fonction behavior, gesture, etc
                 params.push(
                     DrawParam::new()
-                        .src(Rect::from(AmmunitionReserveStatus::Ok.relative_src()))
+                        .src(Rect::from(soldier_status.health().to_relative_array()))
+                        .dest(soldiers_health_dest.to_vec2()),
+                );
+                params.push(
+                    DrawParam::new()
+                        .src(Rect::from(
+                            soldier_status.ammunition_reserve().relative_src(),
+                        ))
+                        .dest(soldiers_health_dest.to_vec2()),
+                );
+                params.push(
+                    DrawParam::new()
+                        .src(Rect::from(soldier_status.current().to_relative_array()))
                         .dest(soldiers_health_dest.to_vec2()),
                 );
             }
@@ -150,16 +167,6 @@ impl Component<HudEvent> for SquadStatuses {
                     (SQUAD_CARD_SOLDIER_HEALTH_WIDTH + SQUAD_CARD_MARGIN) * i as f32,
                     0.,
                 ));
-                mesh_builder.rectangle(
-                    DrawMode::Fill(FillOptions::default()),
-                    Rect::new(
-                        soldiers_health_dest.x,
-                        soldiers_health_dest.y,
-                        SQUAD_CARD_SOLDIER_HEALTH_WIDTH,
-                        SQUAD_CARD_SOLDIER_HEALTH_HEIGHT,
-                    ),
-                    solider_status.health().color(),
-                )?;
 
                 // Under fire outline
                 mesh_builder.rectangle(
@@ -179,14 +186,18 @@ impl Component<HudEvent> for SquadStatuses {
                 )?;
             }
 
-            // Outline when hover
+            // Outline when hover or selected
             let outline = Rect::new(
                 draw_card.dest.x,
                 draw_card.dest.y,
                 SQUAD_CARD_WIDTH,
                 SQUAD_CARD_HEIGHT,
             );
-            if outline.contains(hovered.to_vec2()) {
+            if outline.contains(hovered.to_vec2())
+                || self
+                    .selected_squads
+                    .contains(draw_card.squad_status.squad_id())
+            {
                 mesh_builder.rectangle(
                     DrawMode::Stroke(StrokeOptions::default()),
                     outline,
@@ -201,5 +212,22 @@ impl Component<HudEvent> for SquadStatuses {
         );
 
         Ok(())
+    }
+
+    fn event(&self, ctx: &Context) -> Option<HudEvent> {
+        let mouse_position = ctx.mouse.position();
+        for draw_card in self.cards(ctx) {
+            if mouse_position.x >= draw_card.dest.x
+                && mouse_position.x <= draw_card.dest.x + SQUAD_CARD_WIDTH
+                && mouse_position.y >= draw_card.dest.y
+                && mouse_position.y <= draw_card.dest.y + SQUAD_CARD_HEIGHT
+            {
+                return Some(HudEvent::SelectSquad(
+                    draw_card.squad_status.squad_id().clone(),
+                ));
+            }
+        }
+
+        None
     }
 }

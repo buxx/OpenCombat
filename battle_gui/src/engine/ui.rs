@@ -80,7 +80,11 @@ impl Engine {
             .collect()
     }
 
-    fn digest_scene_select_by_click(&self, point: WindowPoint) -> Vec<EngineMessage> {
+    fn digest_scene_select_by_click(
+        &self,
+        ctx: &Context,
+        point: WindowPoint,
+    ) -> Vec<EngineMessage> {
         let world_point = self.gui_state.world_point_from_window_point(point);
         let soldier_indexes = self.soldiers_at_point(world_point);
         if soldier_indexes.len() > 0 {
@@ -91,10 +95,15 @@ impl Engine {
             ))];
         };
 
-        vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
-            None,
-            vec![],
-        ))]
+        // Little dirty but ensure it was not a click on the hud
+        if !self.hud.contains(ctx, &vec![&point]) {
+            return vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
+                None,
+                vec![],
+            ))];
+        }
+
+        vec![]
     }
 
     fn digest_squad_menu_select_by_click(
@@ -352,7 +361,7 @@ impl Engine {
             ));
             messages.push(EngineMessage::GuiState(GuiStateMessage::SetSquadMenu(None)));
         } else {
-            messages.extend(self.digest_scene_select_by_click(point));
+            messages.extend(self.digest_scene_select_by_click(ctx, point));
         }
 
         // This is a pending order click

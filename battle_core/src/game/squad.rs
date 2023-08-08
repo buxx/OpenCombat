@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use oc_core::{health::Health, morale::Morale};
+use oc_core::{graphics::ammunition::AmmunitionReserveStatus, health::Health, morale::Morale};
 
 use crate::{
-    behavior::feeling::UNDER_FIRE_MAX,
+    behavior::{feeling::UNDER_FIRE_MAX, gesture::Gesture, Behavior},
     entity::soldier::Soldier,
     state::battle::BattleState,
-    types::{SoldierIndex, SquadComposition, WorldPoint},
+    types::{SoldierIndex, SquadComposition, SquadUuid, WorldPoint},
     utils::apply_angle_on_point,
 };
 
@@ -77,7 +77,7 @@ impl SquadStatusesResume {
                 .squads()
                 .iter()
                 .filter(|(_, squad)| battle_state.soldier(squad.leader()).side() == side)
-                .map(|(_, squad)| SquadStatusResume::from_squad(battle_state, squad))
+                .map(|(squad_id, _)| SquadStatusResume::from_squad(battle_state, squad_id))
                 .collect(),
         }
     }
@@ -89,13 +89,16 @@ impl SquadStatusesResume {
 
 #[derive(Clone, Debug)]
 pub struct SquadStatusResume {
+    squad_id: SquadUuid,
     health: SquadHealth,
     members: Vec<SquadMemberStatus>,
 }
 
 impl SquadStatusResume {
-    pub fn from_squad(battle_state: &BattleState, squad: &SquadComposition) -> Self {
+    pub fn from_squad(battle_state: &BattleState, squad_id: &SquadUuid) -> Self {
+        let squad = battle_state.squad(*squad_id);
         Self {
+            squad_id: *squad_id,
             health: SquadHealth::from_squad(battle_state, squad),
             members: squad
                 .members()
@@ -117,6 +120,10 @@ impl SquadStatusResume {
 
     pub fn members(&self) -> &[SquadMemberStatus] {
         self.members.as_ref()
+    }
+
+    pub fn squad_id(&self) -> &SquadUuid {
+        &self.squad_id
     }
 }
 
@@ -149,20 +156,46 @@ pub struct SquadMemberStatus {
     health: Health,
     main_weapon: Option<Weapon>,
     magazines: Vec<Magazine>,
+    ammunition_reserve: AmmunitionReserveStatus,
     under_fire_coefficient: f32,
+    current: CurrentAction,
+}
+
+// FIXME : this func is here because AmmunitionReserveStatus, Soldier, etc will have to move
+// into oc_core ...
+fn ammunition_reserve_status(soldier: &Soldier) -> AmmunitionReserveStatus {
+    if let Some(weapon) = soldier.main_weapon() {
+        let ok_magazines_len = soldier
+            .magazines()
+            .iter()
+            .filter(|m| weapon.accepted_magazine(&m))
+            .collect::<Vec<&Magazine>>()
+            .len();
+        if ok_magazines_len == 0 {
+            return AmmunitionReserveStatus::Empty;
+        }
+
+        if ok_magazines_len < weapon.ok_count_magazines() {
+            return AmmunitionReserveStatus::Low;
+        }
+    }
+
+    AmmunitionReserveStatus::Ok
 }
 
 impl SquadMemberStatus {
     pub fn from_soldier(
-        _battle_state: &BattleState,
-        _squad: &SquadComposition,
+        battle_state: &BattleState,
+        squad: &SquadComposition,
         soldier: &Soldier,
     ) -> Self {
         Self {
             health: SoldierHealthBuilder::new(soldier).build(),
             main_weapon: soldier.main_weapon().clone(),
             magazines: soldier.magazines().clone(),
+            ammunition_reserve: ammunition_reserve_status(soldier),
             under_fire_coefficient: (*soldier.under_fire().value() as f32 / UNDER_FIRE_MAX as f32),
+            current: CurrentAction::from_soldier(battle_state, squad, soldier),
         }
     }
 
@@ -180,5 +213,62 @@ impl SquadMemberStatus {
 
     pub fn under_fire_coefficient(&self) -> f32 {
         self.under_fire_coefficient
+    }
+
+    pub fn current(&self) -> &CurrentAction {
+        &self.current
+    }
+
+    pub fn ammunition_reserve(&self) -> &AmmunitionReserveStatus {
+        &self.ammunition_reserve
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum CurrentAction {
+    Idle,
+    Walking,
+    Running,
+    Crawling,
+    // Targeting,
+    TargetFiring,
+    SuppressFiring,
+    Aiming,
+    Reloading,
+    Defending,
+    Hiding,
+    Driving,
+    Rotating,
+    // ...
+}
+
+impl CurrentAction {
+    pub fn from_soldier(
+        _battle_state: &BattleState,
+        _squad: &SquadComposition,
+        soldier: &Soldier,
+    ) -> Self {
+        match soldier.behavior() {
+            Behavior::MoveTo(_) => Self::Walking,
+            Behavior::MoveFastTo(_) => Self::Running,
+            Behavior::SneakTo(_) => Self::Crawling,
+            Behavior::DriveTo(_) => Self::Driving,
+            Behavior::RotateTo(_) => Self::Rotating,
+            Behavior::Defend(_) => Self::Defending,
+            Behavior::Hide(_) => Self::Hiding,
+            Behavior::SuppressFire(_) => match soldier.gesture() {
+                Gesture::Idle => Self::Idle,
+                Gesture::Reloading(_, _) => Self::Reloading,
+                Gesture::Aiming(_, _) => Self::Aiming,
+                Gesture::Firing(_, _) => Self::SuppressFiring,
+            },
+            Behavior::EngageSoldier(_) => match soldier.gesture() {
+                Gesture::Idle => Self::Idle,
+                Gesture::Reloading(_, _) => Self::Reloading,
+                Gesture::Aiming(_, _) => Self::Aiming,
+                Gesture::Firing(_, _) => Self::TargetFiring,
+            },
+            Behavior::Idle | Behavior::Dead | Behavior::Unconscious => Self::Idle,
+        }
     }
 }

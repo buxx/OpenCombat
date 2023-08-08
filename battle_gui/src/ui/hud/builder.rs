@@ -94,6 +94,7 @@ impl<'a> HudBuilder<'a> {
         SquadStatuses::new(
             SquadStatusesResume::from_battle_state(self.gui_state.side(), self.battle_state),
             point.clone(),
+            self.gui_state.selected_squads().1.clone(),
         )
     }
 }

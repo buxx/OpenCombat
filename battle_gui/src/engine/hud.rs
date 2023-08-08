@@ -1,6 +1,6 @@
-use battle_core::{game::Side, state::battle::message::BattleStateMessage};
+use battle_core::{game::Side, state::battle::message::BattleStateMessage, types::SquadUuid};
 
-use crate::ui::hud::event::HudEvent;
+use crate::{engine::message::GuiStateMessage, ui::hud::event::HudEvent};
 
 use super::{message::EngineMessage, Engine};
 
@@ -9,6 +9,7 @@ impl Engine {
         match event {
             HudEvent::RequestBeginBattle => self.request_begin_battle(),
             HudEvent::RequestEndBattle => self.request_end_battle(),
+            HudEvent::SelectSquad(squad_id) => self.select_squad(&squad_id),
         }
     }
 
@@ -22,5 +23,12 @@ impl Engine {
 
     pub fn request_end_battle(&self) -> Vec<EngineMessage> {
         vec![]
+    }
+
+    pub fn select_squad(&self, squad_id: &SquadUuid) -> Vec<EngineMessage> {
+        vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
+            Some(self.battle_state.squad(squad_id.clone()).leader().clone()),
+            vec![squad_id.clone()],
+        ))]
     }
 }

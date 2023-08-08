@@ -180,4 +180,10 @@ impl Weapon {
             Weapon::MosinNagantM1924(_, magazine) => *magazine = Some(new_magazine),
         }
     }
+
+    pub fn ok_count_magazines(&self) -> usize {
+        match self {
+            Weapon::MosinNagantM1924(_, _) => 4,
+        }
+    }
 }
