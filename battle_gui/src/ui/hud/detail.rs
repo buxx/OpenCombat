@@ -128,15 +128,22 @@ impl Component<HudEvent> for SquadDetail {
                 Color::new(0.5, squad.health().0, 0., 1.),
             )?;
 
-            let soldiers_status_start_point =
-                health_point.apply(Vec2::new(0., SQUAD_TYPE_HEIGHT + MARGIN));
-            for (i, _soldier_status) in squad.members().iter().enumerate() {
-                let soldier_dest = soldiers_status_start_point
+            let soldiers_status_start_point = self
+                .point
+                .apply(Vec2::new(SOLDIER_WIDTH, SQUAD_TYPE_HEIGHT + MARGIN));
+            for (i, soldier_status) in squad.members().iter().enumerate() {
+                let text_dest = soldiers_status_start_point
                     .apply(Vec2::new(0., (SOLDIER_HEIGHT + MARGIN) * i as f32));
+                let text_center_dest = text_dest.apply(Vec2::new(
+                    (self.width(ctx) - MARGIN - SOLDIER_WIDTH) / 2.,
+                    SOLDIER_HEIGHT / 2.,
+                ));
                 canvas.draw(
-                    Text::new(TextFragment::new("adcdefghijklmnopqrstuvwxyz").color(Color::WHITE))
-                        .set_layout(TextLayout::top_left()),
-                    DrawParam::default().dest(soldier_dest.to_vec2()),
+                    Text::new(
+                        TextFragment::new(soldier_status.current().display()).color(Color::WHITE),
+                    )
+                    .set_layout(TextLayout::center()),
+                    DrawParam::default().dest(text_center_dest.to_vec2()),
                 )
             }
 

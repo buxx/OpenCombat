@@ -271,4 +271,21 @@ impl CurrentAction {
             Behavior::Idle | Behavior::Dead | Behavior::Unconscious => Self::Idle,
         }
     }
+
+    pub fn display(&self) -> &str {
+        match self {
+            CurrentAction::Idle => "",
+            CurrentAction::Walking => "move",
+            CurrentAction::Running => "move fast",
+            CurrentAction::Crawling => "crawling",
+            CurrentAction::TargetFiring => "firing target",
+            CurrentAction::SuppressFiring => "suppress firing",
+            CurrentAction::Aiming => "aiming",
+            CurrentAction::Reloading => "reloading",
+            CurrentAction::Defending => "defending",
+            CurrentAction::Hiding => "hiding",
+            CurrentAction::Driving => "driving",
+            CurrentAction::Rotating => "rotating",
+        }
+    }
 }
