@@ -16,7 +16,7 @@ oc_core = { path = "../oc_core" }
 battle_core = { path = "../battle_core" }
 battle_server = { path = "../battle_server" }
 rayon = "1"
-ggez = { git = "https://github.com/ggez/ggez.git", rev = "7d4de6809130f5720b02e7c61d9fb6c9da15f76e" }
+ggez = "0.9.3"
 glam = { version = "0.22.0", features = ["mint"]}
 rand = "0.8.5"
 structopt = "0.3.21"
@@ -27,7 +27,7 @@ keyframe_derive = "1.0.0"
 strum = "0.24"
 strum_macros = "0.24"
 geo = "0.23.1"
-ggegui = { git = "https://github.com/buxx/ggegui.git", rev = "958323241f358bd6dbc2278ce33dcd92bc37bf7c" }
+ggegui = "0.3.7"
 puffin_http = "0.11.1"
 puffin = "0.14.2"
 image = "0.24.5"
