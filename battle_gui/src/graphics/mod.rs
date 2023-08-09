@@ -26,7 +26,17 @@ use battle_core::{
 };
 use oc_core::resources::RESOURCE_PATH;
 
-use crate::{debug::DebugTerrain, ui::menu::squad_menu_sprite_info};
+use crate::{
+    debug::DebugTerrain,
+    ui::{
+        hud::{
+            builder::{MARGIN, RIGHT_BOX_WIDTH},
+            morale::MORALE_INDICATOR_HEIGHT,
+            HUD_HEIGHT,
+        },
+        menu::squad_menu_sprite_info,
+    },
+};
 
 use self::{
     background::{Background, BackgroundBuilder},
@@ -35,6 +45,7 @@ use self::{
     explosions::{Explosions, ExplosionsBuilder},
     interiors::{Interiors, InteriorsBuilder},
     message::GraphicsMessage,
+    minimap::MinimapBuilder,
     qualified::Zoom,
     soldier::{Soldiers, SoldiersBuilder},
     vehicles::{Vehicles, VehiclesBuilder},
@@ -49,6 +60,7 @@ pub mod flag;
 pub mod interiors;
 pub mod map;
 pub mod message;
+pub mod minimap;
 pub mod order;
 pub mod qualified;
 pub mod soldier;
@@ -97,6 +109,7 @@ pub struct Graphics {
     background: Background,
     dark_background: Background,
     dark_background_first: bool,
+    minimap: InstanceArray,
     flags: InstanceArray,
     // Map interiors sprite batch
     interiors: Interiors,
@@ -142,6 +155,7 @@ impl Graphics {
         let background = BackgroundBuilder::new(ctx, map).build()?;
         let dark_background = BackgroundBuilder::new(ctx, map).dark(true).build()?;
         let map_interiors_batch = InteriorsBuilder::new(ctx, map).build()?;
+        let minimap = MinimapBuilder::new(ctx, map).build()?;
         let decor = DecorsBuilder::new(ctx, map)
             .rule(DrawOnly(a_control.clone()))
             .build()?;
@@ -169,6 +183,7 @@ impl Graphics {
             background,
             dark_background,
             dark_background_first: false,
+            minimap,
             flags,
             interiors: map_interiors_batch,
             decor,
@@ -590,6 +605,16 @@ impl Graphics {
     pub fn battle_started(&mut self, ctx: &mut Context, map: &Map) -> GameResult<()> {
         // When battle started, all decors are displayed normally
         self.decor = DecorsBuilder::new(ctx, map).rule(DrawAll).build()?;
+        Ok(())
+    }
+
+    pub fn draw_minimap(&self, ctx: &mut Context, canvas: &mut Canvas) -> GameResult {
+        let window = ctx.gfx.window().inner_size();
+        let dest = WindowPoint::new(
+            window.width as f32 - RIGHT_BOX_WIDTH + MARGIN,
+            window.height as f32 - HUD_HEIGHT + MORALE_INDICATOR_HEIGHT + MARGIN * 2.0,
+        );
+        canvas.draw(&self.minimap, DrawParam::new().dest(dest.to_vec2()));
         Ok(())
     }
 }
