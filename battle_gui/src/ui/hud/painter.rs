@@ -23,6 +23,7 @@ impl<'a> HudPainter<'a> {
         [
             self.hud.background().sprites(ctx, hovered),
             self.hud.squad_statuses().sprites(ctx, hovered),
+            self.hud.squad_detail().sprites(ctx, hovered),
             self.hud.battle_button().sprites(ctx, hovered),
             self.hud.morale_indicator().sprites(ctx, hovered),
         ]
@@ -36,6 +37,9 @@ impl<'a> HudPainter<'a> {
     pub fn draw(&self, ctx: &mut Context, canvas: &mut Canvas) -> GameResult {
         self.hud
             .squad_statuses()
+            .draw(ctx, self.hover_point(), canvas)?;
+        self.hud
+            .squad_detail()
             .draw(ctx, self.hover_point(), canvas)?;
         self.hud
             .battle_button()

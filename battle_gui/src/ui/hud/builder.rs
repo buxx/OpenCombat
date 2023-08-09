@@ -1,5 +1,5 @@
 use battle_core::{
-    game::squad::SquadStatusesResume,
+    game::squad::{SquadStatusResume, SquadStatusesResume},
     state::battle::{phase::Phase, BattleState},
     types::WindowPoint,
 };
@@ -9,7 +9,11 @@ use glam::Vec2;
 use crate::{engine::state::GuiState, ui::component::Component};
 
 use super::{
-    background::Background, battle::BattleButton, morale::MoraleIndicator, squad::SquadStatuses,
+    background::Background,
+    battle::BattleButton,
+    detail::{SquadDetail, SQUAD_DETAIL_WIDTH},
+    morale::MoraleIndicator,
+    squad::SquadStatuses,
     Hud,
 };
 
@@ -62,11 +66,15 @@ impl<'a> HudBuilder<'a> {
         let hud_interior_start = self.point.apply(Vec2::new(MARGIN, MARGIN));
         let squad_statuses = self.squad_statuses(&hud_interior_start);
 
+        let squad_detail_start = right_column_start.apply(Vec2::new(-SQUAD_DETAIL_WIDTH, 0.));
+        let squad_detail = self.squad_detail(&squad_detail_start);
+
         Hud::new(
             Background::new(self.point.clone(), self.width, self.height),
             battle_button,
             morale_indicator,
             squad_statuses,
+            squad_detail,
         )
     }
 
@@ -96,5 +104,19 @@ impl<'a> HudBuilder<'a> {
             point.clone(),
             self.gui_state.selected_squads().1.clone(),
         )
+    }
+
+    fn squad_detail(&self, point: &WindowPoint) -> SquadDetail {
+        if let Some(squad_uuid) = self.gui_state.selected_squads().1.first() {
+            SquadDetail::new(
+                *point,
+                Some(SquadStatusResume::from_squad(
+                    self.battle_state,
+                    &squad_uuid,
+                )),
+            )
+        } else {
+            SquadDetail::empty(*point)
+        }
     }
 }

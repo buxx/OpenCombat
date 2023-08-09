@@ -9,18 +9,16 @@ use ggez::{
     Context, GameResult,
 };
 use glam::Vec2;
-use oc_core::graphics::{
-    ammunition::AmmunitionReserveStatus,
-    squad::{
-        SQUAD_REL_TYPE1_HEIGHT, SQUAD_REL_TYPE1_START_X, SQUAD_REL_TYPE1_START_Y,
-        SQUAD_REL_TYPE1_WIDTH, SQUAD_TYPE_WIDTH,
-    },
+use oc_core::graphics::squad::{
+    SQUAD_REL_TYPE1_HEIGHT, SQUAD_REL_TYPE1_START_X, SQUAD_REL_TYPE1_START_Y,
+    SQUAD_REL_TYPE1_WIDTH, SQUAD_TYPE_WIDTH,
 };
 
 use crate::{ui::component::Component, utils::IntoSprite};
 
 use super::{
     builder::{BOTTOM_LINE_HEIGHT, MARGIN, RIGHT_BOX_WIDTH},
+    detail::SQUAD_DETAIL_WIDTH,
     event::HudEvent,
     HUD_HEIGHT,
 };
@@ -60,6 +58,9 @@ impl SquadStatuses {
         let mut draw_cards = vec![];
 
         let columns = (self.width(ctx) / SQUAD_CARD_WIDTH) as usize;
+        if columns == 0 {
+            return vec![];
+        }
         for (i, squad_status) in self.squad_statuses.squads().into_iter().enumerate() {
             let row_i = i / columns;
             let col_i = i % columns;
@@ -83,7 +84,7 @@ impl Component<HudEvent> for SquadStatuses {
     }
 
     fn width(&self, ctx: &Context) -> f32 {
-        ctx.gfx.drawable_size().0 - RIGHT_BOX_WIDTH - MARGIN * 2.
+        ctx.gfx.drawable_size().0 - SQUAD_DETAIL_WIDTH - RIGHT_BOX_WIDTH - MARGIN * 2.
     }
 
     fn height(&self, _ctx: &Context) -> f32 {
@@ -115,9 +116,6 @@ impl Component<HudEvent> for SquadStatuses {
                     0.,
                 ));
 
-                // FIXME BS NOW : Oh, fuck, it is en dessous de carre vert
-                // --> Faire des images plutot que des carres vert
-                // --> etat en fonction behavior, gesture, etc
                 params.push(
                     DrawParam::new()
                         .src(Rect::from(soldier_status.health().to_relative_array()))
