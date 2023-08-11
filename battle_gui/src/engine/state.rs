@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use battle_core::game::Side;
+use battle_core::map::Map;
 use battle_core::order::PendingOrder;
 use battle_core::physics::utils::DISTANCE_TO_METERS_COEFFICIENT;
 use battle_core::types::{
@@ -78,10 +79,13 @@ pub struct GuiState {
     intro_ack: bool,
     //
     saves: Vec<PathBuf>,
+    //
+    map_width: f32,
+    map_height: f32,
 }
 
 impl GuiState {
-    pub fn new(side: Side) -> Self {
+    pub fn new(side: Side, map: &Map) -> Self {
         Self {
             frame_i: 0,
             side,
@@ -117,6 +121,8 @@ impl GuiState {
             dragged_squad: None,
             intro_ack: false,
             saves: vec![],
+            map_width: map.visual_width() as f32,
+            map_height: map.visual_height() as f32,
         }
     }
 
@@ -281,6 +287,24 @@ impl GuiState {
         // pour pas perdre la carte de vue
     }
 
+    pub fn ensure_correct_scene_offset(&mut self, ctx: &mut Context) {
+        let (window_width, window_height) = ctx.gfx.drawable_size();
+
+        if self.display_scene_offset.x > window_width / 2. {
+            self.display_scene_offset.x = window_width / 2.;
+        }
+        if self.display_scene_offset.y > window_height / 2. {
+            self.display_scene_offset.y = window_height / 2.;
+        }
+
+        if self.display_scene_offset.x < -(self.map_width - window_width / 2.) {
+            self.display_scene_offset.x = -(self.map_width - window_width / 2.);
+        }
+        if self.display_scene_offset.y < -(self.map_height - window_height / 2.) {
+            self.display_scene_offset.y = -(self.map_height - window_height / 2.);
+        }
+    }
+
     pub fn react(&mut self, message: &GuiStateMessage, ctx: &mut Context) {
         match message {
             GuiStateMessage::SetCursorPoint(point) => {
@@ -292,10 +316,12 @@ impl GuiState {
                 //
                 self.display_scene_offset =
                     Offset::from_vec2(self.display_scene_offset.to_vec2() + offset.to_vec2());
+                self.ensure_correct_scene_offset(ctx);
             }
             GuiStateMessage::SetDisplaySceneOffset(offset) => {
                 //
                 self.display_scene_offset = offset.clone();
+                self.ensure_correct_scene_offset(ctx);
             }
             GuiStateMessage::SetDebugTerrain(value) => {
                 //
@@ -383,7 +409,8 @@ impl GuiState {
             }
             GuiStateMessage::CenterSceneOn(point) => {
                 //
-                self.set_scene_offset_to(ctx, point)
+                self.set_scene_offset_to(ctx, point);
+                self.ensure_correct_scene_offset(ctx);
             }
         }
     }

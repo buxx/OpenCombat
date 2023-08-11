@@ -85,7 +85,7 @@ impl Engine {
         a_control: MapControl,
         b_control: MapControl,
     ) -> GameResult<Engine> {
-        let mut gui_state = GuiState::new(side.clone());
+        let mut gui_state = GuiState::new(side.clone(), battle_state.map());
         gui_state.set_saves(
             BattleSavesListBuilder::new(battle_state.map().name())
                 .build()
@@ -112,7 +112,6 @@ impl Engine {
         };
         Ok(engine)
     }
-
 }
 
 impl EventHandler<ggez::GameError> for Engine {
