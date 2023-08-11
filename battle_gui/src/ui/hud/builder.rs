@@ -12,7 +12,8 @@ use super::{
     background::Background,
     battle::BattleButton,
     detail::{SquadDetail, SQUAD_DETAIL_WIDTH},
-    morale::MoraleIndicator,
+    minimap::Minimap,
+    morale::{MoraleIndicator, MORALE_INDICATOR_HEIGHT},
     squad::SquadStatuses,
     Hud,
 };
@@ -69,12 +70,17 @@ impl<'a> HudBuilder<'a> {
         let squad_detail_start = right_column_start.apply(Vec2::new(-SQUAD_DETAIL_WIDTH, 0.));
         let squad_detail = self.squad_detail(&squad_detail_start);
 
+        let minimap_start =
+            right_column_start.apply(Vec2::new(MARGIN, MORALE_INDICATOR_HEIGHT + MARGIN * 2.0));
+        let minimap = self.minimap(&minimap_start);
+
         Hud::new(
             Background::new(self.point.clone(), self.width, self.height),
             battle_button,
             morale_indicator,
             squad_statuses,
             squad_detail,
+            minimap,
         )
     }
 
@@ -118,5 +124,9 @@ impl<'a> HudBuilder<'a> {
         } else {
             SquadDetail::empty(*point)
         }
+    }
+
+    fn minimap(&self, point: &WindowPoint) -> Minimap {
+        Minimap::new(*point)
     }
 }

@@ -349,13 +349,16 @@ impl Engine {
                     UIEvent::FinishedCursorRightClick(WindowPoint::new(x, y)),
                 )));
             }
+            MouseButton::Middle => messages.push(EngineMessage::GuiState(
+                GuiStateMessage::CenterSceneOn(self.gui_state.current_cursor_world_point()),
+            )),
             _ => {}
         }
 
         messages
     }
 
-    pub fn collect_mouse_wheel(&self, ctx: &mut Context, _x: f32, y: f32) -> Vec<EngineMessage> {
+    pub fn collect_mouse_wheel(&self, _ctx: &mut Context, _x: f32, y: f32) -> Vec<EngineMessage> {
         let mut messages = vec![];
         if y != 0. && !self.gui_state.debug_gui_hovered && !self.gui_state.cursor_in_hud() {
             let zoom = if y > 0. {
@@ -364,25 +367,11 @@ impl Engine {
                 self.gui_state.zoom.previous()
             };
 
-            let half_screen_width = ctx.gfx.drawable_size().0 / 2.;
-            let half_screen_height = ctx.gfx.drawable_size().1 / 2.;
-            let world_point = self
-                .gui_state
-                .world_point_from_window_point(WindowPoint::new(
-                    half_screen_width,
-                    half_screen_height,
-                ));
-
-            let half_screen_width = ctx.gfx.drawable_size().0 / 2.;
-            let half_screen_height = ctx.gfx.drawable_size().1 / 2.;
-            let new_offset_x = -(world_point.x * zoom.factor()) + half_screen_width;
-            let new_offset_y = -(world_point.y * zoom.factor()) + half_screen_height;
-
-            messages.push(EngineMessage::GuiState(GuiStateMessage::SetZoom(zoom)));
+            messages.push(EngineMessage::GuiState(GuiStateMessage::SetZoom(
+                zoom,
+                self.gui_state.current_cursor_world_point(),
+            )));
             messages.push(EngineMessage::UpdateInteriors);
-            messages.push(EngineMessage::GuiState(
-                GuiStateMessage::SetDisplaySceneOffset(Offset::new(new_offset_x, new_offset_y)),
-            ));
         }
 
         messages

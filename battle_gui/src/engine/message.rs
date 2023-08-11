@@ -50,7 +50,7 @@ pub enum GuiStateMessage {
     SetDebugPhysics(DebugPhysics),
     PushUIEvent(UIEvent),
     ChangeSide,
-    SetZoom(Zoom),
+    SetZoom(Zoom, WorldPoint),
     SetControl(Control),
     SetDebugGuiHovered(bool),
     SetDisplayDebugGui(bool),
@@ -59,4 +59,5 @@ pub enum GuiStateMessage {
     SetCursorInHud(bool),
     SetIntroAck(bool),
     SetSavesList(Vec<PathBuf>),
+    CenterSceneOn(WorldPoint),
 }

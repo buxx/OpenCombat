@@ -12,6 +12,7 @@ use ggez::Context;
 
 use crate::debug::{DebugPhysics, DebugTerrain};
 use crate::graphics::qualified::Zoom;
+use crate::ui::hud::HUD_HEIGHT;
 
 use super::event::UIEvent;
 use super::input::Control;
@@ -267,7 +268,20 @@ impl GuiState {
         ((distance.millimeters() as f32) / 1000.) / DISTANCE_TO_METERS_COEFFICIENT
     }
 
-    pub fn react(&mut self, message: &GuiStateMessage, _ctx: &mut Context) {
+    pub fn set_scene_offset_to(&mut self, ctx: &mut Context, target_point: &WorldPoint) {
+        let (window_width, window_height) = ctx.gfx.drawable_size();
+        let half_window = WindowPoint::new(window_width / 2., (window_height - HUD_HEIGHT) / 2.);
+        let needed_offset = Offset::new(
+            half_window.x - (target_point.x * self.zoom.factor()),
+            half_window.y - (target_point.y * self.zoom.factor()),
+        );
+        self.display_scene_offset = needed_offset;
+
+        // FIXME BS NOW : Faire en sorte que le offset puisse pas être > moitié taille de carte (en positif ou en neg)
+        // pour pas perdre la carte de vue
+    }
+
+    pub fn react(&mut self, message: &GuiStateMessage, ctx: &mut Context) {
         match message {
             GuiStateMessage::SetCursorPoint(point) => {
                 //
@@ -331,9 +345,10 @@ impl GuiState {
                 Side::B => self.side = Side::A,
                 Side::All => unreachable!("Side All is excluded from ChangeSide"),
             },
-            GuiStateMessage::SetZoom(scale) => {
+            GuiStateMessage::SetZoom(scale, point) => {
                 //
                 self.zoom = scale.clone();
+                self.set_scene_offset_to(ctx, point);
             }
             GuiStateMessage::SetControl(new_control) => {
                 //
@@ -365,6 +380,10 @@ impl GuiState {
             GuiStateMessage::SetSavesList(saves) => {
                 //
                 self.saves = saves.clone()
+            }
+            GuiStateMessage::CenterSceneOn(point) => {
+                //
+                self.set_scene_offset_to(ctx, point)
             }
         }
     }

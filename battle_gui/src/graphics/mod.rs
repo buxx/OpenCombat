@@ -28,14 +28,7 @@ use oc_core::resources::RESOURCE_PATH;
 
 use crate::{
     debug::DebugTerrain,
-    ui::{
-        hud::{
-            builder::{MARGIN, RIGHT_BOX_WIDTH},
-            morale::MORALE_INDICATOR_HEIGHT,
-            HUD_HEIGHT,
-        },
-        menu::squad_menu_sprite_info,
-    },
+    ui::{component::Component, hud::Hud, menu::squad_menu_sprite_info},
 };
 
 use self::{
@@ -481,6 +474,8 @@ impl Graphics {
         self.explosions.clear(zoom);
         self.background.clear(zoom);
         self.dark_background.clear(zoom);
+        self.minimap.clear();
+        self.minimap.push(DrawParam::new());
         self.ui_batch.clear();
         self.flags.clear();
     }
@@ -608,12 +603,8 @@ impl Graphics {
         Ok(())
     }
 
-    pub fn draw_minimap(&self, ctx: &mut Context, canvas: &mut Canvas) -> GameResult {
-        let window = ctx.gfx.window().inner_size();
-        let dest = WindowPoint::new(
-            window.width as f32 - RIGHT_BOX_WIDTH + MARGIN,
-            window.height as f32 - HUD_HEIGHT + MORALE_INDICATOR_HEIGHT + MARGIN * 2.0,
-        );
+    pub fn draw_minimap(&self, ctx: &mut Context, canvas: &mut Canvas, hud: &Hud) -> GameResult {
+        let dest = WindowPoint::new(hud.minimap().point(ctx).x, hud.minimap().point(ctx).y);
         canvas.draw(&self.minimap, DrawParam::new().dest(dest.to_vec2()));
         Ok(())
     }

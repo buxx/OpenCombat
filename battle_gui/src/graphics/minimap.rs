@@ -1,6 +1,6 @@
 use battle_core::map::Map;
 use ggez::{
-    graphics::{DrawParam, Image, InstanceArray},
+    graphics::{Image, InstanceArray},
     Context, GameError, GameResult,
 };
 use image::imageops::{resize, FilterType};
@@ -45,6 +45,7 @@ impl<'a> MinimapBuilder<'a> {
             let bg_image = image::open(&bg_image_path_abs)?.into_rgba8();
             let minimap = resize(
                 &bg_image,
+                // TODO : use arbitrary size and draw at wanted size
                 (RIGHT_BOX_WIDTH - MARGIN * 2.0) as u32,
                 (HUD_HEIGHT - MORALE_INDICATOR_HEIGHT - MARGIN * 3.0) as u32,
                 FilterType::Gaussian,
@@ -53,11 +54,7 @@ impl<'a> MinimapBuilder<'a> {
         }
 
         let minimap = Image::from_path(self.ctx, &bg_dark_image_path_rel)?;
-        let mut instance_array = InstanceArray::new(self.ctx, minimap);
-        instance_array.push(
-            DrawParam::new(), // .src(Rect::new(1.0, 1.0, 1.0, 1.0))
-                              // .dest(Vec2::new(0., 0.)),
-        );
+        let instance_array = InstanceArray::new(self.ctx, minimap);
         Ok(instance_array)
     }
 }

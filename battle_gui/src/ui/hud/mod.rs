@@ -1,6 +1,6 @@
 use self::{
     background::Background, battle::BattleButton, detail::SquadDetail, event::HudEvent,
-    morale::MoraleIndicator, squad::SquadStatuses,
+    minimap::Minimap, morale::MoraleIndicator, squad::SquadStatuses,
 };
 use battle_core::types::WindowPoint;
 use ggez::Context;
@@ -12,6 +12,7 @@ pub mod battle;
 pub mod builder;
 pub mod detail;
 pub mod event;
+pub mod minimap;
 pub mod morale;
 pub mod painter;
 pub mod squad;
@@ -24,6 +25,7 @@ pub struct Hud {
     morale_indicator: MoraleIndicator,
     squad_statuses: SquadStatuses,
     squad_detail: SquadDetail,
+    minimap: Minimap,
 }
 
 impl Hud {
@@ -33,6 +35,7 @@ impl Hud {
         morale_indicator: MoraleIndicator,
         squad_statuses: SquadStatuses,
         squad_detail: SquadDetail,
+        minimap: Minimap,
     ) -> Self {
         Self {
             background,
@@ -40,6 +43,7 @@ impl Hud {
             morale_indicator,
             squad_statuses,
             squad_detail,
+            minimap,
         }
     }
 
@@ -61,6 +65,10 @@ impl Hud {
 
     pub fn squad_detail(&self) -> &SquadDetail {
         &self.squad_detail
+    }
+
+    pub fn minimap(&self) -> &Minimap {
+        &self.minimap
     }
 
     pub fn contains(&self, ctx: &Context, points: &Vec<&WindowPoint>) -> bool {
