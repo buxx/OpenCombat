@@ -6,11 +6,7 @@ use ggez::{
 use image::imageops::{resize, FilterType};
 use oc_core::resources::Resources;
 
-use crate::ui::hud::{
-    builder::{MARGIN, RIGHT_BOX_WIDTH},
-    morale::MORALE_INDICATOR_HEIGHT,
-    HUD_HEIGHT,
-};
+use crate::ui::hud::minimap::{MINIMAP_HEIGHT, MINIMAP_WIDTH};
 
 pub struct MinimapBuilder<'a> {
     ctx: &'a mut Context,
@@ -46,8 +42,8 @@ impl<'a> MinimapBuilder<'a> {
             let minimap = resize(
                 &bg_image,
                 // TODO : use arbitrary size and draw at wanted size
-                (RIGHT_BOX_WIDTH - MARGIN * 2.0) as u32,
-                (HUD_HEIGHT - MORALE_INDICATOR_HEIGHT - MARGIN * 3.0) as u32,
+                MINIMAP_WIDTH as u32,
+                MINIMAP_HEIGHT as u32,
                 FilterType::Gaussian,
             );
             minimap.save(minimap_path_cache_abs)?;

@@ -70,8 +70,7 @@ impl<'a> HudBuilder<'a> {
         let squad_detail_start = right_column_start.apply(Vec2::new(-SQUAD_DETAIL_WIDTH, 0.));
         let squad_detail = self.squad_detail(&squad_detail_start);
 
-        let minimap_start =
-            right_column_start.apply(Vec2::new(MARGIN, MORALE_INDICATOR_HEIGHT + MARGIN * 2.0));
+        let minimap_start = right_column_start.apply(Vec2::new(0., MORALE_INDICATOR_HEIGHT));
         let minimap = self.minimap(&minimap_start);
 
         Hud::new(

@@ -3,11 +3,14 @@ use battle_core::types::WindowPoint;
 use crate::ui::component::Component;
 
 use super::{
+    battle::BATTLE_BUTTON_HEIGHT,
     builder::{MARGIN, RIGHT_BOX_WIDTH},
     event::HudEvent,
-    morale::MORALE_INDICATOR_HEIGHT,
     HUD_HEIGHT,
 };
+
+pub const MINIMAP_WIDTH: f32 = RIGHT_BOX_WIDTH - MARGIN;
+pub const MINIMAP_HEIGHT: f32 = HUD_HEIGHT - BATTLE_BUTTON_HEIGHT - (MARGIN * 2.);
 
 pub struct Minimap {
     point: WindowPoint,
@@ -25,10 +28,10 @@ impl Component<HudEvent> for Minimap {
     }
 
     fn width(&self, _ctx: &ggez::Context) -> f32 {
-        RIGHT_BOX_WIDTH - MARGIN * 2.0
+        MINIMAP_WIDTH
     }
 
     fn height(&self, _ctx: &ggez::Context) -> f32 {
-        HUD_HEIGHT - MORALE_INDICATOR_HEIGHT - MARGIN - MARGIN * 2.0
+        MINIMAP_HEIGHT
     }
 }
