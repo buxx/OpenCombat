@@ -126,6 +126,10 @@ impl<'a> HudBuilder<'a> {
     }
 
     fn minimap(&self, point: &WindowPoint) -> Minimap {
-        Minimap::new(*point)
+        Minimap::new(
+            *point,
+            self.battle_state.map().visual_width() as f32,
+            self.battle_state.map().visual_height() as f32,
+        )
     }
 }

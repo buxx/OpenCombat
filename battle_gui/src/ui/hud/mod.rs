@@ -96,6 +96,10 @@ impl Hud {
             return Some(Box::new(&self.squad_statuses));
         }
 
+        if self.minimap.contains(ctx, points) {
+            return Some(Box::new(&self.minimap));
+        }
+
         if self.background.contains(ctx, points) {
             return Some(Box::new(&self.background));
         }

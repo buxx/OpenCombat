@@ -10,6 +10,11 @@ impl Engine {
             HudEvent::RequestBeginBattle => self.request_begin_battle(),
             HudEvent::RequestEndBattle => self.request_end_battle(),
             HudEvent::SelectSquad(squad_id) => self.select_squad(&squad_id),
+            HudEvent::CenterMapOn(point) => {
+                vec![EngineMessage::GuiState(GuiStateMessage::CenterSceneOn(
+                    point,
+                ))]
+            }
         }
     }
 
