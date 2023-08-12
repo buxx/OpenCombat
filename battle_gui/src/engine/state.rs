@@ -375,6 +375,7 @@ impl GuiState {
                 //
                 self.zoom = scale.clone();
                 self.set_scene_offset_to(ctx, point);
+                self.ensure_correct_scene_offset(ctx);
             }
             GuiStateMessage::SetControl(new_control) => {
                 //
