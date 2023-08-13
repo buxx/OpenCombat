@@ -130,6 +130,8 @@ impl<'a> HudBuilder<'a> {
             *point,
             self.battle_state.map().visual_width() as f32,
             self.battle_state.map().visual_height() as f32,
+            self.gui_state.display_scene_offset.clone(),
+            self.gui_state.zoom.clone(),
         )
     }
 }

@@ -26,6 +26,7 @@ impl<'a> HudPainter<'a> {
             self.hud.squad_detail().sprites(ctx, hovered),
             self.hud.battle_button().sprites(ctx, hovered),
             self.hud.morale_indicator().sprites(ctx, hovered),
+            self.hud.minimap().sprites(ctx, hovered),
         ]
         .concat()
     }
@@ -47,6 +48,7 @@ impl<'a> HudPainter<'a> {
         self.hud
             .morale_indicator()
             .draw(ctx, self.hover_point(), canvas)?;
+        self.hud.minimap().draw(ctx, self.hover_point(), canvas)?;
 
         Ok(())
     }
