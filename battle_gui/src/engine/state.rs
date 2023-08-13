@@ -290,19 +290,15 @@ impl GuiState {
     pub fn ensure_correct_scene_offset(&mut self, ctx: &mut Context) {
         let (window_width, window_height) = ctx.gfx.drawable_size();
 
-        if self.display_scene_offset.x > window_width / 2. {
-            self.display_scene_offset.x = window_width / 2.;
-        }
-        if self.display_scene_offset.y > window_height / 2. {
-            self.display_scene_offset.y = window_height / 2.;
-        }
+        let top = window_width / 2.;
+        let left = window_height / 2.;
+        let right = -((self.map_width * self.zoom.factor()) - window_width / 2.);
+        let bottom = -((self.map_height * self.zoom.factor()) - window_height / 2.);
 
-        if self.display_scene_offset.x < -(self.map_width - window_width / 2.) {
-            self.display_scene_offset.x = -(self.map_width - window_width / 2.);
-        }
-        if self.display_scene_offset.y < -(self.map_height - window_height / 2.) {
-            self.display_scene_offset.y = -(self.map_height - window_height / 2.);
-        }
+        self.display_scene_offset.x = self.display_scene_offset.x.min(top);
+        self.display_scene_offset.y = self.display_scene_offset.y.min(left);
+        self.display_scene_offset.x = self.display_scene_offset.x.max(right);
+        self.display_scene_offset.y = self.display_scene_offset.y.max(bottom);
     }
 
     pub fn react(&mut self, message: &GuiStateMessage, ctx: &mut Context) {
