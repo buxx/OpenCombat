@@ -78,6 +78,11 @@ impl Component<HudEvent> for Minimap {
         let end_x = self.point.x + (self.width(ctx) * world_end_x_rel);
         let end_y = self.point.y + (self.height(ctx) * world_end_y_rel);
 
+        let start_x = start_x.max(self.point.x);
+        let start_y = start_y.max(self.point.y);
+        let end_x = end_x.min(self.point.x + self.width(ctx));
+        let end_y = end_y.min(self.point.y + self.height(ctx));
+
         let mut mesh_builder = MeshBuilder::new();
         mesh_builder.rectangle(
             DrawMode::Stroke(StrokeOptions::default()),
