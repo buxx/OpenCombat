@@ -1,6 +1,9 @@
 use battle_core::types::{Offset, WindowPoint, WorldPoint};
+use ggegui::egui::Vec2;
 use ggez::{
-    graphics::{Canvas, Color, DrawMode, DrawParam, Mesh, MeshBuilder, Rect, StrokeOptions},
+    graphics::{
+        Canvas, Color, DrawMode, DrawParam, FillOptions, Mesh, MeshBuilder, Rect, StrokeOptions,
+    },
     Context, GameResult,
 };
 
@@ -15,6 +18,7 @@ use super::{
 
 pub const MINIMAP_WIDTH: f32 = RIGHT_BOX_WIDTH - MARGIN;
 pub const MINIMAP_HEIGHT: f32 = HUD_HEIGHT - BATTLE_BUTTON_HEIGHT - (MARGIN * 2.);
+pub const SQUAD_SQUARE_SIZE: f32 = 5.;
 
 pub struct Minimap {
     point: WindowPoint,
@@ -22,6 +26,8 @@ pub struct Minimap {
     map_height: f32,
     scene_offset: Offset,
     zoom: Zoom,
+    blue_positions: Vec<WorldPoint>,
+    red_positions: Vec<WorldPoint>,
 }
 
 impl Minimap {
@@ -31,6 +37,8 @@ impl Minimap {
         map_height: f32,
         scene_offset: Offset,
         zoom: Zoom,
+        blue_positions: Vec<WorldPoint>,
+        red_positions: Vec<WorldPoint>,
     ) -> Self {
         Self {
             point,
@@ -38,24 +46,12 @@ impl Minimap {
             map_height,
             scene_offset,
             zoom,
+            blue_positions,
+            red_positions,
         }
     }
-}
 
-impl Component<HudEvent> for Minimap {
-    fn point(&self, _ctx: &ggez::Context) -> WindowPoint {
-        self.point
-    }
-
-    fn width(&self, _ctx: &ggez::Context) -> f32 {
-        MINIMAP_WIDTH
-    }
-
-    fn height(&self, _ctx: &ggez::Context) -> f32 {
-        MINIMAP_HEIGHT
-    }
-
-    fn draw(&self, ctx: &mut Context, _hovered: &WindowPoint, canvas: &mut Canvas) -> GameResult {
+    pub fn draw_displayed_zone(&self, ctx: &Context, mesh_builder: &mut MeshBuilder) -> GameResult {
         let (w_width, w_height) = ctx.gfx.drawable_size();
         let (w_width, w_height) = (w_width, w_height - HUD_HEIGHT);
         let world_start_x = -self.scene_offset.x;
@@ -83,12 +79,74 @@ impl Component<HudEvent> for Minimap {
         let end_x = end_x.min(self.point.x + self.width(ctx));
         let end_y = end_y.min(self.point.y + self.height(ctx));
 
-        let mut mesh_builder = MeshBuilder::new();
         mesh_builder.rectangle(
             DrawMode::Stroke(StrokeOptions::default()),
             Rect::new(start_x, start_y, end_x - start_x, end_y - start_y),
             Color::WHITE,
         )?;
+
+        Ok(())
+    }
+
+    pub fn draw_squads(&self, ctx: &Context, mesh_builder: &mut MeshBuilder) -> GameResult {
+        for position in &self.blue_positions {
+            self.draw_side_squads(ctx, mesh_builder, position, Color::BLUE)?
+        }
+        for position in &self.red_positions {
+            self.draw_side_squads(ctx, mesh_builder, position, Color::RED)?
+        }
+
+        Ok(())
+    }
+
+    pub fn draw_side_squads(
+        &self,
+        ctx: &Context,
+        mesh_builder: &mut MeshBuilder,
+        position: &WorldPoint,
+        color: Color,
+    ) -> GameResult {
+        let relative_point =
+            Vec2::new(position.x, position.y) / Vec2::new(self.map_width, self.map_height);
+        let relative_point = relative_point * Vec2::new(self.width(ctx), self.height(ctx));
+        let point = Vec2::new(
+            self.point.x + relative_point.x,
+            self.point.y + relative_point.y,
+        );
+
+        mesh_builder.rectangle(
+            DrawMode::Fill(FillOptions::default()),
+            Rect::new(
+                point.x - SQUAD_SQUARE_SIZE / 2.,
+                point.y - SQUAD_SQUARE_SIZE / 2.,
+                SQUAD_SQUARE_SIZE,
+                SQUAD_SQUARE_SIZE,
+            ),
+            color,
+        )?;
+
+        Ok(())
+    }
+}
+
+impl Component<HudEvent> for Minimap {
+    fn point(&self, _ctx: &ggez::Context) -> WindowPoint {
+        self.point
+    }
+
+    fn width(&self, _ctx: &ggez::Context) -> f32 {
+        MINIMAP_WIDTH
+    }
+
+    fn height(&self, _ctx: &ggez::Context) -> f32 {
+        MINIMAP_HEIGHT
+    }
+
+    fn draw(&self, ctx: &mut Context, _hovered: &WindowPoint, canvas: &mut Canvas) -> GameResult {
+        let mut mesh_builder = MeshBuilder::new();
+
+        self.draw_displayed_zone(ctx, &mut mesh_builder)?;
+        self.draw_squads(ctx, &mut mesh_builder)?;
 
         canvas.draw(
             &Mesh::from_data(ctx, mesh_builder.build()),

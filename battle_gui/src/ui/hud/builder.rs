@@ -126,12 +126,32 @@ impl<'a> HudBuilder<'a> {
     }
 
     fn minimap(&self, point: &WindowPoint) -> Minimap {
+        let blue_positions = self
+            .battle_state
+            .squads()
+            .iter()
+            .map(|(s, _)| self.battle_state.squad(*s))
+            .map(|s| self.battle_state.soldier(s.leader()))
+            .filter(|s| s.side() == self.gui_state.side())
+            .map(|s| s.world_point())
+            .collect();
+        let red_positions = self
+            .battle_state
+            .squads()
+            .iter()
+            .map(|(s, _)| self.battle_state.squad(*s))
+            .map(|s| self.battle_state.soldier(s.leader()))
+            .filter(|s| s.side() != self.gui_state.side())
+            .map(|s| s.world_point())
+            .collect();
         Minimap::new(
             *point,
             self.battle_state.map().visual_width() as f32,
             self.battle_state.map().visual_height() as f32,
             self.gui_state.display_scene_offset.clone(),
             self.gui_state.zoom.clone(),
+            blue_positions,
+            red_positions,
         )
     }
 }
