@@ -26,6 +26,26 @@ impl BattleState {
         false
     }
 
+    pub fn soldier_squad_is_visible_by_side(&self, soldier: &Soldier, side: &Side) -> bool {
+        for soldier_uuid in self.squad(soldier.squad_uuid()).members() {
+            let squad_solider = self.soldier(*soldier_uuid);
+            for visibility in self.visibilities().visibles_soldiers().iter().filter(|v| {
+                self.soldier(
+                    v.from_soldier
+                        .expect("visibles_soldiers implies from_soldier"),
+                )
+                .side()
+                    == side
+            }) {
+                if visibility.to_soldier == Some(squad_solider.uuid()) {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
     pub fn point_is_visible_by_squad(
         &self,
         config: &ServerConfig,

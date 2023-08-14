@@ -126,6 +126,8 @@ impl<'a> HudBuilder<'a> {
     }
 
     fn minimap(&self, point: &WindowPoint) -> Minimap {
+        // FIXME BS NOW : all of this consume cpu (specially soldier_squad_is_visible_by_side)
+        // So, reduce hud or minimap framerate (store it in gui state ?)
         let blue_positions = self
             .battle_state
             .squads()
@@ -142,6 +144,10 @@ impl<'a> HudBuilder<'a> {
             .map(|(s, _)| self.battle_state.squad(*s))
             .map(|s| self.battle_state.soldier(s.leader()))
             .filter(|s| s.side() != self.gui_state.side())
+            .filter(|s| {
+                self.battle_state
+                    .soldier_squad_is_visible_by_side(s, self.gui_state.side())
+            })
             .map(|s| s.world_point())
             .collect();
         Minimap::new(
