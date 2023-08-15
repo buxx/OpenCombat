@@ -187,9 +187,9 @@ impl Engine {
         Ok(())
     }
 
-    pub fn generate_orders_sprites(&mut self) -> GameResult {
+    pub fn generate_orders_sprites(&mut self, mesh_builder: &mut MeshBuilder) -> GameResult {
         for pending_order in self.gui_state.pending_order() {
-            let sprites = self.generate_pending_order_sprites(pending_order);
+            let sprites = self.generate_pending_order_sprites(pending_order, mesh_builder)?;
             self.graphics.extend_ui_batch(sprites);
         }
 

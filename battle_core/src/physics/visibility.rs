@@ -12,6 +12,8 @@ use crate::{
 
 use super::utils::meters_between_world_points;
 
+pub const VISIBLE_OPACITY_LIMIT: f32 = 0.5;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Visibilities {
     visibilities: HashMap<(SoldierIndex, SoldierIndex), Visibility>,
@@ -64,6 +66,7 @@ pub struct Visibility {
     pub opacity_segments: Vec<(WorldPoint, f32)>,
     pub visible: bool,
     pub distance: Distance,
+    pub break_point: Option<WorldPoint>,
 }
 
 impl Visibility {
@@ -87,7 +90,7 @@ impl Visibility {
             0
         };
 
-        let (mut to_soldier_item_opacity, opacity_segments, path_final_opacity) =
+        let (mut to_soldier_item_opacity, opacity_segments, path_final_opacity, break_point) =
             Self::between_points_raw(
                 config,
                 &from_point,
@@ -112,6 +115,7 @@ impl Visibility {
             to_scene_item_opacity: to_soldier_item_opacity,
             visible,
             distance,
+            break_point,
         }
     }
 
@@ -123,10 +127,10 @@ impl Visibility {
     ) -> Self {
         let from_point = from_soldier.world_point();
 
-        let (to_soldier_item_opacity, opacity_segments, path_final_opacity) =
+        let (to_soldier_item_opacity, opacity_segments, path_final_opacity, break_point) =
             Self::between_points_raw(config, &from_point, &to_point, map, VISIBILITY_FIRSTS, 0);
 
-        let visible = to_soldier_item_opacity < 0.5;
+        let visible = to_soldier_item_opacity < VISIBLE_OPACITY_LIMIT;
         let distance = meters_between_world_points(&from_point, &to_point);
         Self {
             from: from_point,
@@ -138,6 +142,7 @@ impl Visibility {
             to_scene_item_opacity: to_soldier_item_opacity,
             visible,
             distance,
+            break_point,
         }
     }
 
@@ -147,7 +152,7 @@ impl Visibility {
         to_point: &WorldPoint,
         map: &Map,
     ) -> Self {
-        let (to_soldier_item_opacity, opacity_segments, path_final_opacity) =
+        let (to_soldier_item_opacity, opacity_segments, path_final_opacity, break_point) =
             Self::between_points_raw(config, &from_point, &to_point, map, VISIBILITY_FIRSTS, 0);
 
         let visible = to_soldier_item_opacity < 0.5;
@@ -162,6 +167,7 @@ impl Visibility {
             to_scene_item_opacity: to_soldier_item_opacity,
             visible,
             distance,
+            break_point,
         }
     }
 
@@ -173,10 +179,11 @@ impl Visibility {
         map: &Map,
         exclude_firsts: usize,
         exclude_lasts: usize,
-    ) -> (f32, Vec<(WorldPoint, f32)>, f32) {
+    ) -> (f32, Vec<(WorldPoint, f32)>, f32, Option<WorldPoint>) {
         let mut opacity_segments: Vec<(WorldPoint, f32)> = vec![];
         let mut path_final_opacity: f32 = 0.0;
         let mut to_opacity: f32 = 0.0;
+        let mut break_point = None;
         let _visible_by_bullet_fire = false;
 
         // Compute line pixels
@@ -224,8 +231,17 @@ impl Visibility {
             path_final_opacity += opacity;
             to_opacity += opacity;
             opacity_segments.push((world_point, path_final_opacity));
+            if path_final_opacity > VISIBLE_OPACITY_LIMIT && break_point.is_none() {
+                break_point = Some(world_point);
+                dbg!(break_point);
+            }
         }
 
-        (to_opacity, opacity_segments, path_final_opacity)
+        (
+            to_opacity,
+            opacity_segments,
+            path_final_opacity,
+            break_point,
+        )
     }
 }

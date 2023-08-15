@@ -7,6 +7,7 @@ use battle_core::{
     entity::soldier::Soldier,
     game::squad::{squad_positions, Formation},
     order::{marker::OrderMarker, Order, PendingOrder},
+    physics::visibility::Visibility,
     types::*,
 };
 use glam::Vec2;
@@ -333,7 +334,11 @@ impl Engine {
         Ok(())
     }
 
-    pub fn generate_pending_order_sprites(&self, pending_order: &PendingOrder) -> Vec<DrawParam> {
+    pub fn generate_pending_order_sprites(
+        &self,
+        pending_order: &PendingOrder,
+        mesh_builder: &mut MeshBuilder,
+    ) -> GameResult<Vec<DrawParam>> {
         let mut draw_params = vec![];
 
         let squad = self.battle_state.squad(*pending_order.squad_index());
@@ -379,7 +384,38 @@ impl Engine {
             }
             PendingOrder::EngageOrFire(_) => {
                 let pending_order_marker = self.pending_order_marker(pending_order);
+                let from_point = self
+                    .gui_state
+                    .window_point_from_world_point(squad_leader.world_point());
                 let to_point = self.gui_state.current_cursor_window_point();
+
+                let visibility = Visibility::between_points(
+                    &self.server_config,
+                    &squad_leader.world_point(),
+                    &self.gui_state.current_cursor_world_point(),
+                    self.battle_state.map(),
+                );
+
+                if let Some(break_point) = visibility.break_point {
+                    let to_break_point = self.gui_state.window_point_from_world_point(break_point);
+                    mesh_builder.line(
+                        &vec![from_point.to_vec2(), to_break_point.to_vec2()],
+                        2.,
+                        Color::RED,
+                    )?;
+                    mesh_builder.line(
+                        &vec![to_break_point.to_vec2(), to_point.to_vec2()],
+                        2.,
+                        Color::BLACK,
+                    )?;
+                } else {
+                    mesh_builder.line(
+                        &vec![from_point.to_vec2(), to_point.to_vec2()],
+                        2.,
+                        Color::RED,
+                    )?;
+                }
+
                 draw_params.push(self.graphics.order_marker_draw_params(
                     &pending_order_marker,
                     *to_point,
@@ -388,7 +424,7 @@ impl Engine {
             }
         }
 
-        draw_params
+        Ok(draw_params)
     }
 
     fn pending_order_marker(&self, pending_order: &PendingOrder) -> OrderMarker {
