@@ -278,13 +278,10 @@ impl GuiState {
         let (window_width, window_height) = ctx.gfx.drawable_size();
         let half_window = WindowPoint::new(window_width / 2., (window_height - HUD_HEIGHT) / 2.);
         let needed_offset = Offset::new(
-            half_window.x - (target_point.x * self.zoom.factor()),
-            half_window.y - (target_point.y * self.zoom.factor()),
+            half_window.x - target_point.x * self.zoom.factor(),
+            half_window.y - target_point.y * self.zoom.factor(),
         );
         self.display_scene_offset = needed_offset;
-
-        // FIXME BS NOW : Faire en sorte que le offset puisse pas être > moitié taille de carte (en positif ou en neg)
-        // pour pas perdre la carte de vue
     }
 
     pub fn ensure_correct_scene_offset(&mut self, ctx: &mut Context) {
