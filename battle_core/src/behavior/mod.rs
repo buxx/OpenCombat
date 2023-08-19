@@ -114,6 +114,13 @@ impl Behavior {
             | Behavior::EngageSoldier(_) => Posture::Flat,
         }
     }
+
+    pub fn is_hide(&self) -> bool {
+        match self {
+            Behavior::Hide(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Display for Behavior {

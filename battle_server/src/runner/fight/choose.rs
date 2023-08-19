@@ -6,7 +6,7 @@ impl Runner {
     // TODO : choose soldier according to distance, weapon type, etc
     // TODO : choose soldier according to other squad targets (distribution)
     // TODO : don't make it if soldier is driver, working assistant, etc
-    pub fn soldier_opponent(
+    pub fn soldier_find_opponent_to_target(
         &self,
         soldier: &Soldier,
         squad_index: Option<&SquadUuid>,
@@ -31,6 +31,10 @@ impl Runner {
                 .partial_cmp(&b.distance.millimeters())
                 .expect("Must be i64")
         });
+
+        if soldier.behavior().is_hide() {
+            visibles.retain(|v| v.distance <= self.config.hide_maximum_rayon)
+        }
 
         if let Some(visibility) = visibles.first() {
             return Some(

@@ -243,6 +243,19 @@ impl Engine {
                     }),
                 );
 
+                // Set soldiers order
+                messages.extend(
+                    moves
+                        .iter()
+                        .map(|(soldier_index, _, _)| {
+                            EngineMessage::BattleState(BattleStateMessage::Soldier(
+                                *soldier_index,
+                                SoldierMessage::SetOrder(order.clone()),
+                            ))
+                        })
+                        .collect::<Vec<EngineMessage>>(),
+                );
+
                 messages
             }
             Order::EngageSquad(_)

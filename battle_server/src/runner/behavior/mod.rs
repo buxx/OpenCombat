@@ -132,7 +132,7 @@ impl Runner {
     }
 
     pub fn idle_behavior(&self, soldier: &Soldier) -> Behavior {
-        if let Some(opponent) = self.soldier_opponent(soldier, None) {
+        if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
             return Behavior::EngageSoldier(opponent.uuid());
         }
 
@@ -145,7 +145,7 @@ impl Runner {
     }
 
     pub fn move_behavior(&self, soldier: &Soldier, paths: &WorldPaths) -> Behavior {
-        if let Some(opponent) = self.soldier_opponent(soldier, None) {
+        if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
             return Behavior::EngageSoldier(opponent.uuid());
         }
 
@@ -178,7 +178,13 @@ impl Runner {
 
     pub fn defend_behavior(&self, soldier: &Soldier, angle: &Angle) -> Behavior {
         match self.battle_state.soldier_behavior_mode(soldier) {
-            BehaviorMode::Ground => Behavior::Defend(*angle),
+            BehaviorMode::Ground => {
+                if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
+                    return Behavior::EngageSoldier(opponent.uuid());
+                } else {
+                    Behavior::Defend(*angle)
+                }
+            }
             BehaviorMode::Vehicle => {
                 // FIXME BS NOW : REF_ANGLE001 refactor it
                 let vehicle_index = self
@@ -201,7 +207,13 @@ impl Runner {
 
     pub fn hide_behavior(&self, soldier: &Soldier, angle: &Angle) -> Behavior {
         match self.battle_state.soldier_behavior_mode(soldier) {
-            BehaviorMode::Ground => Behavior::Hide(*angle),
+            BehaviorMode::Ground => {
+                if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
+                    return Behavior::EngageSoldier(opponent.uuid());
+                } else {
+                    Behavior::Hide(*angle)
+                }
+            }
             BehaviorMode::Vehicle => {
                 let vehicle_index = self
                     .battle_state
@@ -222,7 +234,7 @@ impl Runner {
     }
 
     pub fn engage_behavior(&self, soldier: &Soldier, squad_index: &SquadUuid) -> Behavior {
-        if let Some(opponent) = self.soldier_opponent(soldier, Some(squad_index)) {
+        if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, Some(squad_index)) {
             return Behavior::EngageSoldier(opponent.uuid());
         }
 

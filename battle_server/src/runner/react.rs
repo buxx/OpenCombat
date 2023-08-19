@@ -29,8 +29,13 @@ impl Runner {
         match side_effect {
             SideEffect::SoldierFinishHisBehavior(soldier_index, then) => {
                 let soldier = self.battle_state.soldier_mut(*soldier_index);
-                soldier.set_behavior(Behavior::Idle);
-                soldier.set_order(then.clone().unwrap_or(Order::Idle));
+                let (behavior, order) = if let Some(then_order) = then {
+                    (then_order.default_behavior(), then_order.clone())
+                } else {
+                    (Behavior::Idle, Order::Idle)
+                };
+                soldier.set_behavior(behavior);
+                soldier.set_order(order);
             }
             // Server ignore this side effect because concern Gui only
             SideEffect::RefreshEntityAnimation(_) => {}

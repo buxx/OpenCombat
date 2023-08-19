@@ -30,16 +30,20 @@ impl Runner {
         {
             // If it is the last point, move is finished
             if path.is_last_point().expect("Must contain points") {
+                let (behavior, order) = if let Some(then_order) = soldier.order().then() {
+                    (then_order.default_behavior(), then_order)
+                } else {
+                    (Behavior::Idle, Order::Idle)
+                };
+
                 messages.extend(vec![
                     RunnerMessage::BattleState(BattleStateMessage::Soldier(
                         soldier_index,
-                        SoldierMessage::SetBehavior(Behavior::Idle),
+                        SoldierMessage::SetBehavior(behavior),
                     )),
                     RunnerMessage::BattleState(BattleStateMessage::Soldier(
                         soldier_index,
-                        SoldierMessage::SetOrder(
-                            soldier.order().then().clone().unwrap_or(Order::Idle),
-                        ),
+                        SoldierMessage::SetOrder(order),
                     )),
                 ]);
             } else {
