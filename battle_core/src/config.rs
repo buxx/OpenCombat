@@ -87,6 +87,8 @@ pub const VISIBILITY_PIXEL_STEPS: usize = 5;
 pub const COVERAGE_PIXEL_STEPS: usize = 5;
 // When compute coverage, configure here how many tile to consider starting from soldier
 pub const COVERAGE_TILE_STEPS: usize = 3;
+//
+pub const HIDE_MAXIMUM_RAYON: i64 = 50;
 
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
@@ -133,6 +135,7 @@ pub struct ServerConfig {
     pub explosive_direct_death_rayon: HashMap<ExplosiveType, Distance>,
     pub explosive_regressive_death_rayon: HashMap<ExplosiveType, Distance>,
     pub explosive_regressive_injured_rayon: HashMap<ExplosiveType, Distance>,
+    pub hide_maximum_rayon: Distance,
 }
 
 impl ServerConfig {
@@ -210,6 +213,8 @@ impl ServerConfig {
             explosive_direct_death_rayon,
             explosive_regressive_death_rayon,
             explosive_regressive_injured_rayon,
+
+            hide_maximum_rayon: Distance::from_meters(HIDE_MAXIMUM_RAYON),
         }
     }
 

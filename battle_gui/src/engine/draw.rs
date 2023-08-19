@@ -1,5 +1,8 @@
 use ggez::{
-    graphics::{self, Canvas, Color, DrawParam, MeshBuilder, Rect, Text, TextFragment, TextLayout},
+    graphics::{
+        self, Canvas, Color, DrawMode, DrawParam, MeshBuilder, Rect, StrokeOptions, Text,
+        TextFragment, TextLayout,
+    },
     Context, GameResult,
 };
 
@@ -7,7 +10,7 @@ use battle_core::{
     entity::soldier::Soldier,
     game::squad::{squad_positions, Formation},
     order::{marker::OrderMarker, Order, PendingOrder},
-    physics::visibility::Visibility,
+    physics::{utils::DISTANCE_TO_METERS_COEFFICIENT, visibility::Visibility},
     types::*,
 };
 use glam::Vec2;
@@ -380,7 +383,20 @@ impl Engine {
                         )
                         // Defend/Hide sprite are scaled
                         .scale(self.gui_state.zoom.to_vec2()),
-                )
+                );
+
+                if pending_order.is_hide() {
+                    let radius = (self.server_config.hide_maximum_rayon.millimeters() as f32
+                        / DISTANCE_TO_METERS_COEFFICIENT)
+                        / 1000.;
+                    mesh_builder.circle(
+                        DrawMode::Stroke(StrokeOptions::default()),
+                        from_point,
+                        radius,
+                        1.0,
+                        Color::YELLOW,
+                    )?;
+                }
             }
             PendingOrder::EngageOrFire(_) => {
                 let pending_order_marker = self.pending_order_marker(pending_order);

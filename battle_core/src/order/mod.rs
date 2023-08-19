@@ -68,6 +68,13 @@ impl PendingOrder {
             _ => {}
         }
     }
+
+    pub fn is_hide(&self) -> bool {
+        match self {
+            Self::Hide(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Display for PendingOrder {
