@@ -15,6 +15,15 @@ pub enum Side {
     A,
     B,
 }
+impl Side {
+    pub fn opposite(&self) -> Side {
+        match self {
+            Side::All => Side::All,
+            Side::A => Side::B,
+            Side::B => Side::A,
+        }
+    }
+}
 
 use std::{fmt::Display, str::FromStr};
 

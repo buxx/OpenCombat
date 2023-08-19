@@ -64,5 +64,5 @@ pub enum VehicleMessage {
 pub enum SideEffect {
     // FIXME Systematic gui side
     RefreshEntityAnimation(SoldierIndex),
-    SoldierFinishHisBehavior(SoldierIndex),
+    SoldierFinishHisBehavior(SoldierIndex, Option<Order>),
 }

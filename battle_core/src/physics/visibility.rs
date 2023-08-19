@@ -233,7 +233,6 @@ impl Visibility {
             opacity_segments.push((world_point, path_final_opacity));
             if path_final_opacity > VISIBLE_OPACITY_LIMIT && break_point.is_none() {
                 break_point = Some(world_point);
-                dbg!(break_point);
             }
         }
 

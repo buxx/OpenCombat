@@ -1,6 +1,8 @@
 use battle_core::{
     behavior::Behavior,
-    types::{Angle, WorldPoint},
+    game::Side,
+    physics::utils::meters_between_world_points,
+    types::{Angle, Distance, WorldPoint},
     utils::angle,
 };
 
@@ -30,5 +32,32 @@ impl Runner {
             // TODO: keep angle for dead/unconscious soldiers
             Behavior::Dead | Behavior::Unconscious => None,
         }
+    }
+
+    // FIXME BS NOW : use this too for soldiers gestures : for now, we check from leader,
+    // but soldier must defend himself too if is away
+    pub fn visible_soldier_in_circle(
+        &self,
+        point: &WorldPoint,
+        radius: &Distance,
+        side: &Side,
+    ) -> bool {
+        self.battle_state
+            .visibilities()
+            .visibles_soldiers()
+            .iter()
+            .filter(|visibility| {
+                if let Some(soldier_index) = visibility.to_soldier {
+                    let soldier = self.battle_state.soldier(soldier_index);
+                    if soldier.side() == side {
+                        if &meters_between_world_points(point, &soldier.world_point()) <= radius {
+                            return true;
+                        }
+                    }
+                }
+                false
+            })
+            .next()
+            .is_some()
     }
 }

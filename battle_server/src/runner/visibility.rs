@@ -106,9 +106,9 @@ impl Runner {
             for (squad_index, order) in self.battle_state.all_orders(&side) {
                 match order {
                     Order::Idle
-                    | Order::MoveTo(_)
-                    | Order::MoveFastTo(_)
-                    | Order::SneakTo(_)
+                    | Order::MoveTo(_, _)
+                    | Order::MoveFastTo(_, _)
+                    | Order::SneakTo(_, _)
                     | Order::Defend(_)
                     | Order::Hide(_)
                     | Order::SuppressFire(_) => {}

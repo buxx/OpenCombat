@@ -386,12 +386,16 @@ impl Engine {
                 );
 
                 if pending_order.is_hide() {
-                    let radius = (self.server_config.hide_maximum_rayon.millimeters() as f32
+                    let radius = ((self.server_config.hide_maximum_rayon.millimeters() as f32
                         / DISTANCE_TO_METERS_COEFFICIENT)
-                        / 1000.;
+                        / 1000.)
+                        * self.gui_state.zoom.factor();
+                    let point = self
+                        .gui_state
+                        .window_point_from_world_point(squad_leader.world_point());
                     mesh_builder.circle(
                         DrawMode::Stroke(StrokeOptions::default()),
-                        from_point,
+                        point.to_vec2(),
                         radius,
                         1.0,
                         Color::YELLOW,

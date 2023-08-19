@@ -19,9 +19,9 @@ impl BattleState {
             let marker = order.marker();
             let squad = self.squad(squad_id);
             match &order {
-                Order::MoveTo(world_paths)
-                | Order::MoveFastTo(world_paths)
-                | Order::SneakTo(world_paths) => {
+                Order::MoveTo(world_paths, _)
+                | Order::MoveFastTo(world_paths, _)
+                | Order::SneakTo(world_paths, _) => {
                     // Return one couple by move path (because can have multiple move paths))
                     marker_data.extend::<Vec<(
                         Order,

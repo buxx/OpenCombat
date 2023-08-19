@@ -37,9 +37,9 @@ impl Runner {
                 let world_paths = WorldPaths::new(vec![WorldPath::new(world_path)]);
 
                 let order = match behavior {
-                    Behavior::MoveTo(_) => Order::MoveTo(world_paths),
-                    Behavior::MoveFastTo(_) => Order::MoveFastTo(world_paths),
-                    Behavior::SneakTo(_) => Order::SneakTo(world_paths),
+                    Behavior::MoveTo(_) => Order::MoveTo(world_paths, None),
+                    Behavior::MoveFastTo(_) => Order::MoveFastTo(world_paths, None),
+                    Behavior::SneakTo(_) => Order::SneakTo(world_paths, None),
                     _ => unreachable!(),
                 };
                 behaviors.push((soldier, order))
@@ -68,7 +68,7 @@ impl Runner {
                             unreachable!()
                         }
                     };
-                    return vec![(soldier, Order::MoveTo(paths.clone()))];
+                    return vec![(soldier, Order::MoveTo(paths.clone(), None))];
                 }
             }
         }

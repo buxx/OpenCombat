@@ -28,9 +28,9 @@ impl Runner {
 
         let behavior = match soldier.order() {
             Order::Idle => self.idle_behavior(soldier),
-            Order::MoveTo(paths) => self.move_behavior(soldier, paths),
-            Order::MoveFastTo(paths) => self.move_fast_behavior(soldier, paths),
-            Order::SneakTo(paths) => self.sneak_to_behavior(soldier, paths),
+            Order::MoveTo(paths, _) => self.move_behavior(soldier, paths),
+            Order::MoveFastTo(paths, _) => self.move_fast_behavior(soldier, paths),
+            Order::SneakTo(paths, _) => self.sneak_to_behavior(soldier, paths),
             Order::Defend(angle) => self.defend_behavior(soldier, angle),
             Order::Hide(angle) => self.hide_behavior(soldier, angle),
             Order::EngageSquad(squad_index) => self.engage_behavior(soldier, squad_index),
@@ -78,17 +78,20 @@ impl Runner {
             Behavior::Defend(_) => {
                 let (orders, debug_points_) = match self.battle_state.soldier_behavior_mode(leader)
                 {
-                    BehaviorMode::Ground => self.propagate_defend(leader.squad_uuid(), &behavior),
+                    BehaviorMode::Ground => {
+                        self.propagate_defend_or_hide(leader.squad_uuid(), &behavior)
+                    }
                     BehaviorMode::Vehicle => self.propagate_rotate(leader.squad_uuid(), &behavior),
                 };
                 debug_points.extend(debug_points_);
                 orders
             }
             Behavior::Hide(_) => {
-                // TODO : Special behavior for hide ?
                 let (orders, debug_points_) = match self.battle_state.soldier_behavior_mode(leader)
                 {
-                    BehaviorMode::Ground => self.propagate_defend(leader.squad_uuid(), &behavior),
+                    BehaviorMode::Ground => {
+                        self.propagate_defend_or_hide(leader.squad_uuid(), &behavior)
+                    }
                     BehaviorMode::Vehicle => self.propagate_rotate(leader.squad_uuid(), &behavior),
                 };
                 debug_points.extend(debug_points_);

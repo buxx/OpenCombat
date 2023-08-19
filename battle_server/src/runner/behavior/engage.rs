@@ -100,7 +100,7 @@ impl Runner {
 
                             orders.push((
                                 member,
-                                Order::MoveFastTo(WorldPaths::new(vec![world_path])),
+                                Order::MoveFastTo(WorldPaths::new(vec![world_path]), None),
                             ));
                             break 'subordinates;
                         } else {

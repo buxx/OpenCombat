@@ -23,7 +23,7 @@ impl Engine {
         if let Some(world_paths) =
             self.create_world_paths_from_context(squad_id, order_marker_index, cached_points)
         {
-            return Some(Order::MoveTo(world_paths));
+            return Some(Order::MoveTo(world_paths, None));
         }
 
         None
@@ -38,7 +38,7 @@ impl Engine {
         if let Some(world_paths) =
             self.create_world_paths_from_context(squad_id, order_marker_index, cached_points)
         {
-            return Some(Order::MoveFastTo(world_paths));
+            return Some(Order::MoveFastTo(world_paths, None));
         }
 
         None
@@ -53,7 +53,7 @@ impl Engine {
         if let Some(world_paths) =
             self.create_world_paths_from_context(squad_id, order_marker_index, cached_points)
         {
-            return Some(Order::SneakTo(world_paths));
+            return Some(Order::SneakTo(world_paths, None));
         }
 
         None
@@ -161,9 +161,9 @@ impl Engine {
             Order::EngageSquad(_)
             | Order::SuppressFire(_)
             | Order::Idle
-            | Order::MoveTo(_)
-            | Order::MoveFastTo(_)
-            | Order::SneakTo(_) => {
+            | Order::MoveTo(_, _)
+            | Order::MoveFastTo(_, _)
+            | Order::SneakTo(_, _) => {
                 // No direct solving in placement for these orders
                 vec![]
             }
@@ -248,9 +248,9 @@ impl Engine {
             Order::EngageSquad(_)
             | Order::SuppressFire(_)
             | Order::Idle
-            | Order::MoveTo(_)
-            | Order::MoveFastTo(_)
-            | Order::SneakTo(_) => {
+            | Order::MoveTo(_, _)
+            | Order::MoveFastTo(_, _)
+            | Order::SneakTo(_, _) => {
                 // No direct solving in placement for these orders
                 vec![]
             }

@@ -93,9 +93,9 @@ impl Display for PendingOrder {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Order {
     Idle,
-    MoveTo(WorldPaths),
-    MoveFastTo(WorldPaths),
-    SneakTo(WorldPaths),
+    MoveTo(WorldPaths, Option<Box<Order>>),
+    MoveFastTo(WorldPaths, Option<Box<Order>>),
+    SneakTo(WorldPaths, Option<Box<Order>>),
     Defend(Angle),
     Hide(Angle),
     EngageSquad(SquadUuid),
@@ -105,9 +105,9 @@ pub enum Order {
 impl Order {
     pub fn marker(&self) -> Option<OrderMarker> {
         match self {
-            Order::MoveTo(_) => Some(OrderMarker::MoveTo),
-            Order::MoveFastTo(_) => Some(OrderMarker::MoveFastTo),
-            Order::SneakTo(_) => Some(OrderMarker::SneakTo),
+            Order::MoveTo(_, _) => Some(OrderMarker::MoveTo),
+            Order::MoveFastTo(_, _) => Some(OrderMarker::MoveFastTo),
+            Order::SneakTo(_, _) => Some(OrderMarker::SneakTo),
             Order::Defend(_) => Some(OrderMarker::Defend),
             Order::Hide(_) => Some(OrderMarker::Hide),
             Order::EngageSquad(_) => Some(OrderMarker::EngageSquad),
@@ -118,7 +118,7 @@ impl Order {
 
     pub fn angle(&self) -> Option<Angle> {
         match self {
-            Order::MoveTo(_) | Order::MoveFastTo(_) | Order::SneakTo(_) => None,
+            Order::MoveTo(_, _) | Order::MoveFastTo(_, _) | Order::SneakTo(_, _) => None,
             Order::Defend(angle) => Some(*angle),
             Order::Hide(angle) => Some(*angle),
             Order::SuppressFire(_) => None,
@@ -129,7 +129,7 @@ impl Order {
 
     pub fn reach_step(&mut self) -> bool {
         match self {
-            Order::MoveTo(paths) | Order::MoveFastTo(paths) | Order::SneakTo(paths) => {
+            Order::MoveTo(paths, _) | Order::MoveFastTo(paths, _) | Order::SneakTo(paths, _) => {
                 paths
                     .remove_next_point()
                     .expect("Reach a move behavior implies containing point");
@@ -147,14 +147,25 @@ impl Order {
 
         false
     }
+
+    pub fn then(&self) -> Option<Order> {
+        match self {
+            Self::MoveTo(_, then) => then,
+            Self::MoveFastTo(_, then) => then,
+            Self::SneakTo(_, then) => then,
+            _ => &None,
+        }
+        .clone()
+        .and_then(|t| Some(*t))
+    }
 }
 
 impl Display for Order {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Order::MoveTo(_) => f.write_str("MoveTo"),
-            Order::MoveFastTo(_) => f.write_str("MoveFastTo"),
-            Order::SneakTo(_) => f.write_str("SneakTo"),
+            Order::MoveTo(_, _) => f.write_str("MoveTo"),
+            Order::MoveFastTo(_, _) => f.write_str("MoveFastTo"),
+            Order::SneakTo(_, _) => f.write_str("SneakTo"),
             Order::Defend(_) => f.write_str("Defend"),
             Order::Hide(_) => f.write_str("Hide"),
             Order::Idle => f.write_str("Idle"),

@@ -27,10 +27,10 @@ impl Runner {
     // should be computed when original message is produced
     pub fn side_effect(&mut self, side_effect: &SideEffect) {
         match side_effect {
-            SideEffect::SoldierFinishHisBehavior(soldier_index) => {
+            SideEffect::SoldierFinishHisBehavior(soldier_index, then) => {
                 let soldier = self.battle_state.soldier_mut(*soldier_index);
                 soldier.set_behavior(Behavior::Idle);
-                soldier.set_order(Order::Idle);
+                soldier.set_order(then.clone().unwrap_or(Order::Idle));
             }
             // Server ignore this side effect because concern Gui only
             SideEffect::RefreshEntityAnimation(_) => {}

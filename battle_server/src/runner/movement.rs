@@ -37,7 +37,9 @@ impl Runner {
                     )),
                     RunnerMessage::BattleState(BattleStateMessage::Soldier(
                         soldier_index,
-                        SoldierMessage::SetOrder(Order::Idle),
+                        SoldierMessage::SetOrder(
+                            soldier.order().then().clone().unwrap_or(Order::Idle),
+                        ),
                     )),
                 ]);
             } else {

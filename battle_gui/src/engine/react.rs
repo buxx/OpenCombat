@@ -115,7 +115,7 @@ impl Engine {
                     self.graphics.refresh_soldier_animation(soldier);
                 }
                 // Server side effect
-                SideEffect::SoldierFinishHisBehavior(_) => {}
+                SideEffect::SoldierFinishHisBehavior(_, _) => {}
             }
         }
     }

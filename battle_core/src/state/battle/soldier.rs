@@ -26,7 +26,10 @@ impl BattleState {
             SoldierMessage::SetOrientation(angle) => soldier.set_looking_direction(*angle),
             SoldierMessage::ReachBehaviorStep => {
                 if soldier.order_mut().reach_step() || soldier.behavior_mut().reach_step() {
-                    return vec![SideEffect::SoldierFinishHisBehavior(*soldier_index)];
+                    return vec![SideEffect::SoldierFinishHisBehavior(
+                        *soldier_index,
+                        soldier.order().then().clone(),
+                    )];
                 }
             }
             SoldierMessage::SetAlive(alive) => soldier.set_alive(*alive),
