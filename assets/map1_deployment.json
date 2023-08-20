@@ -249,48 +249,8 @@
                     "MosinNagant": 5
                 }
             ]
-        },
-        {
-            "uuid": 10,
-            "side": "A",
-            "world_point": {
-                "x": 0.0,
-                "y": 0.0
-            },
-            "squad_uuid": 2,
-            "main_weapon": null,
-            "magazines": []
-        },
-        {
-            "uuid": 11,
-            "side": "A",
-            "world_point": {
-                "x": 0.0,
-                "y": 0.0
-            },
-            "squad_uuid": 2,
-            "main_weapon": null,
-            "magazines": []
         }
     ],
-    "vehicles": [
-        {
-            "uuid": 0,
-            "type_": "T26",
-            "world_point": {
-                "x": 100.0,
-                "y": 100.0
-            }
-        }
-    ],
-    "boards": {
-        "11": [
-            0,
-            "MainTurretGunner"
-        ],
-        "10": [
-            0,
-            "Driver"
-        ]
-    }
+    "vehicles": [],
+    "boards": {}
 }
