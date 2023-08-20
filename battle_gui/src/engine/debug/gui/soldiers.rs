@@ -48,6 +48,7 @@ impl Engine {
         soldier_index: &SoldierIndex,
     ) -> Vec<EngineMessage> {
         let soldier = &mut self.battle_state.soldier_mut(*soldier_index);
+        // FIXME BS NOW : changes are not sent to server
         Grid::new(&format!("soldier_{}", soldier_index))
             .num_columns(2)
             .spacing([40.0, 4.0])

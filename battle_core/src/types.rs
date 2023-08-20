@@ -400,6 +400,10 @@ impl SquadComposition {
         self.0
     }
 
+    pub fn leader_mut(&mut self) -> &mut SoldierIndex {
+        &mut self.0
+    }
+
     pub fn members(&self) -> &Vec<SoldierIndex> {
         &self.1
     }

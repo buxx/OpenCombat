@@ -12,7 +12,7 @@ use crate::{
         event::{bullet::BulletFire, explosion::Explosion},
         visibility::Visibility,
     },
-    types::{Angle, SoldierIndex, VehicleIndex, WorldPoint},
+    types::{Angle, SoldierIndex, SquadUuid, VehicleIndex, WorldPoint},
 };
 
 use super::phase::Phase;
@@ -32,6 +32,7 @@ pub enum BattleStateMessage {
     SetAMorale(Morale),
     SetBMorale(Morale),
     SetFlagsOwnership(FlagsOwnership),
+    SetSquadLeader(SquadUuid, SoldierIndex),
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

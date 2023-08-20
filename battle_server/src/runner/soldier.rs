@@ -78,4 +78,32 @@ impl Runner {
 
         messages
     }
+
+    pub fn tick_update_squad_leaders(&self) -> Vec<RunnerMessage> {
+        puffin::profile_scope!("tick_update_squad_leaders");
+        let mut messages = vec![];
+        let tick_update = self.frame_i % self.config.squad_leaders_update_freq() == 0;
+
+        if tick_update {
+            for (squad_uuid, _) in self.battle_state.squads() {
+                let squad = self.battle_state.squad(*squad_uuid);
+                let leader = self.battle_state.soldier(squad.leader());
+
+                if !leader.can_be_leader() {
+                    if let Some(member) = squad
+                        .subordinates()
+                        .iter()
+                        .map(|s| self.battle_state.soldier(**s))
+                        .filter(|s| s.can_be_leader())
+                        .next()
+                    {
+                        messages.push(RunnerMessage::BattleState(
+                            BattleStateMessage::SetSquadLeader(*squad_uuid, member.uuid()),
+                        ))
+                    }
+                }
+            }
+        }
+        messages
+    }
 }

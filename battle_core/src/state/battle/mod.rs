@@ -273,6 +273,13 @@ impl BattleState {
             BattleStateMessage::SetFlagsOwnership(flags) => self.flags = flags.clone(),
             BattleStateMessage::SetAMorale(morale) => self.a_morale = morale.clone(),
             BattleStateMessage::SetBMorale(morale) => self.b_morale = morale.clone(),
+            BattleStateMessage::SetSquadLeader(squad_uuid, soldier_index) => {
+                *self
+                    .squads
+                    .get_mut(squad_uuid)
+                    .expect("Squad indexes must be consistent")
+                    .leader_mut() = *soldier_index
+            }
         };
 
         vec![]

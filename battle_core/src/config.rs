@@ -13,6 +13,7 @@ pub const TARGET_FPS: u64 = 60;
 pub const SOLDIER_UPDATE_FREQ: u64 = 1;
 pub const FLAGS_UPDATE_FREQ: u64 = 120;
 pub const SOLDIER_ANIMATE_FREQ: u64 = 20;
+pub const SQUAD_LEADERS_UPDATE_FREQ: u64 = 120;
 pub const INTERIORS_UPDATE_FREQ: u64 = 60;
 pub const VISIBILITY_UPDATE_FREQ: u64 = 60;
 pub const MORALE_UPDATE_FREQ: u64 = 300;
@@ -96,6 +97,7 @@ pub struct ServerConfig {
     pub flags_update_freq: u64,
     pub soldier_update_freq: u64,
     pub soldier_animate_freq: u64,
+    pub squad_leaders_update_freq: u64,
     pub interiors_update_freq: u64,
     pub visibility_update_freq: u64,
     pub morale_update_freq: u64,
@@ -164,6 +166,8 @@ impl ServerConfig {
             ///  - Compute visibility with other soldiers
             ///  - Compute behavior against physics (explosions, gunfires, ...)
             soldier_animate_freq: SOLDIER_ANIMATE_FREQ,
+            ///
+            squad_leaders_update_freq: SQUAD_LEADERS_UPDATE_FREQ,
             /// Frequency of update buildings interiors visibility
             interiors_update_freq: INTERIORS_UPDATE_FREQ,
             /// Frequency of update visibility between soldiers
@@ -228,6 +232,10 @@ impl ServerConfig {
 
     pub fn soldier_animate_freq(&self) -> u64 {
         self.soldier_animate_freq
+    }
+
+    pub fn squad_leaders_update_freq(&self) -> u64 {
+        self.squad_leaders_update_freq
     }
 
     pub fn interiors_update_freq(&self) -> u64 {

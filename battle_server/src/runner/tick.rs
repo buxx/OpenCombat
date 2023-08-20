@@ -12,6 +12,7 @@ impl Runner {
         messages.extend(self.tick_victory());
         messages.extend(self.tick_flags());
         messages.extend(self.tick_soldiers());
+        messages.extend(self.tick_update_squad_leaders());
         messages.extend(self.tick_feeling_decreasing_soldiers());
         messages.extend(self.tick_visibilities());
         messages.extend(self.tick_physics());
