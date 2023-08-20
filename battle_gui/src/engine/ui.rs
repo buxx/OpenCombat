@@ -40,20 +40,29 @@ impl Engine {
                 let point = self
                     .gui_state
                     .window_point_from_world_point(soldier.world_point());
-                let rect = Rect::new(
-                    point.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-                    point.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
-                    DEFAULT_SELECTED_SQUARE_SIDE,
-                    DEFAULT_SELECTED_SQUARE_SIDE,
-                );
 
-                let color =
-                    if self.battle_state.squad(soldier.squad_uuid()).leader() == soldier.uuid() {
-                        Color::BLUE
-                    } else {
-                        SoldierHealthBuilder::new(&soldier).build().color()
-                    };
-                mesh_builder.rectangle(DrawMode::Stroke(StrokeOptions::default()), rect, color)?;
+                mesh_builder.rectangle(
+                    DrawMode::Stroke(StrokeOptions::default()),
+                    Rect::new(
+                        point.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+                        point.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF,
+                        DEFAULT_SELECTED_SQUARE_SIDE,
+                        DEFAULT_SELECTED_SQUARE_SIDE,
+                    ),
+                    SoldierHealthBuilder::new(&soldier).build().color(),
+                )?;
+                if self.battle_state.squad(soldier.squad_uuid()).leader() == soldier.uuid() {
+                    mesh_builder.rectangle(
+                        DrawMode::Stroke(StrokeOptions::default()),
+                        Rect::new(
+                            point.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF - 1.,
+                            point.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF - 1.,
+                            DEFAULT_SELECTED_SQUARE_SIDE + 2.,
+                            DEFAULT_SELECTED_SQUARE_SIDE + 2.,
+                        ),
+                        Color::BLUE,
+                    )?;
+                }
             }
         }
 
