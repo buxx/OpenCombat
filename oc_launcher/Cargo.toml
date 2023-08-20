@@ -1,0 +1,11 @@
+[package]
+name = "oc_launcher"
+version = "0.1.0"
+authors = ["Sevajol Bastien <contact@bux.fr>"]
+edition = "2021"
+
+[dependencies]
+eframe = "0.22.0"
+anyhow = "1.0.69"
+thiserror = "1.0.39"
+env_logger = "0.10.0"

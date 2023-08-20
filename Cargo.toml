@@ -3,6 +3,7 @@ resolver = "2"
 
 members = [
     "oc_core",
+    "oc_launcher",
     "battle_core",
     "battle_server",
     "battle_gui",

@@ -9,6 +9,7 @@
                 "clippy",
                 "Clippy",
                 "consts",
+                "eframe",
                 "ggegui",
                 "ggez",
                 "gids",
