@@ -46,7 +46,13 @@ impl Engine {
                     DEFAULT_SELECTED_SQUARE_SIDE,
                     DEFAULT_SELECTED_SQUARE_SIDE,
                 );
-                let color = SoldierHealthBuilder::new(&soldier).build().color();
+
+                let color =
+                    if self.battle_state.squad(soldier.squad_uuid()).leader() == soldier.uuid() {
+                        Color::BLUE
+                    } else {
+                        SoldierHealthBuilder::new(&soldier).build().color()
+                    };
                 mesh_builder.rectangle(DrawMode::Stroke(StrokeOptions::default()), rect, color)?;
             }
         }

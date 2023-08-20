@@ -160,7 +160,7 @@ impl Component<HudEvent> for SquadStatuses {
                 SQUAD_TYPE_WIDTH + SQUAD_CARD_MARGIN,
                 SQUAD_CARD_HEADER_HEIGHT + SQUAD_CARD_MARGIN,
             ));
-            for (i, solider_status) in draw_card.squad_status.members().iter().enumerate() {
+            for (i, soldier_status) in draw_card.squad_status.members().iter().enumerate() {
                 let soldiers_health_dest = soldiers_healths_start_point.apply(Vec2::new(
                     (SQUAD_CARD_SOLDIER_HEALTH_WIDTH + SQUAD_CARD_MARGIN) * i as f32,
                     0.,
@@ -179,9 +179,22 @@ impl Component<HudEvent> for SquadStatuses {
                         r: 1.,
                         g: 0.,
                         b: 0.,
-                        a: solider_status.under_fire_coefficient(),
+                        a: soldier_status.under_fire_coefficient(),
                     },
                 )?;
+
+                if soldier_status.leader() {
+                    mesh_builder.rectangle(
+                        DrawMode::Stroke(StrokeOptions::default()),
+                        Rect::new(
+                            soldiers_health_dest.x + 1.,
+                            soldiers_health_dest.y + 1.,
+                            SQUAD_CARD_SOLDIER_HEALTH_WIDTH - 1.,
+                            SQUAD_CARD_SOLDIER_HEALTH_HEIGHT - 1.,
+                        ),
+                        Color::BLUE,
+                    )?;
+                }
             }
 
             // Outline when hover or selected

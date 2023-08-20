@@ -1,8 +1,8 @@
 use battle_core::{game::squad::SquadStatusResume, types::WindowPoint};
 use ggez::{
     graphics::{
-        Canvas, Color, DrawMode, DrawParam, FillOptions, Mesh, MeshBuilder, Rect, Text,
-        TextFragment, TextLayout,
+        Canvas, Color, DrawMode, DrawParam, FillOptions, Mesh, MeshBuilder, Rect, StrokeOptions,
+        Text, TextFragment, TextLayout,
     },
     Context, GameResult,
 };
@@ -144,7 +144,20 @@ impl Component<HudEvent> for SquadDetail {
                     )
                     .set_layout(TextLayout::center()),
                     DrawParam::default().dest(text_center_dest.to_vec2()),
-                )
+                );
+
+                if soldier_status.leader() {
+                    mesh_builder.rectangle(
+                        DrawMode::Stroke(StrokeOptions::default()),
+                        Rect::new(
+                            soldiers_status_start_point.x - SOLDIER_WIDTH + 1.,
+                            soldiers_status_start_point.y + 1.,
+                            SOLDIER_WIDTH - 1.,
+                            SOLDIER_WIDTH - 1.,
+                        ),
+                        Color::BLUE,
+                    )?;
+                }
             }
 
             canvas.draw(

@@ -159,6 +159,7 @@ pub struct SquadMemberStatus {
     ammunition_reserve: AmmunitionReserveStatus,
     under_fire_coefficient: f32,
     current: CurrentAction,
+    leader: bool,
 }
 
 // FIXME : this func is here because AmmunitionReserveStatus, Soldier, etc will have to move
@@ -196,6 +197,7 @@ impl SquadMemberStatus {
             ammunition_reserve: ammunition_reserve_status(soldier),
             under_fire_coefficient: (*soldier.under_fire().value() as f32 / UNDER_FIRE_MAX as f32),
             current: CurrentAction::from_soldier(battle_state, squad, soldier),
+            leader: battle_state.squad(soldier.squad_uuid()).leader() == soldier.uuid(),
         }
     }
 
@@ -221,6 +223,10 @@ impl SquadMemberStatus {
 
     pub fn ammunition_reserve(&self) -> &AmmunitionReserveStatus {
         &self.ammunition_reserve
+    }
+
+    pub fn leader(&self) -> bool {
+        self.leader
     }
 }
 
