@@ -150,8 +150,8 @@ impl Component<HudEvent> for SquadDetail {
                     mesh_builder.rectangle(
                         DrawMode::Stroke(StrokeOptions::default()),
                         Rect::new(
-                            soldiers_status_start_point.x - SOLDIER_WIDTH + 1.,
-                            soldiers_status_start_point.y + 1.,
+                            text_dest.x - SOLDIER_WIDTH + 1.,
+                            text_dest.y + 1.,
                             SOLDIER_WIDTH - 1.,
                             SOLDIER_WIDTH - 1.,
                         ),

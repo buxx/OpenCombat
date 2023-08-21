@@ -1,5 +1,8 @@
 use battle_core::{
-    behavior::feeling::UNDER_FIRE_MAX, entity::soldier::WeaponClass, types::SoldierIndex,
+    behavior::feeling::UNDER_FIRE_MAX,
+    entity::soldier::WeaponClass,
+    state::battle::message::{BattleStateMessage, SoldierMessage},
+    types::SoldierIndex,
 };
 use ggegui::egui::{Context as EguiContext, Grid, Slider, Ui};
 use ggez::Context;
@@ -48,7 +51,8 @@ impl Engine {
         soldier_index: &SoldierIndex,
     ) -> Vec<EngineMessage> {
         let soldier = &mut self.battle_state.soldier_mut(*soldier_index);
-        // FIXME BS NOW : changes are not sent to server
+        let mut messages = vec![];
+
         Grid::new(&format!("soldier_{}", soldier_index))
             .num_columns(2)
             .spacing([40.0, 4.0])
@@ -67,17 +71,30 @@ impl Engine {
                 ui.end_row();
 
                 ui.label("Alive");
-                ui.checkbox(soldier.alive_mut(), "");
+                if ui.checkbox(soldier.alive_mut(), "").changed() {
+                    messages.push(EngineMessage::BattleState(BattleStateMessage::Soldier(
+                        soldier.uuid(),
+                        SoldierMessage::SetAlive(soldier.alive()),
+                    )))
+                };
                 ui.end_row();
 
                 ui.label("Unconscious");
-                ui.checkbox(soldier.unconscious_mut(), "");
+                if ui.checkbox(soldier.unconscious_mut(), "").changed() {
+                    messages.push(EngineMessage::BattleState(BattleStateMessage::Soldier(
+                        soldier.uuid(),
+                        SoldierMessage::SetUnconscious(soldier.unconscious()),
+                    )))
+                };
                 ui.end_row();
 
                 ui.label("LastShootFrameI");
                 ui.horizontal(|ui| {
                     if ui.button("set").clicked() {
-                        soldier.set_last_shoot_frame_i(self.gui_state.frame_i())
+                        messages.push(EngineMessage::BattleState(BattleStateMessage::Soldier(
+                            soldier.uuid(),
+                            SoldierMessage::SetLastShootFrameI(self.gui_state.frame_i()),
+                        )))
                     }
                     ui.label(format!("{}", soldier.last_shoot_frame_i()));
                 });
@@ -118,6 +135,6 @@ impl Engine {
                 ui.end_row();
             });
 
-        vec![]
+        messages
     }
 }
