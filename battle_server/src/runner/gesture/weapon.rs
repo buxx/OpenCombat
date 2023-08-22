@@ -13,11 +13,7 @@ impl Runner {
         _point: &WorldPoint,
     ) -> Option<(WeaponClass, &Weapon)> {
         // TODO : according to distance, choose weapon
-        if let Some(weapon) = soldier.main_weapon() {
-            Some((WeaponClass::Main, weapon))
-        } else {
-            None
-        }
+        soldier.main_weapon().as_ref().map(|weapon| (WeaponClass::Main, weapon))
     }
 
     pub fn soldier_can_reload_with<'a>(
@@ -25,12 +21,6 @@ impl Runner {
         soldier: &'a Soldier,
         weapon: &Weapon,
     ) -> Option<&Magazine> {
-        for magazine in soldier.magazines() {
-            if weapon.accepted_magazine(magazine) {
-                return Some(magazine);
-            }
-        }
-
-        None
+        soldier.magazines().iter().find(|&magazine| weapon.accepted_magazine(magazine))
     }
 }

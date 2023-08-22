@@ -71,8 +71,8 @@ impl Vehicle {
             uuid: *vehicle.uuid(),
             type_: vehicle.type_().clone(),
             world_point: vehicle.world_point(),
-            chassis_orientation: vehicle.chassis_orientation().clone(),
-            main_turret_relative_orientation: vehicle.main_turret_relative_orientation().clone(),
+            chassis_orientation: *vehicle.chassis_orientation(),
+            main_turret_relative_orientation: *vehicle.main_turret_relative_orientation(),
         }
     }
 
@@ -133,9 +133,9 @@ impl Vehicle {
 impl From<&VehicleDeployment> for Vehicle {
     fn from(vehicle: &VehicleDeployment) -> Self {
         Self::new(
-            vehicle.uuid().clone(),
+            vehicle.uuid(),
             vehicle.type_().clone(),
-            vehicle.world_point().clone(),
+            vehicle.world_point(),
         )
     }
 }

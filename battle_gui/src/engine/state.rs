@@ -171,11 +171,7 @@ impl GuiState {
     }
 
     pub fn _left_click_down_world_point(&self) -> Option<WorldPoint> {
-        if let Some(left_click_down) = self.left_click_down {
-            Some(self.world_point_from_window_point(left_click_down))
-        } else {
-            None
-        }
+        self.left_click_down.map(|left_click_down| self.world_point_from_window_point(left_click_down))
     }
 
     pub fn current_cursor_vector_window_points(&self) -> &Option<(WindowPoint, WindowPoint)> {
@@ -302,7 +298,7 @@ impl GuiState {
         match message {
             GuiStateMessage::SetCursorPoint(point) => {
                 //
-                self.current_cursor_point = point.clone();
+                self.current_cursor_point = *point;
                 self.last_cursor_move_frame = self.frame_i;
             }
             GuiStateMessage::ApplyOnDisplaySceneOffset(offset) => {
@@ -313,7 +309,7 @@ impl GuiState {
             }
             GuiStateMessage::SetDisplaySceneOffset(offset) => {
                 //
-                self.display_scene_offset = offset.clone();
+                self.display_scene_offset = *offset;
                 self.ensure_correct_scene_offset(ctx);
             }
             GuiStateMessage::SetDebugTerrain(value) => {
@@ -323,11 +319,11 @@ impl GuiState {
             GuiStateMessage::SetDebugPhysics(level) => self.debug_physics = level.clone(),
             GuiStateMessage::SetLeftClickDown(point) => {
                 //
-                self.left_click_down = point.clone()
+                self.left_click_down = *point
             }
             GuiStateMessage::SetCurrentCursorVector(vector) => {
                 //
-                self.current_cursor_vector = vector.clone()
+                self.current_cursor_vector = *vector
             }
             GuiStateMessage::PushUIEvent(event) => {
                 //
@@ -352,7 +348,7 @@ impl GuiState {
             }
             GuiStateMessage::AddCachePointToPendingOrder(new_point) => {
                 for pending_order in &mut self.pending_order {
-                    pending_order.push_cache_point(new_point.clone());
+                    pending_order.push_cache_point(*new_point);
                 }
             }
             GuiStateMessage::PushDebugPoint(debug_point) => {
@@ -384,7 +380,7 @@ impl GuiState {
             }
             GuiStateMessage::SetDragSquad(squad_index) => {
                 //
-                self.dragged_squad = squad_index.clone();
+                self.dragged_squad = *squad_index;
             }
             GuiStateMessage::SetBeginClickOnSoldier(soldier_index) => {
                 self.begin_click_on_soldier = *soldier_index
@@ -476,7 +472,7 @@ impl GuiState {
         };
         lines.push(("SquadMenu".to_string(), squad_menu_text));
 
-        if self.pending_order.len() > 0 {
+        if !self.pending_order.is_empty() {
             for pending_order in &self.pending_order {
                 lines.push(("PendingOrder".to_string(), pending_order.to_string()));
             }

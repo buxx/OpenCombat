@@ -106,14 +106,14 @@ impl Engine {
             .show(ui, |ui| {
                 ui.label("TARGET_FPS");
                 if ui.button("reset").clicked() {
-                    *&mut self.config.target_fps = TARGET_FPS as u32;
+                    self.config.target_fps = TARGET_FPS as u32;
                 };
                 ui.add(Slider::new(&mut self.config.target_fps, 1..=3000));
                 ui.end_row();
 
                 ui.label("INTERIORS_UPDATE_FREQ");
                 if ui.button("reset").clicked() {
-                    *&mut self.config.interiors_update_freq = INTERIORS_UPDATE_FREQ;
+                    self.config.interiors_update_freq = INTERIORS_UPDATE_FREQ;
                 };
                 ui.add(Slider::new(&mut self.config.interiors_update_freq, 0..=300));
                 ui.end_row();
@@ -137,7 +137,7 @@ impl Engine {
             .show(ui, |ui| {
                 ui.label("VISIBILITY_FIRSTS");
                 if ui.button("reset").clicked() {
-                    *&mut self.server_config.visibility_firsts = VISIBILITY_FIRSTS;
+                    self.server_config.visibility_firsts = VISIBILITY_FIRSTS;
                 };
                 if ui
                     .add(Slider::new(
@@ -154,7 +154,7 @@ impl Engine {
 
                 ui.label("VISIBLE_STARTS_AT");
                 if ui.button("reset").clicked() {
-                    *&mut self.server_config.visible_starts_at = VISIBLE_STARTS_AT;
+                    self.server_config.visible_starts_at = VISIBLE_STARTS_AT;
                 };
                 if ui
                     .add(Slider::new(

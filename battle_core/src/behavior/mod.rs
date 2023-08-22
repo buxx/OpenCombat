@@ -116,10 +116,7 @@ impl Behavior {
     }
 
     pub fn is_hide(&self) -> bool {
-        match self {
-            Behavior::Hide(_) => true,
-            _ => false,
-        }
+        matches!(self, Behavior::Hide(_))
     }
 }
 

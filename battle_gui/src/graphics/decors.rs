@@ -89,14 +89,14 @@ impl<'a> DecorsBuilder<'a> {
             let image_path = image_path.to_qualified(zoom).map_err(|error| {
                 GameError::ResourceLoadError(format!(
                     "Decor image source qualification error : {}",
-                    error.to_string()
+                    error
                 ))
             })?;
             let decor_image_path = if self.dark {
                 image_path.to_dark(self.map.name()).map_err(|error| {
                     GameError::ResourceLoadError(format!(
                         "Decor image source dark version error : {}",
-                        error.to_string()
+                        error
                     ))
                 })?
             } else {

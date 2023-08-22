@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::thread;
@@ -11,6 +11,9 @@ use battle_core::network::server::Server;
 use battle_core::state::battle::builder::{BattleStateBuilder, BattleStateBuilderError};
 use battle_server::runner::Runner;
 use crossbeam_channel::{unbounded, Receiver, Sender};
+
+type ServerChannel = (Sender<Vec<OutputMessage>>, Receiver<Vec<InputMessage>>);
+type RunnerChannel = (Sender<Vec<InputMessage>>, Receiver<Vec<OutputMessage>>);
 
 #[derive(Debug)]
 pub enum EmbeddedServerError {
@@ -51,13 +54,13 @@ pub struct EmbeddedServer {
 
 impl EmbeddedServer {
     pub fn new(
-        resources: &PathBuf,
+        resources: &Path,
         gui_input_receiver: Receiver<Vec<InputMessage>>,
         gui_output_sender: Sender<Vec<OutputMessage>>,
         stop_required: Arc<AtomicBool>,
     ) -> Self {
         Self {
-            resources: resources.clone(),
+            resources: resources.to_path_buf(),
             map_name: None,
             server_rep_address: DEFAULT_SERVER_REP_ADDRESS.to_string(),
             server_pub_address: DEFAULT_SERVER_PUB_ADDRESS.to_string(),
@@ -82,10 +85,7 @@ impl EmbeddedServer {
         self
     }
 
-    fn start_runner(
-        &self,
-    ) -> Result<(Sender<Vec<InputMessage>>, Receiver<Vec<OutputMessage>>), EmbeddedServerError>
-    {
+    fn start_runner(&self) -> Result<RunnerChannel, EmbeddedServerError> {
         let (runner_input_sender, runner_input_receiver) = unbounded();
         let (runner_output_sender, runner_output_receiver) = unbounded();
 
@@ -93,8 +93,8 @@ impl EmbeddedServer {
             .map_name
             .as_ref()
             .ok_or(EmbeddedServerError::MissingMapName)?;
-        let config = ServerConfig::new();
-        let state = BattleStateBuilder::new(&map_name, self.resources.clone()).build()?;
+        let config = ServerConfig::default();
+        let state = BattleStateBuilder::new(map_name, self.resources.clone()).build()?;
 
         let stop_required_ = self.stop_required.clone();
         thread::Builder::new()
@@ -123,10 +123,7 @@ impl EmbeddedServer {
         Ok((runner_input_sender, runner_output_receiver))
     }
 
-    fn start_server(
-        &self,
-    ) -> Result<(Sender<Vec<OutputMessage>>, Receiver<Vec<InputMessage>>), EmbeddedServerError>
-    {
+    fn start_server(&self) -> Result<ServerChannel, EmbeddedServerError> {
         let server_rep_address = self.server_rep_address.clone();
         let server_pub_address = self.server_pub_address.clone();
         let (server_input_sender, server_input_receiver) = unbounded();
@@ -158,14 +155,11 @@ impl EmbeddedServer {
             .name("emb_gui_inputs_bridge".to_string())
             .spawn(move || {
                 while let Ok(messages) = gui_input_receiver_.recv() {
-                    match runner_input_sender_.send(messages) {
-                        Err(error) => {
-                            println!(
-                                "Error during transmit gui input messages to runner : {}",
-                                error
-                            )
-                        }
-                        _ => {}
+                    if let Err(error) = runner_input_sender_.send(messages) {
+                        println!(
+                            "Error during transmit gui input messages to runner : {}",
+                            error
+                        )
                     }
                 }
 
@@ -178,23 +172,17 @@ impl EmbeddedServer {
             .name("emb_runner_outputs_bridge".to_string())
             .spawn(move || {
                 while let Ok(messages) = runner_output_receiver.recv() {
-                    match gui_output_sender_.send(messages.clone()) {
-                        Err(error) => {
-                            println!(
-                                "Error during transmit runner output messages to gui : {}",
-                                error
-                            )
-                        }
-                        _ => {}
+                    if let Err(error) = gui_output_sender_.send(messages.clone()) {
+                        println!(
+                            "Error during transmit runner output messages to gui : {}",
+                            error
+                        )
                     };
-                    match server_output_sender.send(messages) {
-                        Err(error) => {
-                            println!(
-                                "Error during transmit runner output messages to server : {}",
-                                error
-                            )
-                        }
-                        _ => {}
+                    if let Err(error) = server_output_sender.send(messages) {
+                        println!(
+                            "Error during transmit runner output messages to server : {}",
+                            error
+                        )
                     };
                 }
 
@@ -206,14 +194,11 @@ impl EmbeddedServer {
             .name("emb_server_inputs_bridge".to_string())
             .spawn(move || {
                 while let Ok(messages) = server_input_receiver.recv() {
-                    match runner_input_sender.send(messages) {
-                        Err(error) => {
-                            println!(
-                                "Error during transmit server input messages to runner : {}",
-                                error
-                            )
-                        }
-                        _ => {}
+                    if let Err(error) = runner_input_sender.send(messages) {
+                        println!(
+                            "Error during transmit server input messages to runner : {}",
+                            error
+                        )
                     }
                 }
 

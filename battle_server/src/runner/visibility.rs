@@ -21,7 +21,7 @@ impl Runner {
         puffin::profile_scope!("tick_visibilities");
         let mut messages = vec![];
         let tick_visibility = self.frame_i % self.config.visibility_update_freq() == 0
-            && self.battle_state.phase().battle();
+            && self.battle_state.phase().is_battle();
 
         if tick_visibility {
             messages.extend(self.update_visibilities());
@@ -91,7 +91,7 @@ impl Runner {
                     &self.config,
                     soldier,
                     other_soldier,
-                    &self.battle_state.map(),
+                    self.battle_state.map(),
                 ),
             );
         }

@@ -56,7 +56,7 @@ impl BattleState {
             .members()
             .iter()
             .map(|i| self.soldier(*i))
-            .any(|s| Visibility::between_soldier_and_point(config, s, point, &self.map()).visible)
+            .any(|s| Visibility::between_soldier_and_point(config, s, point, self.map()).visible)
     }
 
     pub fn point_is_visible_by_soldier(

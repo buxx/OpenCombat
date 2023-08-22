@@ -16,21 +16,6 @@ pub struct Channel {
 }
 
 impl Channel {
-    pub fn new() -> Self {
-        let (input_sender, input_receiver) = unbounded();
-        let (output_sender, output_receiver) = unbounded();
-        let (error_sender, error_receiver) = unbounded();
-
-        Self {
-            input_sender,
-            input_receiver,
-            output_sender,
-            output_receiver,
-            error_sender,
-            error_receiver,
-        }
-    }
-
     pub fn input_sender(&self) -> Sender<Vec<InputMessage>> {
         self.input_sender.clone()
     }
@@ -53,5 +38,22 @@ impl Channel {
 
     pub fn error_receiver(&self) -> Receiver<NetworkError> {
         self.error_receiver.clone()
+    }
+}
+
+impl Default for Channel {
+    fn default() -> Self {
+        let (input_sender, input_receiver) = unbounded();
+        let (output_sender, output_receiver) = unbounded();
+        let (error_sender, error_receiver) = unbounded();
+
+        Self {
+            input_sender,
+            input_receiver,
+            output_sender,
+            output_receiver,
+            error_sender,
+            error_receiver,
+        }
     }
 }

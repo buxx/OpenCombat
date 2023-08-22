@@ -93,11 +93,11 @@ impl Runner {
                 "ERROR : soldier_fire_point on original soldier point ({:?})",
                 target_point
             );
-            return target_point.clone();
+            return *target_point;
         }
 
         let x_change = rng.gen_range(-range..range);
         let y_change = rng.gen_range(-range..range);
-        WorldPoint::from(target_point.apply(Vec2::new(x_change, y_change)))
+        target_point.apply(Vec2::new(x_change, y_change))
     }
 }

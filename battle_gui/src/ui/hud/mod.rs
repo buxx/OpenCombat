@@ -71,37 +71,37 @@ impl Hud {
         &self.minimap
     }
 
-    pub fn contains(&self, ctx: &Context, points: &Vec<&WindowPoint>) -> bool {
+    pub fn contains(&self, ctx: &Context, points: &[&WindowPoint]) -> bool {
         self.background.contains(ctx, points)
     }
 
     pub fn hovered_by(
         &self,
         ctx: &Context,
-        points: &Vec<&WindowPoint>,
-    ) -> Option<Box<&dyn Component<HudEvent>>> {
+        points: &[&WindowPoint],
+    ) -> Option<&dyn Component<HudEvent>> {
         if !self.contains(ctx, points) {
             return None;
         }
 
         if self.battle_button.contains(ctx, points) {
-            return Some(Box::new(&self.battle_button));
+            return Some(&self.battle_button);
         }
 
         if self.morale_indicator.contains(ctx, points) {
-            return Some(Box::new(&self.morale_indicator));
+            return Some(&self.morale_indicator);
         }
 
         if self.squad_statuses.contains(ctx, points) {
-            return Some(Box::new(&self.squad_statuses));
+            return Some(&self.squad_statuses);
         }
 
         if self.minimap.contains(ctx, points) {
-            return Some(Box::new(&self.minimap));
+            return Some(&self.minimap);
         }
 
         if self.background.contains(ctx, points) {
-            return Some(Box::new(&self.background));
+            return Some(&self.background);
         }
 
         None

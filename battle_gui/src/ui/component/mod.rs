@@ -23,7 +23,7 @@ pub trait Component<E> {
         Vec2::new(self.width(ctx), self.height(ctx))
     }
 
-    fn contains(&self, ctx: &Context, points: &Vec<&WindowPoint>) -> bool {
+    fn contains(&self, ctx: &Context, points: &[&WindowPoint]) -> bool {
         points.iter().all(|point| {
             point.x >= self.point(ctx).x
                 && point.x <= self.point(ctx).x + self.width(ctx)

@@ -60,7 +60,7 @@ fn main() -> Result<(), Error> {
     server.serve()?;
 
     let stop_required_ = stop_required.clone();
-    let config = ServerConfig::new();
+    let config = ServerConfig::default();
     let battle_state = BattleStateBuilder::new(map_name, resources.clone()).build()?;
     let mut runner = Runner::new(
         config,

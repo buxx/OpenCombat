@@ -61,7 +61,7 @@ impl SquadStatuses {
         if columns == 0 {
             return vec![];
         }
-        for (i, squad_status) in self.squad_statuses.squads().into_iter().enumerate() {
+        for (i, squad_status) in self.squad_statuses.squads().iter().enumerate() {
             let row_i = i / columns;
             let col_i = i % columns;
             let dest = self.point.apply(Vec2::new(
@@ -234,7 +234,7 @@ impl Component<HudEvent> for SquadStatuses {
                 && mouse_position.y <= draw_card.dest.y + SQUAD_CARD_HEIGHT
             {
                 return Some(HudEvent::SelectSquad(
-                    draw_card.squad_status.squad_id().clone(),
+                    *draw_card.squad_status.squad_id(),
                 ));
             }
         }

@@ -21,7 +21,7 @@ impl Runner {
         vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
             soldier_index,
             SoldierMessage::IncreaseUnderFire(Feeling::proximity_bullet_increase_value(
-                distance.clone(),
+                *distance,
             )),
         ))]
     }

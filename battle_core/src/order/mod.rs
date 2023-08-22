@@ -19,12 +19,12 @@ pub enum PendingOrder {
 
 impl PendingOrder {
     pub fn expect_path_finding(&self) -> bool {
-        match self {
+        matches!(
+            self,
             PendingOrder::MoveTo(_, _, _)
-            | PendingOrder::MoveFastTo(_, _, _)
-            | PendingOrder::SneakTo(_, _, _) => true,
-            _ => false,
-        }
+                | PendingOrder::MoveFastTo(_, _, _)
+                | PendingOrder::SneakTo(_, _, _)
+        )
     }
 
     pub fn squad_index(&self) -> &SquadUuid {
@@ -70,10 +70,7 @@ impl PendingOrder {
     }
 
     pub fn is_hide(&self) -> bool {
-        match self {
-            Self::Hide(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::Hide(_))
     }
 }
 
@@ -156,7 +153,7 @@ impl Order {
             _ => &None,
         }
         .clone()
-        .and_then(|t| Some(*t))
+        .map(|order| *order)
     }
 
     pub fn default_behavior(&self) -> Behavior {

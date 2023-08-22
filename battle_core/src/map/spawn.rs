@@ -85,9 +85,9 @@ impl SpawnZone {
 
     pub fn contains(&self, shape: &WorldShape) -> bool {
         let this = self.shape();
-        return this.top_left.x <= shape.top_left.x
+        this.top_left.x <= shape.top_left.x
             && this.top_left.y <= shape.top_left.y
             && this.bottom_right.x >= shape.bottom_right.x
-            && this.bottom_right.y >= shape.bottom_right.y;
+            && this.bottom_right.y >= shape.bottom_right.y
     }
 }

@@ -18,7 +18,7 @@ impl BattleState {
             let board_composition = vehicle.type_().board_composition();
 
             for (place, _) in board {
-                if !board_composition.contains(&place) {
+                if !board_composition.contains(place) {
                     return Err(BattleStateError::BoardIntegrity(format!(
                         "Vehicle {:?} has a board with place {:?} which is not in its composition",
                         vehicle_index, place
@@ -53,7 +53,7 @@ impl BattleState {
     pub fn propagate_vehicle_position(&mut self, vehicle_index: VehicleIndex) {
         let vehicle = &mut self.vehicle_mut(vehicle_index);
         let vehicle_point = vehicle.world_point();
-        let vehicle_orientation = vehicle.chassis_orientation().clone();
+        let vehicle_orientation = *vehicle.chassis_orientation();
         let sprite_infos = VehicleGraphicInfos::from_type(vehicle.type_());
         let places = sprite_infos.places();
         let mut new_positions: Vec<(SoldierIndex, WorldPoint)> = vec![];

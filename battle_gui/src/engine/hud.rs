@@ -32,8 +32,8 @@ impl Engine {
 
     pub fn select_squad(&self, squad_id: &SquadUuid) -> Vec<EngineMessage> {
         vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
-            Some(self.battle_state.squad(squad_id.clone()).leader().clone()),
-            vec![squad_id.clone()],
+            Some(self.battle_state.squad(*squad_id).leader()),
+            vec![*squad_id],
         ))]
     }
 }

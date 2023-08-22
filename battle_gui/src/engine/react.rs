@@ -42,14 +42,11 @@ impl Engine {
                     ctx,
                 )?,
                 EngineMessage::ChangeServerConfig(change_config_message) => {
-                    match self
+                    if let Err(error) = self
                         .output
                         .send(vec![InputMessage::ChangeConfig(change_config_message)])
                     {
-                        Err(error) => {
-                            println!("Error when transmit change config message : {}", error)
-                        }
-                        _ => {}
+                        println!("Error when transmit change config message : {}", error)
                     };
                 }
                 // TODO : manage failures in user display
@@ -80,7 +77,7 @@ impl Engine {
                     let mut saves = self.gui_state.saves().clone();
                     saves.sort();
                     if let Some(save_path) = saves.first() {
-                        if let Some(copy) = self.load_from_save(&save_path) {
+                        if let Some(copy) = self.load_from_save(save_path) {
                             if let Err(error) =
                                 self.output.send(vec![InputMessage::SetBattleState(copy)])
                             {

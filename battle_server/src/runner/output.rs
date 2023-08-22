@@ -25,7 +25,7 @@ impl Runner {
                 RunnerMessage::ClientState(side, client_state_message) => {
                     //
                     outputs.push((
-                        side.clone(),
+                        *side,
                         OutputMessage::ClientState(client_state_message.clone()),
                     ))
                 }

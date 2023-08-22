@@ -16,7 +16,7 @@ impl BattleStateWriter {
     pub fn write(&self, battle_state: &BattleState) -> Result<(), BattleStateWriterError> {
         let mut file = File::create(&self.destination)?;
         // TODO : use firsts bytes to write save game version and manage possible upgrades
-        file.write_all(&mut bincode::serialize(&battle_state.copy())?)?;
+        file.write_all(&bincode::serialize(&battle_state.copy())?)?;
 
         Ok(())
     }

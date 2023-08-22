@@ -35,7 +35,7 @@ impl BattleState {
     fn elect_squad_leader(&self, squad_uuid: SquadUuid) -> Option<SoldierIndex> {
         let squad_entities = self.squad_entities(squad_uuid);
 
-        if squad_entities.len() == 0 {
+        if squad_entities.is_empty() {
             return None;
         }
 

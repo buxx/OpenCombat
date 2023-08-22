@@ -179,7 +179,7 @@ pub fn find_path(
         Some(path) => {
             if exclude_first {
                 let new_path = path.0[1..].to_vec();
-                if new_path.len() > 0 {
+                if !new_path.is_empty() {
                     Some(new_path.iter().map(|x| x.0).collect())
                 } else {
                     None

@@ -54,7 +54,7 @@ impl Background {
 
 impl Component<HudEvent> for Background {
     fn point(&self, _ctx: &Context) -> WindowPoint {
-        self.point.clone()
+        self.point
     }
 
     fn width(&self, _ctx: &Context) -> f32 {
@@ -65,7 +65,7 @@ impl Component<HudEvent> for Background {
         self.height
     }
 
-    fn contains(&self, _ctx: &Context, points: &Vec<&WindowPoint>) -> bool {
+    fn contains(&self, _ctx: &Context, points: &[&WindowPoint]) -> bool {
         points.iter().all(|point| {
             point.x >= self.point.x
                 && point.x <= self.point.x + self.width

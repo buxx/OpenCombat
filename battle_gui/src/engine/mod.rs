@@ -71,6 +71,7 @@ pub struct Engine {
 }
 
 impl Engine {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         ctx: &mut Context,
         side: &Side,
@@ -85,7 +86,7 @@ impl Engine {
         a_control: MapControl,
         b_control: MapControl,
     ) -> GameResult<Engine> {
-        let mut gui_state = GuiState::new(side.clone(), battle_state.map());
+        let mut gui_state = GuiState::new(*side, battle_state.map());
         gui_state.set_saves(
             BattleSavesListBuilder::new(battle_state.map().name())
                 .build()
@@ -147,7 +148,7 @@ impl EventHandler<ggez::GameError> for Engine {
 
         self.graphics.clear(&self.gui_state.zoom);
         let dest = graphics::DrawParam::new().dest(self.gui_state.display_scene_offset.to_vec2());
-        let scale = dest.clone().scale(self.gui_state.zoom.to_vec2());
+        let scale = dest.scale(self.gui_state.zoom.to_vec2());
         let decor = self.gui_state.draw_decor;
 
         // Draw entire scene

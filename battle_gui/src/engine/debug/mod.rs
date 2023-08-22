@@ -44,7 +44,7 @@ impl Engine {
     }
 
     pub fn generate_move_paths_meshes(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
-        for (_, squad_composition) in self.battle_state.squads() {
+        for squad_composition in self.battle_state.squads().values() {
             let squad_leader = self.battle_state.soldier(squad_composition.leader());
             if let Some(world_paths) = match squad_leader.behavior() {
                 Behavior::MoveTo(world_paths)
@@ -161,7 +161,8 @@ impl Engine {
         }
 
         // Draw selection area on cursor hover scene items
-        for soldier_index in self.soldiers_at_point(cursor_world_point) {
+        for soldier_index in self.soldiers_at_point(cursor_world_point, Some(self.gui_state.side()))
+        {
             let soldier = self.battle_state.soldier(soldier_index);
             let rect = self
                 .gui_state
@@ -224,7 +225,7 @@ impl Engine {
                                 color_canal_value = 0.0;
                             }
                             mesh_builder.line(
-                                &vec![previous_point.to_vec2(), segment_point.to_vec2()],
+                                &[previous_point.to_vec2(), segment_point.to_vec2()],
                                 1.0,
                                 Color {
                                     r: color_canal_value,
@@ -257,7 +258,7 @@ impl Engine {
                     let to_point = self
                         .gui_state
                         .window_point_from_world_point(target_soldier.world_point());
-                    mesh_builder.line(&vec![from_point.to_vec2(), to_point.to_vec2()], 1.0, RED)?;
+                    mesh_builder.line(&[from_point.to_vec2(), to_point.to_vec2()], 1.0, RED)?;
                 }
             }
         }
@@ -341,7 +342,7 @@ impl Engine {
             let point = self
                 .gui_state
                 .window_point_from_world_point(*explosion.point());
-            let direct_death_radius = self.gui_state.distance_pixels(&direct_death_rayons);
+            let direct_death_radius = self.gui_state.distance_pixels(direct_death_rayons);
             mesh_builder.circle(
                 DrawMode::stroke(1.0),
                 point.to_vec2(),

@@ -38,7 +38,7 @@ impl BattleStateCopy {
     }
 
     pub fn vehicles(&self) -> &Vec<Vehicle> {
-        &&self.vehicles
+        &self.vehicles
     }
 
     pub fn soldier_on_board(&self) -> &SoldiersOnBoard {

@@ -14,18 +14,12 @@ use super::utils::meters_between_world_points;
 
 pub const VISIBLE_OPACITY_LIMIT: f32 = 0.5;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Visibilities {
     visibilities: HashMap<(SoldierIndex, SoldierIndex), Visibility>,
 }
 
 impl Visibilities {
-    pub fn new() -> Self {
-        Self {
-            visibilities: HashMap::new(),
-        }
-    }
-
     pub fn set(&mut self, value: HashMap<(SoldierIndex, SoldierIndex), Visibility>) {
         self.visibilities = value;
     }
@@ -52,6 +46,10 @@ impl Visibilities {
 
     pub fn len(&self) -> usize {
         self.visibilities.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -100,7 +98,7 @@ impl Visibility {
                 exclude_lasts,
             );
 
-        to_soldier_item_opacity = to_soldier_item_opacity - by_behavior_modifier;
+        to_soldier_item_opacity -= by_behavior_modifier;
         let visible = to_soldier_item_opacity < config.visible_starts_at;
 
         let distance =
@@ -128,10 +126,10 @@ impl Visibility {
         let from_point = from_soldier.world_point();
 
         let (to_soldier_item_opacity, opacity_segments, path_final_opacity, break_point) =
-            Self::between_points_raw(config, &from_point, &to_point, map, VISIBILITY_FIRSTS, 0);
+            Self::between_points_raw(config, &from_point, to_point, map, VISIBILITY_FIRSTS, 0);
 
         let visible = to_soldier_item_opacity < VISIBLE_OPACITY_LIMIT;
-        let distance = meters_between_world_points(&from_point, &to_point);
+        let distance = meters_between_world_points(&from_point, to_point);
         Self {
             from: from_point,
             from_soldier: Some(from_soldier.uuid()),
@@ -153,10 +151,10 @@ impl Visibility {
         map: &Map,
     ) -> Self {
         let (to_soldier_item_opacity, opacity_segments, path_final_opacity, break_point) =
-            Self::between_points_raw(config, &from_point, &to_point, map, VISIBILITY_FIRSTS, 0);
+            Self::between_points_raw(config, from_point, to_point, map, VISIBILITY_FIRSTS, 0);
 
         let visible = to_soldier_item_opacity < 0.5;
-        let distance = meters_between_world_points(&from_point, &to_point);
+        let distance = meters_between_world_points(from_point, to_point);
         Self {
             from: *from_point,
             from_soldier: None,

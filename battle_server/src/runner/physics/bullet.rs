@@ -51,7 +51,7 @@ impl Runner {
 
             let distance = meters_between_world_points(&soldier.world_point(), point);
             if distance.meters() < 1
-                && SoldierCovered::new(&self.battle_state.map(), &bullet_fire, &soldier).compute()
+                && SoldierCovered::new(self.battle_state.map(), bullet_fire, soldier).compute()
             {
                 messages.extend(self.covered_bullet_effects(soldier));
                 messages.extend(self.proximity_bullet_effects(soldier, &distance))
@@ -59,7 +59,7 @@ impl Runner {
                 let mut rng = rand::thread_rng();
                 let value: u8 = rng.gen();
                 if value < 10 {
-                    messages.extend(self.killing_bullet_effects(&soldier))
+                    messages.extend(self.killing_bullet_effects(soldier))
                 } else if value < 50 {
                     messages.extend(self.injuring_bullet_effects(soldier))
                 } else {

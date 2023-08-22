@@ -196,27 +196,26 @@ impl Engine {
                 }
 
                 // Begin drag squad if this mouve is after a click on soldier and cursor is still hover the soldier
-                if self.battle_state.phase().placement() && self.gui_state.dragged_squad().is_none()
+                if self.battle_state.phase().is_placement()
+                    && self.gui_state.dragged_squad().is_none()
                 {
                     let world_point = self.gui_state.current_cursor_world_point();
-                    if let (Some(started_with_soldier_index), Some(soldier_index)) = (
+                    if let (Some(_), Some(soldier_index)) = (
                         self.gui_state.begin_click_on_soldier(),
-                        self.soldiers_at_point(world_point).first(),
+                        self.soldiers_at_point(world_point, Some(self.gui_state.side()))
+                            .first(),
                     ) {
-                        if started_with_soldier_index == started_with_soldier_index {
-                            let squad_index =
-                                self.battle_state.soldier(*soldier_index).squad_uuid();
-                            messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(
-                                Some(squad_index),
-                            )));
-                        }
+                        let squad_index = self.battle_state.soldier(*soldier_index).squad_uuid();
+                        messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(
+                            Some(squad_index),
+                        )));
                     }
                 }
             }
         }
 
         let point = self.gui_state.current_cursor_window_point();
-        let cursor_in_control = self.hud.contains(ctx, &vec![&point]);
+        let cursor_in_control = self.hud.contains(ctx, &[point]);
         messages.push(EngineMessage::GuiState(GuiStateMessage::SetCursorInHud(
             cursor_in_control,
         )));
@@ -234,50 +233,49 @@ impl Engine {
         let mut messages = vec![];
         let cursor = WindowPoint::new(x, y);
 
-        match button {
-            MouseButton::Left => {
-                // Update cursor down position
-                messages.push(EngineMessage::GuiState(GuiStateMessage::SetLeftClickDown(
-                    Some(cursor.clone()),
-                )));
+        if let MouseButton::Left = button {
+            // Update cursor down position
+            messages.push(EngineMessage::GuiState(GuiStateMessage::SetLeftClickDown(
+                Some(cursor),
+            )));
 
-                // Check if any order under the cursor
-                if self.gui_state.is_controlling(&Control::Soldiers)
-                    && !self.gui_state.cursor_in_hud()
+            // Check if any order under the cursor
+            if self.gui_state.is_controlling(&Control::Soldiers) && !self.gui_state.cursor_in_hud()
+            {
+                for (order, order_marker, squad_id, world_point, order_marker_i) in
+                    self.battle_state.order_markers(self.gui_state.side())
                 {
-                    for (order, order_marker, squad_id, world_point, order_marker_i) in
-                        self.battle_state.order_markers(self.gui_state.side())
+                    let world_shape =
+                        self.order_marker_selection_shape(&order, &order_marker, &world_point);
+                    if self
+                        .gui_state
+                        .window_shape_from_world_shape(&world_shape)
+                        .contains(&cursor)
                     {
-                        let world_shape =
-                            self.order_marker_selection_shape(&order, &order_marker, &world_point);
-                        if self
-                            .gui_state
-                            .window_shape_from_world_shape(&world_shape)
-                            .contains(&cursor)
-                        {
-                            let pending_order = self.create_pending_order_from_order_marker(
-                                &order_marker,
-                                &squad_id,
-                                &Some(order_marker_i),
-                                &vec![],
-                            );
-                            messages.push(EngineMessage::GuiState(
-                                GuiStateMessage::SetPendingOrders(vec![pending_order]),
-                            ));
-                        }
+                        let pending_order = self.create_pending_order_from_order_marker(
+                            &order_marker,
+                            &squad_id,
+                            &Some(order_marker_i),
+                            &[],
+                        );
+                        messages.push(EngineMessage::GuiState(GuiStateMessage::SetPendingOrders(
+                            vec![pending_order],
+                        )));
                     }
+                }
 
-                    if self.battle_state.phase().placement() && !self.gui_state.cursor_in_hud() {
-                        let world_point = self.gui_state.current_cursor_world_point();
-                        if let Some(soldier_index) = self.soldiers_at_point(world_point).first() {
-                            messages.push(EngineMessage::GuiState(
-                                GuiStateMessage::SetBeginClickOnSoldier(Some(*soldier_index)),
-                            ));
-                        }
+                if self.battle_state.phase().is_placement() && !self.gui_state.cursor_in_hud() {
+                    let world_point = self.gui_state.current_cursor_world_point();
+                    if let Some(soldier_index) = self
+                        .soldiers_at_point(world_point, Some(self.gui_state.side()))
+                        .first()
+                    {
+                        messages.push(EngineMessage::GuiState(
+                            GuiStateMessage::SetBeginClickOnSoldier(Some(*soldier_index)),
+                        ));
                     }
                 }
             }
-            _ => {}
         }
 
         messages
@@ -330,7 +328,7 @@ impl Engine {
                     }
                 }
 
-                if let Some(component) = self.hud.hovered_by(ctx, &vec![&start_point, &end_point]) {
+                if let Some(component) = self.hud.hovered_by(ctx, &[&start_point, &end_point]) {
                     if let Some(event) = component.event(ctx) {
                         messages.extend(self.hud_event(event));
                     }

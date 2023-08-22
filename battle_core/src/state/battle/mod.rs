@@ -76,7 +76,7 @@ impl BattleState {
             squads: HashMap::new(),
             bullet_fires: vec![],
             explosions: vec![],
-            visibilities: Visibilities::new(),
+            visibilities: Visibilities::default(),
             a_connected: false,
             b_connected: false,
             a_ready: false,
@@ -98,7 +98,7 @@ impl BattleState {
             squads: HashMap::new(),
             bullet_fires: vec![],
             explosions: vec![],
-            visibilities: Visibilities::new(),
+            visibilities: Visibilities::default(),
             a_connected: false, // TODO : should be in (server) Runner ?
             b_connected: false, // TODO : should be in (server) Runner ?
             a_ready: false,
@@ -138,7 +138,7 @@ impl BattleState {
     }
 
     pub fn visibilities(&self) -> &Visibilities {
-        &&self.visibilities
+        &self.visibilities
     }
 
     pub fn soldiers(&self) -> &Vec<Soldier> {
@@ -297,19 +297,17 @@ impl BattleState {
     }
 
     pub fn debug_lines(&self) -> Vec<(String, String)> {
-        let mut lines = vec![];
-
-        lines.push((
-            "Soldiers (len)".to_string(),
-            self.soldiers.len().to_string(),
-        ));
-        lines.push(("Squads (len)".to_string(), self.squads.len().to_string()));
-        lines.push((
-            "Vehicles (len)".to_string(),
-            self.vehicles.len().to_string(),
-        ));
-
-        lines
+        vec![
+            (
+                "Soldiers (len)".to_string(),
+                self.soldiers.len().to_string(),
+            ),
+            ("Squads (len)".to_string(), self.squads.len().to_string()),
+            (
+                "Vehicles (len)".to_string(),
+                self.vehicles.len().to_string(),
+            ),
+        ]
     }
 
     pub fn copy(&self) -> BattleStateCopy {
@@ -371,9 +369,7 @@ impl BattleState {
             .iter()
             .filter(|s| s.side() == side)
             .filter(|s| s.can_take_flag())
-            .filter(|s| shape.contains(&s.world_point()))
-            .next()
-            .is_some()
+            .any(|s| shape.contains(&s.world_point()))
     }
 
     pub fn a_morale(&self) -> &Morale {

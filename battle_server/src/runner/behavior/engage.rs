@@ -3,7 +3,7 @@ use battle_core::{
     game::cover::CoverFinder,
     order::Order,
     physics::path::{find_path, Direction, PathMode},
-    types::{GridPoint, SoldierIndex, SquadUuid, WorldPath, WorldPaths},
+    types::{SoldierIndex, SquadUuid, WorldPath, WorldPaths},
 };
 
 use crate::runner::Runner;
@@ -78,14 +78,14 @@ impl Runner {
                             &PathMode::Walk,
                             &Some(Direction::from_angle(&member.get_looking_direction())),
                         ) {
-                            after_grid_positions.push(new_grid_point.clone());
+                            after_grid_positions.push(new_grid_point);
 
                             let world_point_path = grid_points_path
                                 .iter()
                                 .map(|p| {
                                     self.battle_state
                                         .map()
-                                        .world_point_from_grid_point(GridPoint::from(*p))
+                                        .world_point_from_grid_point(*p)
                                 })
                                 .collect();
                             let world_path = WorldPath::new(world_point_path);

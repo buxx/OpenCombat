@@ -71,17 +71,17 @@ impl Runner {
         let orders: Vec<(&Soldier, Order)> = match behavior {
             Behavior::MoveTo(_) | Behavior::MoveFastTo(_) | Behavior::SneakTo(_) => {
                 match self.battle_state.soldier_behavior_mode(leader) {
-                    BehaviorMode::Ground => self.propagate_move(leader.squad_uuid(), &behavior),
-                    BehaviorMode::Vehicle => self.propagate_drive(leader.squad_uuid(), &behavior),
+                    BehaviorMode::Ground => self.propagate_move(leader.squad_uuid(), behavior),
+                    BehaviorMode::Vehicle => self.propagate_drive(leader.squad_uuid(), behavior),
                 }
             }
             Behavior::Defend(_) => {
                 let (orders, debug_points_) = match self.battle_state.soldier_behavior_mode(leader)
                 {
                     BehaviorMode::Ground => {
-                        self.propagate_defend_or_hide(leader.squad_uuid(), &behavior)
+                        self.propagate_defend_or_hide(leader.squad_uuid(), behavior)
                     }
-                    BehaviorMode::Vehicle => self.propagate_rotate(leader.squad_uuid(), &behavior),
+                    BehaviorMode::Vehicle => self.propagate_rotate(leader.squad_uuid(), behavior),
                 };
                 debug_points.extend(debug_points_);
                 orders
@@ -90,9 +90,9 @@ impl Runner {
                 let (orders, debug_points_) = match self.battle_state.soldier_behavior_mode(leader)
                 {
                     BehaviorMode::Ground => {
-                        self.propagate_defend_or_hide(leader.squad_uuid(), &behavior)
+                        self.propagate_defend_or_hide(leader.squad_uuid(), behavior)
                     }
-                    BehaviorMode::Vehicle => self.propagate_rotate(leader.squad_uuid(), &behavior),
+                    BehaviorMode::Vehicle => self.propagate_rotate(leader.squad_uuid(), behavior),
                 };
                 debug_points.extend(debug_points_);
                 orders
@@ -180,7 +180,7 @@ impl Runner {
         match self.battle_state.soldier_behavior_mode(soldier) {
             BehaviorMode::Ground => {
                 if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
-                    return Behavior::EngageSoldier(opponent.uuid());
+                    Behavior::EngageSoldier(opponent.uuid())
                 } else {
                     Behavior::Defend(*angle)
                 }
@@ -209,7 +209,7 @@ impl Runner {
         match self.battle_state.soldier_behavior_mode(soldier) {
             BehaviorMode::Ground => {
                 if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
-                    return Behavior::EngageSoldier(opponent.uuid());
+                    Behavior::EngageSoldier(opponent.uuid())
                 } else {
                     Behavior::Hide(*angle)
                 }

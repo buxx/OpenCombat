@@ -29,7 +29,7 @@ impl ToQualified<PathBuf, PathQualificationError> for PathBuf {
     }
 
     fn to_dark(&self, map_name: &str) -> Result<PathBuf, PathQualificationError> {
-        ensure_dark(map_name, &self)?;
+        ensure_dark(map_name, self)?;
         let resources = match Resources::new() {
             Ok(resources) => resources,
             Err(error) => return Err(PathQualificationError::Unexpected(error.to_string())),

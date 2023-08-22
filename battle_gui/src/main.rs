@@ -131,7 +131,7 @@ fn main() -> Result<(), GuiError> {
     let a_control = MapControl::new(opt.a_control.clone());
     let b_control = MapControl::new(opt.b_control.clone());
 
-    let ready_message = if &opt.side == &Side::A {
+    let ready_message = if opt.side == Side::A {
         InputMessage::BattleState(BattleStateMessage::SetAConnected(true))
     } else {
         InputMessage::BattleState(BattleStateMessage::SetBConnected(true))
@@ -159,8 +159,8 @@ fn main() -> Result<(), GuiError> {
 
     // TODO : If remote server, download map before read it
     let map = MapReader::new(map_name, &resources.lib())?.build()?;
-    let config = GuiConfig::new();
-    let server_config = ServerConfig::new();
+    let config = GuiConfig::default();
+    let server_config = ServerConfig::default();
     let graphics =
         graphics::Graphics::new(&mut context, &map, &server_config, &a_control, &b_control)?;
     let battle_state = BattleStateBuilder::new(map_name, resources.lib()).build()?;

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::string::ToString;
+
 use strum_macros::Display;
 use strum_macros::EnumIter;
 
@@ -42,6 +42,6 @@ pub enum Sound {
 
 impl Sound {
     pub fn file_path(&self) -> String {
-        format!("/audio/{}.ogg", self.to_string())
+        format!("/audio/{}.ogg", self)
     }
 }

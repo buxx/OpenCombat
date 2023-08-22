@@ -43,7 +43,7 @@ impl Magazine {
         match self {
             Magazine::MosinNagant(fill) => {
                 if *fill > 0 {
-                    *fill = *fill - 1;
+                    *fill -= 1;
                 }
             }
         }

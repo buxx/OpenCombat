@@ -89,7 +89,7 @@ impl Engine {
             return false;
         }
 
-        return true;
+        true
     }
 
     pub fn generate_vehicles_sprites(&mut self) -> GameResult {
@@ -115,7 +115,7 @@ impl Engine {
     }
 
     pub fn generate_map_sprites(&mut self, draw_decor: bool) -> GameResult {
-        if self.battle_state.phase().placement() {
+        if self.battle_state.phase().is_placement() {
             self.generate_placement_map_sprites(draw_decor)?
         } else {
             self.generate_battle_map_sprites(draw_decor)?
@@ -148,7 +148,7 @@ impl Engine {
             .src(Rect::new(0.0, 0.0, 1.0, 1.0))
             .dest(Vec2::new(0., 0.) * self.gui_state.zoom.factor());
         if allowed_control.contains_spawn_zone(&SpawnZoneName::All) {
-            map_background_sprites.push(all.clone());
+            map_background_sprites.push(all);
 
             for opponent_spawn_zone in self
                 .battle_state
@@ -170,7 +170,7 @@ impl Engine {
                 );
             }
         } else {
-            dark_map_background_sprites.push(all.clone());
+            dark_map_background_sprites.push(all);
             map_dark_background_first = true;
 
             for allowed_spawn_zone in self
@@ -419,18 +419,18 @@ impl Engine {
                 if let Some(break_point) = visibility.break_point {
                     let to_break_point = self.gui_state.window_point_from_world_point(break_point);
                     mesh_builder.line(
-                        &vec![from_point.to_vec2(), to_break_point.to_vec2()],
+                        &[from_point.to_vec2(), to_break_point.to_vec2()],
                         2.,
                         Color::RED,
                     )?;
                     mesh_builder.line(
-                        &vec![to_break_point.to_vec2(), to_point.to_vec2()],
+                        &[to_break_point.to_vec2(), to_point.to_vec2()],
                         2.,
                         Color::BLACK,
                     )?;
                 } else {
                     mesh_builder.line(
-                        &vec![from_point.to_vec2(), to_point.to_vec2()],
+                        &[from_point.to_vec2(), to_point.to_vec2()],
                         2.,
                         Color::RED,
                     )?;
@@ -456,7 +456,7 @@ impl Engine {
             PendingOrder::Hide(_) => OrderMarker::Hide,
             PendingOrder::EngageOrFire(_) => {
                 let cursor_point = self.gui_state.current_cursor_world_point();
-                if let Some(_) = self
+                if self
                     .get_opponent_soldiers_at_point(cursor_point)
                     .iter()
                     .filter(|s| s.can_be_designed_as_target())
@@ -466,6 +466,7 @@ impl Engine {
                     })
                     .collect::<Vec<&&Soldier>>()
                     .first()
+                    .is_some()
                 {
                     OrderMarker::EngageSquad
                 } else {

@@ -17,7 +17,7 @@ impl Engine {
         ui: &mut Ui,
     ) -> Vec<EngineMessage> {
         let selected_squad = self.gui_state.selected_squads();
-        if selected_squad.1.len() == 0 {
+        if selected_squad.1.is_empty() {
             ui.label("No soldiers selected");
             return vec![];
         } else if selected_squad.1.len() > 1 {
@@ -53,7 +53,7 @@ impl Engine {
         let soldier = &mut self.battle_state.soldier_mut(*soldier_index);
         let mut messages = vec![];
 
-        Grid::new(&format!("soldier_{}", soldier_index))
+        Grid::new(format!("soldier_{}", soldier_index))
             .num_columns(2)
             .spacing([40.0, 4.0])
             .striped(true)
@@ -117,7 +117,7 @@ impl Engine {
 
                 ui.label("MainWeapon");
                 let weapon_text = if let Some(weapon) = soldier.weapon(&WeaponClass::Main) {
-                    format!("{}", weapon.name())
+                    weapon.name().to_string()
                 } else {
                     "".to_string()
                 };

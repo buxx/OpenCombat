@@ -23,7 +23,7 @@ impl Engine {
 
         if bullet_fire.start() == self.gui_state.frame_i() {
             for sound in bullet_fire.gun_fire_sound_type().fire_sounds() {
-                messages.push(EngineMessage::PlaySound(sound.clone()));
+                messages.push(EngineMessage::PlaySound(sound));
             }
         }
 
@@ -38,7 +38,7 @@ impl Engine {
             let to = self
                 .gui_state
                 .window_point_from_world_point(*bullet_fire.to());
-            mesh_builder.line(&vec![from.to_vec2(), to.to_vec2()], 1.0, GREY)?;
+            mesh_builder.line(&[from.to_vec2(), to.to_vec2()], 1.0, GREY)?;
         }
         Ok(())
     }

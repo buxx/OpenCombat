@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter};
 
@@ -11,25 +13,16 @@ pub enum Phase {
 }
 
 impl Phase {
-    pub fn placement(&self) -> bool {
-        match self {
-            Phase::Placement => true,
-            _ => false,
-        }
+    pub fn is_placement(&self) -> bool {
+        matches!(self, Phase::Placement)
     }
 
-    pub fn battle(&self) -> bool {
-        match self {
-            Phase::Battle => true,
-            _ => false,
-        }
+    pub fn is_battle(&self) -> bool {
+        matches!(self, Phase::Battle)
     }
 
-    pub fn end(&self) -> bool {
-        match self {
-            Phase::End(_, _) => true,
-            _ => false,
-        }
+    pub fn is_end(&self) -> bool {
+        matches!(self, Phase::End(_, _))
     }
 }
 
@@ -48,9 +41,10 @@ impl Default for EndReason {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Victorious(pub Side);
-impl Victorious {
-    pub fn to_string(&self) -> String {
-        self.0.to_string()
+
+impl Display for Victorious {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0.to_string())
     }
 }
 

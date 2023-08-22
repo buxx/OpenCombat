@@ -102,9 +102,9 @@ impl Server {
                     });
 
                     // Send through channel the decoded messages
-                    thread_input_sender.send(messages).expect(&format!(
-                        "Channel was closed when try to send received messages"
-                    ));
+                    thread_input_sender.send(messages).unwrap_or_else(|_| {
+                        panic!("Channel was closed when try to send received messages")
+                    });
                 }
 
                 println!("Server REP finished")
@@ -156,11 +156,8 @@ impl Server {
                     };
 
                     // Finally send messages to clients
-                    match socket.send(&messages_bytes, 0) {
-                        Err(error) => {
-                            println!("Error while sending messages : {}", error);
-                        }
-                        _ => {}
+                    if let Err(error) = socket.send(&messages_bytes, 0) {
+                        println!("Error while sending messages : {}", error);
                     };
                 }
                 println!("Server PUB finished");

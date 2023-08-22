@@ -169,7 +169,7 @@ fn ammunition_reserve_status(soldier: &Soldier) -> AmmunitionReserveStatus {
         let ok_magazines_len = soldier
             .magazines()
             .iter()
-            .filter(|m| weapon.accepted_magazine(&m))
+            .filter(|m| weapon.accepted_magazine(m))
             .collect::<Vec<&Magazine>>()
             .len();
         if ok_magazines_len == 0 {

@@ -38,7 +38,7 @@ impl<'a> MinimapBuilder<'a> {
             .join(format!("{}__minimap.png", self.map.name()));
 
         if !minimap_path_cache_abs.exists() {
-            let bg_image = image::open(&bg_image_path_abs)?.into_rgba8();
+            let bg_image = image::open(bg_image_path_abs)?.into_rgba8();
             let minimap = resize(
                 &bg_image,
                 // TODO : use arbitrary size and draw at wanted size
@@ -49,7 +49,7 @@ impl<'a> MinimapBuilder<'a> {
             minimap.save(minimap_path_cache_abs)?;
         }
 
-        let minimap = Image::from_path(self.ctx, &bg_dark_image_path_rel)?;
+        let minimap = Image::from_path(self.ctx, bg_dark_image_path_rel)?;
         let instance_array = InstanceArray::new(self.ctx, minimap);
         Ok(instance_array)
     }

@@ -13,5 +13,5 @@ fn main() {
     let opt = Opt::from_args();
     let deployment = serde_json::to_string(&hardcode::demo1_deployment()).unwrap();
     let mut output = File::create(opt.output).unwrap();
-    output.write_all(&deployment.as_bytes()).unwrap();
+    output.write_all(deployment.as_bytes()).unwrap();
 }

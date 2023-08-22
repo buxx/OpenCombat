@@ -28,12 +28,12 @@ impl Deployment {
         let soldiers: Vec<SoldierDeployment> = battle_state
             .soldiers()
             .iter()
-            .map(|s| SoldierDeployment::from(s))
+            .map(SoldierDeployment::from)
             .collect();
         let vehicles: Vec<VehicleDeployment> = battle_state
             .vehicles()
             .iter()
-            .map(|v| VehicleDeployment::from(v))
+            .map(VehicleDeployment::from)
             .collect();
 
         Self {
@@ -152,10 +152,10 @@ impl SoldierDeployment {
 impl From<&Soldier> for SoldierDeployment {
     fn from(soldier: &Soldier) -> Self {
         Self {
-            uuid: soldier.uuid().clone(),
-            side: soldier.side().clone(),
-            world_point: soldier.world_point().clone(),
-            squad_uuid: soldier.squad_uuid().clone(),
+            uuid: soldier.uuid(),
+            side: *soldier.side(),
+            world_point: soldier.world_point(),
+            squad_uuid: soldier.squad_uuid(),
             main_weapon: soldier.main_weapon().clone(),
             magazines: soldier.magazines().clone(),
         }
@@ -194,9 +194,9 @@ impl VehicleDeployment {
 impl From<&Vehicle> for VehicleDeployment {
     fn from(vehicle: &Vehicle) -> Self {
         Self {
-            uuid: vehicle.uuid().clone(),
+            uuid: *vehicle.uuid(),
             type_: vehicle.type_().clone(),
-            world_point: vehicle.world_point().clone(),
+            world_point: vehicle.world_point(),
         }
     }
 }

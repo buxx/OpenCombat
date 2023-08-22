@@ -267,10 +267,10 @@ impl Soldier {
 impl From<&SoldierDeployment> for Soldier {
     fn from(soldier: &SoldierDeployment) -> Self {
         Self::new(
-            soldier.uuid().clone(),
-            soldier.world_point().clone(),
-            soldier.squad_uuid().clone(),
-            soldier.side().clone(),
+            soldier.uuid(),
+            soldier.world_point(),
+            soldier.squad_uuid(),
+            soldier.side(),
             soldier.main_weapon().cloned(),
             soldier.magazines().clone().to_vec(),
         )

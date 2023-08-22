@@ -89,7 +89,7 @@ impl<'a> BackgroundBuilder<'a> {
             .map_err(|error| {
                 GameError::ResourceLoadError(format!(
                     "Background image source qualification error : {}",
-                    error.to_string()
+                    error
                 ))
             })?;
         let map_background_image = Image::from_path(self.ctx, image_path)?;

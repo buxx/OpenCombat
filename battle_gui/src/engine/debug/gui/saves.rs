@@ -1,5 +1,5 @@
 use std::{
-    path::PathBuf,
+    path::Path,
     str::FromStr,
     time::{Duration, SystemTime},
 };
@@ -32,11 +32,8 @@ impl Engine {
                     }
                 }
                 if ui.button("Make a deployment file").clicked() {
-                    match self.save_deployment() {
-                        Err(error) => {
-                            eprintln!("Error happen during making deployment : {}", error)
-                        }
-                        _ => {}
+                    if let Err(error) = self.save_deployment() {
+                        eprintln!("Error happen during making deployment : {}", error)
                     }
                 }
                 ui.end_row();
@@ -56,7 +53,7 @@ impl Engine {
     }
 }
 
-fn save_label(save_path: &PathBuf) -> Option<String> {
+fn save_label(save_path: &Path) -> Option<String> {
     if let Some(file_stem) = save_path.file_stem() {
         if let Some(file_stem) = file_stem.to_str() {
             if let Ok(timestamp_s) = u64::from_str(file_stem) {

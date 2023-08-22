@@ -17,17 +17,15 @@ impl Runner {
         match behavior {
             Behavior::Idle => None,
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
-                if let Some(next_point) = paths.next_point() {
-                    Some(angle(&next_point, &reference_point))
-                } else {
-                    None
-                }
+                paths
+                    .next_point()
+                    .map(|next_point| angle(&next_point, reference_point))
             }
             Behavior::Defend(angle) => Some(*angle),
             Behavior::Hide(angle) => Some(*angle),
             Behavior::DriveTo(_) => None,
             Behavior::RotateTo(_) => None,
-            Behavior::SuppressFire(point) => Some(angle(&point, &reference_point)),
+            Behavior::SuppressFire(point) => Some(angle(point, reference_point)),
             Behavior::EngageSoldier(_) => None,
             // TODO: keep angle for dead/unconscious soldiers
             Behavior::Dead | Behavior::Unconscious => None,
@@ -46,18 +44,16 @@ impl Runner {
             .visibilities()
             .visibles_soldiers()
             .iter()
-            .filter(|visibility| {
+            .any(|visibility| {
                 if let Some(soldier_index) = visibility.to_soldier {
                     let soldier = self.battle_state.soldier(soldier_index);
-                    if soldier.side() == side {
-                        if &meters_between_world_points(point, &soldier.world_point()) <= radius {
-                            return true;
-                        }
+                    if soldier.side() == side
+                        && &meters_between_world_points(point, &soldier.world_point()) <= radius
+                    {
+                        return true;
                     }
                 }
                 false
             })
-            .next()
-            .is_some()
     }
 }

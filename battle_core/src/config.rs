@@ -70,7 +70,7 @@ pub const SOLDIER_SELECTABLE_SQUARE_SIDE: f32 = 14.0;
 // Half selection square size of selectable zone (click)
 pub const SOLDIER_SELECTABLE_SQUARE_SIDE_HALF: f32 = SOLDIER_SELECTABLE_SQUARE_SIDE / 2.0;
 // Frames to wait to draw the pending order path finding
-pub const PENDING_ORDER_PATH_FINDING_DRAW_FRAMES: u64 = (TARGET_FPS / 3) as u64;
+pub const PENDING_ORDER_PATH_FINDING_DRAW_FRAMES: u64 = TARGET_FPS / 3;
 
 pub const VEHICLE_DRIVE_ORIENTATION_TARGET_TOLERANCE_COEFFICIENT: f32 = 100.;
 pub const VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_COEFFICIENT: f32 = 100.;
@@ -140,8 +140,8 @@ pub struct ServerConfig {
     pub hide_maximum_rayon: Distance,
 }
 
-impl ServerConfig {
-    pub fn new() -> Self {
+impl Default for ServerConfig {
+    fn default() -> Self {
         let mut explosive_direct_death_rayon = HashMap::new();
         let mut explosive_regressive_death_rayon = HashMap::new();
         let mut explosive_regressive_injured_rayon = HashMap::new();
@@ -221,7 +221,9 @@ impl ServerConfig {
             hide_maximum_rayon: Distance::from_meters(HIDE_MAXIMUM_RAYON),
         }
     }
+}
 
+impl ServerConfig {
     pub fn soldier_update_freq(&self) -> u64 {
         self.soldier_update_freq
     }
@@ -356,17 +358,17 @@ impl ServerConfig {
             ChangeConfigMessage::VisibilityByLastFrameShot(v) => self.visibility_by_last_frame_shoot = *v,
             ChangeConfigMessage::VisibilityByLastFrameShotDistance(v) => self.visibility_by_last_frame_shoot_distance = *v,
             ChangeConfigMessage::ExplosiveDirectDeathRayon(explosive, new_distance) => {
-                if let Some(distance) = self.explosive_direct_death_rayon.get_mut(&explosive) {
+                if let Some(distance) = self.explosive_direct_death_rayon.get_mut(explosive) {
                     distance.millimeters = new_distance.millimeters()
                 }
             },
             ChangeConfigMessage::ExplosiveRegressiveDeathRayon(explosive, new_distance) => {
-                if let Some(distance) = self.explosive_regressive_death_rayon.get_mut(&explosive) {
+                if let Some(distance) = self.explosive_regressive_death_rayon.get_mut(explosive) {
                     distance.millimeters = new_distance.millimeters()
                 }
             },
             ChangeConfigMessage::ExplosiveRegressiveInjuredRayon(explosive, new_distance) => {
-                if let Some(distance) = self.explosive_regressive_injured_rayon.get_mut(&explosive) {
+                if let Some(distance) = self.explosive_regressive_injured_rayon.get_mut(explosive) {
                     distance.millimeters = new_distance.millimeters()
                 }
             },
@@ -379,8 +381,8 @@ pub struct GuiConfig {
     pub interiors_update_freq: u64,
 }
 
-impl GuiConfig {
-    pub fn new() -> Self {
+impl Default for GuiConfig {
+    fn default() -> Self {
         Self {
             target_fps: TARGET_FPS as u32,
             interiors_update_freq: INTERIORS_UPDATE_FREQ,

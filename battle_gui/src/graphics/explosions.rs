@@ -69,7 +69,7 @@ impl<'a> ExplosionsBuilder<'a> {
             .map_err(|error| {
                 GameError::ResourceLoadError(format!(
                     "Explosions image source qualification error : {}",
-                    error.to_string()
+                    error
                 ))
             })?;
         let image = Image::from_path(self.ctx, image_path)?;

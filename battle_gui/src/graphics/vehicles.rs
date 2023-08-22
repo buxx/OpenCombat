@@ -69,7 +69,7 @@ impl<'a> VehiclesBuilder<'a> {
             .map_err(|error| {
                 GameError::ResourceLoadError(format!(
                     "Vehicles image source qualification error : {}",
-                    error.to_string()
+                    error
                 ))
             })?;
         let image = Image::from_path(self.ctx, image_path)?;

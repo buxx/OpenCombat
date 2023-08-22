@@ -74,7 +74,7 @@ impl<'a> HudBuilder<'a> {
         let minimap = self.minimap(&minimap_start);
 
         Hud::new(
-            Background::new(self.point.clone(), self.width, self.height),
+            Background::new(self.point, self.width, self.height),
             battle_button,
             morale_indicator,
             squad_statuses,
@@ -87,17 +87,17 @@ impl<'a> HudBuilder<'a> {
         match self.battle_state.phase() {
             Phase::Placement => {
                 let enabled = !self.battle_state.ready(self.gui_state.side());
-                BattleButton::begin(point.clone(), enabled)
+                BattleButton::begin(*point, enabled)
             }
             // FIXME BS NOW : enabled computing
-            Phase::Battle => BattleButton::end(point.clone(), true),
-            Phase::End(_, _) => BattleButton::end(point.clone(), false),
+            Phase::Battle => BattleButton::end(*point, true),
+            Phase::End(_, _) => BattleButton::end(*point, false),
         }
     }
 
     fn morale_indicator(&self, point: &WindowPoint) -> MoraleIndicator {
         MoraleIndicator::new(
-            point.clone(),
+            *point,
             self.battle_state.a_morale().clone(),
             self.battle_state.b_morale().clone(),
         )
@@ -106,7 +106,7 @@ impl<'a> HudBuilder<'a> {
     fn squad_statuses(&self, point: &WindowPoint) -> SquadStatuses {
         SquadStatuses::new(
             SquadStatusesResume::from_battle_state(self.gui_state.side(), self.battle_state),
-            point.clone(),
+            *point,
             self.gui_state.selected_squads().1.clone(),
         )
     }
@@ -117,7 +117,7 @@ impl<'a> HudBuilder<'a> {
                 *point,
                 Some(SquadStatusResume::from_squad(
                     self.battle_state,
-                    &squad_uuid,
+                    squad_uuid,
                 )),
             )
         } else {
@@ -154,7 +154,7 @@ impl<'a> HudBuilder<'a> {
             *point,
             self.battle_state.map().visual_width() as f32,
             self.battle_state.map().visual_height() as f32,
-            self.gui_state.display_scene_offset.clone(),
+            self.gui_state.display_scene_offset,
             self.gui_state.zoom.clone(),
             blue_positions,
             red_positions,

@@ -1,4 +1,10 @@
-use std::{collections::HashMap, fmt::Display, path::PathBuf, str::FromStr, sync::Arc};
+use std::{
+    collections::HashMap,
+    fmt::Display,
+    path::{Path, PathBuf},
+    str::FromStr,
+    sync::Arc,
+};
 
 use oc_core::spawn::{ParseOriginDirectionError, SpawnZoneName};
 use tiled::{
@@ -16,15 +22,17 @@ use super::{
     Map,
 };
 
-const BACKGROUND_IMAGE_LAYER_NAME: &'static str = "background_image";
-const INTERIORS_IMAGE_LAYER_NAME: &'static str = "interiors_image";
-const INTERIORS_ZONES_LAYER_NAME: &'static str = "interiors_zones";
-const SPAWN_ZONES_LAYER_NAME: &'static str = "spawn_zones";
-const FLAGS_LAYER_NAME: &'static str = "flags";
-const DECOR_LAYER_NAME: &'static str = "decor";
-const TERRAIN_LAYER_NAME: &'static str = "terrain";
-const TERRAIN_TILESET_NAME: &'static str = "terrain";
-const TILE_ID_PROPERTY_KEY: &'static str = "ID";
+type DecorTilesets = (Vec<Arc<Tileset>>, HashMap<usize, usize>);
+
+const BACKGROUND_IMAGE_LAYER_NAME: &str = "background_image";
+const INTERIORS_IMAGE_LAYER_NAME: &str = "interiors_image";
+const INTERIORS_ZONES_LAYER_NAME: &str = "interiors_zones";
+const SPAWN_ZONES_LAYER_NAME: &str = "spawn_zones";
+const FLAGS_LAYER_NAME: &str = "flags";
+const DECOR_LAYER_NAME: &str = "decor";
+const TERRAIN_LAYER_NAME: &str = "terrain";
+const TERRAIN_TILESET_NAME: &str = "terrain";
+const TILE_ID_PROPERTY_KEY: &str = "ID";
 
 #[derive(Debug)]
 pub enum MapReaderError {
@@ -82,7 +90,7 @@ pub struct MapReader {
 }
 
 impl MapReader {
-    pub fn new(name: &str, resources: &PathBuf) -> Result<Self, MapReaderError> {
+    pub fn new(name: &str, resources: &Path) -> Result<Self, MapReaderError> {
         let map_file_path = format!("{}/maps/{}/{}.tmx", &resources.display(), name, name);
         let mut loader = Loader::new();
 
@@ -97,7 +105,7 @@ impl MapReader {
         };
 
         Ok(Self {
-            resources: resources.clone(),
+            resources: resources.to_path_buf(),
             name: name.to_string(),
             map,
         })
@@ -111,7 +119,7 @@ impl MapReader {
             .collect::<Vec<Layer>>()
             .first()
         {
-            Some(layer) => Ok(layer.clone()),
+            Some(layer) => Ok(*layer),
             None => Result::Err(MapReaderError::LayerNotFound(format!(
                 "Failed to find layer '{}' in map {}",
                 name, self.name,
@@ -424,7 +432,7 @@ impl MapReader {
         Ok(tiles)
     }
 
-    fn decor_tilesets(&self) -> Result<(Vec<Arc<Tileset>>, HashMap<usize, usize>), MapReaderError> {
+    fn decor_tilesets(&self) -> Result<DecorTilesets, MapReaderError> {
         let layer = self.decor_layer()?;
         let mut tileset_indexes = vec![];
         let mut tilesets = vec![];
@@ -432,13 +440,10 @@ impl MapReader {
 
         for x in 0..layer.width() {
             for y in 0..layer.height() {
-                match layer.get_tile_data(x as i32, y as i32) {
-                    Some(layer_tile_data) => {
-                        if !tileset_indexes.contains(&layer_tile_data.tileset_index()) {
-                            tileset_indexes.push(layer_tile_data.tileset_index());
-                        }
+                if let Some(layer_tile_data) = layer.get_tile_data(x as i32, y as i32) {
+                    if !tileset_indexes.contains(&layer_tile_data.tileset_index()) {
+                        tileset_indexes.push(layer_tile_data.tileset_index());
                     }
-                    None => {}
                 };
             }
         }
@@ -484,8 +489,7 @@ impl MapReader {
                         image
                             .source
                             .strip_prefix(&self.resources)
-                            .expect("Must be in resources")
-                            .to_path_buf(),
+                            .expect("Must be in resources"),
                     )
                     .clone()
             })
@@ -495,40 +499,37 @@ impl MapReader {
 
         for x in 0..decor_layer.width() {
             for y in 0..decor_layer.height() {
-                match decor_layer.get_tile_data(x as i32, y as i32) {
-                    Some(layer_tile_data) => {
-                        let tileset = self.map.tilesets()[layer_tile_data.tileset_index()].clone();
+                if let Some(layer_tile_data) = decor_layer.get_tile_data(x as i32, y as i32) {
+                    let tileset = self.map.tilesets()[layer_tile_data.tileset_index()].clone();
 
-                        let decor_tileset_position = *tilesets_positions
-                            .get(&layer_tile_data.tileset_index())
-                            .expect("Positions must are consistent");
-                        let image = images
-                            .get(decor_tileset_position)
-                            .expect("Positions must are consistent");
-                        let tile_width = tileset.tile_width;
-                        let tile_height = tileset.tile_height;
-                        let relative_tile_width = tile_width as f32 / image.width as f32;
-                        let relative_tile_height = tile_height as f32 / image.height as f32;
+                    let decor_tileset_position = *tilesets_positions
+                        .get(&layer_tile_data.tileset_index())
+                        .expect("Positions must are consistent");
+                    let image = images
+                        .get(decor_tileset_position)
+                        .expect("Positions must are consistent");
+                    let tile_width = tileset.tile_width;
+                    let tile_height = tileset.tile_height;
+                    let relative_tile_width = tile_width as f32 / image.width as f32;
+                    let relative_tile_height = tile_height as f32 / image.height as f32;
 
-                        let tile_id = layer_tile_data.id();
-                        let tile_y = tile_id / tileset.columns;
-                        let tile_x = tile_id - (tile_y * tileset.columns);
+                    let tile_id = layer_tile_data.id();
+                    let tile_y = tile_id / tileset.columns;
+                    let tile_x = tile_id - (tile_y * tileset.columns);
 
-                        let terrain_tile = DecorTile::new(
-                            decor_tileset_position,
-                            tile_width,
-                            tile_height,
-                            relative_tile_width,
-                            relative_tile_height,
-                            x,
-                            y,
-                            tile_x,
-                            tile_y,
-                        );
+                    let terrain_tile = DecorTile::new(
+                        decor_tileset_position,
+                        tile_width,
+                        tile_height,
+                        relative_tile_width,
+                        relative_tile_height,
+                        x,
+                        y,
+                        tile_x,
+                        tile_y,
+                    );
 
-                        tiles.push(terrain_tile)
-                    }
-                    None => {}
+                    tiles.push(terrain_tile)
                 };
             }
         }
@@ -541,22 +542,19 @@ impl MapReader {
             self.background_image()?
                 .source
                 .strip_prefix(&self.resources)
-                .expect("Must be in resources")
-                .to_path_buf(),
+                .expect("Must be in resources"),
         );
         let interiors_image_path = PathBuf::from("/").join(
             self.interiors_image()?
                 .source
                 .strip_prefix(&self.resources)
-                .expect("Must be in resources")
-                .to_path_buf(),
+                .expect("Must be in resources"),
         );
         let terrain_image_path = PathBuf::from("/").join(
             self.terrain_image()?
                 .source
                 .strip_prefix(&self.resources)
-                .expect("Must be in resources")
-                .to_path_buf(),
+                .expect("Must be in resources"),
         );
 
         let interiors = self.interiors()?;

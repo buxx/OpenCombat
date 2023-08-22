@@ -49,7 +49,7 @@ impl Engine {
                         DEFAULT_SELECTED_SQUARE_SIDE,
                         DEFAULT_SELECTED_SQUARE_SIDE,
                     ),
-                    SoldierHealthBuilder::new(&soldier).build().color(),
+                    SoldierHealthBuilder::new(soldier).build().color(),
                 )?;
                 if self.battle_state.squad(soldier.squad_uuid()).leader() == soldier.uuid() {
                     mesh_builder.rectangle(
@@ -88,7 +88,8 @@ impl Engine {
     }
 
     pub fn get_opponent_soldiers_at_point(&self, point: WorldPoint) -> Vec<&Soldier> {
-        let soldier_indexes = self.soldiers_at_point(point);
+        let soldier_indexes =
+            self.soldiers_at_point(point, Some(&self.gui_state.side().opposite()));
         self.filter_entities_by_side(soldier_indexes, self.gui_state.opponent_side())
             .iter()
             .map(|i| self.battle_state.soldier(*i))
@@ -101,8 +102,8 @@ impl Engine {
         point: WindowPoint,
     ) -> Vec<EngineMessage> {
         let world_point = self.gui_state.world_point_from_window_point(point);
-        let soldier_indexes = self.soldiers_at_point(world_point);
-        if soldier_indexes.len() > 0 {
+        let soldier_indexes = self.soldiers_at_point(world_point, Some(self.gui_state.side()));
+        if !soldier_indexes.is_empty() {
             let squad_ids = self.squad_ids_from_entities(vec![soldier_indexes[0]]);
             return vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
                 Some(soldier_indexes[0]),
@@ -111,7 +112,7 @@ impl Engine {
         };
 
         // Little dirty but ensure it was not a click on the hud
-        if !self.hud.contains(ctx, &vec![&point]) {
+        if !self.hud.contains(ctx, &[&point]) {
             return vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
                 None,
                 vec![],
@@ -125,11 +126,10 @@ impl Engine {
         &self,
         cursor_point: &WindowPoint,
         squad_menu_point: &WindowPoint,
-        squads: &Vec<SquadUuid>,
+        squads: &[SquadUuid],
     ) -> Vec<EngineMessage> {
         let squad_menu_sprite_info = squad_menu_sprite_info();
-        if let Some(menu_item) =
-            squad_menu_sprite_info.item_clicked(&squad_menu_point, &cursor_point)
+        if let Some(menu_item) = squad_menu_sprite_info.item_clicked(squad_menu_point, cursor_point)
         {
             return vec![EngineMessage::GuiState(GuiStateMessage::SetPendingOrders(
                 squads
@@ -147,12 +147,12 @@ impl Engine {
         start_cursor_point: &WindowPoint,
         end_cursor_point: &WindowPoint,
         squad_menu_point: &WindowPoint,
-        squads: &Vec<SquadUuid>,
+        squads: &[SquadUuid],
     ) -> Option<Vec<EngineMessage>> {
         let squad_menu_sprite_info = squad_menu_sprite_info();
         if let (Some(menu_item), Some(_)) = (
-            squad_menu_sprite_info.item_clicked(&squad_menu_point, &start_cursor_point),
-            squad_menu_sprite_info.item_clicked(&squad_menu_point, &end_cursor_point),
+            squad_menu_sprite_info.item_clicked(squad_menu_point, start_cursor_point),
+            squad_menu_sprite_info.item_clicked(squad_menu_point, end_cursor_point),
         ) {
             return Some(vec![EngineMessage::GuiState(
                 GuiStateMessage::SetPendingOrders(
@@ -182,7 +182,7 @@ impl Engine {
                 .window_point_from_world_point(last_world_point);
             points.push(last_window_point.to_vec2());
             for world_point in &path.points {
-                last_world_point = world_point.clone();
+                last_world_point = *world_point;
                 let window_point = self.gui_state.window_point_from_world_point(*world_point);
                 points.push(window_point.to_vec2())
             }
@@ -243,7 +243,7 @@ impl Engine {
             }
             PendingOrder::EngageOrFire(squad_index) => {
                 //
-                self.create_engage_order(&squad_index)
+                self.create_engage_order(squad_index)
             }
         }
     }
@@ -276,11 +276,12 @@ impl Engine {
                 }
                 UIEvent::FinishedCursorRightClick(point) => {
                     let world_point = self.gui_state.world_point_from_window_point(point);
-                    let soldier_indexes = self.soldiers_at_point(world_point);
+                    let soldier_indexes =
+                        self.soldiers_at_point(world_point, Some(self.gui_state.side()));
                     let mut squad_ids: Vec<SquadUuid> = vec![];
 
                     // If squad under cursor, select it
-                    if soldier_indexes.len() > 0 {
+                    if !soldier_indexes.is_empty() {
                         let squad_id_ = self.squad_ids_from_entities(soldier_indexes.clone())[0];
                         squad_ids = vec![squad_id_];
                         messages.push(EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
@@ -289,17 +290,14 @@ impl Engine {
                         )));
 
                     // Else, if squads already selected, keep only one
-                    } else if self.gui_state.selected_squads().1.len() > 0 {
+                    } else if !self.gui_state.selected_squads().1.is_empty() {
                         squad_ids = self.gui_state.selected_squads().1.clone();
                     }
 
                     // Display a squad menu if squad under cursor or selected squad
-                    if squad_ids.len() > 0 {
+                    if !squad_ids.is_empty() {
                         messages.push(EngineMessage::GuiState(GuiStateMessage::SetSquadMenu(
-                            Some((
-                                self.gui_state.current_cursor_window_point().clone(),
-                                squad_ids,
-                            )),
+                            Some((*self.gui_state.current_cursor_window_point(), squad_ids)),
                         )));
                     }
                 }
@@ -308,14 +306,14 @@ impl Engine {
                     let mut draw_path_findings = vec![];
 
                     for pending_order in self.gui_state.pending_order() {
-                        if since == PENDING_ORDER_PATH_FINDING_DRAW_FRAMES {
-                            if pending_order.expect_path_finding() {
-                                draw_path_findings.push((
-                                    *pending_order.squad_index(),
-                                    *pending_order.order_marker_index(),
-                                    pending_order.cached_points().clone(),
-                                ));
-                            }
+                        if since == PENDING_ORDER_PATH_FINDING_DRAW_FRAMES
+                            && pending_order.expect_path_finding()
+                        {
+                            draw_path_findings.push((
+                                *pending_order.squad_index(),
+                                *pending_order.order_marker_index(),
+                                pending_order.cached_points().clone(),
+                            ));
                         }
                     }
 
@@ -429,7 +427,7 @@ impl Engine {
         point: WindowPoint,
     ) -> Vec<EngineMessage> {
         let world_point = self.gui_state.world_point_from_window_point(point);
-        self.generate_debug_physics(world_point.clone(), world_point)
+        self.generate_debug_physics(world_point, world_point)
     }
 
     fn cursor_vector_finished_controlling_soldier(
@@ -454,7 +452,7 @@ impl Engine {
             }
         }
 
-        if self.gui_state.pending_order().len() > 0 {
+        if !self.gui_state.pending_order().is_empty() {
             for pending_order in self.gui_state.pending_order() {
                 if let Some(order_) = self.order_from_pending_order(pending_order) {
                     let squad_leader = self
@@ -533,7 +531,7 @@ impl Engine {
         } else {
             vec![EngineMessage::BattleState(BattleStateMessage::Vehicle(
                 *vehicle_index,
-                VehicleMessage::SetWorldPosition(point.clone()),
+                VehicleMessage::SetWorldPosition(*point),
             ))]
         }
     }
@@ -546,9 +544,9 @@ impl Engine {
         let mut messages = vec![];
         let squad = self.battle_state.squad(*squad_index);
         let leader = self.battle_state.soldier(squad.leader());
-        let cursor_grid_point = self.battle_state.map().grid_point_from_world_point(&point);
+        let cursor_grid_point = self.battle_state.map().grid_point_from_world_point(point);
         let (moves, debug_points) = CoverFinder::new(&self.battle_state, &self.server_config)
-            .point(Some(point.clone()))
+            .point(Some(*point))
             .exclude_grid_points(vec![cursor_grid_point])
             .find_arbitrary_cover_points(squad, leader);
 

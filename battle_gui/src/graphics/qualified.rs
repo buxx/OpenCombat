@@ -99,10 +99,7 @@ impl Zoom {
     pub fn is_hd(&self) -> bool {
         #[cfg(feature = "hd")]
         {
-            match self {
-                Zoom::In => true,
-                _ => false,
-            }
+            matches!(self, Zoom::In)
         }
         #[cfg(not(feature = "hd"))]
         {

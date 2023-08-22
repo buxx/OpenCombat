@@ -23,7 +23,7 @@ impl Engine {
                 match message {
                     OutputMessage::LoadFromCopy(copy) => {
                         let mut battle_state =
-                            BattleState::from_copy(copy, &self.battle_state.map());
+                            BattleState::from_copy(copy, self.battle_state.map());
                         battle_state.resolve();
 
                         side_effects.extend(

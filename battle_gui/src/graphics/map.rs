@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use battle_core::{config::ServerConfig, map::Map, types::WorldPoint};
 use ggez::{
@@ -29,7 +29,7 @@ pub fn ensure_map_dark_backgrounds(map: &Map) -> GameResult<PathBuf> {
             .map_err(|error| {
                 GameError::ResourceLoadError(format!(
                     "Background image source qualification error : {}",
-                    error.to_string()
+                    error
                 ))
             })?
             .strip_prefix("/")
@@ -46,7 +46,7 @@ pub fn ensure_map_dark_backgrounds(map: &Map) -> GameResult<PathBuf> {
         .join(format!("{}__dark__HD.png", map.name()));
 
     if !bg_dark_image_path_abs.exists() {
-        let mut bg_image = image::open(&bg_image_path_abs)?.into_rgba8();
+        let mut bg_image = image::open(bg_image_path_abs)?.into_rgba8();
         bg_image
             .as_flat_samples_mut()
             .samples
@@ -59,7 +59,7 @@ pub fn ensure_map_dark_backgrounds(map: &Map) -> GameResult<PathBuf> {
     }
 
     if !bg_dark_image_hd_path_abs.exists() {
-        let mut bg_image = image::open(&bg_image_hd_path_abs)?.into_rgba8();
+        let mut bg_image = image::open(bg_image_hd_path_abs)?.into_rgba8();
         bg_image
             .as_flat_samples_mut()
             .samples
@@ -74,7 +74,7 @@ pub fn ensure_map_dark_backgrounds(map: &Map) -> GameResult<PathBuf> {
     Ok(bg_dark_image_path_rel)
 }
 
-pub fn ensure_dark(map_name: &str, image_path: &PathBuf) -> GameResult<()> {
+pub fn ensure_dark(map_name: &str, image_path: &Path) -> GameResult<()> {
     let resources = match Resources::new() {
         Ok(resources) => resources,
         Err(error) => return Err(GameError::ResourceLoadError(error.to_string())),

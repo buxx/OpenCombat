@@ -38,10 +38,22 @@ impl Engine {
         soldier_indexes
     }
 
-    pub fn soldiers_at_point(&self, point: WorldPoint) -> Vec<SoldierIndex> {
+    pub fn soldiers_at_point(&self, point: WorldPoint, side: Option<&Side>) -> Vec<SoldierIndex> {
         let mut soldier_indexes = vec![];
 
-        for (i, soldier) in self.battle_state.soldiers().iter().enumerate() {
+        for (i, soldier) in self
+            .battle_state
+            .soldiers()
+            .iter()
+            .filter(|s| {
+                if let Some(side) = side {
+                    s.side() == side
+                } else {
+                    true
+                }
+            })
+            .enumerate()
+        {
             let rect = self.graphics.soldier_selection_rect(soldier);
             if rect.contains(point.to_vec2()) {
                 soldier_indexes.push(SoldierIndex(i));
@@ -180,14 +192,10 @@ impl Engine {
                 path_mode,
                 start_direction,
             ) {
-                if grid_points_path.len() > 0 {
+                if !grid_points_path.is_empty() {
                     let world_point_path = grid_points_path
                         .iter()
-                        .map(|p| {
-                            self.battle_state
-                                .map()
-                                .world_point_from_grid_point(GridPoint::from(*p))
-                        })
+                        .map(|p| self.battle_state.map().world_point_from_grid_point(*p))
                         .collect();
                     let world_path = WorldPath::new(world_point_path);
                     world_paths.push(world_path);
@@ -195,7 +203,7 @@ impl Engine {
             }
         }
 
-        if world_paths.len() > 0 {
+        if !world_paths.is_empty() {
             return Some(WorldPaths::new(world_paths));
         }
 
@@ -251,13 +259,13 @@ impl Engine {
         // Else, create a path
         let (path_mode, start_direction) =
             self.battle_state.squad_path_mode_and_direction(*squad_id);
-        return self.create_path_finding(
+        self.create_path_finding(
             *squad_id,
             order_marker_index,
             cached_points,
             &path_mode,
             &start_direction,
-        );
+        )
     }
 
     pub fn angle_from_cursor_and_squad(&self, squad_id: SquadUuid) -> Angle {

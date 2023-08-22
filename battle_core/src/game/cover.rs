@@ -58,9 +58,9 @@ impl<'a> CoverFinder<'a> {
                 .map()
                 .grid_point_from_world_point(&formation_position);
             if let Some((cover_grid_point, debug_grid_points)) = find_arbitrary_cover_grid_point(
-                &self.config,
+                self.config,
                 &grid_point,
-                &self.battle_state.map(),
+                self.battle_state.map(),
                 &already_used_cover_grid_points,
                 COVER_DISTANCE,
             ) {

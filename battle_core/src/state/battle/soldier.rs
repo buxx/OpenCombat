@@ -37,8 +37,8 @@ impl BattleState {
             SoldierMessage::IncreaseUnderFire(value) => soldier.increase_under_fire(*value),
             SoldierMessage::DecreaseUnderFire => soldier.decrease_under_fire(),
             SoldierMessage::SetOrder(order) => soldier.set_order(order.clone()),
-            SoldierMessage::ReloadWeapon(class) => soldier.reload_weapon(&class),
-            SoldierMessage::WeaponShot(class) => soldier.weapon_shot(&class),
+            SoldierMessage::ReloadWeapon(class) => soldier.reload_weapon(class),
+            SoldierMessage::WeaponShot(class) => soldier.weapon_shot(class),
             SoldierMessage::SetLastShootFrameI(frame_i) => soldier.set_last_shoot_frame_i(*frame_i),
         }
 

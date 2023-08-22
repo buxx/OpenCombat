@@ -18,7 +18,7 @@ impl Engine {
             if explosion.start() == frame_i {
                 messages.push(EngineMessage::Graphics(
                     GraphicsMessage::PushExplosionAnimation(
-                        explosion.point().clone(),
+                        *explosion.point(),
                         explosion.explosive_type().clone(),
                     ),
                 ))
@@ -27,7 +27,7 @@ impl Engine {
             if explosion.finished(frame_i) {
                 // TODO : Remove by self.point can remove other explosions. Find better methodology
                 messages.push(EngineMessage::Graphics(
-                    GraphicsMessage::RemoveExplosionAnimation(explosion.point().clone()),
+                    GraphicsMessage::RemoveExplosionAnimation(*explosion.point()),
                 ))
             }
         }
@@ -40,12 +40,12 @@ impl Engine {
 
         if explosion.start() == self.gui_state.frame_i() {
             for sound in explosion.explosive_type().sounds() {
-                messages.push(EngineMessage::PlaySound(sound.clone()));
+                messages.push(EngineMessage::PlaySound(sound));
             }
 
             messages.push(EngineMessage::Graphics(
                 GraphicsMessage::PushExplosionAnimation(
-                    explosion.point().clone(),
+                    *explosion.point(),
                     explosion.explosive_type().clone(),
                 ),
             ));

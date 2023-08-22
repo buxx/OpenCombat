@@ -14,6 +14,7 @@ pub struct DecorTile {
 }
 
 impl DecorTile {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         tileset_i: usize, // Used to rely tileset/sprite_batch in Decor
         tile_width: u32,

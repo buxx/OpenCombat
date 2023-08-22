@@ -84,9 +84,9 @@ impl Client {
             .spawn(move || {
                 loop {
                     // Wait messages to send
-                    let messages: Vec<InputMessage> = thread_send_receiver.recv().expect(&format!(
-                        "Channel was closed when try to receive messages to send"
-                    ));
+                    let messages: Vec<InputMessage> = thread_send_receiver
+                        .recv()
+                        .expect("Channel was closed when try to receive messages to send");
 
                     // Encode messages to send
                     let messages_bytes = match bincode::serialize(&messages) {
@@ -98,13 +98,10 @@ impl Client {
                     };
 
                     // Send messages to server
-                    match socket.send(messages_bytes, 0) {
-                        Err(error) => {
-                            println!("Error while sending messages : {}", error);
-                            // Don't expect a response if send error
-                            continue;
-                        }
-                        _ => {}
+                    if let Err(error) = socket.send(messages_bytes, 0) {
+                        println!("Error while sending messages : {}", error);
+                        // Don't expect a response if send error
+                        continue;
                     };
 
                     let _response = match socket.recv_bytes(0) {
@@ -163,9 +160,7 @@ impl Client {
                     // Send through channel the decoded messages
                     thread_receive_sender
                         .send(envelope.messages)
-                        .expect(&format!(
-                            "Channel was closed when try to send received messages"
-                        ));
+                        .expect("Channel was closed when try to send received messages");
 
                     // Check no message(s) was lost, if yes, require sync from server
                     if last_counter != 0 && last_counter + 1 != envelope.id {
@@ -173,9 +168,7 @@ impl Client {
                         sync_required_.swap(true, Ordering::Relaxed);
                         thread_input_sender
                             .send(vec![InputMessage::RequireCompleteSync])
-                            .expect(&format!(
-                                "Channel was closed when try to send server sync requirement"
-                            ));
+                            .expect("Channel was closed when try to send server sync requirement");
                     }
 
                     // Update the last counter

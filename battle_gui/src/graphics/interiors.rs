@@ -70,7 +70,7 @@ impl<'a> InteriorsBuilder<'a> {
             .map_err(|error| {
                 GameError::ResourceLoadError(format!(
                     "Interiors image source qualification error : {}",
-                    error.to_string()
+                    error
                 ))
             })?;
         let map_interiors_image = Image::from_path(self.ctx, image_path)?;

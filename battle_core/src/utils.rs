@@ -72,12 +72,10 @@ pub fn short_angle_way(current: &Angle, target: &Angle) -> AngleWay {
         } else {
             AngleWay::ClockWise
         }
+    } else if c < 0. {
+        AngleWay::CounterClockWise
     } else {
-        if c < 0. {
-            AngleWay::CounterClockWise
-        } else {
-            AngleWay::ClockWise
-        }
+        AngleWay::ClockWise
     }
 }
 

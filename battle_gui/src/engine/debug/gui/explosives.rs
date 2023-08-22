@@ -27,7 +27,7 @@ impl Engine {
         });
         ui.end_row();
 
-        Grid::new(&format!("explosives"))
+        Grid::new("explosives".to_string())
             .num_columns(2)
             .spacing([40.0, 4.0])
             .striped(true)

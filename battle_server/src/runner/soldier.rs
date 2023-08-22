@@ -11,7 +11,7 @@ impl Runner {
         puffin::profile_scope!("tick_soldiers");
         let mut messages = vec![];
         let tick_animate = self.frame_i % self.config.soldier_animate_freq() == 0
-            && self.battle_state.phase().battle();
+            && self.battle_state.phase().is_battle();
         let tick_update = self.frame_i % self.config.soldier_update_freq() == 0;
 
         // Entities animation
@@ -42,7 +42,7 @@ impl Runner {
         puffin::profile_scope!("tick_feeling_decreasing_soldiers");
         let mut messages = vec![];
         let tick_feeling_decreasing = self.frame_i % self.config.feeling_decreasing_freq() == 0
-            && self.battle_state.phase().battle();
+            && self.battle_state.phase().is_battle();
 
         if tick_feeling_decreasing {
             messages.extend((0..self.battle_state.soldiers().len()).map(|i| {
@@ -85,7 +85,7 @@ impl Runner {
         let tick_update = self.frame_i % self.config.squad_leaders_update_freq() == 0;
 
         if tick_update {
-            for (squad_uuid, _) in self.battle_state.squads() {
+            for squad_uuid in self.battle_state.squads().keys() {
                 let squad = self.battle_state.squad(*squad_uuid);
                 let leader = self.battle_state.soldier(squad.leader());
 
@@ -94,8 +94,7 @@ impl Runner {
                         .subordinates()
                         .iter()
                         .map(|s| self.battle_state.soldier(**s))
-                        .filter(|s| s.can_be_leader())
-                        .next()
+                        .find(|s| s.can_be_leader())
                     {
                         messages.push(RunnerMessage::BattleState(
                             BattleStateMessage::SetSquadLeader(*squad_uuid, member.uuid()),

@@ -89,9 +89,9 @@ impl FlagsOwnership {
 
         for flag in map.flags() {
             let mut is_a_control =
-                map.one_of_spawn_zone_contains_flag(&a_control.spawn_zone_names(), &flag);
+                map.one_of_spawn_zone_contains_flag(a_control.spawn_zone_names(), flag);
             let mut is_b_control =
-                map.one_of_spawn_zone_contains_flag(&b_control.spawn_zone_names(), &flag);
+                map.one_of_spawn_zone_contains_flag(b_control.spawn_zone_names(), flag);
 
             if a_control.spawn_zone_names().contains(&SpawnZoneName::All) && !is_b_control {
                 is_a_control = true;

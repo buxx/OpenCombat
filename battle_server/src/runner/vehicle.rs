@@ -105,7 +105,7 @@ impl Runner {
 
         // Need to rotate chassis ?
         if !vehicle.chassis_orientation_match(angle) {
-            let new_orientation = match short_angle_way(vehicle.chassis_orientation(), &angle) {
+            let new_orientation = match short_angle_way(vehicle.chassis_orientation(), angle) {
                 AngleWay::ClockWise => {
                     *vehicle.chassis_orientation() + vehicle.type_().chassis_rotation_speed()
                 }

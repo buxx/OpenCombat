@@ -84,7 +84,7 @@ impl Component<HudEvent> for BattleButton {
             rel_width: BATTLE_BUTTON_REL_WIDTH,
             rel_height: BATTLE_BUTTON_REL_HEIGHT,
         }
-        .sprites(self.point, self.enabled, self.contains(ctx, &vec![hovered]))
+        .sprites(self.point, self.enabled, self.contains(ctx, &[hovered]))
     }
 
     fn event(&self, _ctx: &Context) -> Option<HudEvent> {

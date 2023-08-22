@@ -40,6 +40,7 @@ pub struct Map {
 }
 
 impl Map {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         name: String,
         background_image_path: PathBuf,
@@ -134,15 +135,14 @@ impl Map {
     pub fn flag(&self, flag_name: &FlagName) -> &Flag {
         self.flags()
             .iter()
-            .filter(|f| f.name() == flag_name)
-            .next()
+            .find(|f| f.name() == flag_name)
             .expect("Flags ownership and map flag must be consistent")
     }
 
-    pub fn find_spawn_zones(&self, names: &Vec<SpawnZoneName>) -> Vec<&SpawnZone> {
+    pub fn find_spawn_zones(&self, names: &[SpawnZoneName]) -> Vec<&SpawnZone> {
         self.spawn_zones
             .iter()
-            .filter(|s| names.contains(&SpawnZoneName::All) || names.contains(&s.name()))
+            .filter(|s| names.contains(&SpawnZoneName::All) || names.contains(s.name()))
             .collect()
     }
 
@@ -153,8 +153,7 @@ impl Map {
     ) -> bool {
         for spawn_zone_name in spawn_zone_names {
             // FIXME BS NOW : algo moche ?!
-            let foo = &vec![spawn_zone_name.clone()];
-            let found = self.find_spawn_zones(foo);
+            let found = self.find_spawn_zones(&[spawn_zone_name.clone()]);
             let spawn_zone = found.first().unwrap(); // FIXME BS NOW : manage error
 
             if spawn_zone.contains(&flag.shape()) {
@@ -162,7 +161,7 @@ impl Map {
             }
         }
 
-        return false;
+        false
     }
 
     pub fn successors(
@@ -190,13 +189,10 @@ impl Map {
                         continue;
                     }
 
-                    match path_mode {
-                        PathMode::Drive(size) => {
-                            if !self.point_allow_vehicle(&GridPoint::new(new_x, new_y), size) {
-                                continue;
-                            }
+                    if let PathMode::Drive(size) = path_mode {
+                        if !self.point_allow_vehicle(&GridPoint::new(new_x, new_y), size) {
+                            continue;
                         }
-                        _ => {}
                     }
                 }
 
@@ -251,7 +247,7 @@ impl Map {
             }
         }
 
-        return true;
+        true
     }
 
     pub fn point_in_spawn_zones(
@@ -265,14 +261,13 @@ impl Map {
         }
 
         for spawn_zone in &self.spawn_zones {
-            if allowed_zone_names.contains_spawn_zone(spawn_zone.name()) {
-                if point.x >= spawn_zone.x()
-                    && point.x <= spawn_zone.x() + spawn_zone.width()
-                    && point.y >= spawn_zone.y()
-                    && point.y <= spawn_zone.y() + spawn_zone.height()
-                {
-                    return true;
-                }
+            if allowed_zone_names.contains_spawn_zone(spawn_zone.name())
+                && point.x >= spawn_zone.x()
+                && point.x <= spawn_zone.x() + spawn_zone.width()
+                && point.y >= spawn_zone.y()
+                && point.y <= spawn_zone.y() + spawn_zone.height()
+            {
+                return true;
             }
         }
 
@@ -284,18 +279,15 @@ pub fn find_arbitrary_cover_grid_point(
     config: &ServerConfig,
     from_grid_point: &GridPoint,
     map: &Map,
-    exclude_grid_points: &Vec<GridPoint>,
+    exclude_grid_points: &[GridPoint],
     cover_distance: i32,
 ) -> Option<(GridPoint, Vec<GridPoint>)> {
     let tiles = find_arbitrary_cover_grid_points(config, from_grid_point, map, cover_distance);
     for (grid_point, _) in tiles.iter().rev() {
         if !exclude_grid_points.contains(grid_point) {
             // TODO : This is for debug, don't take too much cpu ?
-            let grid_points = tiles
-                .iter()
-                .map(|(p, _)| p.clone())
-                .collect::<Vec<GridPoint>>();
-            return Some((grid_point.clone(), grid_points));
+            let grid_points = tiles.iter().map(|(p, _)| *p).collect::<Vec<GridPoint>>();
+            return Some((*grid_point, grid_points));
         }
     }
 
@@ -314,10 +306,10 @@ pub fn find_arbitrary_cover_grid_points<'a>(
         .terrain_tiles()
         .get((from_grid_point.y * map.width() as i32 + from_grid_point.x) as usize)
     {
-        tiles.push((from_grid_point.clone(), tile))
+        tiles.push((*from_grid_point, tile))
     }
     let grid_points_for_square =
-        grid_points_for_square(&from_grid_point, cover_distance, cover_distance);
+        grid_points_for_square(from_grid_point, cover_distance, cover_distance);
     for grid_point in grid_points_for_square {
         if let Some(tile) = map
             .terrain_tiles()

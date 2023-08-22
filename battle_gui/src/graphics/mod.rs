@@ -255,7 +255,7 @@ impl Graphics {
             .offset(Vec2::from(soldier_sprite_offset))
             .dest(
                 draw_to
-                    .and_then(|p| Some(p.to_vec2()))
+                    .map(|p| p.to_vec2())
                     .unwrap_or(soldier.world_point().to_vec2())
                     * zoom.factor(),
             )]
@@ -306,7 +306,7 @@ impl Graphics {
             let turret_shadow_draw = DrawParam::new()
                 .offset(
                     Vec2::from(vehicle_sprite_offset)
-                        + turret_sprite_info.abs_offset(&turret_offset).to_vec2()
+                        + turret_sprite_info.abs_offset(turret_offset).to_vec2()
                         + Vec2::from(vehicle_sprite_shadow_offset),
                 )
                 .src(Rect::from(turret_shadow_sprite.relative_rect().to_array()))
@@ -318,7 +318,7 @@ impl Graphics {
             let turret_draw = DrawParam::new()
                 .offset(
                     Vec2::from(vehicle_sprite_offset)
-                        + turret_sprite_info.abs_offset(&turret_offset).to_vec2(),
+                        + turret_sprite_info.abs_offset(turret_offset).to_vec2(),
                 )
                 .src(Rect::from(turret_sprite.relative_rect().to_array()))
                 .dest(vehicle.world_point().to_vec2() * zoom.factor())
@@ -355,7 +355,7 @@ impl Graphics {
         &self,
         to_point: WindowPoint,
         cursor_point: WindowPoint,
-        _squad_ids: &Vec<SquadUuid>,
+        _squad_ids: &[SquadUuid],
     ) -> Vec<graphics::DrawParam> {
         squad_menu_sprite_info().as_draw_params(&to_point, &cursor_point)
     }
@@ -367,25 +367,25 @@ impl Graphics {
         zoom: &Zoom,
     ) -> GameResult {
         if self.dark_background_first {
-            if self.dark_background.drawable(zoom).instances().len() > 0 {
+            if !self.dark_background.drawable(zoom).instances().is_empty() {
                 canvas.draw(self.dark_background.drawable(zoom), draw_param);
             }
 
-            if self.background.drawable(zoom).instances().len() > 0 {
+            if !self.background.drawable(zoom).instances().is_empty() {
                 canvas.draw(self.background.drawable(zoom), draw_param);
             }
         } else {
-            if self.background.drawable(zoom).instances().len() > 0 {
+            if !self.background.drawable(zoom).instances().is_empty() {
                 canvas.draw(self.background.drawable(zoom), draw_param);
             }
 
-            if self.dark_background.drawable(zoom).instances().len() > 0 {
+            if !self.dark_background.drawable(zoom).instances().is_empty() {
                 canvas.draw(self.dark_background.drawable(zoom), draw_param);
             }
         }
 
         // Map interior sprites
-        if self.interiors.drawable(zoom).instances().len() > 0 {
+        if !self.interiors.drawable(zoom).instances().is_empty() {
             canvas.draw(self.interiors.drawable(zoom), draw_param);
         }
 
@@ -397,7 +397,7 @@ impl Graphics {
         canvas: &mut Canvas,
         draw_param: graphics::DrawParam,
     ) -> GameResult {
-        if self.flags.instances().len() > 0 {
+        if !self.flags.instances().is_empty() {
             canvas.draw(&self.flags, draw_param);
         }
 
@@ -433,13 +433,13 @@ impl Graphics {
         zoom: &Zoom,
     ) -> GameResult {
         // Entities, explosions, etc. sprites
-        if self.soldiers.drawable(zoom).instances().len() > 0 {
+        if !self.soldiers.drawable(zoom).instances().is_empty() {
             canvas.draw(self.soldiers.drawable(zoom), draw_param);
         }
-        if self.vehicles.drawable(zoom).instances().len() > 0 {
+        if !self.vehicles.drawable(zoom).instances().is_empty() {
             canvas.draw(self.vehicles.drawable(zoom), draw_param);
         }
-        if self.explosions.drawable(zoom).instances().len() > 0 {
+        if !self.explosions.drawable(zoom).instances().is_empty() {
             canvas.draw(self.explosions.drawable(zoom), draw_param);
         }
 
@@ -457,7 +457,7 @@ impl Graphics {
         canvas.draw(&Mesh::from_data(ctx, mesh_builder.build()), draw_param);
 
         // Squad menu, etc
-        if self.ui_batch.instances().len() > 0 {
+        if !self.ui_batch.instances().is_empty() {
             canvas.draw(&self.ui_batch, draw_param);
         }
 
@@ -618,7 +618,7 @@ pub fn create_batch(file_path: &str, ctx: &mut Context) -> GameResult<InstanceAr
 
 pub fn collect_resources_by_prefix(prefix: &str) -> GameResult<Vec<String>> {
     let mut resources = vec![];
-    let prefix = match prefix.strip_prefix("/") {
+    let prefix = match prefix.strip_prefix('/') {
         Some(prefix) => prefix,
         None => {
             return GameResult::Err(GameError::ResourceLoadError(format!(

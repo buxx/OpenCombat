@@ -61,12 +61,12 @@ impl Engine {
 
     pub fn create_defend_order(&self, squad_id: SquadUuid) -> Option<Order> {
         let angle = self.angle_from_cursor_and_squad(squad_id);
-        return Some(Order::Defend(angle));
+        Some(Order::Defend(angle))
     }
 
     pub fn create_hide_order(&self, squad_id: SquadUuid) -> Option<Order> {
         let angle = self.angle_from_cursor_and_squad(squad_id);
-        return Some(Order::Hide(angle));
+        Some(Order::Hide(angle))
     }
 
     pub fn create_engage_order(&self, squad_id: &SquadUuid) -> Option<Order> {
@@ -83,14 +83,12 @@ impl Engine {
             .first()
         {
             return Some(Order::EngageSquad(soldier.squad_uuid()));
-        } else {
-            if self.battle_state.point_is_visible_by_squad(
-                &self.server_config,
-                &world_point,
-                squad_id,
-            ) {
-                return Some(Order::SuppressFire(world_point));
-            }
+        } else if self.battle_state.point_is_visible_by_squad(
+            &self.server_config,
+            &world_point,
+            squad_id,
+        ) {
+            return Some(Order::SuppressFire(world_point));
         }
 
         None
@@ -101,17 +99,17 @@ impl Engine {
         order_marker: &OrderMarker,
         squad_index: &SquadUuid,
         order_marker_index: &Option<OrderMarkerIndex>,
-        cached_points: &Vec<WorldPoint>,
+        cached_points: &[WorldPoint],
     ) -> PendingOrder {
         match order_marker {
             OrderMarker::MoveTo => {
-                PendingOrder::MoveTo(*squad_index, *order_marker_index, cached_points.clone())
+                PendingOrder::MoveTo(*squad_index, *order_marker_index, cached_points.into())
             }
             OrderMarker::MoveFastTo => {
-                PendingOrder::MoveFastTo(*squad_index, *order_marker_index, cached_points.clone())
+                PendingOrder::MoveFastTo(*squad_index, *order_marker_index, cached_points.into())
             }
             OrderMarker::SneakTo => {
-                PendingOrder::SneakTo(*squad_index, *order_marker_index, cached_points.clone())
+                PendingOrder::SneakTo(*squad_index, *order_marker_index, cached_points.into())
             }
             OrderMarker::Defend => PendingOrder::Defend(*squad_index),
             OrderMarker::Hide => PendingOrder::Hide(*squad_index),
@@ -126,7 +124,7 @@ impl Engine {
             SoldierMessage::SetOrder(order.clone()),
         ))];
 
-        if self.battle_state.phase().placement() {
+        if self.battle_state.phase().is_placement() {
             // When in placement, solve order immediately
             messages.extend(self.define_placement_order(squad_leader, order))
         }

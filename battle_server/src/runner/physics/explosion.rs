@@ -159,12 +159,12 @@ impl Runner {
         puffin::profile_scope!("vehicle_shell_impact_effects", vehicle.uuid().to_string());
         // TODO effects on soldiers (with a real explosive algorithm)
         let pick_from = vec![Sound::MetalHit1];
-        return vec![RunnerMessage::ClientsState(
+        vec![RunnerMessage::ClientsState(
             ClientStateMessage::PlayBattleSound(
                 *pick_from
                     .choose(&mut rand::thread_rng())
                     .expect("Must one be chosen"),
             ),
-        )];
+        )]
     }
 }

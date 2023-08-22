@@ -78,9 +78,9 @@ impl From<Vec2> for WorldPoint {
     }
 }
 
-impl Into<Vec2> for WorldPoint {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.x.into(), self.y.into())
+impl From<WorldPoint> for Vec2 {
+    fn from(val: WorldPoint) -> Self {
+        Vec2::new(val.x, val.y)
     }
 }
 
@@ -152,9 +152,9 @@ impl From<Vec2> for ScenePoint {
     }
 }
 
-impl Into<Vec2> for ScenePoint {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.x.into(), self.y.into())
+impl From<ScenePoint> for Vec2 {
+    fn from(val: ScenePoint) -> Self {
+        Vec2::new(val.x, val.y)
     }
 }
 
@@ -187,9 +187,9 @@ impl From<Vec2> for WindowPoint {
     }
 }
 
-impl Into<Vec2> for WindowPoint {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.x.into(), self.y.into())
+impl From<WindowPoint> for Vec2 {
+    fn from(val: WindowPoint) -> Self {
+        Vec2::new(val.x, val.y)
     }
 }
 
@@ -226,9 +226,9 @@ impl From<Vec2> for Velocity {
     }
 }
 
-impl Into<Vec2> for Velocity {
-    fn into(self) -> Vec2 {
-        Vec2::new(self.x.into(), self.y.into())
+impl From<Velocity> for Vec2 {
+    fn from(val: Velocity) -> Self {
+        Vec2::new(val.x, val.y)
     }
 }
 
@@ -252,6 +252,10 @@ impl WorldPath {
 
     pub fn len(&self) -> usize {
         self.points.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn remove_next_point(&mut self) -> Option<WorldPoint> {
@@ -335,7 +339,7 @@ impl WorldPaths {
             let point = path
                 .remove_next_point()
                 .expect("We must use WorldPath.remove_next_point() only on feeded paths");
-            if path.len() == 0 {
+            if path.is_empty() {
                 self.paths.remove(0);
             }
             return Some(point);

@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 use crate::{game::posture::Posture, types::Coverage};
 
@@ -21,9 +21,11 @@ pub enum TileType {
     MiddleRock,
 }
 
-impl TileType {
-    pub fn from_str(value: &str) -> Result<Self, TerrainTileError> {
-        match value {
+impl FromStr for TileType {
+    type Err = TerrainTileError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
             "ShortGrass" => Ok(Self::ShortGrass),
             "MiddleGrass" => Ok(Self::MiddleGrass),
             "HighGrass" => Ok(Self::HighGrass),
@@ -39,10 +41,12 @@ impl TileType {
             "MiddleWoodLogs" => Ok(Self::MiddleWoodLogs),
             "Hedge" => Ok(Self::Hedge),
             "MiddleRock" => Ok(Self::MiddleRock),
-            _ => Result::Err(TerrainTileError::UnknownId(value.to_string())),
+            _ => Result::Err(TerrainTileError::UnknownId(s.to_string())),
         }
     }
+}
 
+impl TileType {
     pub fn pedestrian_cost(&self) -> i32 {
         match self {
             TileType::ShortGrass => 10,
@@ -148,6 +152,7 @@ pub struct TerrainTile {
 }
 
 impl TerrainTile {
+    #[allow(clippy::too_many_arguments)]
     pub fn from_str_id(
         id: &str,
         tile_width: u32,

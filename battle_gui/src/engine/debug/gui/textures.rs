@@ -19,7 +19,7 @@ impl Engine {
             messages.push(EngineMessage::Graphics(GraphicsMessage::ReloadAll))
         }
 
-        Grid::new(&format!("textures"))
+        Grid::new("textures".to_string())
             .num_columns(2)
             .spacing([40.0, 4.0])
             .striped(true)
