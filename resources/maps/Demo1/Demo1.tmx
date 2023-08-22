@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.0" orientation="orthogonal" renderorder="right-down" width="200" height="200" tilewidth="5" tileheight="5" infinite="0" nextlayerid="6" nextobjectid="15">
+<map version="1.10" tiledversion="1.10.0" orientation="orthogonal" renderorder="right-down" width="200" height="200" tilewidth="5" tileheight="5" infinite="0" nextlayerid="6" nextobjectid="20">
  <tileset firstgid="1" source="terrain.tsx"/>
  <tileset firstgid="2001" source="trees.tsx"/>
  <tileset firstgid="2021" source="../map1/terrain.tsx"/>
@@ -209,8 +209,12 @@
  </layer>
  <objectgroup id="5" name="flags">
   <object id="11" name="House" x="325" y="456" width="90" height="52"/>
-  <object id="12" name="Orchad" x="293" y="829" width="450" height="146"/>
+  <object id="12" name="Orchad" x="312" y="852" width="393" height="106"/>
   <object id="14" name="Cutting zone" x="25" y="432" width="124" height="227"/>
+  <object id="15" name="SW Road" x="31" y="815" width="178" height="131"/>
+  <object id="17" name="Forest" x="280" y="82" width="325" height="130"/>
+  <object id="18" name="NE Road" x="805" y="24" width="162" height="165"/>
+  <object id="19" name="Little wood" x="866" y="440" width="98" height="237"/>
  </objectgroup>
  <imagelayer id="2" name="background_image">
   <image source="Demo1.png" width="1000" height="1000"/>
