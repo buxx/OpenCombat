@@ -294,8 +294,14 @@ impl Engine {
                         squad_ids = self.gui_state.selected_squads().1.clone();
                     }
 
-                    // Display a squad menu if squad under cursor or selected squad
-                    if !squad_ids.is_empty() {
+                    if !self.gui_state.pending_order().is_empty() {
+                        messages.extend([
+                            EngineMessage::GuiState(GuiStateMessage::SetPendingOrders(vec![])),
+                            EngineMessage::GuiState(GuiStateMessage::SetDisplayPaths(vec![])),
+                            EngineMessage::PlaySound(Sound::Bip1),
+                        ])
+                        // Display a squad menu if squad under cursor or selected squad
+                    } else if !squad_ids.is_empty() {
                         messages.push(EngineMessage::GuiState(GuiStateMessage::SetSquadMenu(
                             Some((*self.gui_state.current_cursor_window_point(), squad_ids)),
                         )));
