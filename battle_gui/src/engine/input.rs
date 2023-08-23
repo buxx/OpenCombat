@@ -209,14 +209,13 @@ impl Engine {
                     && self.gui_state.dragged_squad().is_none()
                 {
                     let world_point = self.gui_state.current_cursor_world_point();
-                    if let (Some(_), Some(soldier_index)) = (
+                    if let (Some(_), Some(soldier)) = (
                         self.gui_state.begin_click_on_soldier(),
                         self.soldiers_at_point(world_point, Some(self.gui_state.side()))
                             .first(),
                     ) {
-                        let squad_index = self.battle_state.soldier(*soldier_index).squad_uuid();
                         messages.push(EngineMessage::GuiState(GuiStateMessage::SetDragSquad(
-                            Some(squad_index),
+                            Some(soldier.squad_uuid()),
                         )));
                     }
                 }
@@ -275,12 +274,12 @@ impl Engine {
 
                 if self.battle_state.phase().is_placement() && !self.gui_state.cursor_in_hud() {
                     let world_point = self.gui_state.current_cursor_world_point();
-                    if let Some(soldier_index) = self
+                    if let Some(soldier) = self
                         .soldiers_at_point(world_point, Some(self.gui_state.side()))
                         .first()
                     {
                         messages.push(EngineMessage::GuiState(
-                            GuiStateMessage::SetBeginClickOnSoldier(Some(*soldier_index)),
+                            GuiStateMessage::SetBeginClickOnSoldier(Some(soldier.uuid())),
                         ));
                     }
                 }

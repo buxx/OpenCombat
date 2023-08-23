@@ -4,7 +4,7 @@ use ggez::graphics::Rect;
 
 use battle_core::{
     behavior::BehaviorMode,
-    entity::vehicle::OnBoardPlace,
+    entity::{soldier::Soldier, vehicle::OnBoardPlace},
     game::Side,
     order::{marker::OrderMarker, Order},
     physics::path::{find_path, Direction, PathMode},
@@ -38,29 +38,23 @@ impl Engine {
         soldier_indexes
     }
 
-    pub fn soldiers_at_point(&self, point: WorldPoint, side: Option<&Side>) -> Vec<SoldierIndex> {
-        let mut soldier_indexes = vec![];
-
-        for (i, soldier) in self
-            .battle_state
+    pub fn soldiers_at_point(&self, point: WorldPoint, side: Option<&Side>) -> Vec<&Soldier> {
+        self.battle_state
             .soldiers()
             .iter()
-            .filter(|s| {
+            .filter(|soldier| {
                 if let Some(side) = side {
-                    s.side() == side
+                    soldier.side() == side
                 } else {
                     true
                 }
             })
-            .enumerate()
-        {
-            let rect = self.graphics.soldier_selection_rect(soldier);
-            if rect.contains(point.to_vec2()) {
-                soldier_indexes.push(SoldierIndex(i));
-            }
-        }
-
-        soldier_indexes
+            .filter(|soldier| {
+                self.graphics
+                    .soldier_selection_rect(soldier)
+                    .contains(point.to_vec2())
+            })
+            .collect()
     }
 
     pub fn filter_entities_by_side(

@@ -16,6 +16,12 @@ impl Runner {
             .visibilities()
             .visibles_soldiers_by_soldier(soldier);
 
+        visibles.retain(|v| {
+            self.battle_state
+                .soldier(v.to_soldier.expect("filtered previously"))
+                .can_be_designed_as_target()
+        });
+
         if let Some(squad_index) = squad_index {
             visibles.retain(|v| {
                 self.battle_state

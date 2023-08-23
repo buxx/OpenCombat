@@ -88,9 +88,9 @@ impl Engine {
     }
 
     pub fn get_opponent_soldiers_at_point(&self, point: WorldPoint) -> Vec<&Soldier> {
-        let soldier_indexes =
-            self.soldiers_at_point(point, Some(&self.gui_state.side().opposite()));
-        self.filter_entities_by_side(soldier_indexes, self.gui_state.opponent_side())
+        let soldiers = self.soldiers_at_point(point, Some(&self.gui_state.side().opposite()));
+        let soldiers_indexes = soldiers.iter().map(|soldier| soldier.uuid()).collect();
+        self.filter_entities_by_side(soldiers_indexes, self.gui_state.opponent_side())
             .iter()
             .map(|i| self.battle_state.soldier(*i))
             .collect()
@@ -102,14 +102,14 @@ impl Engine {
         point: WindowPoint,
     ) -> Vec<EngineMessage> {
         let world_point = self.gui_state.world_point_from_window_point(point);
-        let soldier_indexes = self.soldiers_at_point(world_point, Some(self.gui_state.side()));
-        if !soldier_indexes.is_empty() {
-            let squad_ids = self.squad_ids_from_entities(vec![soldier_indexes[0]]);
+        let soldiers = self.soldiers_at_point(world_point, Some(self.gui_state.side()));
+        if let Some(soldier) = soldiers.first() {
+            let squad_ids = self.squad_ids_from_entities(vec![soldier.uuid()]);
             return vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
-                Some(soldier_indexes[0]),
+                Some(soldier.uuid()),
                 squad_ids,
             ))];
-        };
+        }
 
         // Little dirty but ensure it was not a click on the hud
         if !self.hud.contains(ctx, &[&point]) {
@@ -276,13 +276,14 @@ impl Engine {
                 }
                 UIEvent::FinishedCursorRightClick(point) => {
                     let world_point = self.gui_state.world_point_from_window_point(point);
-                    let soldier_indexes =
-                        self.soldiers_at_point(world_point, Some(self.gui_state.side()));
+                    let soldiers = self.soldiers_at_point(world_point, Some(self.gui_state.side()));
                     let mut squad_ids: Vec<SquadUuid> = vec![];
 
                     // If squad under cursor, select it
-                    if !soldier_indexes.is_empty() {
-                        let squad_id_ = self.squad_ids_from_entities(soldier_indexes.clone())[0];
+                    if !soldiers.is_empty() {
+                        let soldiers_indexes =
+                            soldiers.iter().map(|soldier| soldier.uuid()).collect();
+                        let squad_id_ = self.squad_ids_from_entities(soldiers_indexes)[0];
                         squad_ids = vec![squad_id_];
                         messages.push(EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
                             None,

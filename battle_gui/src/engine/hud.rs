@@ -1,4 +1,11 @@
-use battle_core::{game::Side, state::battle::message::BattleStateMessage, types::SquadUuid};
+use battle_core::{
+    game::Side,
+    state::battle::{
+        message::BattleStateMessage,
+        phase::{EndReason, Phase, Victorious},
+    },
+    types::SquadUuid,
+};
 
 use crate::{engine::message::GuiStateMessage, ui::hud::event::HudEvent};
 

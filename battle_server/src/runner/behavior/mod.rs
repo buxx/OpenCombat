@@ -235,7 +235,12 @@ impl Runner {
 
     pub fn engage_behavior(&self, soldier: &Soldier, squad_index: &SquadUuid) -> Behavior {
         if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, Some(squad_index)) {
-            return Behavior::EngageSoldier(opponent.uuid());
+            if self
+                .soldier_able_to_fire_on_point(soldier, &opponent.world_point())
+                .is_some()
+            {
+                return Behavior::EngageSoldier(opponent.uuid());
+            }
         }
 
         Behavior::Idle

@@ -17,14 +17,24 @@ use super::{message::RunnerMessage, Runner};
 
 mod engage;
 mod fire;
+mod idle;
 mod soldier;
 mod suppress;
 mod weapon;
+
+pub enum GestureResult {
+    Handled(GestureContext, Gesture),
+    SwitchToBehavior(Behavior),
+}
 
 impl Runner {
     pub fn soldier_gesture(&self, soldier: &Soldier) -> Vec<RunnerMessage> {
         puffin::profile_scope!("soldier_gesture");
         let new_gesture = match soldier.behavior() {
+            Behavior::Idle => {
+                //
+                self.idle_gesture(soldier)
+            }
             Behavior::SuppressFire(point) => {
                 //
                 self.suppress_fire_gesture(soldier, point)
@@ -33,18 +43,28 @@ impl Runner {
                 //
                 self.engage_soldier_gesture(soldier, soldier_index)
             }
-            _ => (GestureContext::Idle, Gesture::Idle),
+            _ => GestureResult::Handled(GestureContext::Idle, Gesture::Idle),
         };
 
-        if &new_gesture.1 != soldier.gesture() {
-            return [
-                self.new_gesture_messages(soldier, &new_gesture),
-                vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
+        match new_gesture {
+            GestureResult::Handled(context, gesture) => {
+                if &gesture != soldier.gesture() {
+                    return [
+                        self.new_gesture_messages(soldier, &context, &gesture),
+                        vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
+                            soldier.uuid(),
+                            SoldierMessage::SetGesture(gesture),
+                        ))],
+                    ]
+                    .concat();
+                }
+            }
+            GestureResult::SwitchToBehavior(behavior) => {
+                return vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
                     soldier.uuid(),
-                    SoldierMessage::SetGesture(new_gesture.1),
-                ))],
-            ]
-            .concat();
+                    SoldierMessage::SetBehavior(behavior),
+                ))]
+            }
         }
 
         vec![]
@@ -53,9 +73,10 @@ impl Runner {
     fn new_gesture_messages(
         &self,
         soldier: &Soldier,
-        gesture: &(GestureContext, Gesture),
+        context: &GestureContext,
+        gesture: &Gesture,
     ) -> Vec<RunnerMessage> {
-        match gesture {
+        match (context, gesture) {
             (_, Gesture::Idle) => {}
             (_, Gesture::Reloading(_, class)) => {
                 if let Some(weapon) = soldier.weapon(class) {

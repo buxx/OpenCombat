@@ -161,9 +161,7 @@ impl Engine {
         }
 
         // Draw selection area on cursor hover scene items
-        for soldier_index in self.soldiers_at_point(cursor_world_point, Some(self.gui_state.side()))
-        {
-            let soldier = self.battle_state.soldier(soldier_index);
+        for soldier in self.soldiers_at_point(cursor_world_point, Some(self.gui_state.side())) {
             let rect = self
                 .gui_state
                 .window_rect_from_world_rect(self.graphics.soldier_selection_rect(soldier));

@@ -82,11 +82,7 @@ impl Runner {
 
                             let world_point_path = grid_points_path
                                 .iter()
-                                .map(|p| {
-                                    self.battle_state
-                                        .map()
-                                        .world_point_from_grid_point(*p)
-                                })
+                                .map(|p| self.battle_state.map().world_point_from_grid_point(*p))
                                 .collect();
                             let world_path = WorldPath::new(world_point_path);
 
@@ -102,7 +98,7 @@ impl Runner {
                                 member,
                                 Order::MoveFastTo(WorldPaths::new(vec![world_path]), None),
                             ));
-                            break 'subordinates;
+                            continue 'subordinates;
                         } else {
                             log::debug!(
                                 "Propagate engage soldier :: Member({}) :: no target :: Opponent({}) :: found new position ({}) :: do not found grid path",
