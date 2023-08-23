@@ -15,6 +15,7 @@ use battle_core::{
     game::{cover::CoverFinder, health::SoldierHealthBuilder},
     graphics::vehicle::VehicleGraphicInfos,
     order::{Order, PendingOrder},
+    physics::path::Direction,
     state::battle::message::{BattleStateMessage, SoldierMessage, VehicleMessage},
     types::*,
     utils::DebugPoint,
@@ -22,7 +23,7 @@ use battle_core::{
 
 use crate::{
     engine::event::UIEvent,
-    ui::{color::Colorized, menu::squad_menu_sprite_info},
+    ui::{color::Colorized, hud::HUD_HEIGHT, menu::squad_menu_sprite_info, BORDER_SIZE},
     utils::GREEN,
 };
 
@@ -578,5 +579,38 @@ impl Engine {
         }
 
         messages
+    }
+
+    pub fn point_in_border(&self, ctx: &Context, point: &WindowPoint) -> Option<Direction> {
+        let (width, height) = ctx.gfx.drawable_size();
+        let height = height - HUD_HEIGHT;
+
+        if point.x <= BORDER_SIZE && point.y <= BORDER_SIZE {
+            return Some(Direction::NorthWest);
+        }
+        if point.x >= width - BORDER_SIZE && point.y <= BORDER_SIZE {
+            return Some(Direction::NorthEst);
+        }
+        if point.x >= width - BORDER_SIZE && point.y >= height - BORDER_SIZE {
+            return Some(Direction::SouthEst);
+        }
+        if point.x <= BORDER_SIZE && point.y >= height - BORDER_SIZE {
+            return Some(Direction::SouthWest);
+        }
+
+        if point.y <= BORDER_SIZE {
+            return Some(Direction::North);
+        }
+        if point.y >= height - BORDER_SIZE {
+            return Some(Direction::South);
+        }
+        if point.x <= BORDER_SIZE {
+            return Some(Direction::West);
+        }
+        if point.x >= width - BORDER_SIZE {
+            return Some(Direction::Est);
+        }
+
+        None
     }
 }

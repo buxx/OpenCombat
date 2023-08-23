@@ -9,6 +9,7 @@ use ggez::{event::MouseButton, input::keyboard::KeyInput, winit::event::VirtualK
 use crate::{
     debug::DebugPhysics,
     engine::{event::UIEvent, message::GuiStateMessage},
+    ui::BORDER_MOVE_FACTOR,
 };
 use serde::{Deserialize, Serialize};
 
@@ -58,6 +59,20 @@ impl Engine {
         messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
             UIEvent::ImmobileCursorSince(cursor_immobile_since),
         )));
+
+        if !self.gui_state.pending_order().is_empty() || self.gui_state.dragged_squad().is_some() {
+            if let Some(border) =
+                self.point_in_border(ctx, self.gui_state.current_cursor_window_point())
+            {
+                let (x, y) = border.modifier();
+                messages.push(EngineMessage::GuiState(
+                    GuiStateMessage::ApplyOnDisplaySceneOffset(Offset::new(
+                        -x as f32 * BORDER_MOVE_FACTOR,
+                        -y as f32 * BORDER_MOVE_FACTOR,
+                    )),
+                ));
+            }
+        }
 
         messages
     }
