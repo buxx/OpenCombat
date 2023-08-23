@@ -307,6 +307,10 @@ impl Engine {
                         messages.push(EngineMessage::GuiState(GuiStateMessage::SetSquadMenu(
                             Some((*self.gui_state.current_cursor_window_point(), squad_ids)),
                         )));
+                    } else {
+                        messages.push(EngineMessage::GuiState(GuiStateMessage::CenterSceneOn(
+                            world_point,
+                        )))
                     }
                 }
                 UIEvent::ImmobileCursorSince(since) => {
