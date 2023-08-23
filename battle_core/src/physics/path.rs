@@ -65,7 +65,7 @@ impl Direction {
             Direction::SouthEst => (1, 1),
             Direction::South => (0, 1),
             Direction::SouthWest => (-1, 1),
-            Direction::West => (0, -1),
+            Direction::West => (-1, 0),
         }
     }
 
