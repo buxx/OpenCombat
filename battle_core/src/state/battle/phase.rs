@@ -30,6 +30,7 @@ impl Phase {
 pub enum EndReason {
     Flags,
     Morale,
+    Aborted,
 }
 
 // To be compliant with Phase EnumIter
@@ -44,7 +45,10 @@ pub struct Victorious(pub Side);
 
 impl Display for Victorious {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0.to_string())
+        match self.0 {
+            Side::All => f.write_str("Undetermined"),
+            Side::A | Side::B => f.write_str(&self.0.to_string()),
+        }
     }
 }
 

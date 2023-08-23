@@ -27,7 +27,9 @@ impl Engine {
     }
 
     pub fn request_end_battle(&self) -> Vec<EngineMessage> {
-        vec![]
+        vec![EngineMessage::BattleState(BattleStateMessage::SetPhase(
+            Phase::End(Victorious(Side::All), EndReason::Aborted),
+        ))]
     }
 
     pub fn select_squad(&self, squad_id: &SquadUuid) -> Vec<EngineMessage> {
