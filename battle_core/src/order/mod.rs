@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{behavior::Behavior, types::*};
+use crate::types::*;
 use serde::{Deserialize, Serialize};
 
 use self::marker::OrderMarker;
@@ -154,20 +154,6 @@ impl Order {
         }
         .clone()
         .map(|order| *order)
-    }
-
-    pub fn default_behavior(&self) -> Behavior {
-        match self {
-            Order::Idle => Behavior::Idle,
-            Order::MoveTo(path, _) => Behavior::MoveTo(path.clone()),
-            Order::MoveFastTo(path, _) => Behavior::MoveFastTo(path.clone()),
-            Order::SneakTo(path, _) => Behavior::SneakTo(path.clone()),
-            Order::Defend(angle) => Behavior::Defend(*angle),
-            Order::Hide(angle) => Behavior::Hide(*angle),
-            // default_behavior should never be called for EngageSquad & SuppressFire
-            Order::EngageSquad(_squad_id) => Behavior::Idle,
-            Order::SuppressFire(_point) => Behavior::Idle,
-        }
     }
 }
 

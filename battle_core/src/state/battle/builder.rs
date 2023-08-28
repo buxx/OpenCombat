@@ -44,6 +44,7 @@ impl BattleStateBuilder {
     pub fn build(&self) -> Result<BattleState, BattleStateBuilderError> {
         let map = MapReader::new(&self.map_name, &self.resources)?.build()?;
         let mut state = BattleState::new(
+            0,
             map,
             vec![],
             vec![],

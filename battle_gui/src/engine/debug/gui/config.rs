@@ -11,7 +11,8 @@ use battle_core::config::{
     TILE_TYPE_OPACITY_TRUNK, TILE_TYPE_OPACITY_UNDERBRUSH, TILE_TYPE_OPACITY_WATER,
     VISIBILITY_BY_LAST_FRAME_SHOOT, VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE,
     VISIBILITY_DEAD_MODIFIER, VISIBILITY_DEFEND_MODIFIER, VISIBILITY_ENGAGE_MODIFIER,
-    VISIBILITY_FIRSTS, VISIBILITY_HIDE_MODIFIER, VISIBILITY_IDLE_MODIFIER,
+    VISIBILITY_FIRSTS, VISIBILITY_HIDE_MODIFIER, VISIBILITY_IDLE_CROUCH_MODIFIER,
+    VISIBILITY_IDLE_LYING_MODIFIER, VISIBILITY_IDLE_STANDUP_MODIFIER,
     VISIBILITY_IN_VEHICLE_MODIFIER, VISIBILITY_MOVE_FAST_TO_MODIFIER, VISIBILITY_MOVE_TO_MODIFIER,
     VISIBILITY_SNEAK_TO_MODIFIER, VISIBILITY_SUPPRESS_FIRE_MODIFIER,
     VISIBILITY_UNCONSCIOUS_MODIFIER, VISIBILITY_UPDATE_FREQ, VISIBLE_STARTS_AT,
@@ -171,10 +172,22 @@ impl Engine {
 
                 for (name, value, default, message) in [
                     (
-                        "IDLE",
-                        &mut self.server_config.visibility_idle_modifier,
-                        VISIBILITY_IDLE_MODIFIER,
-                        ChangeConfigMessage::VisibilityIdleModifier,
+                        "IDLE STANDUP",
+                        &mut self.server_config.visibility_idle_standup_modifier,
+                        VISIBILITY_IDLE_STANDUP_MODIFIER,
+                        ChangeConfigMessage::VisibilityIdleStandupModifier,
+                    ),
+                    (
+                        "IDLE CROUCHED",
+                        &mut self.server_config.visibility_idle_crouch_modifier,
+                        VISIBILITY_IDLE_CROUCH_MODIFIER,
+                        ChangeConfigMessage::VisibilityIdleCrouchModifier,
+                    ),
+                    (
+                        "IDLE LYING",
+                        &mut self.server_config.visibility_idle_lying_modifier,
+                        VISIBILITY_IDLE_LYING_MODIFIER,
+                        ChangeConfigMessage::VisibilityIdleLyingModifier,
                     ),
                     (
                         "MOVE_TO",
@@ -237,7 +250,7 @@ impl Engine {
                         ChangeConfigMessage::VisibilityUnconsciousModifier,
                     ),
                 ]
-                    as [(_, _, _, fn(_) -> _); 11]
+                    as [(_, _, _, fn(_) -> _); 13]
                 {
                     ui.label(format!("VISIBILITY_BEHAVIOR_MODIFIER__{}", name));
                     if ui.button("reset").clicked() {

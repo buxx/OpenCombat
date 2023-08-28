@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
 use crate::{
-    behavior::Behavior, game::explosive::ExplosiveType, map::terrain::TileType, types::Distance,
+    behavior::{Behavior, Body},
+    game::explosive::ExplosiveType,
+    map::terrain::TileType,
+    types::Distance,
 };
 use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
@@ -23,12 +26,14 @@ pub const PHYSICS_UPDATE_FREQ: u64 = 1;
 //
 pub const END_MORALE: f32 = 0.2;
 ///
-pub const VISIBILITY_IDLE_MODIFIER: f32 = 0.5;
+pub const VISIBILITY_IDLE_STANDUP_MODIFIER: f32 = 0.5;
+pub const VISIBILITY_IDLE_CROUCH_MODIFIER: f32 = 0.5;
+pub const VISIBILITY_IDLE_LYING_MODIFIER: f32 = -0.3;
 pub const VISIBILITY_MOVE_TO_MODIFIER: f32 = 1.0;
 pub const VISIBILITY_MOVE_FAST_TO_MODIFIER: f32 = 2.0;
-pub const VISIBILITY_SNEAK_TO_MODIFIER: f32 = -0.3;
-pub const VISIBILITY_DEFEND_MODIFIER: f32 = -0.3;
-pub const VISIBILITY_HIDE_MODIFIER: f32 = -0.3;
+pub const VISIBILITY_SNEAK_TO_MODIFIER: f32 = VISIBILITY_IDLE_LYING_MODIFIER;
+pub const VISIBILITY_DEFEND_MODIFIER: f32 = VISIBILITY_IDLE_LYING_MODIFIER;
+pub const VISIBILITY_HIDE_MODIFIER: f32 = VISIBILITY_IDLE_LYING_MODIFIER;
 pub const VISIBILITY_IN_VEHICLE_MODIFIER: f32 = 0.;
 pub const VISIBILITY_SUPPRESS_FIRE_MODIFIER: f32 = 0.5;
 pub const VISIBILITY_ENGAGE_MODIFIER: f32 = 0.5;
@@ -88,8 +93,12 @@ pub const VISIBILITY_PIXEL_STEPS: usize = 5;
 pub const COVERAGE_PIXEL_STEPS: usize = 5;
 // When compute coverage, configure here how many tile to consider starting from soldier
 pub const COVERAGE_TILE_STEPS: usize = 3;
-//
+// How many meters maximum soldier hide before shoot
 pub const HIDE_MAXIMUM_RAYON: i64 = 50;
+// How many frames after last proximity shoot needed before soldier go from lying to crouch when idle
+pub const CAN_CROUCH_AFTER: u64 = TARGET_FPS as u64 * 60 * 5;
+// How many frames after last proximity shoot needed before soldier go from crouch to standup when idle
+pub const CAN_STANDUP_AFTER: u64 = TARGET_FPS as u64 * 60 * 10;
 
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
@@ -106,7 +115,9 @@ pub struct ServerConfig {
     pub feeling_decreasing_freq: u64,
     pub visibility_firsts: usize,
     pub visible_starts_at: f32,
-    pub visibility_idle_modifier: f32,
+    pub visibility_idle_standup_modifier: f32,
+    pub visibility_idle_crouch_modifier: f32,
+    pub visibility_idle_lying_modifier: f32,
     pub visibility_move_to_modifier: f32,
     pub visibility_move_fast_to_modifier: f32,
     pub visibility_sneak_to_modifier: f32,
@@ -184,7 +195,9 @@ impl Default for ServerConfig {
             visibility_firsts: VISIBILITY_FIRSTS,
             visible_starts_at: VISIBLE_STARTS_AT,
 
-            visibility_idle_modifier: VISIBILITY_IDLE_MODIFIER,
+            visibility_idle_standup_modifier: VISIBILITY_IDLE_STANDUP_MODIFIER,
+            visibility_idle_crouch_modifier: VISIBILITY_IDLE_CROUCH_MODIFIER,
+            visibility_idle_lying_modifier: VISIBILITY_IDLE_LYING_MODIFIER,
             visibility_move_to_modifier: VISIBILITY_MOVE_TO_MODIFIER,
             visibility_move_fast_to_modifier: VISIBILITY_MOVE_FAST_TO_MODIFIER,
             visibility_sneak_to_modifier: VISIBILITY_SNEAK_TO_MODIFIER,
@@ -266,7 +279,9 @@ impl ServerConfig {
 
     pub fn visibility_behavior_modifier(&self, behavior: &Behavior) -> f32 {
         match behavior {
-            Behavior::Idle => self.visibility_idle_modifier,
+            Behavior::Idle(Body::StandUp) => self.visibility_idle_standup_modifier,
+            Behavior::Idle(Body::Crouched) => self.visibility_idle_standup_modifier,
+            Behavior::Idle(Body::Lying) => self.visibility_idle_standup_modifier,
             Behavior::Hide(_) => self.visibility_hide_modifier,
             Behavior::Defend(_) => self.visibility_defend_modifier,
             Behavior::MoveTo(_) => self.visibility_move_to_modifier,
@@ -283,7 +298,7 @@ impl ServerConfig {
 
     pub fn behavior_velocity(&self, behavior: &Behavior) -> Option<f32> {
         match behavior {
-            Behavior::Idle => None,
+            Behavior::Idle(_) => None,
             Behavior::MoveTo(_) => Some(MOVE_VELOCITY),
             Behavior::MoveFastTo(_) => Some(MOVE_FAST_VELOCITY),
             Behavior::SneakTo(_) => Some(MOVE_HIDE_VELOCITY),
@@ -329,7 +344,9 @@ impl ServerConfig {
             ChangeConfigMessage::FeelingDecreasingFreq(v) => self.feeling_decreasing_freq = *v,
             ChangeConfigMessage::VisibilityFirsts(v) => self.visibility_firsts = *v,
             ChangeConfigMessage::VisibleStartsAt(v) => self.visible_starts_at = *v,
-            ChangeConfigMessage::VisibilityIdleModifier(v) => self.visibility_idle_modifier = *v,
+            ChangeConfigMessage::VisibilityIdleStandupModifier(v) => self.visibility_idle_standup_modifier = *v,
+            ChangeConfigMessage::VisibilityIdleCrouchModifier(v) => self.visibility_idle_crouch_modifier = *v,
+            ChangeConfigMessage::VisibilityIdleLyingModifier(v) => self.visibility_idle_lying_modifier = *v,
             ChangeConfigMessage::VisibilityMoveModifier(v) => self.visibility_move_to_modifier = *v,
             ChangeConfigMessage::VisibilityMoveFastModifier(v) => self.visibility_move_fast_to_modifier = *v,
             ChangeConfigMessage::VisibilitySneakToModifier(v) => self.visibility_sneak_to_modifier = *v,
@@ -400,7 +417,9 @@ pub enum ChangeConfigMessage {
     FeelingDecreasingFreq(u64),
     VisibilityFirsts(usize),
     VisibleStartsAt(f32),
-    VisibilityIdleModifier(f32),
+    VisibilityIdleStandupModifier(f32),
+    VisibilityIdleCrouchModifier(f32),
+    VisibilityIdleLyingModifier(f32),
     VisibilityMoveModifier(f32),
     VisibilityMoveFastModifier(f32),
     VisibilitySneakToModifier(f32),

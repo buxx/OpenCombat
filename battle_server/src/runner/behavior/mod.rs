@@ -1,5 +1,5 @@
 use battle_core::{
-    behavior::{Behavior, BehaviorMode, BehaviorPropagation},
+    behavior::{Behavior, BehaviorMode, BehaviorPropagation, Body},
     entity::soldier::Soldier,
     order::Order,
     state::{
@@ -99,7 +99,7 @@ impl Runner {
             }
             Behavior::DriveTo(_) => todo!(),
             Behavior::RotateTo(_) => todo!(),
-            Behavior::Idle | Behavior::Dead | Behavior::Unconscious => {
+            Behavior::Idle(_) | Behavior::Dead | Behavior::Unconscious => {
                 vec![]
             }
             Behavior::SuppressFire(point) => {
@@ -140,7 +140,7 @@ impl Runner {
             // TODO : soldier angle
             Behavior::Hide(Angle(0.))
         } else {
-            Behavior::Idle
+            Behavior::Idle(Body::Crouched)
         }
     }
 
@@ -199,7 +199,7 @@ impl Runner {
                 {
                     Behavior::RotateTo(*angle)
                 } else {
-                    Behavior::Idle
+                    Behavior::Idle(Body::Crouched)
                 }
             }
         }
@@ -227,7 +227,7 @@ impl Runner {
                 {
                     Behavior::RotateTo(*angle)
                 } else {
-                    Behavior::Idle
+                    Behavior::Idle(Body::Crouched)
                 }
             }
         }
@@ -243,7 +243,7 @@ impl Runner {
             }
         }
 
-        Behavior::Idle
+        Behavior::Idle(Body::from_soldier(soldier, &self.battle_state))
     }
 
     pub fn suppress_fire_behavior(&self, _soldier: &Soldier, point: &WorldPoint) -> Behavior {

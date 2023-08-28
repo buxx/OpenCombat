@@ -1,4 +1,4 @@
-use battle_core::{behavior::Behavior, entity::soldier::Soldier, types::SoldierIndex};
+use battle_core::{entity::soldier::Soldier, types::SoldierIndex};
 
 use crate::runner::Runner;
 
@@ -20,6 +20,6 @@ impl Runner {
             }
         }
 
-        GestureResult::SwitchToBehavior(Behavior::Idle)
+        GestureResult::Cant(None)
     }
 }

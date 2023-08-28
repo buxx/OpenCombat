@@ -1,10 +1,42 @@
 use std::fmt::Display;
 
-use crate::{game::posture::Posture, types::*};
+use crate::{
+    config::{CAN_CROUCH_AFTER, CAN_STANDUP_AFTER},
+    entity::soldier::Soldier,
+    game::posture::Posture,
+    order::Order,
+    state::battle::BattleState,
+    types::*,
+};
 use serde::{Deserialize, Serialize};
 
 pub mod feeling;
 pub mod gesture;
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum Body {
+    StandUp,
+    Crouched,
+    Lying,
+}
+impl Body {
+    pub fn from_soldier(soldier: &Soldier, battle: &BattleState) -> Self {
+        if *soldier.last_shoot_frame_i() == 0 {
+            // 0 == never
+            return Self::StandUp;
+        }
+
+        if soldier.last_shot_frame_i() + CAN_CROUCH_AFTER >= *battle.frame_i() {
+            return Self::Crouched;
+        }
+
+        if soldier.last_shot_frame_i() + CAN_STANDUP_AFTER >= *battle.frame_i() {
+            return Self::StandUp;
+        }
+
+        Self::Lying
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Behavior {
@@ -16,7 +48,7 @@ pub enum Behavior {
     DriveTo(WorldPaths),
     RotateTo(Angle),
     // Common orders
-    Idle,
+    Idle(Body),
     Defend(Angle),
     Hide(Angle),
     //
@@ -41,6 +73,20 @@ pub enum BehaviorPropagation {
 }
 
 impl Behavior {
+    pub fn from_order(order: &Order, soldier: &Soldier, battle_state: &BattleState) -> Self {
+        match order {
+            Order::Idle => Behavior::Idle(Body::from_soldier(soldier, battle_state)),
+            Order::MoveTo(path, _) => Behavior::MoveTo(path.clone()),
+            Order::MoveFastTo(path, _) => Behavior::MoveFastTo(path.clone()),
+            Order::SneakTo(path, _) => Behavior::SneakTo(path.clone()),
+            Order::Defend(angle) => Behavior::Defend(*angle),
+            Order::Hide(angle) => Behavior::Hide(*angle),
+            // default_behavior should never be called for EngageSquad & SuppressFire
+            Order::EngageSquad(_squad_id) => unreachable!(),
+            Order::SuppressFire(_point) => unreachable!(),
+        }
+    }
+
     pub fn propagation(&self) -> BehaviorPropagation {
         match self {
             Behavior::MoveTo(_) | Behavior::MoveFastTo(_) | Behavior::SneakTo(_) => {
@@ -48,7 +94,7 @@ impl Behavior {
             }
             Behavior::DriveTo(_) => BehaviorPropagation::Never,
             Behavior::RotateTo(_) => BehaviorPropagation::Never,
-            Behavior::Idle => BehaviorPropagation::OnChange,
+            Behavior::Idle(_) => BehaviorPropagation::OnChange,
             Behavior::Defend(_) => BehaviorPropagation::OnChange,
             Behavior::Hide(_) => BehaviorPropagation::OnChange,
             Behavior::SuppressFire(_) => BehaviorPropagation::OnChange,
@@ -72,7 +118,8 @@ impl Behavior {
                     return true;
                 }
             }
-            Behavior::Idle | Behavior::Defend(_) | Behavior::Hide(_) | Behavior::RotateTo(_) => {}
+            Behavior::Idle(_) | Behavior::Defend(_) | Behavior::Hide(_) | Behavior::RotateTo(_) => {
+            }
             Behavior::Dead => {}
             Behavior::Unconscious => {}
             Behavior::SuppressFire(_) => {}
@@ -89,7 +136,7 @@ impl Behavior {
             | Behavior::SneakTo(world_paths)
             | Behavior::DriveTo(world_paths) => Some(world_paths),
             Behavior::RotateTo(_)
-            | Behavior::Idle
+            | Behavior::Idle(_)
             | Behavior::Defend(_)
             | Behavior::Hide(_)
             | Behavior::Dead
@@ -102,7 +149,7 @@ impl Behavior {
     pub fn posture(&self) -> Posture {
         // TODO : posture can be different on same behavior (like with SuppressFire, EngageSoldier)
         match self {
-            Behavior::MoveTo(_) | Behavior::MoveFastTo(_) | Behavior::Idle => Posture::StandUp,
+            Behavior::MoveTo(_) | Behavior::MoveFastTo(_) | Behavior::Idle(_) => Posture::StandUp,
             Behavior::Defend(_)
             | Behavior::SneakTo(_)
             | Behavior::DriveTo(_)
@@ -119,6 +166,15 @@ impl Behavior {
         matches!(self, Behavior::Hide(_))
     }
 }
+impl Display for Body {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Body::StandUp => f.write_str("StandUp"),
+            Body::Crouched => f.write_str("Crouched"),
+            Body::Lying => f.write_str("Lying"),
+        }
+    }
+}
 
 impl Display for Behavior {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -128,7 +184,7 @@ impl Display for Behavior {
             Behavior::SneakTo(_) => f.write_str("SneakTo"),
             Behavior::DriveTo(_) => f.write_str("DriveTo"),
             Behavior::RotateTo(_) => f.write_str("RotateTo"),
-            Behavior::Idle => f.write_str("Idle"),
+            Behavior::Idle(position) => f.write_str(&format!("Idle {}", position)),
             Behavior::Defend(_) => f.write_str("Defend"),
             Behavior::Hide(_) => f.write_str("Hide"),
             Behavior::Dead => f.write_str("Dead"),

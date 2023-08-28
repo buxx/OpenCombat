@@ -19,6 +19,7 @@ use super::phase::Phase;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum BattleStateMessage {
+    IncrementFrameI,
     Soldier(SoldierIndex, SoldierMessage),
     Vehicle(VehicleIndex, VehicleMessage),
     PushBulletFire(BulletFire),

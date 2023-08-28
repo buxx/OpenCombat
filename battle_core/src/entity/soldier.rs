@@ -1,5 +1,5 @@
 use crate::{
-    behavior::{feeling::Feeling, gesture::Gesture, Behavior},
+    behavior::{feeling::Feeling, gesture::Gesture, Behavior, Body},
     deployment::SoldierDeployment,
     game::{
         weapon::{Magazine, Weapon},
@@ -26,6 +26,7 @@ pub struct Soldier {
     main_weapon: Option<Weapon>,
     magazines: Vec<Magazine>,
     last_shoot_frame_i: u64,
+    last_shot_frame_i: u64,
 }
 
 impl Soldier {
@@ -43,7 +44,7 @@ impl Soldier {
             world_point,
             squad_uuid,
             order: Order::Idle,
-            behavior: Behavior::Idle,
+            behavior: Behavior::Idle(Body::StandUp),
             gesture: Gesture::Idle,
             looking_direction: Angle(0.0),
             alive: true,
@@ -51,6 +52,7 @@ impl Soldier {
             under_fire: Feeling::UnderFire(0),
             main_weapon,
             magazines,
+            last_shot_frame_i: 0,
             last_shoot_frame_i: 0,
         }
     }
@@ -212,6 +214,14 @@ impl Soldier {
 
     pub fn last_shoot_frame_i(&self) -> &u64 {
         &self.last_shoot_frame_i
+    }
+
+    pub fn set_last_shot_frame_i(&mut self, value: u64) {
+        self.last_shot_frame_i = value
+    }
+
+    pub fn last_shot_frame_i(&self) -> &u64 {
+        &self.last_shot_frame_i
     }
 
     pub fn weapon(&self, class: &WeaponClass) -> &Option<Weapon> {

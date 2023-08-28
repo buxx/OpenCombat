@@ -18,7 +18,7 @@ impl Runner {
         let mut messages = vec![];
 
         for bullet_fire in self.battle_state.bullet_fires() {
-            if bullet_fire.effective(self.frame_i) {
+            if bullet_fire.effective(*self.battle_state.frame_i()) {
                 messages.extend(self.bullet_fire_effects(bullet_fire))
             }
         }

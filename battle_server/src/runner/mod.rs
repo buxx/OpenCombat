@@ -44,7 +44,6 @@ pub struct Runner {
     stop_required: Arc<AtomicBool>,
     last: Instant,
     battle_state: BattleState,
-    frame_i: u64,
 }
 
 impl Runner {
@@ -62,7 +61,6 @@ impl Runner {
             stop_required,
             last: Instant::now(),
             battle_state: state,
-            frame_i: 0,
         }
     }
 
@@ -73,14 +71,13 @@ impl Runner {
                 break;
             }
 
-            let frame_i = self.frame_i;
+            let frame_i = self.battle_state.frame_i();
             puffin::profile_scope!("run", format!("frame {frame_i}"));
             puffin::GlobalProfiler::lock().new_frame();
 
             thread::sleep(self.sleep_duration());
             self.last = Instant::now();
             self.tick()?;
-            self.frame_i += 1;
         }
 
         Ok(())

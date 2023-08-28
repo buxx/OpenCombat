@@ -15,7 +15,7 @@ impl Runner {
         reference_point: &WorldPoint,
     ) -> Option<Angle> {
         match behavior {
-            Behavior::Idle => None,
+            Behavior::Idle(_) => None,
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {
                 paths
                     .next_point()

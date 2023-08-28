@@ -20,7 +20,8 @@ impl Runner {
     pub fn tick_visibilities(&self) -> Vec<RunnerMessage> {
         puffin::profile_scope!("tick_visibilities");
         let mut messages = vec![];
-        let tick_visibility = self.frame_i % self.config.visibility_update_freq() == 0
+        let tick_visibility = self.battle_state.frame_i() % self.config.visibility_update_freq()
+            == 0
             && self.battle_state.phase().is_battle();
 
         if tick_visibility {
@@ -87,7 +88,7 @@ impl Runner {
             visibilities.insert(
                 (soldier.uuid(), other_soldier.uuid()),
                 Visibility::between_soldiers(
-                    self.frame_i,
+                    *self.battle_state.frame_i(),
                     &self.config,
                     soldier,
                     other_soldier,

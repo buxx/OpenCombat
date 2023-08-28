@@ -42,7 +42,7 @@ impl Runner {
         point: &WorldPoint,
         weapon: (WeaponClass, &Weapon),
     ) -> (GestureContext, Gesture) {
-        let frame_i = self.frame_i;
+        let frame_i = self.battle_state.frame_i();
         let current = soldier.gesture();
 
         let gesture = match current {
@@ -56,18 +56,18 @@ impl Runner {
             Gesture::Reloading(_, _) => {
                 //
                 current.next(
-                    frame_i,
+                    *frame_i,
                     Gesture::Aiming(self.soldier_aiming_end(soldier, weapon.1), weapon.0.clone()),
                 )
             }
             Gesture::Aiming(_, _) => {
                 //
                 let end = self.soldier_firing_end(soldier, weapon.1);
-                current.next(frame_i, Gesture::Firing(end, weapon.0.clone()))
+                current.next(*frame_i, Gesture::Firing(end, weapon.0.clone()))
             }
             Gesture::Firing(_, _) => {
                 //
-                current.next(frame_i, Gesture::Idle)
+                current.next(*frame_i, Gesture::Idle)
             }
         };
 
@@ -84,7 +84,7 @@ impl Runner {
     ) -> WorldPoint {
         let mut rng = rand::thread_rng();
         // TODO : change precision according to weapon, stress, distance, etc
-        let range = 10.0
+        let range = 2.0
             * (meters_between_world_points(&soldier.world_point(), target_point).meters() as f32
                 / 500.);
 

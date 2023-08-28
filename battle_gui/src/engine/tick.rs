@@ -22,7 +22,7 @@ impl Engine {
     }
 
     pub fn clean(&mut self) {
-        self.battle_state.clean(self.gui_state.frame_i());
+        self.battle_state.clean();
     }
 
     pub fn tick_state(&self) -> Vec<EngineMessage> {

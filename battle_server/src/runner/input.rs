@@ -35,8 +35,10 @@ impl Runner {
                             .send(vec![OutputMessage::LoadFromCopy(self.battle_state.copy())])?;
                     }
                     InputMessage::BattleState(battle_state_message) => {
-                        side_effects
-                            .extend(self.battle_state.react(&battle_state_message, self.frame_i));
+                        side_effects.extend(
+                            self.battle_state
+                                .react(&battle_state_message, *self.battle_state.frame_i()),
+                        );
                     }
                     InputMessage::ChangeConfig(change_config) => {
                         self.output

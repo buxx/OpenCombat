@@ -11,6 +11,7 @@ impl BattleState {
         soldier_index: &SoldierIndex,
         soldier_message: &SoldierMessage,
     ) -> Vec<SideEffect> {
+        let frame_i = self.frame_i;
         let soldier = &mut self.soldier_mut(*soldier_index);
         match soldier_message {
             SoldierMessage::SetWorldPosition(new_world_point) => {
@@ -34,7 +35,10 @@ impl BattleState {
             }
             SoldierMessage::SetAlive(alive) => soldier.set_alive(*alive),
             SoldierMessage::SetUnconscious(unconscious) => soldier.set_unconscious(*unconscious),
-            SoldierMessage::IncreaseUnderFire(value) => soldier.increase_under_fire(*value),
+            SoldierMessage::IncreaseUnderFire(value) => {
+                soldier.set_last_shot_frame_i(frame_i);
+                soldier.increase_under_fire(*value);
+            }
             SoldierMessage::DecreaseUnderFire => soldier.decrease_under_fire(),
             SoldierMessage::SetOrder(order) => soldier.set_order(order.clone()),
             SoldierMessage::ReloadWeapon(class) => soldier.reload_weapon(class),

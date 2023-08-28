@@ -274,7 +274,7 @@ impl CurrentAction {
                 Gesture::Aiming(_, _) => Self::Aiming,
                 Gesture::Firing(_, _) => Self::TargetFiring,
             },
-            Behavior::Idle | Behavior::Dead | Behavior::Unconscious => Self::Idle,
+            Behavior::Idle(_) | Behavior::Dead | Behavior::Unconscious => Self::Idle,
         }
     }
 

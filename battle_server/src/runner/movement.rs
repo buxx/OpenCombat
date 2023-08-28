@@ -1,5 +1,5 @@
 use battle_core::{
-    behavior::Behavior,
+    behavior::{Behavior, Body},
     order::Order,
     state::battle::message::{BattleStateMessage, SoldierMessage},
     types::{SoldierIndex, WorldPaths},
@@ -31,9 +31,15 @@ impl Runner {
             // If it is the last point, move is finished
             if path.is_last_point().expect("Must contain points") {
                 let (behavior, order) = if let Some(then_order) = soldier.order().then() {
-                    (then_order.default_behavior(), then_order)
+                    (
+                        Behavior::from_order(&then_order, soldier, &self.battle_state),
+                        then_order,
+                    )
                 } else {
-                    (Behavior::Idle, Order::Idle)
+                    (
+                        Behavior::Idle(Body::from_soldier(soldier, &self.battle_state)),
+                        Order::Idle,
+                    )
                 };
 
                 messages.extend(vec![

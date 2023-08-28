@@ -37,6 +37,7 @@ pub mod vehicle;
 pub mod visibility;
 
 pub struct BattleState {
+    frame_i: u64,
     map: Map,
     phase: Phase,
     soldiers: Vec<Soldier>,
@@ -58,6 +59,7 @@ pub struct BattleState {
 
 impl BattleState {
     pub fn new(
+        frame_i: u64,
         map: Map,
         soldiers: Vec<Soldier>,
         vehicles: Vec<Vehicle>,
@@ -67,6 +69,7 @@ impl BattleState {
     ) -> Self {
         let vehicle_board = vehicle_board_from_soldiers_on_board(&soldier_on_board);
         Self {
+            frame_i,
             map,
             phase,
             soldiers,
@@ -89,6 +92,7 @@ impl BattleState {
 
     pub fn empty(map: &Map) -> Self {
         Self {
+            frame_i: 0,
             map: map.clone(),
             phase: Phase::Placement,
             soldiers: vec![],
@@ -111,6 +115,7 @@ impl BattleState {
 
     pub fn from_copy(copy: &BattleStateCopy, map: &Map) -> Self {
         Self::new(
+            copy.frame_i(),
             map.clone(),
             copy.soldiers().clone(),
             copy.vehicles().clone(),
@@ -128,9 +133,13 @@ impl BattleState {
         self.initialize_vehicle_positions();
     }
 
-    pub fn clean(&mut self, frame_i: u64) {
-        self.bullet_fires.retain(|b| !b.finished(frame_i));
-        self.explosions.retain(|e| !e.finished(frame_i));
+    pub fn clean(&mut self) {
+        self.bullet_fires.retain(|b| !b.finished(self.frame_i));
+        self.explosions.retain(|e| !e.finished(self.frame_i));
+    }
+
+    pub fn frame_i(&self) -> &u64 {
+        &self.frame_i
     }
 
     pub fn map(&self) -> &Map {
@@ -246,6 +255,7 @@ impl BattleState {
 
     pub fn react(&mut self, state_message: &BattleStateMessage, frame_i: u64) -> Vec<SideEffect> {
         match state_message {
+            BattleStateMessage::IncrementFrameI => self.frame_i += 1,
             BattleStateMessage::Soldier(soldier_index, soldier_message) => {
                 return self.react_soldier_message(soldier_index, soldier_message);
             }
@@ -312,6 +322,7 @@ impl BattleState {
 
     pub fn copy(&self) -> BattleStateCopy {
         BattleStateCopy::new(
+            self.frame_i.clone(),
             self.soldiers.clone(),
             self.vehicles.clone(),
             self.soldier_on_board.clone(),

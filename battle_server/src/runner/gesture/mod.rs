@@ -5,6 +5,7 @@ use battle_core::{
     },
     entity::soldier::{Soldier, WeaponClass},
     game::weapon::Weapon,
+    order::Order,
     physics::event::bullet::BulletFire,
     state::{
         battle::message::{BattleStateMessage, SoldierMessage},
@@ -22,16 +23,20 @@ mod soldier;
 mod suppress;
 mod weapon;
 
+pub struct FallbackBehavior(pub Behavior);
+
 pub enum GestureResult {
     Handled(GestureContext, Gesture),
-    SwitchToBehavior(Behavior),
+    Cant(Option<FallbackBehavior>),
 }
 
 impl Runner {
     pub fn soldier_gesture(&self, soldier: &Soldier) -> Vec<RunnerMessage> {
         puffin::profile_scope!("soldier_gesture");
+        let mut messages = vec![];
+
         let new_gesture = match soldier.behavior() {
-            Behavior::Idle => {
+            Behavior::Idle(_) => {
                 //
                 self.idle_gesture(soldier)
             }
@@ -59,15 +64,34 @@ impl Runner {
                     .concat();
                 }
             }
-            GestureResult::SwitchToBehavior(behavior) => {
-                return vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
-                    soldier.uuid(),
-                    SoldierMessage::SetBehavior(behavior),
-                ))]
+            GestureResult::Cant(fallback) => {
+                if let Some(fallback) = fallback {
+                    messages.push(RunnerMessage::BattleState(BattleStateMessage::Soldier(
+                        soldier.uuid(),
+                        SoldierMessage::SetBehavior(fallback.0),
+                    )));
+                }
+
+                // Determine how order is impacted
+                if let Some(new_order) = match soldier.order() {
+                    Order::Idle
+                    | Order::MoveTo(_, _)
+                    | Order::MoveFastTo(_, _)
+                    | Order::SneakTo(_, _)
+                    | Order::Defend(_)
+                    | Order::SuppressFire(_)
+                    | Order::EngageSquad(_) => Some(Order::Idle),
+                    Order::Hide(_) => None,
+                } {
+                    messages.push(RunnerMessage::BattleState(BattleStateMessage::Soldier(
+                        soldier.uuid(),
+                        SoldierMessage::SetOrder(new_order),
+                    )));
+                }
             }
         }
 
-        vec![]
+        messages
     }
 
     fn new_gesture_messages(
@@ -139,7 +163,7 @@ impl Runner {
             ))),
             RunnerMessage::BattleState(BattleStateMessage::Soldier(
                 soldier.uuid(),
-                SoldierMessage::SetLastShootFrameI(self.frame_i),
+                SoldierMessage::SetLastShootFrameI(*self.battle_state.frame_i()),
             )),
         ]]
         .concat()

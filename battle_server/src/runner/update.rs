@@ -37,7 +37,7 @@ impl Runner {
         let mut messages = vec![];
 
         messages.extend(match soldier.behavior() {
-            Behavior::Idle => {
+            Behavior::Idle(_) => {
                 vec![]
             }
             Behavior::MoveTo(paths) | Behavior::MoveFastTo(paths) | Behavior::SneakTo(paths) => {

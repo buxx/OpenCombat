@@ -8,7 +8,7 @@ use battle_core::{
 
 use crate::runner::Runner;
 
-use super::GestureResult;
+use super::{FallbackBehavior, GestureResult};
 
 impl Runner {
     pub fn idle_gesture(&self, soldier: &Soldier) -> GestureResult {
@@ -18,7 +18,9 @@ impl Runner {
                 .soldier_able_to_fire_on_point(soldier, &point)
                 .is_some()
             {
-                return GestureResult::SwitchToBehavior(Behavior::EngageSoldier(opponent.uuid()));
+                return GestureResult::Cant(Some(FallbackBehavior(Behavior::EngageSoldier(
+                    opponent.uuid(),
+                ))));
             }
         }
 

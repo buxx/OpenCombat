@@ -1,4 +1,8 @@
-use battle_core::{behavior::Behavior, order::Order, state::battle::message::SideEffect};
+use battle_core::{
+    behavior::{Behavior, Body},
+    order::Order,
+    state::battle::message::SideEffect,
+};
 
 use super::{message::RunnerMessage, Runner};
 
@@ -11,7 +15,10 @@ impl Runner {
         for message in messages {
             match message {
                 RunnerMessage::BattleState(state_message) => {
-                    side_effects.extend(self.battle_state.react(state_message, self.frame_i));
+                    side_effects.extend(
+                        self.battle_state
+                            .react(state_message, *self.battle_state.frame_i()),
+                    );
                 }
                 // These messages are destined to be directly sent to clients
                 RunnerMessage::ClientsState(_) | RunnerMessage::ClientState(_, _) => {}
@@ -30,9 +37,14 @@ impl Runner {
             SideEffect::SoldierFinishHisBehavior(soldier_index, then) => {
                 let soldier = self.battle_state.soldier_mut(*soldier_index);
                 let (behavior, order) = if let Some(then_order) = then {
-                    (then_order.default_behavior(), then_order.clone())
+                    // FIXME BS NOW : BODY_KEY : must be computed from soldier (so with battle state and so in non mut context)
+                    (Behavior::Idle(Body::Lying), then_order.clone())
                 } else {
-                    (Behavior::Idle, Order::Idle)
+                    (
+                        // FIXME BS NOW : BODY_KEY : must be computed from soldier (so with battle state and so in non mut context)
+                        Behavior::Idle(Body::Lying),
+                        Order::Idle,
+                    )
                 };
                 soldier.set_behavior(behavior);
                 soldier.set_order(order);

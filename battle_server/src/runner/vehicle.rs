@@ -1,5 +1,5 @@
 use battle_core::{
-    behavior::Behavior,
+    behavior::{Behavior, Body},
     config::{
         VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_COEFFICIENT,
         VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_DIFF,
@@ -80,7 +80,7 @@ impl Runner {
             if paths.is_last_point().expect("Must contain points") {
                 messages.push(RunnerMessage::BattleState(BattleStateMessage::Soldier(
                     soldier_index,
-                    SoldierMessage::SetBehavior(Behavior::Idle),
+                    SoldierMessage::SetBehavior(Behavior::Idle(Body::Crouched)),
                 )));
             } else {
                 messages.push(RunnerMessage::BattleState(BattleStateMessage::Soldier(
@@ -120,7 +120,7 @@ impl Runner {
         } else {
             messages.push(RunnerMessage::BattleState(BattleStateMessage::Soldier(
                 soldier_index,
-                SoldierMessage::SetBehavior(Behavior::Idle),
+                SoldierMessage::SetBehavior(Behavior::Idle(Body::Crouched)),
             )))
         }
 

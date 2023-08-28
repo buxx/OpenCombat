@@ -1,5 +1,5 @@
 use battle_core::{
-    behavior::Behavior,
+    behavior::{Behavior, Body},
     config::{SOLDIER_SELECTABLE_SQUARE_SIDE, SOLDIER_SELECTABLE_SQUARE_SIDE_HALF},
     entity::soldier::Soldier,
     graphics::{soldier::SoldierAnimationType, Sprite},
@@ -98,7 +98,9 @@ impl Graphics {
 
     pub fn soldier_animation_type(&self, soldier: &Soldier) -> Box<dyn Sprite> {
         let animation_type = match soldier.behavior() {
-            Behavior::Idle => SoldierAnimationType::Idle,
+            Behavior::Idle(Body::StandUp) => SoldierAnimationType::Idle,
+            Behavior::Idle(Body::Crouched) => SoldierAnimationType::Idle,
+            Behavior::Idle(Body::Lying) => SoldierAnimationType::Crawling,
             Behavior::MoveTo(_) => SoldierAnimationType::Walking,
             Behavior::MoveFastTo(_) => SoldierAnimationType::Walking,
             Behavior::SneakTo(_) => SoldierAnimationType::Crawling,
