@@ -165,6 +165,13 @@ impl Behavior {
     pub fn is_hide(&self) -> bool {
         matches!(self, Behavior::Hide(_))
     }
+
+    pub fn opponent(&self) -> Option<&SoldierIndex> {
+        match self {
+            Behavior::EngageSoldier(soldier_index) => Some(soldier_index),
+            _ => None,
+        }
+    }
 }
 impl Display for Body {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

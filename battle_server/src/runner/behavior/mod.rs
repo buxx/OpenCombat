@@ -234,13 +234,14 @@ impl Runner {
     }
 
     pub fn engage_behavior(&self, soldier: &Soldier, squad_index: &SquadUuid) -> Behavior {
-        if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, Some(squad_index)) {
-            if self
-                .soldier_able_to_fire_on_point(soldier, &opponent.world_point())
-                .is_some()
-            {
-                return Behavior::EngageSoldier(opponent.uuid());
-            }
+        let opponent = soldier
+            .behavior()
+            .opponent()
+            .map(|s| self.battle_state.soldier(*s))
+            .or_else(|| self.soldier_find_opponent_to_target(soldier, Some(squad_index)));
+
+        if let Some(opponent) = opponent {
+            return Behavior::EngageSoldier(opponent.uuid());
         }
 
         Behavior::Idle(Body::from_soldier(soldier, &self.battle_state))
