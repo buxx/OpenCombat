@@ -16,10 +16,13 @@ impl Runner {
         soldier: &'a Soldier,
         point: &WorldPoint,
     ) -> Option<(WeaponClass, &Weapon)> {
-        if !self
-            .battle_state
-            .point_is_visible_by_soldier(&self.config, soldier, point)
-        {
+        if !self.battle_state.point_is_visible_by_soldier(
+            &self.config,
+            soldier,
+            point,
+            // Shoot a hidden point is possible (like fire through a wall)
+            self.config.visibility_by_last_frame_shoot_distance,
+        ) {
             return None;
         }
 

@@ -51,12 +51,16 @@ impl BattleState {
         config: &ServerConfig,
         point: &WorldPoint,
         squad_index: &SquadUuid,
+        exclude_lasts: usize,
     ) -> bool {
         self.squad(*squad_index)
             .members()
             .iter()
             .map(|i| self.soldier(*i))
-            .any(|s| Visibility::between_soldier_and_point(config, s, point, self.map()).visible)
+            .any(|s| {
+                Visibility::between_soldier_and_point(config, s, point, self.map(), exclude_lasts)
+                    .visible
+            })
     }
 
     pub fn point_is_visible_by_soldier(
@@ -64,7 +68,9 @@ impl BattleState {
         config: &ServerConfig,
         soldier: &Soldier,
         point: &WorldPoint,
+        exclude_lasts: usize,
     ) -> bool {
-        Visibility::between_soldier_and_point(config, soldier, point, self.map()).visible
+        Visibility::between_soldier_and_point(config, soldier, point, self.map(), exclude_lasts)
+            .visible
     }
 }

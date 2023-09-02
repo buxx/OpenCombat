@@ -122,11 +122,19 @@ impl Visibility {
         from_soldier: &Soldier,
         to_point: &WorldPoint,
         map: &Map,
+        exclude_lasts: usize,
     ) -> Self {
         let from_point = from_soldier.world_point();
 
         let (to_soldier_item_opacity, opacity_segments, path_final_opacity, break_point) =
-            Self::between_points_raw(config, &from_point, to_point, map, VISIBILITY_FIRSTS, 0);
+            Self::between_points_raw(
+                config,
+                &from_point,
+                to_point,
+                map,
+                VISIBILITY_FIRSTS,
+                exclude_lasts,
+            );
 
         let visible = to_soldier_item_opacity < VISIBLE_OPACITY_LIMIT;
         let distance = meters_between_world_points(&from_point, to_point);

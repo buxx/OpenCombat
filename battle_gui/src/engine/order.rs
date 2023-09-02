@@ -87,6 +87,8 @@ impl Engine {
             &self.server_config,
             &world_point,
             squad_id,
+            // Shoot a hidden point is possible (like fire through a wall)
+            self.server_config.visibility_by_last_frame_shoot_distance,
         ) {
             return Some(Order::SuppressFire(world_point));
         }
