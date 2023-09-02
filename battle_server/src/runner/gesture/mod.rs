@@ -5,7 +5,6 @@ use battle_core::{
     },
     entity::soldier::{Soldier, WeaponClass},
     game::weapon::Weapon,
-    order::Order,
     physics::event::bullet::BulletFire,
     state::{
         battle::message::{BattleStateMessage, SoldierMessage},
