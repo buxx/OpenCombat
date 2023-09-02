@@ -35,17 +35,19 @@ impl Runner {
     pub fn side_effect(&mut self, side_effect: &SideEffect) {
         match side_effect {
             SideEffect::SoldierFinishHisBehavior(soldier_index, then) => {
-                let soldier = self.battle_state.soldier_mut(*soldier_index);
+                let soldier = self.battle_state.soldier(*soldier_index);
                 let (behavior, order) = if let Some(then_order) = then {
-                    // FIXME BS NOW : BODY_KEY : must be computed from soldier (so with battle state and so in non mut context)
-                    (Behavior::Idle(Body::Lying), then_order.clone())
+                    (
+                        Behavior::from_order(then_order, soldier, &self.battle_state),
+                        then_order.clone(),
+                    )
                 } else {
                     (
-                        // FIXME BS NOW : BODY_KEY : must be computed from soldier (so with battle state and so in non mut context)
-                        Behavior::Idle(Body::Lying),
+                        Behavior::Idle(Body::from_soldier(soldier, &self.battle_state)),
                         Order::Idle,
                     )
                 };
+                let soldier = self.battle_state.soldier_mut(*soldier_index);
                 soldier.set_behavior(behavior);
                 soldier.set_order(order);
             }

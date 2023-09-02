@@ -70,23 +70,6 @@ impl Runner {
                         SoldierMessage::SetBehavior(fallback.0),
                     )));
                 }
-
-                // Determine how order is impacted
-                if let Some(new_order) = match soldier.order() {
-                    Order::Idle
-                    | Order::MoveTo(_, _)
-                    | Order::MoveFastTo(_, _)
-                    | Order::SneakTo(_, _)
-                    | Order::Defend(_)
-                    | Order::SuppressFire(_)
-                    | Order::EngageSquad(_) => Some(Order::Idle),
-                    Order::Hide(_) => None,
-                } {
-                    messages.push(RunnerMessage::BattleState(BattleStateMessage::Soldier(
-                        soldier.uuid(),
-                        SoldierMessage::SetOrder(new_order),
-                    )));
-                }
             }
         }
 
