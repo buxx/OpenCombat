@@ -96,9 +96,9 @@ pub const COVERAGE_TILE_STEPS: usize = 3;
 // How many meters maximum soldier hide before shoot
 pub const HIDE_MAXIMUM_RAYON: i64 = 50;
 // How many frames after last proximity shoot needed before soldier go from lying to crouch when idle
-pub const CAN_CROUCH_AFTER: u64 = TARGET_FPS as u64 * 60 * 5;
+pub const CAN_CROUCH_AFTER: u64 = TARGET_FPS * 60 * 5;
 // How many frames after last proximity shoot needed before soldier go from crouch to standup when idle
-pub const CAN_STANDUP_AFTER: u64 = TARGET_FPS as u64 * 60 * 10;
+pub const CAN_STANDUP_AFTER: u64 = TARGET_FPS * 60 * 10;
 
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
