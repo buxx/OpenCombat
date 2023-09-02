@@ -133,9 +133,10 @@ impl BattleState {
         self.initialize_vehicle_positions();
     }
 
-    pub fn clean(&mut self) {
-        self.bullet_fires.retain(|b| !b.finished(self.frame_i));
-        self.explosions.retain(|e| !e.finished(self.frame_i));
+    pub fn clean(&mut self, replaced_frame_i: Option<u64>) {
+        let frame_i = replaced_frame_i.unwrap_or(self.frame_i);
+        self.bullet_fires.retain(|b| !b.finished(frame_i));
+        self.explosions.retain(|e| !e.finished(frame_i));
     }
 
     pub fn frame_i(&self) -> &u64 {

@@ -36,7 +36,7 @@ impl BulletFire {
 
     pub fn init(&mut self, start_frame_i: u64) {
         self.start = start_frame_i;
-        self.end = start_frame_i + 5;
+        self.end = start_frame_i + 2;
     }
 
     pub fn point(&self) -> &WorldPoint {

@@ -30,6 +30,6 @@ impl Runner {
     }
 
     pub fn clean(&mut self) {
-        self.battle_state.clean();
+        self.battle_state.clean(None);
     }
 }
