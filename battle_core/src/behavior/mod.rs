@@ -26,11 +26,11 @@ impl Body {
             return Self::StandUp;
         }
 
-        if soldier.last_shot_frame_i() + CAN_CROUCH_AFTER >= *battle.frame_i() {
+        if soldier.last_shot_frame_i() + CAN_CROUCH_AFTER <= *battle.frame_i() {
             return Self::Crouched;
         }
 
-        if soldier.last_shot_frame_i() + CAN_STANDUP_AFTER >= *battle.frame_i() {
+        if soldier.last_shot_frame_i() + CAN_STANDUP_AFTER <= *battle.frame_i() {
             return Self::StandUp;
         }
 
