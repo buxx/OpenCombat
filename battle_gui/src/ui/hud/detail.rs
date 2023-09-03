@@ -1,4 +1,7 @@
-use battle_core::{game::squad::SquadStatusResume, types::WindowPoint};
+use battle_core::{
+    game::squad::SquadStatusResume,
+    types::{SoldierIndex, WindowPoint},
+};
 use ggez::{
     graphics::{
         Canvas, Color, DrawMode, DrawParam, FillOptions, Mesh, MeshBuilder, Rect, StrokeOptions,
@@ -29,18 +32,28 @@ pub const MARGIN: f32 = 1.;
 pub struct SquadDetail {
     point: WindowPoint,
     squad: Option<SquadStatusResume>,
+    selected_soldier: Option<SoldierIndex>,
 }
 
 impl SquadDetail {
-    pub fn new(point: WindowPoint, status: Option<SquadStatusResume>) -> Self {
+    pub fn new(
+        point: WindowPoint,
+        status: Option<SquadStatusResume>,
+        selected_soldier: Option<SoldierIndex>,
+    ) -> Self {
         Self {
             point,
             squad: status,
+            selected_soldier,
         }
     }
 
     pub fn empty(point: WindowPoint) -> Self {
-        Self { point, squad: None }
+        Self {
+            point,
+            squad: None,
+            selected_soldier: None,
+        }
     }
 }
 
@@ -158,6 +171,19 @@ impl Component<HudEvent> for SquadDetail {
                         Color::BLUE,
                     )?;
                 }
+
+                if Some(soldier_status.soldier_index()) == self.selected_soldier {
+                    mesh_builder.rectangle(
+                        DrawMode::Stroke(StrokeOptions::default()),
+                        Rect::new(
+                            text_dest.x - SOLDIER_WIDTH,
+                            text_dest.y,
+                            SQUAD_DETAIL_WIDTH - 1.,
+                            SOLDIER_WIDTH + 1.,
+                        ),
+                        Color::WHITE,
+                    )?;
+                }
             }
 
             canvas.draw(
@@ -167,5 +193,31 @@ impl Component<HudEvent> for SquadDetail {
         }
 
         Ok(())
+    }
+
+    fn event(&self, ctx: &Context) -> Option<HudEvent> {
+        let mouse_position = ctx.mouse.position();
+
+        if let Some(squad) = &self.squad {
+            let health_point = self.point.apply(Vec2::new(SQUAD_TYPE_WIDTH + MARGIN, 0.));
+
+            let soldiers_status_start_point = self
+                .point
+                .apply(Vec2::new(SOLDIER_WIDTH, SQUAD_TYPE_HEIGHT + MARGIN));
+            for (i, soldier_status) in squad.members().iter().enumerate() {
+                let point = soldiers_status_start_point
+                    .apply(Vec2::new(0., (SOLDIER_HEIGHT + MARGIN) * i as f32));
+
+                if mouse_position.x >= point.x
+                    && mouse_position.x <= point.x + SQUAD_DETAIL_WIDTH
+                    && mouse_position.y >= point.y
+                    && mouse_position.y <= point.y + SOLDIER_WIDTH
+                {
+                    return Some(HudEvent::SelectSoldier(soldier_status.soldier_index()));
+                }
+            }
+        }
+
+        None
     }
 }

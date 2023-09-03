@@ -64,6 +64,18 @@ impl Engine {
                         Color::BLUE,
                     )?;
                 }
+                if self.gui_state.selected_squads().0 == Some(*soldier_index) {
+                    mesh_builder.rectangle(
+                        DrawMode::Stroke(StrokeOptions::default()),
+                        Rect::new(
+                            point.x - DEFAULT_SELECTED_SQUARE_SIDE_HALF + 1.,
+                            point.y - DEFAULT_SELECTED_SQUARE_SIDE_HALF + 1.,
+                            DEFAULT_SELECTED_SQUARE_SIDE - 2.,
+                            DEFAULT_SELECTED_SQUARE_SIDE - 2.,
+                        ),
+                        Color::WHITE,
+                    )?;
+                }
             }
         }
 

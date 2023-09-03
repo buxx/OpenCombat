@@ -92,6 +92,10 @@ impl Hud {
             return Some(&self.morale_indicator);
         }
 
+        if self.squad_detail.contains(ctx, points) {
+            return Some(&self.squad_detail);
+        }
+
         if self.squad_statuses.contains(ctx, points) {
             return Some(&self.squad_statuses);
         }

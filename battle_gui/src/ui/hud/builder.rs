@@ -115,10 +115,8 @@ impl<'a> HudBuilder<'a> {
         if let Some(squad_uuid) = self.gui_state.selected_squads().1.first() {
             SquadDetail::new(
                 *point,
-                Some(SquadStatusResume::from_squad(
-                    self.battle_state,
-                    squad_uuid,
-                )),
+                Some(SquadStatusResume::from_squad(self.battle_state, squad_uuid)),
+                self.gui_state.selected_squads().0,
             )
         } else {
             SquadDetail::empty(*point)

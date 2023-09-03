@@ -153,6 +153,7 @@ impl SquadHealth {
 
 #[derive(Clone, Debug)]
 pub struct SquadMemberStatus {
+    soldier_index: SoldierIndex,
     health: Health,
     main_weapon: Option<Weapon>,
     magazines: Vec<Magazine>,
@@ -191,6 +192,7 @@ impl SquadMemberStatus {
         soldier: &Soldier,
     ) -> Self {
         Self {
+            soldier_index: soldier.uuid(),
             health: SoldierHealthBuilder::new(soldier).build(),
             main_weapon: soldier.main_weapon().clone(),
             magazines: soldier.magazines().clone(),
@@ -227,6 +229,10 @@ impl SquadMemberStatus {
 
     pub fn leader(&self) -> bool {
         self.leader
+    }
+
+    pub fn soldier_index(&self) -> SoldierIndex {
+        self.soldier_index
     }
 }
 

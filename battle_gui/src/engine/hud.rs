@@ -4,7 +4,7 @@ use battle_core::{
         message::BattleStateMessage,
         phase::{EndReason, Phase, Victorious},
     },
-    types::SquadUuid,
+    types::{SoldierIndex, SquadUuid},
 };
 
 use crate::{engine::message::GuiStateMessage, ui::hud::event::HudEvent};
@@ -22,6 +22,7 @@ impl Engine {
                     point,
                 ))]
             }
+            HudEvent::SelectSoldier(soldier_index) => self.select_soldier(&soldier_index),
         }
     }
 
@@ -43,6 +44,13 @@ impl Engine {
         vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
             Some(self.battle_state.squad(*squad_id).leader()),
             vec![*squad_id],
+        ))]
+    }
+
+    pub fn select_soldier(&self, soldier_index: &SoldierIndex) -> Vec<EngineMessage> {
+        vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
+            Some(*soldier_index),
+            vec![self.battle_state.soldier(*soldier_index).squad_uuid()],
         ))]
     }
 }
