@@ -238,6 +238,7 @@ impl Runner {
             .behavior()
             .opponent()
             .map(|s| self.battle_state.soldier(*s))
+            .filter(|s| s.can_be_designed_as_target())
             .or_else(|| self.soldier_find_opponent_to_target(soldier, Some(squad_index)));
 
         if let Some(opponent) = opponent {
