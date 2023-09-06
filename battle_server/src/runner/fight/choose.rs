@@ -53,7 +53,7 @@ impl ChooseMethod {
 
             return near_soldiers
                 .choose(&mut rand::thread_rng())
-                .and_then(|s| Some(s.uuid()));
+                .map(|s| s.uuid());
         }
 
         None
@@ -103,6 +103,6 @@ impl Runner {
 
         method
             .choose(&self.battle_state, visibles)
-            .and_then(|i| Some(self.battle_state.soldier(i)))
+            .map(|i| self.battle_state.soldier(i))
     }
 }
