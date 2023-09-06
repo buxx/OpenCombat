@@ -6,7 +6,7 @@ use battle_core::{
     types::{SoldierIndex, SquadUuid, WorldPath, WorldPaths},
 };
 
-use crate::runner::Runner;
+use crate::runner::{fight::choose::ChooseMethod, Runner};
 
 impl Runner {
     pub fn propagate_engage_soldier(
@@ -34,7 +34,11 @@ impl Runner {
                 .map()
                 .grid_point_from_world_point(&member.world_point());
             if self
-                .soldier_find_opponent_to_target(member, Some(&engaged_squad_index))
+                .soldier_find_opponent_to_target(
+                    member,
+                    Some(&engaged_squad_index),
+                    &ChooseMethod::RandomFromNearest,
+                )
                 .is_some()
             {
                 log::debug!(

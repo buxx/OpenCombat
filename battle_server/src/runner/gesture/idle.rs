@@ -6,13 +6,15 @@ use battle_core::{
     entity::soldier::Soldier,
 };
 
-use crate::runner::Runner;
+use crate::runner::{fight::choose::ChooseMethod, Runner};
 
 use super::{FallbackBehavior, GestureResult};
 
 impl Runner {
     pub fn idle_gesture(&self, soldier: &Soldier) -> GestureResult {
-        if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
+        if let Some(opponent) =
+            self.soldier_find_opponent_to_target(soldier, None, &ChooseMethod::RandomFromNearest)
+        {
             let point = opponent.world_point();
             if self
                 .soldier_able_to_fire_on_point(soldier, &point)

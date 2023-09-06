@@ -1,6 +1,64 @@
-use battle_core::{entity::soldier::Soldier, types::SquadUuid};
+use rand::seq::SliceRandom;
+
+use battle_core::{
+    entity::soldier::Soldier,
+    physics::{utils::distance_between_points, visibility::Visibility},
+    state::battle::BattleState,
+    types::{Distance, SoldierIndex, SquadUuid},
+};
 
 use crate::runner::Runner;
+
+pub const NEAR_SOLDIERS_DISTANCE_METERS: i64 = 7;
+
+pub enum ChooseMethod {
+    RandomFromNearest,
+}
+impl ChooseMethod {
+    fn choose(
+        &self,
+        battle_state: &BattleState,
+        visibles: Vec<&Visibility>,
+    ) -> Option<SoldierIndex> {
+        match self {
+            Self::RandomFromNearest => self.choose_random_from_nearest(battle_state, visibles),
+        }
+    }
+
+    fn choose_random_from_nearest(
+        &self,
+        battle_state: &BattleState,
+        visibles: Vec<&Visibility>,
+    ) -> Option<SoldierIndex> {
+        if let Some(visibility) = visibles.first() {
+            let soldier = battle_state.soldier(
+                visibility
+                    .to_soldier
+                    .expect("visibles_soldiers_by must returned with to_soldier"),
+            );
+            let soldier_position = soldier.world_point();
+            let near_soldiers: Vec<&Soldier> = visibles
+                .iter()
+                .map(|v| {
+                    battle_state.soldier(
+                        v.to_soldier
+                            .expect("visibles_soldiers_by must returned with to_soldier"),
+                    )
+                })
+                .filter(|s| {
+                    distance_between_points(&soldier_position, &s.world_point())
+                        < Distance::from_meters(NEAR_SOLDIERS_DISTANCE_METERS)
+                })
+                .collect();
+
+            return near_soldiers
+                .choose(&mut rand::thread_rng())
+                .and_then(|s| Some(s.uuid()));
+        }
+
+        None
+    }
+}
 
 impl Runner {
     // TODO : choose soldier according to distance, weapon type, etc
@@ -10,6 +68,7 @@ impl Runner {
         &self,
         soldier: &Soldier,
         squad_index: Option<&SquadUuid>,
+        method: &ChooseMethod,
     ) -> Option<&Soldier> {
         let mut visibles = self
             .battle_state
@@ -42,16 +101,8 @@ impl Runner {
             visibles.retain(|v| v.distance <= self.config.hide_maximum_rayon)
         }
 
-        if let Some(visibility) = visibles.first() {
-            return Some(
-                self.battle_state.soldier(
-                    visibility
-                        .to_soldier
-                        .expect("visibles_soldiers_by must return with to_soldier"),
-                ),
-            );
-        }
-
-        None
+        method
+            .choose(&self.battle_state, visibles)
+            .and_then(|i| Some(self.battle_state.soldier(i)))
     }
 }

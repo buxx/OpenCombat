@@ -10,7 +10,7 @@ use battle_core::{
     utils::NewDebugPoint,
 };
 
-use super::{message::RunnerMessage, Runner};
+use super::{fight::choose::ChooseMethod, message::RunnerMessage, Runner};
 
 mod blast;
 mod bullet;
@@ -132,7 +132,9 @@ impl Runner {
     }
 
     pub fn idle_behavior(&self, soldier: &Soldier) -> Behavior {
-        if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
+        if let Some(opponent) =
+            self.soldier_find_opponent_to_target(soldier, None, &ChooseMethod::RandomFromNearest)
+        {
             return Behavior::EngageSoldier(opponent.uuid());
         }
 
@@ -145,7 +147,9 @@ impl Runner {
     }
 
     pub fn move_behavior(&self, soldier: &Soldier, paths: &WorldPaths) -> Behavior {
-        if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
+        if let Some(opponent) =
+            self.soldier_find_opponent_to_target(soldier, None, &ChooseMethod::RandomFromNearest)
+        {
             return Behavior::EngageSoldier(opponent.uuid());
         }
 
@@ -179,7 +183,11 @@ impl Runner {
     pub fn defend_behavior(&self, soldier: &Soldier, angle: &Angle) -> Behavior {
         match self.battle_state.soldier_behavior_mode(soldier) {
             BehaviorMode::Ground => {
-                if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
+                if let Some(opponent) = self.soldier_find_opponent_to_target(
+                    soldier,
+                    None,
+                    &ChooseMethod::RandomFromNearest,
+                ) {
                     Behavior::EngageSoldier(opponent.uuid())
                 } else {
                     Behavior::Defend(*angle)
@@ -208,7 +216,11 @@ impl Runner {
     pub fn hide_behavior(&self, soldier: &Soldier, angle: &Angle) -> Behavior {
         match self.battle_state.soldier_behavior_mode(soldier) {
             BehaviorMode::Ground => {
-                if let Some(opponent) = self.soldier_find_opponent_to_target(soldier, None) {
+                if let Some(opponent) = self.soldier_find_opponent_to_target(
+                    soldier,
+                    None,
+                    &ChooseMethod::RandomFromNearest,
+                ) {
                     Behavior::EngageSoldier(opponent.uuid())
                 } else {
                     Behavior::Hide(*angle)
@@ -239,7 +251,13 @@ impl Runner {
             .opponent()
             .map(|s| self.battle_state.soldier(*s))
             .filter(|s| s.can_be_designed_as_target())
-            .or_else(|| self.soldier_find_opponent_to_target(soldier, Some(squad_index)));
+            .or_else(|| {
+                self.soldier_find_opponent_to_target(
+                    soldier,
+                    Some(squad_index),
+                    &ChooseMethod::RandomFromNearest,
+                )
+            });
 
         if let Some(opponent) = opponent {
             return Behavior::EngageSoldier(opponent.uuid());
