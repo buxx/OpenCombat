@@ -2,7 +2,7 @@ use battle_core::{
     audio::Sound,
     entity::soldier::Soldier,
     physics::{
-        coverage::SoldierCovered, event::bullet::BulletFire, utils::meters_between_world_points,
+        coverage::SoldierCovered, event::bullet::BulletFire, utils::distance_between_points,
     },
     state::client::ClientStateMessage,
     types::Distance,
@@ -49,7 +49,7 @@ impl Runner {
                 continue;
             }
 
-            let distance = meters_between_world_points(&soldier.world_point(), point);
+            let distance = distance_between_points(&soldier.world_point(), point);
             if distance.meters() < 1
                 && SoldierCovered::new(self.battle_state.map(), bullet_fire, soldier).compute()
             {

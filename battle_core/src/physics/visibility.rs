@@ -10,7 +10,7 @@ use crate::{
     types::{Distance, GridPath, SoldierIndex, WorldPoint},
 };
 
-use super::utils::meters_between_world_points;
+use super::utils::distance_between_points;
 
 pub const VISIBLE_OPACITY_LIMIT: f32 = 0.5;
 
@@ -102,7 +102,7 @@ impl Visibility {
         let visible = to_soldier_item_opacity < config.visible_starts_at;
 
         let distance =
-            meters_between_world_points(&from_soldier.world_point(), &to_soldier.world_point());
+            distance_between_points(&from_soldier.world_point(), &to_soldier.world_point());
         Self {
             from: from_point,
             from_soldier: Some(from_soldier.uuid()),
@@ -137,7 +137,7 @@ impl Visibility {
             );
 
         let visible = to_soldier_item_opacity < VISIBLE_OPACITY_LIMIT;
-        let distance = meters_between_world_points(&from_point, to_point);
+        let distance = distance_between_points(&from_point, to_point);
         Self {
             from: from_point,
             from_soldier: Some(from_soldier.uuid()),
@@ -162,7 +162,7 @@ impl Visibility {
             Self::between_points_raw(config, from_point, to_point, map, VISIBILITY_FIRSTS, 0);
 
         let visible = to_soldier_item_opacity < 0.5;
-        let distance = meters_between_world_points(from_point, to_point);
+        let distance = distance_between_points(from_point, to_point);
         Self {
             from: *from_point,
             from_soldier: None,

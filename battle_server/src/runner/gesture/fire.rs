@@ -2,7 +2,7 @@ use battle_core::{
     behavior::gesture::{Gesture, GestureContext},
     entity::soldier::{Soldier, WeaponClass},
     game::weapon::Weapon,
-    physics::utils::meters_between_world_points,
+    physics::utils::distance_between_points,
     types::WorldPoint,
 };
 use glam::Vec2;
@@ -88,7 +88,7 @@ impl Runner {
         let mut rng = rand::thread_rng();
         // TODO : change precision according to weapon, stress, distance, etc
         let range = 2.0
-            * (meters_between_world_points(&soldier.world_point(), target_point).meters() as f32
+            * (distance_between_points(&soldier.world_point(), target_point).meters() as f32
                 / 500.);
 
         if range == 0. {

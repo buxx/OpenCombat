@@ -4,7 +4,7 @@ use crate::types::{Distance, WorldPoint};
 // TODO : fix it with sprites, maps, etc
 pub const DISTANCE_TO_METERS_COEFFICIENT: f32 = 0.3;
 
-pub fn meters_between_world_points(from: &WorldPoint, to: &WorldPoint) -> Distance {
+pub fn distance_between_points(from: &WorldPoint, to: &WorldPoint) -> Distance {
     Distance::from_millimeters(
         ((from.to_vec2().distance(to.to_vec2()) * DISTANCE_TO_METERS_COEFFICIENT) * 1000.) as i64,
     )

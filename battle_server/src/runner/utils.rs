@@ -1,7 +1,7 @@
 use battle_core::{
     behavior::Behavior,
     game::Side,
-    physics::utils::meters_between_world_points,
+    physics::utils::distance_between_points,
     types::{Angle, Distance, WorldPoint},
     utils::angle,
 };
@@ -48,7 +48,7 @@ impl Runner {
                 if let Some(soldier_index) = visibility.to_soldier {
                     let soldier = self.battle_state.soldier(soldier_index);
                     if soldier.side() == side
-                        && &meters_between_world_points(point, &soldier.world_point()) <= radius
+                        && &distance_between_points(point, &soldier.world_point()) <= radius
                     {
                         return true;
                     }

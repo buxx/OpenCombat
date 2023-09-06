@@ -3,7 +3,7 @@ use battle_core::entity::soldier::Soldier;
 use battle_core::entity::vehicle::Vehicle;
 use battle_core::game::explosive::ExplosiveType;
 use battle_core::physics::event::explosion::Explosion;
-use battle_core::physics::utils::meters_between_world_points;
+use battle_core::physics::utils::distance_between_points;
 use battle_core::state::client::ClientStateMessage;
 
 use battle_core::types::Distance;
@@ -51,7 +51,7 @@ impl Runner {
                 continue;
             }
 
-            let distance = meters_between_world_points(&soldier.world_point(), point);
+            let distance = distance_between_points(&soldier.world_point(), point);
 
             // TODO : Move into dedicated struct ?
             if let (
