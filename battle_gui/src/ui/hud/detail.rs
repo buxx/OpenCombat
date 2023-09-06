@@ -199,8 +199,6 @@ impl Component<HudEvent> for SquadDetail {
         let mouse_position = ctx.mouse.position();
 
         if let Some(squad) = &self.squad {
-            let health_point = self.point.apply(Vec2::new(SQUAD_TYPE_WIDTH + MARGIN, 0.));
-
             let soldiers_status_start_point = self
                 .point
                 .apply(Vec2::new(SOLDIER_WIDTH, SQUAD_TYPE_HEIGHT + MARGIN));
