@@ -128,11 +128,6 @@ impl Component<HudEvent> for SquadStatuses {
                         ))
                         .dest(soldiers_health_dest.to_vec2()),
                 );
-                params.push(
-                    DrawParam::new()
-                        .src(Rect::from(soldier_status.current().to_relative_array()))
-                        .dest(soldiers_health_dest.to_vec2()),
-                );
             }
         }
 
@@ -233,9 +228,7 @@ impl Component<HudEvent> for SquadStatuses {
                 && mouse_position.y >= draw_card.dest.y
                 && mouse_position.y <= draw_card.dest.y + SQUAD_CARD_HEIGHT
             {
-                return Some(HudEvent::SelectSquad(
-                    *draw_card.squad_status.squad_id(),
-                ));
+                return Some(HudEvent::SelectSquad(*draw_card.squad_status.squad_id()));
             }
         }
 

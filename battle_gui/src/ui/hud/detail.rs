@@ -119,6 +119,14 @@ impl Component<HudEvent> for SquadDetail {
                             soldier_health_height / HEALTH_HEIGHT,
                         )),
                 );
+
+                params.push(
+                    DrawParam::new()
+                        .src(Rect::from(
+                            soldier_status.ammunition_reserve().relative_src(),
+                        ))
+                        .dest(soldier_health_dest.to_vec2()),
+                );
             }
         }
 
