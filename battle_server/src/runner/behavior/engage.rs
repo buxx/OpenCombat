@@ -21,11 +21,6 @@ impl Runner {
             .squad_uuid();
         let engaged_squad = self.battle_state.squad(engaged_squad_index);
 
-        // FIXME BS NOW : pur chaque subordinates, determiner la place qu'il doit avoir :
-        // - sa place actuelle si il a une visu sur un adversaire de la squad -> Engage
-        // - une autre place si besoin -> MoveTo
-        // ???????? quand leader doit recalculer tout ca ??
-
         let mut after_grid_positions = vec![];
         'subordinates: for member in self
             .battle_state
