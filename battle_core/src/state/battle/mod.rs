@@ -323,7 +323,7 @@ impl BattleState {
 
     pub fn copy(&self) -> BattleStateCopy {
         BattleStateCopy::new(
-            self.frame_i.clone(),
+            self.frame_i,
             self.soldiers.clone(),
             self.vehicles.clone(),
             self.soldier_on_board.clone(),
