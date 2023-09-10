@@ -11,7 +11,17 @@ use super::{
 impl Engine {
     pub fn tick_intro(&self) -> Vec<EngineMessage> {
         if self.gui_state.frame_i() == 0 {
-            return vec![EngineMessage::PlaySound(Sound::DrumMultiHits)];
+            let center_on = self
+                .battle_state
+                .soldiers()
+                .iter()
+                .find(|s| s.side() == self.gui_state.side())
+                .expect("Must have at least one soldier to start battle")
+                .world_point();
+            return vec![
+                EngineMessage::PlaySound(Sound::DrumMultiHits),
+                EngineMessage::GuiState(GuiStateMessage::CenterSceneOn(center_on)),
+            ];
         }
 
         vec![]

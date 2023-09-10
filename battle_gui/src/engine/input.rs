@@ -255,6 +255,8 @@ impl Engine {
     ) -> Vec<EngineMessage> {
         let mut messages = vec![];
         let cursor = WindowPoint::new(x, y);
+        let opened_squad_menu = self.gui_state.squad_menu().is_some();
+        let have_pending_order = !self.gui_state.pending_order().is_empty();
 
         if let MouseButton::Left = button {
             // Update cursor down position
@@ -263,7 +265,10 @@ impl Engine {
             )));
 
             // Check if any order under the cursor
-            if self.gui_state.is_controlling(&Control::Soldiers) && !self.gui_state.cursor_in_hud()
+            if self.gui_state.is_controlling(&Control::Soldiers)
+                && !self.gui_state.cursor_in_hud()
+                && !opened_squad_menu
+                && !have_pending_order
             {
                 for (order, order_marker, squad_id, world_point, order_marker_i) in
                     self.battle_state.order_markers(self.gui_state.side())
