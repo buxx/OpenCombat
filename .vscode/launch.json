@@ -394,6 +394,27 @@
             "env": {
                 "RUST_BACKTRACE": "1"
             }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "launcher",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=oc_launcher",
+                    "--package=oc_launcher"
+                ],
+                "filter": {
+                    "name": "oc_launcher",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
         }
     ]
 }
