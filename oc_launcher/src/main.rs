@@ -1,5 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
+use std::path::Path;
+
 use anyhow::{Context, Result};
 use eframe::{
     egui::{self, RichText, TextStyle},
@@ -71,7 +73,7 @@ impl eframe::App for Launcher {
             ui.vertical(|ui|{
                 if ui.button("foo").clicked() {
                     self.error = None;
-                    if let Err(error) = self.launch_attack_from_north_est().context("Launch 'attack from north est'") {
+                    if let Err(error) = self.launch_attack_from_west().context("Launch 'attack from north est'") {
                         self.error = Some(format!("{:#}", error))
                     }
                 };
@@ -81,8 +83,27 @@ impl eframe::App for Launcher {
 }
 
 impl Launcher {
-    fn launch_attack_from_north_est(&self) -> Result<()> {
-        BattleLauncher::new()?.launch()?;
+    fn launch_attack_from_west(&self) -> Result<()> {
+        self.launch(
+            "Demo1",
+            "assets/demo1_deployment.json",
+            vec!["W", "NW", "SW"],
+            vec!["ALL"],
+        )?;
+        Ok(())
+    }
+
+    fn launch(
+        &self,
+        map_name: &str,
+        deployment: &str,
+        side_a_controls: Vec<&str>,
+        side_b_controls: Vec<&str>,
+    ) -> Result<()> {
+        BattleLauncher::new(map_name, &Path::new(deployment).to_path_buf(), "a")?
+            .side_a_controls(side_a_controls.into_iter().map(String::from).collect())
+            .side_b_controls(side_b_controls.into_iter().map(String::from).collect())
+            .launch()?;
         Ok(())
     }
 }
