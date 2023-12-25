@@ -5,7 +5,7 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use eframe::{
     egui::{self, RichText, TextStyle},
-    epaint::Color32,
+    epaint::{Color32, Vec2},
 };
 
 use run::BattleLauncher;
@@ -17,7 +17,7 @@ const EGUI_SCALE: f32 = 2.0;
 fn main() -> Result<(), eframe::Error> {
     env_logger::init();
     let options = eframe::NativeOptions {
-        initial_window_size: Some(egui::vec2(800.0, 600.0)),
+        initial_window_size: Some(egui::vec2(800.0, 700.0)),
         ..Default::default()
     };
     eframe::run_native(
@@ -30,6 +30,7 @@ fn main() -> Result<(), eframe::Error> {
 #[derive(Default)]
 struct Launcher {
     error: Option<String>,
+    map1_preview: Option<egui::TextureHandle>,
 }
 
 impl eframe::App for Launcher {
@@ -70,13 +71,30 @@ impl eframe::App for Launcher {
                 ui.label(RichText::new(error).color(Color32::RED));
             }
 
-            ui.vertical(|ui|{
-                if ui.button("foo").clicked() {
-                    self.error = None;
-                    if let Err(error) = self.launch_attack_from_west().context("Launch 'attack from north est'") {
-                        self.error = Some(format!("{:#}", error))
-                    }
-                };
+            ui.horizontal(|ui|{
+                let texture: &egui::TextureHandle = self.map1_preview.get_or_insert_with(|| {
+                    ui.ctx().load_texture(
+                        "Demo1Preview.png",
+                        load_image_from_path(Path::new("resources/maps/Demo1/Demo1Preview.png")).unwrap(),
+                        Default::default()
+                    )
+                });
+                ui.add(egui::Image::new(texture, Vec2::new(160., 160.)));
+
+                ui.vertical(|ui|{
+                    if ui.button("Attack from West").clicked() {
+                        self.error = None;
+                        if let Err(error) = self.launch_attack_from_west().context("Launch 'attack from north est'") {
+                            self.error = Some(format!("{:#}", error))
+                        }
+                    };
+                    if ui.button("Attack from North-Est").clicked() {
+                        self.error = None;
+                        if let Err(error) = self.launch_attack_from_north_est().context("Launch 'attack from north est'") {
+                            self.error = Some(format!("{:#}", error))
+                        }
+                    };
+                });
             });
         });
     }
@@ -88,6 +106,15 @@ impl Launcher {
             "Demo1",
             "assets/demo1_deployment.json",
             vec!["W", "NW", "SW"],
+            vec!["ALL"],
+        )?;
+        Ok(())
+    }
+    fn launch_attack_from_north_est(&self) -> Result<()> {
+        self.launch(
+            "Demo1",
+            "assets/demo1_deployment2.json",
+            vec!["N", "NE", "E"],
             vec!["ALL"],
         )?;
         Ok(())
@@ -106,4 +133,15 @@ impl Launcher {
             .launch()?;
         Ok(())
     }
+}
+
+fn load_image_from_path(path: &std::path::Path) -> Result<egui::ColorImage, image::ImageError> {
+    let image = image::io::Reader::open(path)?.decode()?;
+    let size = [image.width() as _, image.height() as _];
+    let image_buffer = image.to_rgba8();
+    let pixels = image_buffer.as_flat_samples();
+    Ok(egui::ColorImage::from_rgba_unmultiplied(
+        size,
+        pixels.as_slice(),
+    ))
 }

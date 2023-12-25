@@ -282,7 +282,7 @@ impl From<&SoldierDeployment> for Soldier {
             soldier.squad_uuid(),
             soldier.side(),
             soldier.main_weapon().cloned(),
-            soldier.magazines().clone().to_vec(),
+            soldier.magazines().to_vec(),
         )
     }
 }

@@ -252,6 +252,46 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Gui (server embedded) Demo1 E",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "Demo1",
+                "assets/demo1_deployment.json",
+                "--embedded-server",
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "a",
+                "--side-a-control",
+                "N",
+                "--side-a-control",
+                "NE",
+                "--side-a-control",
+                "E",
+                "--side-b-control",
+                "ALL",
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG": "DEBUG"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Gui a map1",
             "cargo": {
                 "args": [
@@ -403,7 +443,8 @@
                 "args": [
                     "build",
                     "--bin=oc_launcher",
-                    "--package=oc_launcher"
+                    "--package=oc_launcher",
+                    "--release"
                 ],
                 "filter": {
                     "name": "oc_launcher",
