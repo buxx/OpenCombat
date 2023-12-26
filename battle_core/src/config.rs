@@ -28,7 +28,7 @@ pub const END_MORALE: f32 = 0.2;
 ///
 pub const VISIBILITY_IDLE_STANDUP_MODIFIER: f32 = 0.5;
 pub const VISIBILITY_IDLE_CROUCH_MODIFIER: f32 = 0.5;
-pub const VISIBILITY_IDLE_LYING_MODIFIER: f32 = -0.3;
+pub const VISIBILITY_IDLE_LYING_MODIFIER: f32 = -0.9;
 pub const VISIBILITY_MOVE_TO_MODIFIER: f32 = 1.0;
 pub const VISIBILITY_MOVE_FAST_TO_MODIFIER: f32 = 2.0;
 pub const VISIBILITY_SNEAK_TO_MODIFIER: f32 = VISIBILITY_IDLE_LYING_MODIFIER;
@@ -47,14 +47,14 @@ pub const TILE_TYPE_OPACITY_DIRT: f32 = 0.0;
 pub const TILE_TYPE_OPACITY_CONCRETE: f32 = 0.0;
 pub const TILE_TYPE_OPACITY_MUD: f32 = 0.02;
 pub const TILE_TYPE_OPACITY_BRICK_WALL: f32 = 1.0;
-pub const TILE_TYPE_OPACITY_TRUNK: f32 = 0.7;
+pub const TILE_TYPE_OPACITY_TRUNK: f32 = 0.2;
 pub const TILE_TYPE_OPACITY_WATER: f32 = 0.0;
 pub const TILE_TYPE_OPACITY_DEEP_WATER: f32 = 0.0;
-pub const TILE_TYPE_OPACITY_UNDERBRUSH: f32 = 0.05;
-pub const TILE_TYPE_OPACITY_LIGHT_UNDERBRUSH: f32 = 0.025;
-pub const TILE_TYPE_OPACITY_MIDDLE_WOOD_LOGS: f32 = 0.5;
-pub const TILE_TYPE_OPACITY_HEDGE: f32 = 0.5;
-pub const TILE_TYPE_OPACITY_MIDDLE_ROCK: f32 = 0.3;
+pub const TILE_TYPE_OPACITY_UNDERBRUSH: f32 = 0.001;
+pub const TILE_TYPE_OPACITY_LIGHT_UNDERBRUSH: f32 = 0.005;
+pub const TILE_TYPE_OPACITY_MIDDLE_WOOD_LOGS: f32 = 0.15;
+pub const TILE_TYPE_OPACITY_HEDGE: f32 = 0.15;
+pub const TILE_TYPE_OPACITY_MIDDLE_ROCK: f32 = 0.15;
 //
 pub const VISIBILITY_BY_LAST_FRAME_SHOOT: u64 = TARGET_FPS * 15;
 pub const VISIBILITY_BY_LAST_FRAME_SHOOT_DISTANCE: usize = 4;
@@ -85,7 +85,7 @@ pub const VEHICLE_DRIVE_ORIENTATION_ADVANCE_TOLERANCE_DIFF: f32 = 50.;
 pub const COVER_DISTANCE: i32 = 6;
 
 // Visibility computing must consider firsts tiles differently
-pub const VISIBILITY_FIRSTS: usize = 4;
+pub const VISIBILITY_FIRSTS: usize = 6;
 pub const VISIBLE_STARTS_AT: f32 = 0.5;
 // When compute visibility, configure here each pixels step of line which me considered
 pub const VISIBILITY_PIXEL_STEPS: usize = 5;

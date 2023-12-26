@@ -256,7 +256,7 @@ impl Engine {
                     if ui.button("reset").clicked() {
                         *value = default;
                     };
-                    if ui.add(Slider::new(value, (-5.)..=5.)).changed() {
+                    if ui.add(Slider::new(value, (-10.)..=10.)).changed() {
                         messages.push(EngineMessage::ChangeServerConfig(message(*value)));
                     };
                     ui.end_row();
