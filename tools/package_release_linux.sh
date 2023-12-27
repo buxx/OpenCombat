@@ -9,7 +9,6 @@ cp target/release/battle_gui ${FOLDER_NAME}
 cp target/release/battle_server ${FOLDER_NAME}
 cp target/release/oc_launcher ${FOLDER_NAME}/start
 cp -r resources ${FOLDER_NAME}
-cp assets/linux/* ${FOLDER_NAME}
 mkdir -p ${FOLDER_NAME}/assets
 cp assets/*deployment* ${FOLDER_NAME}/assets/
 cp LICENSE ${FOLDER_NAME}
