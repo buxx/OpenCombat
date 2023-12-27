@@ -48,7 +48,7 @@ jobs:
         run: cargo check --release
 
       - name: Build
-        run: cargo build --bin battle_gui --bin battle_server --release
+        run: cargo build --bin battle_gui --bin battle_server --bin oc_launcher --release
 
       - name: Package
         run: tools/package_release_windows.sh ${{ github.ref_name }}

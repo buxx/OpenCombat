@@ -7,6 +7,7 @@ FOLDER_NAME=OpenCombat_${1}_Win64
 mkdir ${FOLDER_NAME}
 cp target/release/battle_gui.exe ${FOLDER_NAME}
 cp target/release/battle_server.exe ${FOLDER_NAME}
+cp target/release/oc_launcher.exe ${FOLDER_NAME}/start.exe
 cp -r resources ${FOLDER_NAME}
 cp assets/w64/* ${FOLDER_NAME}
 mkdir ${FOLDER_NAME}/assets
