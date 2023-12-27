@@ -171,7 +171,8 @@ impl GuiState {
     }
 
     pub fn _left_click_down_world_point(&self) -> Option<WorldPoint> {
-        self.left_click_down.map(|left_click_down| self.world_point_from_window_point(left_click_down))
+        self.left_click_down
+            .map(|left_click_down| self.world_point_from_window_point(left_click_down))
     }
 
     pub fn current_cursor_vector_window_points(&self) -> &Option<(WindowPoint, WindowPoint)> {
