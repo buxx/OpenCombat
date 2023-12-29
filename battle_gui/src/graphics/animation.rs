@@ -1,4 +1,8 @@
-use battle_core::{entity::soldier::Soldier, game::explosive::ExplosiveType, types::WorldPoint};
+use battle_core::{
+    entity::soldier::Soldier,
+    game::{explosive::ExplosiveType, Side},
+    types::WorldPoint,
+};
 use ggez::Context;
 use keyframe::{
     functions::{EaseOut, Linear},
@@ -39,13 +43,13 @@ impl Graphics {
 
         let src_rect_start = TweenableRect::new(
             animation_type.src_x_start(),
-            animation_type.src_y(),
+            animation_type.src_y(soldier.side()),
             animation_type.width(),
             animation_type.height(),
         );
         let src_end_rect = TweenableRect::new(
             animation_type.src_x_end(),
-            animation_type.src_y(),
+            animation_type.src_y(soldier.side()),
             animation_type.width(),
             animation_type.height(),
         );
@@ -64,13 +68,13 @@ impl Graphics {
 
         let src_rect_start = TweenableRect::new(
             sprite.src_x_start(),
-            sprite.src_y(),
+            sprite.src_y(&Side::All),
             sprite.width(),
             sprite.height(),
         );
         let src_end_rect = TweenableRect::new(
             sprite.src_x_end(),
-            sprite.src_y(),
+            sprite.src_y(&Side::All),
             sprite.width(),
             sprite.height(),
         );

@@ -1,4 +1,5 @@
 use crate::{
+    game::Side,
     types::{AbsoluteOffset, RelativeOffset},
     utils::Rect,
 };
@@ -12,7 +13,7 @@ pub trait Sprite {
     fn sprite_sheet_row_count(&self) -> usize;
     fn src_x_start(&self) -> f32;
     fn src_x_end(&self) -> f32;
-    fn src_y(&self) -> f32;
+    fn src_y(&self, side: &Side) -> f32;
     fn frame_count(&self) -> usize;
     fn width(&self) -> f32;
     fn height(&self) -> f32;

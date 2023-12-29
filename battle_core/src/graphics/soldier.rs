@@ -1,7 +1,10 @@
+use crate::game::Side;
+
 use super::Sprite;
 
+pub const SIDE_B_Y_OFFSET: usize = 6;
 const SPRITE_SHEET_WIDTH: usize = 256;
-const SPRITE_SHEET_HEIGHT: usize = 192;
+const SPRITE_SHEET_HEIGHT: usize = 384;
 pub const TILE_WIDTH: usize = 32;
 pub const TILE_HEIGHT: usize = 32;
 
@@ -30,13 +33,19 @@ impl Sprite for SoldierAnimationType {
         (self.frame_count() - 1) as f32 / self.sprite_sheet_column_count() as f32
     }
 
-    fn src_y(&self) -> f32 {
+    fn src_y(&self, side: &Side) -> f32 {
         let row = match self {
             SoldierAnimationType::Idle => 0,
             SoldierAnimationType::Walking => 1,
             SoldierAnimationType::Crawling => 2,
             SoldierAnimationType::LyingDown => 3,
             SoldierAnimationType::DeadWithSideBlood => 4,
+        };
+
+        let row = if side == &Side::B {
+            row + SIDE_B_Y_OFFSET
+        } else {
+            row
         };
 
         row as f32 / self.sprite_sheet_row_count() as f32

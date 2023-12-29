@@ -3,8 +3,8 @@ use std::{collections::HashMap, fs, path::PathBuf};
 use battle_core::{
     config::ServerConfig,
     entity::{soldier::Soldier, vehicle::Vehicle},
-    game::control::MapControl,
-    graphics::vehicle::VehicleGraphicInfos,
+    game::{control::MapControl, Side},
+    graphics::{soldier::SIDE_B_Y_OFFSET, vehicle::VehicleGraphicInfos},
     map::Map,
     types::{Scale, SoldierIndex, SquadUuid, VehicleIndex, WindowPoint, WorldPoint},
 };

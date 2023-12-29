@@ -1,3 +1,5 @@
+use crate::game::Side;
+
 use super::Sprite;
 
 const SPRITE_SHEET_WIDTH: usize = 2156;
@@ -26,7 +28,7 @@ impl Sprite for ExplosionAnimationType {
         (self.frame_count() - 1) as f32 / self.sprite_sheet_column_count() as f32
     }
 
-    fn src_y(&self) -> f32 {
+    fn src_y(&self, _: &Side) -> f32 {
         let row = match self {
             ExplosionAnimationType::Explosion1 => 0,
         };
