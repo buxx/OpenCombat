@@ -134,19 +134,19 @@
             },
             "squad_uuid": 1,
             "main_weapon": {
-                "MosinNagantM1924": [
+                "MauserG41": [
                     false,
                     {
-                        "MosinNagant": 5
+                        "Mauser": 5
                     }
                 ]
             },
             "magazines": [
                 {
-                    "MosinNagant": 5
+                    "Mauser": 5
                 },
                 {
-                    "MosinNagant": 5
+                    "Mauser": 5
                 }
             ]
         },
@@ -159,19 +159,19 @@
             },
             "squad_uuid": 1,
             "main_weapon": {
-                "MosinNagantM1924": [
+                "MauserG41": [
                     false,
                     {
-                        "MosinNagant": 5
+                        "Mauser": 5
                     }
                 ]
             },
             "magazines": [
                 {
-                    "MosinNagant": 5
+                    "Mauser": 5
                 },
                 {
-                    "MosinNagant": 5
+                    "Mauser": 5
                 }
             ]
         },
@@ -184,19 +184,19 @@
             },
             "squad_uuid": 1,
             "main_weapon": {
-                "MosinNagantM1924": [
+                "MauserG41": [
                     false,
                     {
-                        "MosinNagant": 5
+                        "Mauser": 5
                     }
                 ]
             },
             "magazines": [
                 {
-                    "MosinNagant": 5
+                    "Mauser": 5
                 },
                 {
-                    "MosinNagant": 5
+                    "Mauser": 5
                 }
             ]
         },
@@ -209,19 +209,19 @@
             },
             "squad_uuid": 1,
             "main_weapon": {
-                "MosinNagantM1924": [
+                "MauserG41": [
                     false,
                     {
-                        "MosinNagant": 5
+                        "Mauser": 5
                     }
                 ]
             },
             "magazines": [
                 {
-                    "MosinNagant": 5
+                    "Mauser": 5
                 },
                 {
-                    "MosinNagant": 5
+                    "Mauser": 5
                 }
             ]
         },
@@ -234,19 +234,19 @@
             },
             "squad_uuid": 1,
             "main_weapon": {
-                "MosinNagantM1924": [
+                "MauserG41": [
                     false,
                     {
-                        "MosinNagant": 5
+                        "Mauser": 5
                     }
                 ]
             },
             "magazines": [
                 {
-                    "MosinNagant": 5
+                    "Mauser": 5
                 },
                 {
-                    "MosinNagant": 5
+                    "Mauser": 5
                 }
             ]
         }

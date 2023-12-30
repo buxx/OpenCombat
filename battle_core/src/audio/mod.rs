@@ -5,6 +5,11 @@ use strum_macros::EnumIter;
 
 #[derive(Debug, Hash, Copy, Serialize, Deserialize, Clone, EnumIter, Eq, PartialEq, Display)]
 pub enum Sound {
+    MauserRiffleFire1,
+    MauserRiffleFire2,
+    MauserRiffleFire3,
+    MauserRiffleReload1,
+    MauserRiffleReload2,
     MosinNagantFire1,
     MosinNagantFire2,
     MosinNagantFire3,
