@@ -7,6 +7,7 @@ use crate::{
 pub mod explosion;
 pub mod soldier;
 pub mod vehicle;
+pub mod weapon;
 
 pub trait Sprite {
     fn sprite_sheet_column_count(&self) -> usize;

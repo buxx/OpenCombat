@@ -61,6 +61,19 @@ impl Magazine {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum WeaponSprite {
+    Riffle,
+}
+
+impl WeaponSprite {
+    pub fn prefix(&self) -> &str {
+        match self {
+            WeaponSprite::Riffle => "/weapon_riffle",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GunFireSoundType {
     MosinNagant,
@@ -218,6 +231,12 @@ impl Weapon {
         match self {
             Weapon::MosinNagantM1924(_, _) => 5,
             Weapon::MauserG41(_, _) => 5,
+        }
+    }
+
+    pub fn sprite_type(&self) -> WeaponSprite {
+        match self {
+            Weapon::MosinNagantM1924(_, _) | Weapon::MauserG41(_, _) => WeaponSprite::Riffle,
         }
     }
 }

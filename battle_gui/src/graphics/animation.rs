@@ -1,5 +1,5 @@
 use battle_core::{
-    entity::soldier::Soldier,
+    entity::soldier::{Soldier, WeaponClass},
     game::{explosive::ExplosiveType, Side},
     types::WorldPoint,
 };
@@ -9,7 +9,7 @@ use keyframe::{
     keyframes, AnimationSequence,
 };
 
-use super::{AnimationFloor, Graphics, TweenableRect};
+use super::{soldier::SoldierAnimationSequence, AnimationFloor, Graphics, TweenableRect};
 
 impl Graphics {
     pub fn refresh_soldier_animation(&mut self, soldier: &Soldier) {
@@ -31,36 +31,72 @@ impl Graphics {
         let secs = ctx.time.delta().as_secs_f64();
 
         for (_, animation) in self.soldier_animation_sequences.iter_mut() {
-            animation.advance_and_maybe_wrap(secs);
+            animation.soldier_mut().advance_and_maybe_wrap(secs);
+            if let Some(weapon_animation) = animation.weapon_mut() {
+                weapon_animation.advance_and_maybe_wrap(secs);
+            }
         }
         for (_, animation) in self.explosion_sequences.iter_mut() {
             animation.advance_and_maybe_wrap(secs);
         }
     }
 
-    pub fn soldier_animation(&self, soldier: &Soldier) -> AnimationSequence<TweenableRect> {
-        let animation_type = self.soldier_animation_type(soldier);
+    pub fn soldier_animation(&self, soldier: &Soldier) -> SoldierAnimationSequence {
+        let (soldier_animation_type, weapon_animation_type) = self.soldier_animation_type(soldier);
 
-        let src_rect_start = TweenableRect::new(
-            animation_type.src_x_start(),
-            animation_type.src_y(soldier.side()),
-            animation_type.width(),
-            animation_type.height(),
+        let soldier_src_rect_start = TweenableRect::new(
+            soldier_animation_type.src_x_start(),
+            soldier_animation_type.src_y(soldier.side()),
+            soldier_animation_type.width(),
+            soldier_animation_type.height(),
         );
-        let src_end_rect = TweenableRect::new(
-            animation_type.src_x_end(),
-            animation_type.src_y(soldier.side()),
-            animation_type.width(),
-            animation_type.height(),
+        let soldier_src_end_rect = TweenableRect::new(
+            soldier_animation_type.src_x_end(),
+            soldier_animation_type.src_y(soldier.side()),
+            soldier_animation_type.width(),
+            soldier_animation_type.height(),
         );
-        let duration = animation_type.duration();
+        let duration = soldier_animation_type.duration();
 
-        let easing = AnimationFloor {
+        let soldier_easing = AnimationFloor {
             pre_easing: Box::new(Linear),
-            frames: animation_type.frame_count() as i32,
+            frames: soldier_animation_type.frame_count() as i32,
         };
 
-        keyframes![(src_rect_start, 0.0, easing), (src_end_rect, duration)]
+        let soldier_animation_sequence = keyframes![
+            (soldier_src_rect_start, 0.0, soldier_easing),
+            (soldier_src_end_rect, duration)
+        ];
+
+        let weapon_animation_sequence = if let Some(weapon) = soldier.weapon(&WeaponClass::Main) {
+            // FIXME : weapon Y (current Side in src_y function ...)
+            let weapon_src_rect_start = TweenableRect::new(
+                weapon_animation_type.src_x_start(),
+                weapon_animation_type.src_y(&Side::A), // Fake Side because weapon sprite uniques
+                weapon_animation_type.width(),
+                weapon_animation_type.height(),
+            );
+            let weapon_src_end_rect = TweenableRect::new(
+                weapon_animation_type.src_x_end(),
+                weapon_animation_type.src_y(&Side::A), // Fake Side because weapon sprite uniques
+                weapon_animation_type.width(),
+                weapon_animation_type.height(),
+            );
+
+            let weapon_easing = AnimationFloor {
+                pre_easing: Box::new(Linear),
+                frames: weapon_animation_type.frame_count() as i32,
+            };
+
+            Some(keyframes![
+                (weapon_src_rect_start, 0.0, weapon_easing),
+                (weapon_src_end_rect, duration)
+            ])
+        } else {
+            None
+        };
+
+        SoldierAnimationSequence::new(soldier_animation_sequence, weapon_animation_sequence)
     }
 
     pub fn explosion_animation(&self, type_: ExplosiveType) -> AnimationSequence<TweenableRect> {

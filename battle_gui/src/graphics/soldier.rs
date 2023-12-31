@@ -2,11 +2,12 @@ use battle_core::{
     behavior::{Behavior, Body},
     config::{SOLDIER_SELECTABLE_SQUARE_SIDE, SOLDIER_SELECTABLE_SQUARE_SIDE_HALF},
     entity::soldier::Soldier,
-    graphics::{soldier::SoldierAnimationType, Sprite},
+    graphics::{soldier::SoldierAnimationType, weapon::WeaponAnimationType, Sprite},
 };
 use ggez::graphics::Rect;
+use keyframe::AnimationSequence;
 
-use super::{AssetsType, Graphics};
+use super::{AssetsType, Graphics, TweenableRect};
 
 use ggez::{
     graphics::{DrawParam, Image, InstanceArray},
@@ -96,7 +97,7 @@ impl Graphics {
         )
     }
 
-    pub fn soldier_animation_type(&self, soldier: &Soldier) -> Box<dyn Sprite> {
+    pub fn soldier_animation_type(&self, soldier: &Soldier) -> (Box<dyn Sprite>, Box<dyn Sprite>) {
         let animation_type = match soldier.behavior() {
             Behavior::Idle(Body::StandUp) => SoldierAnimationType::Idle,
             Behavior::Idle(Body::Crouched) => SoldierAnimationType::Idle,
@@ -114,6 +115,38 @@ impl Graphics {
             Behavior::SuppressFire(_) => SoldierAnimationType::LyingDown,
             Behavior::EngageSoldier(_) => SoldierAnimationType::LyingDown,
         };
-        Box::new(animation_type)
+
+        let weapon_animation_type = WeaponAnimationType::from(&animation_type);
+        (Box::new(animation_type), Box::new(weapon_animation_type))
+    }
+}
+
+pub struct SoldierAnimationSequence {
+    soldier: AnimationSequence<TweenableRect>,
+    weapon: Option<AnimationSequence<TweenableRect>>,
+}
+
+impl SoldierAnimationSequence {
+    pub fn new(
+        soldier: AnimationSequence<TweenableRect>,
+        weapon: Option<AnimationSequence<TweenableRect>>,
+    ) -> Self {
+        Self { soldier, weapon }
+    }
+
+    pub fn soldier(&self) -> &AnimationSequence<TweenableRect> {
+        &self.soldier
+    }
+
+    pub fn weapon(&self) -> Option<&AnimationSequence<TweenableRect>> {
+        self.weapon.as_ref()
+    }
+
+    pub fn soldier_mut(&mut self) -> &mut AnimationSequence<TweenableRect> {
+        &mut self.soldier
+    }
+
+    pub fn weapon_mut(&mut self) -> &mut Option<AnimationSequence<TweenableRect>> {
+        &mut self.weapon
     }
 }

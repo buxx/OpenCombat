@@ -3,8 +3,8 @@ use std::{collections::HashMap, fs, path::PathBuf};
 use battle_core::{
     config::ServerConfig,
     entity::{soldier::Soldier, vehicle::Vehicle},
-    game::{control::MapControl, Side},
-    graphics::{soldier::SIDE_B_Y_OFFSET, vehicle::VehicleGraphicInfos},
+    game::{control::MapControl, weapon::WeaponSprite},
+    graphics::vehicle::VehicleGraphicInfos,
     map::Map,
     types::{Scale, SoldierIndex, SquadUuid, VehicleIndex, WindowPoint, WorldPoint},
 };
@@ -40,8 +40,9 @@ use self::{
     message::GraphicsMessage,
     minimap::MinimapBuilder,
     qualified::Zoom,
-    soldier::{Soldiers, SoldiersBuilder},
+    soldier::{SoldierAnimationSequence, Soldiers, SoldiersBuilder},
     vehicles::{Vehicles, VehiclesBuilder},
+    weapons::Weapons,
 };
 
 pub mod animation;
@@ -58,9 +59,11 @@ pub mod order;
 pub mod qualified;
 pub mod soldier;
 pub mod vehicles;
+pub mod weapons;
 
 pub enum AssetsType {
     Soldiers,
+    Weapon(WeaponSprite),
     Vehicles,
     Explosions,
     Ui,
@@ -71,6 +74,7 @@ impl AssetsType {
     pub fn prefix(&self) -> &str {
         match self {
             AssetsType::Soldiers => "/soldiers",
+            AssetsType::Weapon(type_) => type_.prefix(),
             AssetsType::Vehicles => "/vehicles",
             AssetsType::Explosions => "/explosions",
             AssetsType::Ui => "/ui",
@@ -88,6 +92,7 @@ pub struct Graphics {
     soldiers: Soldiers,
     soldiers_files: Vec<String>,
     soldiers_file: String,
+    weapons: Weapons,
     vehicles: Vehicles,
     vehicles_files: Vec<String>,
     vehicles_file: String,
@@ -110,7 +115,7 @@ pub struct Graphics {
     decor: Decors,
     dark_decor: Decors,
     // Soldiers animations
-    soldier_animation_sequences: HashMap<SoldierIndex, AnimationSequence<TweenableRect>>,
+    soldier_animation_sequences: HashMap<SoldierIndex, SoldierAnimationSequence>,
     // Explosion animations
     explosion_sequences: Vec<(WorldPoint, AnimationSequence<TweenableRect>)>,
     //
@@ -130,6 +135,8 @@ impl Graphics {
         let soldiers_file = AssetsType::Soldiers.prefix().to_string() + ".png";
         let soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
         let soldiers = SoldiersBuilder::new(ctx).build()?;
+
+        let weapons = Weapons::new(ctx)?;
 
         let vehicles_file = AssetsType::Vehicles.prefix().to_string() + ".png";
         let vehicles_files = collect_resources_by_prefix(AssetsType::Vehicles.prefix())?;
@@ -164,6 +171,7 @@ impl Graphics {
             soldiers,
             soldiers_files,
             soldiers_file,
+            weapons,
             vehicles,
             vehicles_files,
             vehicles_file,
@@ -235,11 +243,14 @@ impl Graphics {
         soldier: &Soldier,
         draw_to: Option<&WorldPoint>,
         zoom: &Zoom,
-    ) -> Vec<graphics::DrawParam> {
-        let current_frame_src: Rect = self
+    ) -> (Vec<graphics::DrawParam>, Vec<graphics::DrawParam>) {
+        let soldier_animation_sequence: &SoldierAnimationSequence = self
             .soldier_animation_sequences
             .get(&soldier.uuid())
-            .expect("Shared state must be consistent")
+            .expect("Shared state must be consistent");
+
+        let soldier_current_frame_src: Rect = soldier_animation_sequence
+            .soldier()
             .now_strict()
             .unwrap()
             .into();
@@ -249,8 +260,8 @@ impl Graphics {
             SOLDIER_TILE_HEIGHT as f32 * zoom.factor() * 0.5,
         );
 
-        vec![graphics::DrawParam::new()
-            .src(current_frame_src)
+        let soldier_sprites = vec![graphics::DrawParam::new()
+            .src(soldier_current_frame_src)
             .rotation(soldier.get_looking_direction().0)
             .offset(Vec2::from(soldier_sprite_offset))
             .dest(
@@ -258,7 +269,24 @@ impl Graphics {
                     .map(|p| p.to_vec2())
                     .unwrap_or(soldier.world_point().to_vec2())
                     * zoom.factor(),
-            )]
+            )];
+        let weapon_sprites = if let Some(weapon_sequence) = soldier_animation_sequence.weapon() {
+            let weapon_current_frame_src: Rect = weapon_sequence.now_strict().unwrap().into();
+            vec![graphics::DrawParam::new()
+                .src(weapon_current_frame_src)
+                .rotation(soldier.get_looking_direction().0)
+                .offset(Vec2::from(soldier_sprite_offset))
+                .dest(
+                    draw_to
+                        .map(|p| p.to_vec2())
+                        .unwrap_or(soldier.world_point().to_vec2())
+                        * zoom.factor(),
+                )]
+        } else {
+            vec![]
+        };
+
+        (soldier_sprites, weapon_sprites)
     }
 
     pub fn vehicle_sprites(
@@ -432,10 +460,12 @@ impl Graphics {
         draw_param: graphics::DrawParam,
         zoom: &Zoom,
     ) -> GameResult {
+        // TODO : check is_empty not enough required since ggez fix
         // Entities, explosions, etc. sprites
         if !self.soldiers.drawable(zoom).instances().is_empty() {
             canvas.draw(self.soldiers.drawable(zoom), draw_param);
         }
+        self.weapons.draw(canvas, zoom, draw_param);
         if !self.vehicles.drawable(zoom).instances().is_empty() {
             canvas.draw(self.vehicles.drawable(zoom), draw_param);
         }
@@ -470,6 +500,7 @@ impl Graphics {
 
     pub fn clear(&mut self, zoom: &Zoom) {
         self.soldiers.clear(zoom);
+        self.weapons.clear(zoom);
         self.vehicles.clear(zoom);
         self.explosions.clear(zoom);
         self.background.clear(zoom);
@@ -509,6 +540,7 @@ impl Graphics {
             }
             GraphicsMessage::ReloadSoldiersAsset => {
                 self.soldiers = SoldiersBuilder::new(ctx).build()?;
+                // FIXME same for weapons
             }
             GraphicsMessage::ReloadVehiclesAsset => {
                 self.vehicles = VehiclesBuilder::new(ctx).build()?;
@@ -522,6 +554,7 @@ impl Graphics {
             GraphicsMessage::ReloadAll => {
                 self.soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
                 self.soldiers = SoldiersBuilder::new(ctx).build()?;
+                // FIXME same for weapons
 
                 self.vehicles_files = collect_resources_by_prefix(AssetsType::Vehicles.prefix())?;
                 self.vehicles = VehiclesBuilder::new(ctx).build()?;
@@ -583,6 +616,10 @@ impl Graphics {
 
     pub fn soldiers_mut(&mut self) -> &mut Soldiers {
         &mut self.soldiers
+    }
+
+    pub fn weapons_mut(&mut self) -> &mut Weapons {
+        &mut self.weapons
     }
 
     pub fn vehicles_mut(&mut self) -> &mut Vehicles {

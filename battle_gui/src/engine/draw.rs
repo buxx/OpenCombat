@@ -7,7 +7,7 @@ use ggez::{
 };
 
 use battle_core::{
-    entity::soldier::Soldier,
+    entity::soldier::{Soldier, WeaponClass},
     game::squad::{squad_positions, Formation},
     order::{marker::OrderMarker, Order, PendingOrder},
     physics::{utils::DISTANCE_TO_METERS_COEFFICIENT, visibility::Visibility},
@@ -29,12 +29,19 @@ impl Engine {
                 continue;
             }
 
-            let sprites = self
-                .graphics
-                .soldier_sprites(soldier, None, &self.gui_state.zoom);
+            let (soldier_sprites, weapon_sprites) =
+                self.graphics
+                    .soldier_sprites(soldier, None, &self.gui_state.zoom);
             self.graphics
                 .soldiers_mut()
-                .extend(&self.gui_state.zoom, sprites);
+                .extend(&self.gui_state.zoom, soldier_sprites.clone());
+            if let Some(weapon) = soldier.weapon(&WeaponClass::Main) {
+                self.graphics.weapons_mut().extend(
+                    &self.gui_state.zoom,
+                    weapon.sprite_type(),
+                    weapon_sprites,
+                )
+            }
         }
 
         // Dragged soldiers
@@ -43,7 +50,7 @@ impl Engine {
             let squad = self.battle_state.squad(*squad_index);
             let leader = self.battle_state.soldier(squad.leader());
 
-            let sprites =
+            let (sprites, _) =
                 self.graphics
                     .soldier_sprites(leader, Some(&cursor), &self.gui_state.zoom);
             self.graphics
@@ -57,7 +64,7 @@ impl Engine {
                     squad_positions(squad, Formation::Line, leader, Some(cursor))
                 {
                     let soldier = self.battle_state.soldier(member_id);
-                    let sprites = self.graphics.soldier_sprites(
+                    let (sprites, _) = self.graphics.soldier_sprites(
                         soldier,
                         Some(&formation_position),
                         &self.gui_state.zoom,
