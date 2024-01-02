@@ -157,6 +157,7 @@ impl EventHandler<ggez::GameError> for Engine {
         self.generate_soldiers_sprites()?;
         self.generate_vehicles_sprites()?;
         self.generate_explosion_sprites()?;
+        self.generate_cannon_blasts_sprites()?;
         self.graphics
             .draw_map(&mut canvas, dest, &self.gui_state.zoom)?;
         self.draw_debug_terrain(ctx, &mut canvas, scale)?;

@@ -96,29 +96,6 @@ impl Graphics {
             SOLDIER_SELECTABLE_SQUARE_SIDE,
         )
     }
-
-    pub fn soldier_animation_type(&self, soldier: &Soldier) -> (Box<dyn Sprite>, Box<dyn Sprite>) {
-        let animation_type = match soldier.behavior() {
-            Behavior::Idle(Body::StandUp) => SoldierAnimationType::Idle,
-            Behavior::Idle(Body::Crouched) => SoldierAnimationType::Idle,
-            Behavior::Idle(Body::Lying) => SoldierAnimationType::Crawling,
-            Behavior::MoveTo(_) => SoldierAnimationType::Walking,
-            Behavior::MoveFastTo(_) => SoldierAnimationType::Walking,
-            Behavior::SneakTo(_) => SoldierAnimationType::Crawling,
-            Behavior::Defend(_) => SoldierAnimationType::LyingDown,
-            Behavior::Hide(_) => SoldierAnimationType::LyingDown,
-            Behavior::DriveTo(_) => SoldierAnimationType::Idle,
-            Behavior::RotateTo(_) => SoldierAnimationType::Idle,
-            // TODO : Different animation according to death type
-            Behavior::Dead => SoldierAnimationType::DeadWithSideBlood,
-            Behavior::Unconscious => SoldierAnimationType::LyingDown,
-            Behavior::SuppressFire(_) => SoldierAnimationType::LyingDown,
-            Behavior::EngageSoldier(_) => SoldierAnimationType::LyingDown,
-        };
-
-        let weapon_animation_type = WeaponAnimationType::from(&animation_type);
-        (Box::new(animation_type), Box::new(weapon_animation_type))
-    }
 }
 
 pub struct SoldierAnimationSequence {

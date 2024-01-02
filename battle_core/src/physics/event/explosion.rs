@@ -21,6 +21,7 @@ impl Explosion {
 
     pub fn init(&mut self, start_frame_i: u64) {
         self.start = start_frame_i;
+        // FIXME BS NOW :  as u64 non non !
         self.end = start_frame_i + (self.explosive_type.sprite().duration() as u64 * TARGET_FPS);
     }
 

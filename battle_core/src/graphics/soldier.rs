@@ -1,6 +1,7 @@
 use crate::game::Side;
 
 use super::Sprite;
+use serde::{Deserialize, Serialize};
 
 pub const SIDE_B_Y_OFFSET: usize = 6;
 const SPRITE_SHEET_WIDTH: usize = 256;
@@ -8,7 +9,7 @@ const SPRITE_SHEET_HEIGHT: usize = 384;
 pub const TILE_WIDTH: usize = 32;
 pub const TILE_HEIGHT: usize = 32;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum SoldierAnimationType {
     Idle,
     Walking,

@@ -1,7 +1,10 @@
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 
-use crate::audio::Sound;
+use crate::{
+    audio::Sound,
+    graphics::{cannon_blast::CannonBlastAnimationType, Sprite},
+};
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
@@ -61,7 +64,7 @@ impl Magazine {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum WeaponSprite {
     Riffle,
 }
@@ -71,6 +74,13 @@ impl WeaponSprite {
         match self {
             WeaponSprite::Riffle => "/weapon_riffle",
         }
+    }
+
+    pub fn sprite(&self) -> Box<dyn Sprite> {
+        let animation_type = match self {
+            WeaponSprite::Riffle => CannonBlastAnimationType::RiffleOneShotOnLying,
+        };
+        Box::new(animation_type)
     }
 }
 

@@ -4,6 +4,7 @@ use crate::{
     utils::Rect,
 };
 
+pub mod cannon_blast;
 pub mod explosion;
 pub mod soldier;
 pub mod vehicle;

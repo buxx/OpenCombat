@@ -4,9 +4,14 @@ use battle_core::{
     config::ServerConfig,
     entity::{soldier::Soldier, vehicle::Vehicle},
     game::{control::MapControl, weapon::WeaponSprite},
-    graphics::vehicle::VehicleGraphicInfos,
+    graphics::{
+        cannon_blast::{
+            TILE_HEIGHT as CANNON_BLAST_TILE_HEIGHT, TILE_WIDTH as CANNON_BLAST_TILE_WIDTH,
+        },
+        vehicle::VehicleGraphicInfos,
+    },
     map::Map,
-    types::{Scale, SoldierIndex, SquadUuid, VehicleIndex, WindowPoint, WorldPoint},
+    types::{Angle, Scale, SoldierIndex, SquadUuid, VehicleIndex, WindowPoint, WorldPoint},
 };
 use ggez::{
     graphics::{self, Canvas, DrawParam, Image, InstanceArray, Mesh, MeshBuilder, Rect},
@@ -34,6 +39,7 @@ use crate::{
 use self::{
     background::{Background, BackgroundBuilder},
     batch::QualifiedBatch,
+    cannon_blasts::{CannonBlasts, CannonBlastsBuilder},
     decors::{DecorDrawRule::*, Decors, DecorsBuilder},
     explosions::{Explosions, ExplosionsBuilder},
     interiors::{Interiors, InteriorsBuilder},
@@ -48,6 +54,7 @@ use self::{
 pub mod animation;
 pub mod background;
 pub mod batch;
+pub mod cannon_blasts;
 pub mod decors;
 pub mod explosions;
 pub mod flag;
@@ -64,6 +71,7 @@ pub mod weapons;
 pub enum AssetsType {
     Soldiers,
     Weapon(WeaponSprite),
+    CannonBlasts,
     Vehicles,
     Explosions,
     Ui,
@@ -75,6 +83,7 @@ impl AssetsType {
         match self {
             AssetsType::Soldiers => "/soldiers",
             AssetsType::Weapon(type_) => type_.prefix(),
+            AssetsType::CannonBlasts => "/cannon_blasts",
             AssetsType::Vehicles => "/vehicles",
             AssetsType::Explosions => "/explosions",
             AssetsType::Ui => "/ui",
@@ -99,6 +108,7 @@ pub struct Graphics {
     explosions: Explosions,
     explosions_files: Vec<String>,
     explosions_file: String,
+    cannon_blasts: CannonBlasts,
     // Squad menu, etc
     ui_batch: InstanceArray,
     ui_files: Vec<String>,
@@ -118,6 +128,8 @@ pub struct Graphics {
     soldier_animation_sequences: HashMap<SoldierIndex, SoldierAnimationSequence>,
     // Explosion animations
     explosion_sequences: Vec<(WorldPoint, AnimationSequence<TweenableRect>)>,
+    // Cannon blasts animations
+    canon_blast_sequences: Vec<(WorldPoint, Angle, AnimationSequence<TweenableRect>)>,
     //
     debug_terrain_batch: InstanceArray,
     //
@@ -145,6 +157,8 @@ impl Graphics {
         let explosions_file = AssetsType::Explosions.prefix().to_string() + ".png";
         let explosions_files = collect_resources_by_prefix(AssetsType::Explosions.prefix())?;
         let explosions = ExplosionsBuilder::new(ctx).build()?;
+
+        let cannon_blasts = CannonBlastsBuilder::new(ctx).build()?;
 
         let ui_file = AssetsType::Ui.prefix().to_string() + ".png";
         let flags_file = AssetsType::Flags.prefix().to_string() + ".png";
@@ -178,6 +192,7 @@ impl Graphics {
             explosions,
             explosions_files,
             explosions_file,
+            cannon_blasts,
             ui_batch,
             ui_files,
             ui_file,
@@ -191,6 +206,7 @@ impl Graphics {
             dark_decor,
             soldier_animation_sequences: HashMap::new(),
             explosion_sequences: vec![],
+            canon_blast_sequences: vec![],
             debug_terrain_batch,
             debug_terrain_opacity_mesh_builder,
         })
@@ -379,6 +395,26 @@ impl Graphics {
         sprites
     }
 
+    pub fn cannon_blasts_sprites(&self, zoom: &Zoom) -> Vec<graphics::DrawParam> {
+        let mut sprites = vec![];
+        for (world_point, angle, cannon_blast_sequence) in &self.canon_blast_sequences {
+            let current_frame_src: Rect = cannon_blast_sequence.now_strict().unwrap().into();
+            let cannon_blast_sprite_offset: (f32, f32) = (
+                CANNON_BLAST_TILE_WIDTH as f32 * zoom.factor() * 0.5,
+                CANNON_BLAST_TILE_HEIGHT as f32 * zoom.factor() * 0.5,
+            );
+            sprites.push(
+                graphics::DrawParam::new()
+                    .src(current_frame_src)
+                    .rotation(angle.0)
+                    .offset(Vec2::from(cannon_blast_sprite_offset))
+                    .dest(world_point.to_vec2() * zoom.factor()),
+            )
+        }
+
+        sprites
+    }
+
     pub fn squad_menu_sprites(
         &self,
         to_point: WindowPoint,
@@ -469,6 +505,9 @@ impl Graphics {
         if !self.vehicles.drawable(zoom).instances().is_empty() {
             canvas.draw(self.vehicles.drawable(zoom), draw_param);
         }
+        if !self.cannon_blasts.drawable(zoom).instances().is_empty() {
+            canvas.draw(self.cannon_blasts.drawable(zoom), draw_param);
+        }
         if !self.explosions.drawable(zoom).instances().is_empty() {
             canvas.draw(self.explosions.drawable(zoom), draw_param);
         }
@@ -503,6 +542,7 @@ impl Graphics {
         self.weapons.clear(zoom);
         self.vehicles.clear(zoom);
         self.explosions.clear(zoom);
+        self.cannon_blasts.clear(zoom);
         self.background.clear(zoom);
         self.dark_background.clear(zoom);
         self.minimap.clear();
@@ -531,8 +571,17 @@ impl Graphics {
             GraphicsMessage::PushExplosionAnimation(point, type_) => {
                 self.push_explosion_animation(point, type_)
             }
+            GraphicsMessage::PushCanonBlastAnimation(
+                point,
+                angle,
+                type_,
+                soldier_animation_type,
+            ) => self.push_canon_blast_animation(point, angle, type_, soldier_animation_type),
             GraphicsMessage::RemoveExplosionAnimation(point) => {
                 self.remove_explosion_animation(point)
+            }
+            GraphicsMessage::RemoveCanonBlastAnimation(point) => {
+                self.remove_canon_blast_animation(point)
             }
             GraphicsMessage::RecomputeDebugTerrainOpacity => {
                 self.debug_terrain_opacity_mesh_builder =
@@ -540,7 +589,7 @@ impl Graphics {
             }
             GraphicsMessage::ReloadSoldiersAsset => {
                 self.soldiers = SoldiersBuilder::new(ctx).build()?;
-                // FIXME same for weapons
+                // FIXME same for weapons, cannon_blasts
             }
             GraphicsMessage::ReloadVehiclesAsset => {
                 self.vehicles = VehiclesBuilder::new(ctx).build()?;
@@ -554,7 +603,7 @@ impl Graphics {
             GraphicsMessage::ReloadAll => {
                 self.soldiers_files = collect_resources_by_prefix(AssetsType::Soldiers.prefix())?;
                 self.soldiers = SoldiersBuilder::new(ctx).build()?;
-                // FIXME same for weapons
+                // FIXME same for weapons, cannon_blasts
 
                 self.vehicles_files = collect_resources_by_prefix(AssetsType::Vehicles.prefix())?;
                 self.vehicles = VehiclesBuilder::new(ctx).build()?;
@@ -628,6 +677,10 @@ impl Graphics {
 
     pub fn explosions_mut(&mut self) -> &mut Explosions {
         &mut self.explosions
+    }
+
+    pub fn cannon_blasts_mut(&mut self) -> &mut CannonBlasts {
+        &mut self.cannon_blasts
     }
 
     pub fn flags_mut(&mut self) -> &mut InstanceArray {

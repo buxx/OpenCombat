@@ -1,7 +1,8 @@
 use battle_core::{
     entity::soldier::{Soldier, WeaponClass},
-    game::{explosive::ExplosiveType, Side},
-    types::WorldPoint,
+    game::{explosive::ExplosiveType, weapon::WeaponSprite, Side},
+    graphics::{cannon_blast::CannonBlastAnimationType, soldier::SoldierAnimationType, Sprite},
+    types::{Angle, WorldPoint},
 };
 use ggez::Context;
 use keyframe::{
@@ -23,8 +24,23 @@ impl Graphics {
         self.explosion_sequences.push((point, animation));
     }
 
+    pub fn push_canon_blast_animation(
+        &mut self,
+        point: WorldPoint,
+        angle: Angle,
+        type_: WeaponSprite,
+        soldier_animation_type: SoldierAnimationType,
+    ) {
+        let animation = self.canon_blast_animation(type_, soldier_animation_type);
+        self.canon_blast_sequences.push((point, angle, animation));
+    }
+
     pub fn remove_explosion_animation(&mut self, point: WorldPoint) {
         self.explosion_sequences.retain(|e| e.0 != point)
+    }
+
+    pub fn remove_canon_blast_animation(&mut self, point: WorldPoint) {
+        self.canon_blast_sequences.retain(|e| e.0 != point);
     }
 
     pub fn update(&mut self, ctx: &Context) {
@@ -42,7 +58,7 @@ impl Graphics {
     }
 
     pub fn soldier_animation(&self, soldier: &Soldier) -> SoldierAnimationSequence {
-        let (soldier_animation_type, weapon_animation_type) = self.soldier_animation_type(soldier);
+        let (soldier_animation_type, weapon_animation_type) = soldier.animation_type();
 
         let soldier_src_rect_start = TweenableRect::new(
             soldier_animation_type.src_x_start(),
@@ -119,6 +135,35 @@ impl Graphics {
         let easing = AnimationFloor {
             pre_easing: Box::new(EaseOut),
             frames: sprite.frame_count() as i32,
+        };
+
+        keyframes![(src_rect_start, 0.0, easing), (src_end_rect, duration)]
+    }
+
+    pub fn canon_blast_animation(
+        &self,
+        type_: WeaponSprite,
+        soldier_animation_type: SoldierAnimationType,
+    ) -> AnimationSequence<TweenableRect> {
+        let animation_type = CannonBlastAnimationType::from((type_, soldier_animation_type));
+
+        let src_rect_start = TweenableRect::new(
+            animation_type.src_x_start(),
+            animation_type.src_y(&Side::A), // TODO: Give side here is not correct
+            animation_type.width(),
+            animation_type.height(),
+        );
+        let src_end_rect = TweenableRect::new(
+            animation_type.src_x_end(),
+            animation_type.src_y(&Side::A), // TODO: Give side here is not correct
+            animation_type.width(),
+            animation_type.height(),
+        );
+        let duration = animation_type.duration();
+
+        let easing = AnimationFloor {
+            pre_easing: Box::new(Linear),
+            frames: animation_type.frame_count() as i32,
         };
 
         keyframes![(src_rect_start, 0.0, easing), (src_end_rect, duration)]

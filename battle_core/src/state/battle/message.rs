@@ -9,7 +9,7 @@ use crate::{
     game::flag::FlagsOwnership,
     order::Order,
     physics::{
-        event::{bullet::BulletFire, explosion::Explosion},
+        event::{bullet::BulletFire, cannon_blast::CannonBlast, explosion::Explosion},
         visibility::Visibility,
     },
     types::{Angle, SoldierIndex, SquadUuid, VehicleIndex, WorldPoint},
@@ -24,6 +24,7 @@ pub enum BattleStateMessage {
     Vehicle(VehicleIndex, VehicleMessage),
     PushBulletFire(BulletFire),
     PushExplosion(Explosion),
+    PushCannonBlast(CannonBlast),
     SetVisibilities(HashMap<(SoldierIndex, SoldierIndex), Visibility>),
     SetPhase(Phase),
     SetAConnected(bool),

@@ -5,7 +5,7 @@ use battle_core::{
     },
     entity::soldier::{Soldier, WeaponClass},
     game::weapon::Weapon,
-    physics::event::bullet::BulletFire,
+    physics::event::{bullet::BulletFire, cannon_blast::CannonBlast},
     state::{
         battle::message::{BattleStateMessage, SoldierMessage},
         client::ClientStateMessage,
@@ -142,6 +142,12 @@ impl Runner {
                 target.clone(),
                 weapon.ammunition(),
                 weapon.gun_fire_sound_type(),
+            ))),
+            RunnerMessage::BattleState(BattleStateMessage::PushCannonBlast(CannonBlast::new(
+                soldier.world_point(),
+                soldier.get_looking_direction(),
+                weapon.sprite_type(),
+                soldier.animation_type().0,
             ))),
             RunnerMessage::BattleState(BattleStateMessage::Soldier(
                 soldier.uuid(),

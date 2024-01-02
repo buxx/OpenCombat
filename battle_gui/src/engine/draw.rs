@@ -121,6 +121,15 @@ impl Engine {
         Ok(())
     }
 
+    pub fn generate_cannon_blasts_sprites(&mut self) -> GameResult {
+        let sprites = self.graphics.cannon_blasts_sprites(&self.gui_state.zoom);
+        self.graphics
+            .cannon_blasts_mut()
+            .extend(&self.gui_state.zoom, sprites);
+
+        Ok(())
+    }
+
     pub fn generate_map_sprites(&mut self, draw_decor: bool) -> GameResult {
         if self.battle_state.phase().is_placement() {
             self.generate_placement_map_sprites(draw_decor)?

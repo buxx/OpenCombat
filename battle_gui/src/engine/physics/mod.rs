@@ -5,6 +5,7 @@ use crate::{debug::DebugPhysics, engine::message::EngineMessage};
 use super::{input::Control, Engine};
 
 mod bullet;
+mod canon_blast;
 mod explosion;
 
 impl Engine {
@@ -13,6 +14,7 @@ impl Engine {
         let mut messages = vec![];
 
         messages.extend(self.tick_bullet_fires());
+        messages.extend(self.tick_cannon_blasts());
         messages.extend(self.tick_explosions());
 
         messages

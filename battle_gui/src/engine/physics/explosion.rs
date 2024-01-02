@@ -43,6 +43,7 @@ impl Engine {
                 messages.push(EngineMessage::PlaySound(sound));
             }
 
+            // FIXME BS NOW : animation is not already pushed in tick_explosions ?
             messages.push(EngineMessage::Graphics(
                 GraphicsMessage::PushExplosionAnimation(
                     *explosion.point(),

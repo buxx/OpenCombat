@@ -10,7 +10,7 @@ use crate::{
     map::Map,
     order::Order,
     physics::{
-        event::{bullet::BulletFire, explosion::Explosion},
+        event::{bullet::BulletFire, cannon_blast::CannonBlast, explosion::Explosion},
         path::{Direction, PathMode},
         visibility::Visibilities,
     },
@@ -47,6 +47,7 @@ pub struct BattleState {
     squads: HashMap<SquadUuid, SquadComposition>,
     bullet_fires: Vec<BulletFire>,
     explosions: Vec<Explosion>,
+    cannon_blasts: Vec<CannonBlast>,
     visibilities: Visibilities,
     a_connected: bool,
     b_connected: bool,
@@ -79,6 +80,7 @@ impl BattleState {
             squads: HashMap::new(),
             bullet_fires: vec![],
             explosions: vec![],
+            cannon_blasts: vec![],
             visibilities: Visibilities::default(),
             a_connected: false,
             b_connected: false,
@@ -102,6 +104,7 @@ impl BattleState {
             squads: HashMap::new(),
             bullet_fires: vec![],
             explosions: vec![],
+            cannon_blasts: vec![],
             visibilities: Visibilities::default(),
             a_connected: false, // TODO : should be in (server) Runner ?
             b_connected: false, // TODO : should be in (server) Runner ?
@@ -137,6 +140,7 @@ impl BattleState {
         let frame_i = replaced_frame_i.unwrap_or(self.frame_i);
         self.bullet_fires.retain(|b| !b.finished(frame_i));
         self.explosions.retain(|e| !e.finished(frame_i));
+        self.cannon_blasts.retain(|b| !b.finished(frame_i));
     }
 
     pub fn frame_i(&self) -> &u64 {
@@ -218,6 +222,10 @@ impl BattleState {
         self.explosions.as_ref()
     }
 
+    pub fn cannon_blasts(&self) -> &Vec<CannonBlast> {
+        self.cannon_blasts.as_ref()
+    }
+
     pub fn soldier_on_board(&self) -> &SoldiersOnBoard {
         &self.soldier_on_board
     }
@@ -272,6 +280,11 @@ impl BattleState {
                 let mut explosion = explosion.clone();
                 explosion.init(frame_i + 1);
                 self.explosions.push(explosion)
+            }
+            BattleStateMessage::PushCannonBlast(cannon_blast) => {
+                let mut cannon_blast = cannon_blast.clone();
+                cannon_blast.init(frame_i + 1);
+                self.cannon_blasts.push(cannon_blast)
             }
             BattleStateMessage::SetVisibilities(visibilities) => {
                 self.visibilities.set(visibilities.clone())

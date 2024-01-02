@@ -5,6 +5,7 @@ use crate::{
         weapon::{Magazine, Weapon},
         Side,
     },
+    graphics::{soldier::SoldierAnimationType, weapon::WeaponAnimationType, Sprite},
     order::Order,
     types::*,
 };
@@ -271,6 +272,29 @@ impl Soldier {
             Behavior::EngageSoldier(soldier_index) => Some(soldier_index),
             _ => None,
         }
+    }
+
+    pub fn animation_type(&self) -> (SoldierAnimationType, WeaponAnimationType) {
+        let animation_type = match self.behavior() {
+            Behavior::Idle(Body::StandUp) => SoldierAnimationType::Idle,
+            Behavior::Idle(Body::Crouched) => SoldierAnimationType::Idle,
+            Behavior::Idle(Body::Lying) => SoldierAnimationType::Crawling,
+            Behavior::MoveTo(_) => SoldierAnimationType::Walking,
+            Behavior::MoveFastTo(_) => SoldierAnimationType::Walking,
+            Behavior::SneakTo(_) => SoldierAnimationType::Crawling,
+            Behavior::Defend(_) => SoldierAnimationType::LyingDown,
+            Behavior::Hide(_) => SoldierAnimationType::LyingDown,
+            Behavior::DriveTo(_) => SoldierAnimationType::Idle,
+            Behavior::RotateTo(_) => SoldierAnimationType::Idle,
+            // TODO : Different animation according to death type
+            Behavior::Dead => SoldierAnimationType::DeadWithSideBlood,
+            Behavior::Unconscious => SoldierAnimationType::LyingDown,
+            Behavior::SuppressFire(_) => SoldierAnimationType::LyingDown,
+            Behavior::EngageSoldier(_) => SoldierAnimationType::LyingDown,
+        };
+
+        let weapon_animation_type = WeaponAnimationType::from(&animation_type);
+        (animation_type, weapon_animation_type)
     }
 }
 
