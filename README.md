@@ -2,7 +2,7 @@
 
 ![Testing workflow](https://github.com/buxx/OpenCombat/actions/workflows/test.yml/badge.svg)
 
-![OpenCombat illustration](intro.png)
+[![Preview video](preview.png)](https://youtu.be/_N6HLZEDKPk)
 
 Open source close combat inspired game. Presentation available [here](http://www.closecombatseries.net/CCS/modules.php?name=Forums&file=viewtopic&t=11696)
 
