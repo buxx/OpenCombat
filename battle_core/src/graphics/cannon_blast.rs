@@ -2,10 +2,10 @@ use crate::game::{weapon::WeaponSprite, Side};
 
 use super::{soldier::SoldierAnimationType, Sprite};
 
-const SPRITE_SHEET_WIDTH: usize = 256;
-const SPRITE_SHEET_HEIGHT: usize = 192;
-pub const TILE_WIDTH: usize = 32;
-pub const TILE_HEIGHT: usize = 32;
+const SPRITE_SHEET_WIDTH: usize = 512;
+const SPRITE_SHEET_HEIGHT: usize = 384;
+pub const TILE_WIDTH: usize = 64;
+pub const TILE_HEIGHT: usize = 64;
 
 #[derive(Debug)]
 pub enum CannonBlastAnimationType {
