@@ -12,7 +12,10 @@ use tiled::{
     TileLayer, Tileset,
 };
 
-use crate::game::flag::{Flag, FlagName};
+use crate::{
+    game::flag::{Flag, FlagName},
+    types::Offset,
+};
 
 use super::{
     decor::{Decor, DecorTile},
@@ -296,10 +299,11 @@ impl MapReader {
         }
     }
 
-    fn decor_layer(&self) -> Result<FiniteTileLayer, MapReaderError> {
-        match self.layer(DECOR_LAYER_NAME)?.layer_type() {
+    fn decor_layer(&self) -> Result<(Layer, FiniteTileLayer), MapReaderError> {
+        let decor_layer = self.layer(DECOR_LAYER_NAME)?;
+        match decor_layer.layer_type() {
             LayerType::TileLayer(layer) => match layer{
-                TileLayer::Finite(layer) => Ok(layer),
+                TileLayer::Finite(layer_) => Ok((decor_layer, layer_)),
                 TileLayer::Infinite(_) => Result::Err(MapReaderError::InvalidLayer(format!(
                     "Layer '{}' in map {} is an infinite tile layer, but on finite layer is supported",
                     DECOR_LAYER_NAME, self.name,
@@ -433,14 +437,14 @@ impl MapReader {
     }
 
     fn decor_tilesets(&self) -> Result<DecorTilesets, MapReaderError> {
-        let layer = self.decor_layer()?;
+        let (_, layer_) = self.decor_layer()?;
         let mut tileset_indexes = vec![];
         let mut tilesets = vec![];
         let mut positions = HashMap::new();
 
-        for x in 0..layer.width() {
-            for y in 0..layer.height() {
-                if let Some(layer_tile_data) = layer.get_tile_data(x as i32, y as i32) {
+        for x in 0..layer_.width() {
+            for y in 0..layer_.height() {
+                if let Some(layer_tile_data) = layer_.get_tile_data(x as i32, y as i32) {
                     if !tileset_indexes.contains(&layer_tile_data.tileset_index()) {
                         tileset_indexes.push(layer_tile_data.tileset_index());
                     }
@@ -478,7 +482,7 @@ impl MapReader {
     }
 
     fn decor(&self) -> Result<Decor, MapReaderError> {
-        let decor_layer = self.decor_layer()?;
+        let (decor_layer, decor_layer_) = self.decor_layer()?;
         let (_, tilesets_positions) = self.decor_tilesets()?;
         let images = self.decor_images()?;
         let image_paths = images
@@ -497,9 +501,9 @@ impl MapReader {
 
         let mut tiles = vec![];
 
-        for x in 0..decor_layer.width() {
-            for y in 0..decor_layer.height() {
-                if let Some(layer_tile_data) = decor_layer.get_tile_data(x as i32, y as i32) {
+        for x in 0..decor_layer_.width() {
+            for y in 0..decor_layer_.height() {
+                if let Some(layer_tile_data) = decor_layer_.get_tile_data(x as i32, y as i32) {
                     let tileset = self.map.tilesets()[layer_tile_data.tileset_index()].clone();
 
                     let decor_tileset_position = *tilesets_positions
@@ -529,12 +533,13 @@ impl MapReader {
                         tile_y,
                     );
 
-                    tiles.push(terrain_tile)
+                    tiles.push(terrain_tile);
                 };
             }
         }
 
-        Ok(Decor::new(image_paths, tiles))
+        let offset = Offset::new(-decor_layer.offset_x, -decor_layer.offset_y);
+        Ok(Decor::new(image_paths, tiles, offset))
     }
 
     pub fn build(&self) -> Result<Map, MapReaderError> {

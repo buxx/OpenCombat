@@ -458,6 +458,10 @@ impl Offset {
         Self { x, y }
     }
 
+    pub fn zero() -> Self {
+        Self { x: 0., y: 0. }
+    }
+
     pub fn half() -> Self {
         Self { x: 0.5, y: 0.5 }
     }

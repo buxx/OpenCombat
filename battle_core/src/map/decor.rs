@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use crate::types::Offset;
+
 #[derive(Clone)]
 pub struct DecorTile {
     pub tileset_i: usize, // Used to rely tileset/sprite_batch in Decor
@@ -44,11 +46,16 @@ impl DecorTile {
 pub struct Decor {
     image_paths: Vec<PathBuf>,
     tiles: Vec<DecorTile>,
+    offset: Offset,
 }
 
 impl Decor {
-    pub fn new(image_paths: Vec<PathBuf>, tiles: Vec<DecorTile>) -> Self {
-        Self { image_paths, tiles }
+    pub fn new(image_paths: Vec<PathBuf>, tiles: Vec<DecorTile>, offset: Offset) -> Self {
+        Self {
+            image_paths,
+            tiles,
+            offset,
+        }
     }
 
     pub fn image_paths(&self) -> &Vec<PathBuf> {
@@ -57,5 +64,9 @@ impl Decor {
 
     pub fn tiles(&self) -> &Vec<DecorTile> {
         &self.tiles
+    }
+
+    pub fn offset(&self) -> Offset {
+        self.offset
     }
 }

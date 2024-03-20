@@ -1,7 +1,7 @@
 use battle_core::{
     game::control::MapControl,
     map::Map,
-    types::{ScenePoint, WorldPoint},
+    types::{Offset, ScenePoint, WorldPoint},
 };
 use ggez::{
     graphics::{DrawParam, Image, InstanceArray, Rect},
@@ -15,11 +15,16 @@ use super::{batch::QualifiedBatch, qualified::Zoom};
 pub struct Decors {
     sd: Vec<InstanceArray>,
     hd: Vec<InstanceArray>,
+    offset: Offset,
 }
 
 impl Decors {
-    pub fn new(sd: Vec<InstanceArray>, hd: Vec<InstanceArray>) -> Self {
-        Self { sd, hd }
+    pub fn new(sd: Vec<InstanceArray>, hd: Vec<InstanceArray>, offset: Offset) -> Self {
+        Self { sd, hd, offset }
+    }
+
+    pub fn offset(&self) -> Offset {
+        self.offset
     }
 }
 
@@ -80,6 +85,7 @@ impl<'a> DecorsBuilder<'a> {
         Ok(Decors::new(
             self.build_for(&Zoom::default())?,
             self.build_for(&Zoom::hd())?,
+            self.map.decor().offset(),
         ))
     }
 

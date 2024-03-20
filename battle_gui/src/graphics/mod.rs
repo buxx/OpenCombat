@@ -476,6 +476,7 @@ impl Graphics {
         zoom: &Zoom,
     ) -> GameResult {
         if draw_decor {
+            let draw_param = draw_param.offset(self.decor.offset().to_vec2() * zoom.factor());
             self.decor
                 .drawable(zoom)
                 .iter()
