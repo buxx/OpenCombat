@@ -88,7 +88,7 @@ impl eframe::App for Launcher {
                             self.error = Some(format!("{:#}", error))
                         }
                     };
-                    if ui.button("Attack from North-Est").clicked() {
+                    if ui.button("Attack from South-Est").clicked() {
                         self.error = None;
                         if let Err(error) = self.launch_attack_from_north_est().context("Launch 'attack from north est'") {
                             self.error = Some(format!("{:#}", error))
