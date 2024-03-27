@@ -110,7 +110,7 @@ impl TileType {
                 TileType::MiddleGrass => None,
                 TileType::HighGrass => None,
                 TileType::Dirt => None,
-                TileType::Mud => None,
+                TileType::Mud => Some(Coverage(0.3)),
                 TileType::Concrete => None,
                 TileType::BrickWall => Some(Coverage(0.8)),
                 TileType::Trunk => Some(Coverage(0.9)),
