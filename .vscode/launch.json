@@ -268,7 +268,7 @@
             },
             "args": [
                 "Demo2",
-                "assets/demo2_deployment.json",
+                "assets/demo2_deployment2.json",
                 "--embedded-server",
                 "--server-rep-address",
                 "tcp://0.0.0.0:4255",
