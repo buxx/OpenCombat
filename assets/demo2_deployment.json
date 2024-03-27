@@ -1,0 +1,5506 @@
+{
+    "soldiers": [
+        {
+            "uuid": 0,
+            "side": "A",
+            "world_point": {
+                "x": 94.20691,
+                "y": 169.73218
+            },
+            "squad_uuid": 0,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 1,
+            "side": "A",
+            "world_point": {
+                "x": 92.0,
+                "y": 177.0
+            },
+            "squad_uuid": 0,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 2,
+            "side": "A",
+            "world_point": {
+                "x": 112.0,
+                "y": 177.0
+            },
+            "squad_uuid": 0,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 3,
+            "side": "A",
+            "world_point": {
+                "x": 82.0,
+                "y": 177.0
+            },
+            "squad_uuid": 0,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 4,
+            "side": "A",
+            "world_point": {
+                "x": 122.0,
+                "y": 177.0
+            },
+            "squad_uuid": 0,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 5,
+            "side": "A",
+            "world_point": {
+                "x": 249.84302,
+                "y": 177.4574
+            },
+            "squad_uuid": 1,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 6,
+            "side": "A",
+            "world_point": {
+                "x": 247.0,
+                "y": 187.0
+            },
+            "squad_uuid": 1,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 7,
+            "side": "A",
+            "world_point": {
+                "x": 267.0,
+                "y": 187.0
+            },
+            "squad_uuid": 1,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 8,
+            "side": "A",
+            "world_point": {
+                "x": 217.0,
+                "y": 177.0
+            },
+            "squad_uuid": 1,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 9,
+            "side": "A",
+            "world_point": {
+                "x": 277.0,
+                "y": 187.0
+            },
+            "squad_uuid": 1,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 10,
+            "side": "A",
+            "world_point": {
+                "x": 170.37231,
+                "y": 258.9936
+            },
+            "squad_uuid": 2,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 11,
+            "side": "A",
+            "world_point": {
+                "x": 172.0,
+                "y": 267.0
+            },
+            "squad_uuid": 2,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 12,
+            "side": "A",
+            "world_point": {
+                "x": 192.0,
+                "y": 267.0
+            },
+            "squad_uuid": 2,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 13,
+            "side": "A",
+            "world_point": {
+                "x": 157.0,
+                "y": 242.0
+            },
+            "squad_uuid": 2,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 14,
+            "side": "A",
+            "world_point": {
+                "x": 202.0,
+                "y": 267.0
+            },
+            "squad_uuid": 2,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 15,
+            "side": "A",
+            "world_point": {
+                "x": 83.15503,
+                "y": 434.57416
+            },
+            "squad_uuid": 3,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 16,
+            "side": "A",
+            "world_point": {
+                "x": 77.0,
+                "y": 422.0
+            },
+            "squad_uuid": 3,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 17,
+            "side": "A",
+            "world_point": {
+                "x": 77.0,
+                "y": 417.0
+            },
+            "squad_uuid": 3,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 18,
+            "side": "A",
+            "world_point": {
+                "x": 72.0,
+                "y": 422.0
+            },
+            "squad_uuid": 3,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 19,
+            "side": "A",
+            "world_point": {
+                "x": 112.0,
+                "y": 442.0
+            },
+            "squad_uuid": 3,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 20,
+            "side": "A",
+            "world_point": {
+                "x": 118.543884,
+                "y": 315.91254
+            },
+            "squad_uuid": 4,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 21,
+            "side": "A",
+            "world_point": {
+                "x": 117.0,
+                "y": 327.0
+            },
+            "squad_uuid": 4,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 22,
+            "side": "A",
+            "world_point": {
+                "x": 137.0,
+                "y": 327.0
+            },
+            "squad_uuid": 4,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 23,
+            "side": "A",
+            "world_point": {
+                "x": 87.0,
+                "y": 317.0
+            },
+            "squad_uuid": 4,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 24,
+            "side": "A",
+            "world_point": {
+                "x": 147.0,
+                "y": 327.0
+            },
+            "squad_uuid": 4,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 25,
+            "side": "A",
+            "world_point": {
+                "x": 38.86792,
+                "y": 1236.315
+            },
+            "squad_uuid": 5,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 26,
+            "side": "A",
+            "world_point": {
+                "x": 37.0,
+                "y": 1247.0
+            },
+            "squad_uuid": 5,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 27,
+            "side": "A",
+            "world_point": {
+                "x": 57.0,
+                "y": 1247.0
+            },
+            "squad_uuid": 5,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 28,
+            "side": "A",
+            "world_point": {
+                "x": 27.0,
+                "y": 1247.0
+            },
+            "squad_uuid": 5,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 29,
+            "side": "A",
+            "world_point": {
+                "x": 67.0,
+                "y": 1247.0
+            },
+            "squad_uuid": 5,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 30,
+            "side": "A",
+            "world_point": {
+                "x": 54.41931,
+                "y": 1126.4482
+            },
+            "squad_uuid": 6,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 31,
+            "side": "A",
+            "world_point": {
+                "x": 52.0,
+                "y": 1132.0
+            },
+            "squad_uuid": 6,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 32,
+            "side": "A",
+            "world_point": {
+                "x": 62.0,
+                "y": 1122.0
+            },
+            "squad_uuid": 6,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 33,
+            "side": "A",
+            "world_point": {
+                "x": 42.0,
+                "y": 1137.0
+            },
+            "squad_uuid": 6,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 34,
+            "side": "A",
+            "world_point": {
+                "x": 62.0,
+                "y": 1117.0
+            },
+            "squad_uuid": 6,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 35,
+            "side": "A",
+            "world_point": {
+                "x": 343.16943,
+                "y": 1797.0115
+            },
+            "squad_uuid": 7,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 36,
+            "side": "A",
+            "world_point": {
+                "x": 337.0,
+                "y": 1807.0
+            },
+            "squad_uuid": 7,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 37,
+            "side": "A",
+            "world_point": {
+                "x": 347.0,
+                "y": 1787.0
+            },
+            "squad_uuid": 7,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 38,
+            "side": "A",
+            "world_point": {
+                "x": 307.0,
+                "y": 1797.0
+            },
+            "squad_uuid": 7,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 39,
+            "side": "A",
+            "world_point": {
+                "x": 372.0,
+                "y": 1782.0
+            },
+            "squad_uuid": 7,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 40,
+            "side": "A",
+            "world_point": {
+                "x": 357.11816,
+                "y": 1885.92
+            },
+            "squad_uuid": 8,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 41,
+            "side": "A",
+            "world_point": {
+                "x": 357.0,
+                "y": 1877.0
+            },
+            "squad_uuid": 8,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 42,
+            "side": "A",
+            "world_point": {
+                "x": 362.0,
+                "y": 1877.0
+            },
+            "squad_uuid": 8,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 43,
+            "side": "A",
+            "world_point": {
+                "x": 347.0,
+                "y": 1872.0
+            },
+            "squad_uuid": 8,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 44,
+            "side": "A",
+            "world_point": {
+                "x": 362.0,
+                "y": 1872.0
+            },
+            "squad_uuid": 8,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 45,
+            "side": "A",
+            "world_point": {
+                "x": 199.28937,
+                "y": 1892.379
+            },
+            "squad_uuid": 9,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 46,
+            "side": "A",
+            "world_point": {
+                "x": 192.0,
+                "y": 1897.0
+            },
+            "squad_uuid": 9,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 47,
+            "side": "A",
+            "world_point": {
+                "x": 212.0,
+                "y": 1887.0
+            },
+            "squad_uuid": 9,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 48,
+            "side": "A",
+            "world_point": {
+                "x": 187.0,
+                "y": 1882.0
+            },
+            "squad_uuid": 9,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 49,
+            "side": "A",
+            "world_point": {
+                "x": 227.0,
+                "y": 1882.0
+            },
+            "squad_uuid": 9,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 50,
+            "side": "B",
+            "world_point": {
+                "x": 771.9038,
+                "y": 554.6402
+            },
+            "squad_uuid": 10,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 51,
+            "side": "B",
+            "world_point": {
+                "x": 787.0,
+                "y": 562.0
+            },
+            "squad_uuid": 10,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 52,
+            "side": "B",
+            "world_point": {
+                "x": 752.0,
+                "y": 537.0
+            },
+            "squad_uuid": 10,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 53,
+            "side": "B",
+            "world_point": {
+                "x": 787.0,
+                "y": 557.0
+            },
+            "squad_uuid": 10,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 54,
+            "side": "B",
+            "world_point": {
+                "x": 752.0,
+                "y": 532.0
+            },
+            "squad_uuid": 10,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 55,
+            "side": "B",
+            "world_point": {
+                "x": 1076.9779,
+                "y": 214.02838
+            },
+            "squad_uuid": 11,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 56,
+            "side": "B",
+            "world_point": {
+                "x": 1082.0,
+                "y": 232.0
+            },
+            "squad_uuid": 11,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 57,
+            "side": "B",
+            "world_point": {
+                "x": 1092.0,
+                "y": 212.0
+            },
+            "squad_uuid": 11,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 58,
+            "side": "B",
+            "world_point": {
+                "x": 1082.0,
+                "y": 242.0
+            },
+            "squad_uuid": 11,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 59,
+            "side": "B",
+            "world_point": {
+                "x": 1092.0,
+                "y": 207.0
+            },
+            "squad_uuid": 11,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 60,
+            "side": "B",
+            "world_point": {
+                "x": 1764.0203,
+                "y": 131.82593
+            },
+            "squad_uuid": 12,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 61,
+            "side": "B",
+            "world_point": {
+                "x": 1782.0,
+                "y": 132.0
+            },
+            "squad_uuid": 12,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 62,
+            "side": "B",
+            "world_point": {
+                "x": 1767.0,
+                "y": 137.0
+            },
+            "squad_uuid": 12,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 63,
+            "side": "B",
+            "world_point": {
+                "x": 1782.0,
+                "y": 137.0
+            },
+            "squad_uuid": 12,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 64,
+            "side": "B",
+            "world_point": {
+                "x": 1752.0,
+                "y": 132.0
+            },
+            "squad_uuid": 12,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 65,
+            "side": "B",
+            "world_point": {
+                "x": 1382.2827,
+                "y": 1150.6312
+            },
+            "squad_uuid": 13,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 66,
+            "side": "B",
+            "world_point": {
+                "x": 1397.0,
+                "y": 1162.0
+            },
+            "squad_uuid": 13,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 67,
+            "side": "B",
+            "world_point": {
+                "x": 1387.0,
+                "y": 1147.0
+            },
+            "squad_uuid": 13,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 68,
+            "side": "B",
+            "world_point": {
+                "x": 1397.0,
+                "y": 1167.0
+            },
+            "squad_uuid": 13,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 69,
+            "side": "B",
+            "world_point": {
+                "x": 1367.0,
+                "y": 1147.0
+            },
+            "squad_uuid": 13,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 70,
+            "side": "B",
+            "world_point": {
+                "x": 787.17426,
+                "y": 1922.8259
+            },
+            "squad_uuid": 14,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 71,
+            "side": "B",
+            "world_point": {
+                "x": 772.0,
+                "y": 1942.0
+            },
+            "squad_uuid": 14,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 72,
+            "side": "B",
+            "world_point": {
+                "x": 772.0,
+                "y": 1922.0
+            },
+            "squad_uuid": 14,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 73,
+            "side": "B",
+            "world_point": {
+                "x": 772.0,
+                "y": 1952.0
+            },
+            "squad_uuid": 14,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 74,
+            "side": "B",
+            "world_point": {
+                "x": 772.0,
+                "y": 1912.0
+            },
+            "squad_uuid": 14,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 75,
+            "side": "B",
+            "world_point": {
+                "x": 374.95593,
+                "y": 1174.3372
+            },
+            "squad_uuid": 15,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 76,
+            "side": "B",
+            "world_point": {
+                "x": 372.0,
+                "y": 1192.0
+            },
+            "squad_uuid": 15,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 77,
+            "side": "B",
+            "world_point": {
+                "x": 372.0,
+                "y": 1167.0
+            },
+            "squad_uuid": 15,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 78,
+            "side": "B",
+            "world_point": {
+                "x": 382.0,
+                "y": 1197.0
+            },
+            "squad_uuid": 15,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 79,
+            "side": "B",
+            "world_point": {
+                "x": 382.0,
+                "y": 1137.0
+            },
+            "squad_uuid": 15,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 80,
+            "side": "B",
+            "world_point": {
+                "x": 1080.9849,
+                "y": 1648.447
+            },
+            "squad_uuid": 16,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 81,
+            "side": "B",
+            "world_point": {
+                "x": 1082.0,
+                "y": 1657.0
+            },
+            "squad_uuid": 16,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 82,
+            "side": "B",
+            "world_point": {
+                "x": 1102.0,
+                "y": 1657.0
+            },
+            "squad_uuid": 16,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 83,
+            "side": "B",
+            "world_point": {
+                "x": 1072.0,
+                "y": 1657.0
+            },
+            "squad_uuid": 16,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 84,
+            "side": "B",
+            "world_point": {
+                "x": 1112.0,
+                "y": 1657.0
+            },
+            "squad_uuid": 16,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 85,
+            "side": "B",
+            "world_point": {
+                "x": 1282.8303,
+                "y": 498.219
+            },
+            "squad_uuid": 17,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 86,
+            "side": "B",
+            "world_point": {
+                "x": 1257.0,
+                "y": 497.0
+            },
+            "squad_uuid": 17,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 87,
+            "side": "B",
+            "world_point": {
+                "x": 1297.0,
+                "y": 482.0
+            },
+            "squad_uuid": 17,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 88,
+            "side": "B",
+            "world_point": {
+                "x": 1272.0,
+                "y": 507.0
+            },
+            "squad_uuid": 17,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 89,
+            "side": "B",
+            "world_point": {
+                "x": 1302.0,
+                "y": 482.0
+            },
+            "squad_uuid": 17,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 90,
+            "side": "B",
+            "world_point": {
+                "x": 829.4671,
+                "y": 975.06616
+            },
+            "squad_uuid": 18,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 91,
+            "side": "B",
+            "world_point": {
+                "x": 822.0,
+                "y": 992.0
+            },
+            "squad_uuid": 18,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 92,
+            "side": "B",
+            "world_point": {
+                "x": 842.0,
+                "y": 952.0
+            },
+            "squad_uuid": 18,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 93,
+            "side": "B",
+            "world_point": {
+                "x": 822.0,
+                "y": 1002.0
+            },
+            "squad_uuid": 18,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 94,
+            "side": "B",
+            "world_point": {
+                "x": 847.0,
+                "y": 952.0
+            },
+            "squad_uuid": 18,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 95,
+            "side": "B",
+            "world_point": {
+                "x": 1773.0094,
+                "y": 1678.8169
+            },
+            "squad_uuid": 19,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 96,
+            "side": "B",
+            "world_point": {
+                "x": 1762.0,
+                "y": 1687.0
+            },
+            "squad_uuid": 19,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 97,
+            "side": "B",
+            "world_point": {
+                "x": 1762.0,
+                "y": 1677.0
+            },
+            "squad_uuid": 19,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 98,
+            "side": "B",
+            "world_point": {
+                "x": 1762.0,
+                "y": 1682.0
+            },
+            "squad_uuid": 19,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        },
+        {
+            "uuid": 99,
+            "side": "B",
+            "world_point": {
+                "x": 1762.0,
+                "y": 1667.0
+            },
+            "squad_uuid": 19,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ]
+        }
+    ],
+    "vehicles": [],
+    "boards": {}
+}

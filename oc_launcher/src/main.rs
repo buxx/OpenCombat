@@ -74,8 +74,8 @@ impl eframe::App for Launcher {
             ui.horizontal(|ui|{
                 let texture: &egui::TextureHandle = self.map1_preview.get_or_insert_with(|| {
                     ui.ctx().load_texture(
-                        "Demo1Preview.png",
-                        load_image_from_path(Path::new("resources/maps/Demo1/Demo1Preview.png")).unwrap(),
+                        "Demo2Preview.png",
+                        load_image_from_path(Path::new("resources/maps/Demo2/Demo2Preview.png")).unwrap(),
                         Default::default()
                     )
                 });
@@ -103,8 +103,8 @@ impl eframe::App for Launcher {
 impl Launcher {
     fn launch_attack_from_west(&self) -> Result<()> {
         self.launch(
-            "Demo1",
-            "assets/demo1_deployment.json",
+            "Demo2",
+            "assets/demo2_deployment.json",
             vec!["W", "NW", "SW"],
             vec!["ALL"],
         )?;
@@ -112,9 +112,9 @@ impl Launcher {
     }
     fn launch_attack_from_north_est(&self) -> Result<()> {
         self.launch(
-            "Demo1",
-            "assets/demo1_deployment2.json",
-            vec!["N", "NE", "E"],
+            "Demo2",
+            "assets/demo2_deployment2.json",
+            vec!["S", "SE", "E"],
             vec!["ALL"],
         )?;
         Ok(())
