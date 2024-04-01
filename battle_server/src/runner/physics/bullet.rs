@@ -1,11 +1,15 @@
 use battle_core::{
     audio::Sound,
+    behavior::{feeling::Feeling, Behavior},
     entity::soldier::Soldier,
     physics::{
         coverage::SoldierCovered, event::bullet::BulletFire, utils::distance_between_points,
     },
-    state::client::ClientStateMessage,
-    types::Distance,
+    state::{
+        battle::message::{BattleStateMessage, SoldierMessage},
+        client::ClientStateMessage,
+    },
+    types::{Distance, SoldierIndex},
 };
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -17,8 +21,8 @@ impl Runner {
         puffin::profile_scope!("tick_bullet_fires");
         let mut messages = vec![];
 
-        for bullet_fire in self.battle_state.bullet_fires() {
-            if bullet_fire.effective(*self.battle_state.frame_i()) {
+        for bullet_fire in self.battle_state().bullet_fires() {
+            if bullet_fire.effective(*self.battle_state().frame_i()) {
                 messages.extend(self.bullet_fire_effects(bullet_fire))
             }
         }
@@ -35,14 +39,14 @@ impl Runner {
         let mut messages = vec![];
         let point = bullet_fire.point();
 
-        for soldier in self.battle_state.soldiers() {
+        for soldier in self.battle_state().soldiers() {
             if !soldier.can_feel_bullet_fire() {
                 continue;
             }
 
             // Simple for now, but if in vehicle, don't be affected
             if self
-                .battle_state
+                .battle_state()
                 .soldier_vehicle_place(soldier.uuid())
                 .is_some()
             {
@@ -51,7 +55,7 @@ impl Runner {
 
             let distance = distance_between_points(&soldier.world_point(), point);
             if distance.meters() < 1
-                && SoldierCovered::new(self.battle_state.map(), bullet_fire, soldier).compute()
+                && SoldierCovered::new(self.battle_state().map(), bullet_fire, soldier).compute()
             {
                 messages.extend(self.covered_bullet_effects(soldier));
                 messages.extend(self.proximity_bullet_effects(soldier, &distance))
@@ -77,7 +81,8 @@ impl Runner {
         puffin::profile_scope!("KillingBullet", soldier.uuid().to_string());
         let mut messages = self.soldier_die(soldier.uuid());
 
-        let soldier = self.battle_state.soldier(soldier.uuid());
+        let battle_state = self.battle_state();
+        let soldier = battle_state.soldier(soldier.uuid());
         if soldier.can_produce_sound() {
             let pick_from = vec![
                 Sound::MaleScreaming1,
@@ -112,7 +117,8 @@ impl Runner {
         puffin::profile_scope!("InjuringBullet", soldier.uuid().to_string());
         let mut messages = self.soldier_bullet_injured(soldier.uuid());
 
-        let soldier = self.battle_state.soldier(soldier.uuid());
+        let battle_state = self.battle_state();
+        let soldier = battle_state.soldier(soldier.uuid());
         if soldier.can_produce_sound() {
             let pick_from = vec![
                 // NOTE : die sounds like injured for now
@@ -163,5 +169,35 @@ impl Runner {
     ) -> Vec<RunnerMessage> {
         puffin::profile_scope!("proximity_bullet_effects", soldier.uuid().to_string());
         self.soldier_proximity_bullet(soldier.uuid(), distance)
+    }
+
+    pub fn soldier_die(&self, soldier_index: SoldierIndex) -> Vec<RunnerMessage> {
+        vec![
+            RunnerMessage::BattleState(BattleStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetBehavior(Behavior::Dead),
+            )),
+            RunnerMessage::BattleState(BattleStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetAlive(false),
+            )),
+        ]
+    }
+
+    // TODO : have a real algorithm here
+    pub fn soldier_bullet_injured(&self, _soldier_index: SoldierIndex) -> Vec<RunnerMessage> {
+        vec![]
+    }
+
+    // TODO : have a real algorithm here
+    pub fn soldier_proximity_bullet(
+        &self,
+        soldier_index: SoldierIndex,
+        distance: &Distance,
+    ) -> Vec<RunnerMessage> {
+        vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
+            soldier_index,
+            SoldierMessage::IncreaseUnderFire(Feeling::proximity_bullet_increase_value(*distance)),
+        ))]
     }
 }

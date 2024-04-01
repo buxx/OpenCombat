@@ -1,16 +1,16 @@
 use battle_core::{entity::soldier::Soldier, types::SoldierIndex};
 
-use crate::runner::Runner;
+use crate::runner::soldier::SoldierRunner;
 
 use super::GestureResult;
 
-impl Runner {
+impl SoldierRunner {
     pub fn engage_soldier_gesture(
         &self,
         soldier: &Soldier,
         engaged_soldier_index: &SoldierIndex,
     ) -> GestureResult {
-        let target_soldier = self.battle_state.soldier(*engaged_soldier_index);
+        let target_soldier = self.battle_state().soldier(*engaged_soldier_index);
 
         if target_soldier.can_be_designed_as_target() {
             let point = target_soldier.world_point();

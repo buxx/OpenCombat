@@ -12,12 +12,13 @@ use crate::{
     physics::{
         event::{bullet::BulletFire, cannon_blast::CannonBlast, explosion::Explosion},
         path::{Direction, PathMode},
+        utils::distance_between_points,
         visibility::Visibilities,
     },
     sync::BattleStateCopy,
     types::{
-        SoldierBoard, SoldierIndex, SoldiersOnBoard, SquadComposition, SquadUuid, VehicleBoard,
-        VehicleIndex,
+        Distance, SoldierBoard, SoldierIndex, SoldiersOnBoard, SquadComposition, SquadUuid,
+        VehicleBoard, VehicleIndex, WorldPoint,
     },
     utils::{vehicle_board_from_soldiers_on_board, WorldShape},
 };
@@ -403,6 +404,30 @@ impl BattleState {
 
     pub fn b_morale(&self) -> &Morale {
         &self.b_morale
+    }
+
+    // FIXME BS NOW : use this too for soldiers gestures : for now, we check from leader,
+    // but soldier must defend himself too if is away
+    pub fn visible_soldier_in_circle(
+        &self,
+        point: &WorldPoint,
+        radius: &Distance,
+        side: &Side,
+    ) -> bool {
+        self.visibilities()
+            .visibles_soldiers()
+            .iter()
+            .any(|visibility| {
+                if let Some(soldier_index) = visibility.to_soldier {
+                    let soldier = self.soldier(soldier_index);
+                    if soldier.side() == side
+                        && &distance_between_points(point, &soldier.world_point()) <= radius
+                    {
+                        return true;
+                    }
+                }
+                false
+            })
     }
 }
 

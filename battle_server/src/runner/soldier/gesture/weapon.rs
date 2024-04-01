@@ -4,9 +4,9 @@ use battle_core::{
     types::WorldPoint,
 };
 
-use crate::runner::Runner;
+use crate::runner::soldier::SoldierRunner;
 
-impl Runner {
+impl SoldierRunner {
     pub fn soldier_weapon_for_point<'a>(
         &'a self,
         soldier: &'a Soldier,

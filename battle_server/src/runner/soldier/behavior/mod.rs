@@ -10,21 +10,20 @@ use battle_core::{
     utils::NewDebugPoint,
 };
 
-use super::{fight::choose::ChooseMethod, message::RunnerMessage, Runner};
+use crate::runner::message::RunnerMessage;
 
-mod blast;
-mod bullet;
-mod death;
+use super::{fight::ChooseMethod, SoldierRunner};
+
 mod defend;
 mod engage;
 mod moves;
 mod suppress;
 
-impl Runner {
+impl SoldierRunner {
     pub fn soldier_behavior(&self, soldier: &Soldier) -> Vec<RunnerMessage> {
         puffin::profile_scope!("soldier_behavior");
         let mut messages = vec![];
-        let soldier = self.battle_state.soldier(soldier.uuid());
+        let soldier = self.battle_state().soldier(soldier.uuid());
 
         let behavior = match soldier.order() {
             Order::Idle => self.idle_behavior(soldier),
@@ -70,13 +69,15 @@ impl Runner {
 
         let orders: Vec<(&Soldier, Order)> = match behavior {
             Behavior::MoveTo(_) | Behavior::MoveFastTo(_) | Behavior::SneakTo(_) => {
-                match self.battle_state.soldier_behavior_mode(leader) {
+                match self.battle_state().soldier_behavior_mode(leader) {
                     BehaviorMode::Ground => self.propagate_move(leader.squad_uuid(), behavior),
                     BehaviorMode::Vehicle => self.propagate_drive(leader.squad_uuid(), behavior),
                 }
             }
             Behavior::Defend(_) => {
-                let (orders, debug_points_) = match self.battle_state.soldier_behavior_mode(leader)
+                let (orders, debug_points_) = match self
+                    .battle_state()
+                    .soldier_behavior_mode(leader)
                 {
                     BehaviorMode::Ground => {
                         self.propagate_defend_or_hide(leader.squad_uuid(), behavior)
@@ -87,7 +88,9 @@ impl Runner {
                 orders
             }
             Behavior::Hide(_) => {
-                let (orders, debug_points_) = match self.battle_state.soldier_behavior_mode(leader)
+                let (orders, debug_points_) = match self
+                    .battle_state()
+                    .soldier_behavior_mode(leader)
                 {
                     BehaviorMode::Ground => {
                         self.propagate_defend_or_hide(leader.squad_uuid(), behavior)
@@ -153,7 +156,7 @@ impl Runner {
             return Behavior::EngageSoldier(opponent.uuid());
         }
 
-        match self.battle_state.soldier_behavior_mode(soldier) {
+        match self.battle_state().soldier_behavior_mode(soldier) {
             BehaviorMode::Ground => {
                 if soldier.under_fire().is_warning()
                     || soldier.under_fire().is_danger()
@@ -181,7 +184,7 @@ impl Runner {
     }
 
     pub fn defend_behavior(&self, soldier: &Soldier, angle: &Angle) -> Behavior {
-        match self.battle_state.soldier_behavior_mode(soldier) {
+        match self.battle_state().soldier_behavior_mode(soldier) {
             BehaviorMode::Ground => {
                 if let Some(opponent) = self.soldier_find_opponent_to_target(
                     soldier,
@@ -196,12 +199,12 @@ impl Runner {
             BehaviorMode::Vehicle => {
                 // FIXME BS NOW : REF_ANGLE001 refactor it
                 let vehicle_index = self
-                    .battle_state
+                    .battle_state()
                     .soldier_board(soldier.uuid())
                     .expect("Must be in vehicle according to match")
                     .0;
                 if !self
-                    .battle_state
+                    .battle_state()
                     .vehicle(vehicle_index)
                     .chassis_orientation_match(angle)
                 {
@@ -214,7 +217,7 @@ impl Runner {
     }
 
     pub fn hide_behavior(&self, soldier: &Soldier, angle: &Angle) -> Behavior {
-        match self.battle_state.soldier_behavior_mode(soldier) {
+        match self.battle_state().soldier_behavior_mode(soldier) {
             BehaviorMode::Ground => {
                 if let Some(opponent) = self.soldier_find_opponent_to_target(
                     soldier,
@@ -228,12 +231,12 @@ impl Runner {
             }
             BehaviorMode::Vehicle => {
                 let vehicle_index = self
-                    .battle_state
+                    .battle_state()
                     .soldier_board(soldier.uuid())
                     .expect("Must be in vehicle according to match")
                     .0;
                 if !self
-                    .battle_state
+                    .battle_state()
                     .vehicle(vehicle_index)
                     .chassis_orientation_match(angle)
                 {
@@ -249,7 +252,7 @@ impl Runner {
         let opponent = soldier
             .behavior()
             .opponent()
-            .map(|s| self.battle_state.soldier(*s))
+            .map(|s| self.battle_state().soldier(*s))
             .filter(|s| s.can_be_designed_as_target())
             .or_else(|| {
                 self.soldier_find_opponent_to_target(
@@ -263,7 +266,7 @@ impl Runner {
             return Behavior::EngageSoldier(opponent.uuid());
         }
 
-        Behavior::Idle(Body::from_soldier(soldier, &self.battle_state))
+        Behavior::Idle(Body::from_soldier(soldier, &self.battle_state()))
     }
 
     pub fn suppress_fire_behavior(&self, _soldier: &Soldier, point: &WorldPoint) -> Behavior {

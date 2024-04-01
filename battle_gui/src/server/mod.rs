@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::thread;
 
 use battle_core::config::{ServerConfig, DEFAULT_SERVER_PUB_ADDRESS, DEFAULT_SERVER_REP_ADDRESS};
@@ -9,6 +9,8 @@ use battle_core::message::{InputMessage, OutputMessage};
 use battle_core::network::error::NetworkError;
 use battle_core::network::server::Server;
 use battle_core::state::battle::builder::{BattleStateBuilder, BattleStateBuilderError};
+use battle_core::state::battle::message::BattleStateMessage;
+use battle_server::runner::worker::Workers;
 use battle_server::runner::Runner;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 
@@ -94,7 +96,10 @@ impl EmbeddedServer {
             .as_ref()
             .ok_or(EmbeddedServerError::MissingMapName)?;
         let config = ServerConfig::default();
-        let state = BattleStateBuilder::new(map_name, self.resources.clone()).build()?;
+        let mut state = Arc::new(RwLock::new(
+            BattleStateBuilder::new(map_name, self.resources.clone()).build()?,
+        ));
+        let workers = Workers::new(config.clone(), state.clone());
 
         let stop_required_ = self.stop_required.clone();
         thread::Builder::new()
@@ -103,6 +108,7 @@ impl EmbeddedServer {
                 println!("Start runner");
                 match Runner::new(
                     config,
+                    workers,
                     runner_input_receiver,
                     runner_output_sender,
                     stop_required_,
@@ -119,6 +125,8 @@ impl EmbeddedServer {
                 };
             })
             .unwrap();
+
+        state.react(&BattleStateMessage::IncrementFrameI, 1);
 
         Ok((runner_input_sender, runner_output_receiver))
     }

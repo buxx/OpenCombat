@@ -6,11 +6,11 @@ use battle_core::{
     entity::soldier::Soldier,
 };
 
-use crate::runner::{fight::choose::ChooseMethod, Runner};
+use crate::runner::soldier::{fight::ChooseMethod, SoldierRunner};
 
 use super::{FallbackBehavior, GestureResult};
 
-impl Runner {
+impl SoldierRunner {
     pub fn idle_gesture(&self, soldier: &Soldier) -> GestureResult {
         if let Some(opponent) =
             self.soldier_find_opponent_to_target(soldier, None, &ChooseMethod::RandomFromNearest)

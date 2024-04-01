@@ -10,15 +10,15 @@ use super::{message::RunnerMessage, Runner};
 
 impl Runner {
     pub fn tick_flags(&self) -> Vec<RunnerMessage> {
-        if self.battle_state.frame_i() % self.config.soldier_update_freq() == 0 {
+        if self.battle_state().frame_i() % self.config.soldier_update_freq() == 0 {
             let mut new_ownerships = vec![];
-            for (flag_name, ownership) in self.battle_state.flags().ownerships() {
-                let flag = self.battle_state.map().flag(flag_name);
+            for (flag_name, ownership) in self.battle_state().flags().ownerships() {
+                let flag = self.battle_state().map().flag(flag_name);
                 let a_inside = self
-                    .battle_state
+                    .battle_state()
                     .there_is_side_soldier_in(&Side::A, flag.shape());
                 let b_inside = self
-                    .battle_state
+                    .battle_state()
                     .there_is_side_soldier_in(&Side::B, flag.shape());
 
                 let new_ownership = match (ownership, a_inside, b_inside) {

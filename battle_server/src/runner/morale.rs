@@ -7,28 +7,28 @@ impl Runner {
     pub fn tick_morale(&self) -> Vec<RunnerMessage> {
         puffin::profile_scope!("tick_morale");
 
-        if self.battle_state.frame_i() % self.config.morale_update_freq() == 0 {
+        if self.battle_state().frame_i() % self.config.morale_update_freq() == 0 {
             let a_total = self
-                .battle_state
+                .battle_state()
                 .soldiers()
                 .iter()
                 .filter(|s| s.side() == &Side::A)
                 .count();
             let b_total = self
-                .battle_state
+                .battle_state()
                 .soldiers()
                 .iter()
                 .filter(|s| s.side() == &Side::B)
                 .count();
             let a_left = self
-                .battle_state
+                .battle_state()
                 .soldiers()
                 .iter()
                 .filter(|s| s.side() == &Side::A)
                 .filter(|s| s.can_be_count_for_morale())
                 .count();
             let b_left = self
-                .battle_state
+                .battle_state()
                 .soldiers()
                 .iter()
                 .filter(|s| s.side() == &Side::B)

@@ -13,23 +13,23 @@ impl Runner {
     pub fn tick_victory(&self) -> Vec<RunnerMessage> {
         puffin::profile_scope!("tick_victory");
 
-        if self.battle_state.frame_i() % self.config.victory_update_freq() == 0 {
+        if self.battle_state().frame_i() % self.config.victory_update_freq() == 0 {
             // Victory by morale
-            if self.battle_state.a_morale().0 <= END_MORALE {
+            if self.battle_state().a_morale().0 <= END_MORALE {
                 return vec![RunnerMessage::BattleState(BattleStateMessage::SetPhase(
                     Phase::End(Victorious(Side::B), EndReason::Morale),
                 ))];
             }
-            if self.battle_state.b_morale().0 <= END_MORALE {
+            if self.battle_state().b_morale().0 <= END_MORALE {
                 return vec![RunnerMessage::BattleState(BattleStateMessage::SetPhase(
                     Phase::End(Victorious(Side::A), EndReason::Morale),
                 ))];
             }
 
             // Victory by flags
-            if !self.battle_state.flags().ownerships().is_empty() {
+            if !self.battle_state().flags().ownerships().is_empty() {
                 if self
-                    .battle_state
+                    .battle_state()
                     .flags()
                     .ownerships()
                     .iter()
@@ -40,7 +40,7 @@ impl Runner {
                     ))];
                 }
                 if self
-                    .battle_state
+                    .battle_state()
                     .flags()
                     .ownerships()
                     .iter()

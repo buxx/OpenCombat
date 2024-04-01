@@ -4,9 +4,9 @@ use battle_core::{
     types::{SquadUuid, WorldPoint},
 };
 
-use crate::runner::Runner;
+use crate::runner::soldier::SoldierRunner;
 
-impl Runner {
+impl SoldierRunner {
     pub fn propagate_suppress_fire(
         &self,
         squad_uuid: SquadUuid,
@@ -15,11 +15,11 @@ impl Runner {
         let mut orders = vec![];
 
         for member in self
-            .battle_state
+            .battle_state()
             .squad(squad_uuid)
             .subordinates()
             .iter()
-            .map(|i| self.battle_state.soldier(**i))
+            .map(|i| self.battle_state().soldier(**i))
         {
             orders.push((member, Order::SuppressFire(*point)));
         }

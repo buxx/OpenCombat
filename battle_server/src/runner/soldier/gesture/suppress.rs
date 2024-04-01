@@ -1,10 +1,10 @@
 use battle_core::{entity::soldier::Soldier, types::WorldPoint};
 
-use crate::runner::Runner;
+use crate::runner::soldier::SoldierRunner;
 
 use super::GestureResult;
 
-impl Runner {
+impl SoldierRunner {
     pub fn suppress_fire_gesture(&self, soldier: &Soldier, point: &WorldPoint) -> GestureResult {
         if let Some(weapon) = self.soldier_able_to_fire_on_point(soldier, point) {
             let (gesture_context, gesture) = self.engage_point_gesture(soldier, point, weapon);

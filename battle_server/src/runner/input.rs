@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use battle_core::{
     message::{InputMessage, OutputMessage},
     state::battle::BattleState,
@@ -19,40 +21,40 @@ impl Runner {
             };
             log::debug!("Received {} inputs : {:?}", inputs.len(), &inputs);
 
-            let mut side_effects = vec![];
-            for input in inputs {
-                match input {
-                    InputMessage::LoadDeployment(deployment) => {
-                        self.battle_state.inject(&deployment)
-                    }
-                    InputMessage::LoadControl((a_control, b_control)) => {
-                        //
-                        self.battle_state
-                            .update_flags_from_control(a_control, b_control);
-                    }
-                    InputMessage::RequireCompleteSync => {
-                        self.output
-                            .send(vec![OutputMessage::LoadFromCopy(self.battle_state.copy())])?;
-                    }
-                    InputMessage::BattleState(battle_state_message) => {
-                        side_effects.extend(
-                            self.battle_state
-                                .react(&battle_state_message, *self.battle_state.frame_i()),
-                        );
-                    }
-                    InputMessage::ChangeConfig(change_config) => {
-                        self.output
-                            .send(vec![OutputMessage::ChangeConfig(change_config.clone())])?;
-                        self.config.react(&change_config);
-                    }
-                    InputMessage::SetBattleState(copy) => {
-                        //
-                        self.battle_state = BattleState::from_copy(&copy, self.battle_state.map());
-                        self.battle_state.resolve();
-                        self.output.send(vec![OutputMessage::LoadFromCopy(copy)])?;
-                    }
-                };
-            }
+            // let mut side_effects = vec![];
+            // for input in inputs {
+            //     match input {
+            //         InputMessage::LoadDeployment(deployment) => {
+            //             self.battle_state.inject(&deployment)
+            //         }
+            //         InputMessage::LoadControl((a_control, b_control)) => {
+            //             //
+            //             self.battle_state
+            //                 .update_flags_from_control(a_control, b_control);
+            //         }
+            //         InputMessage::RequireCompleteSync => {
+            //             self.output
+            //                 .send(vec![OutputMessage::LoadFromCopy(self.battle_state.copy())])?;
+            //         }
+            //         InputMessage::BattleState(battle_state_message) => {
+            //             side_effects.extend(
+            //                 self.battle_state
+            //                     .react(&battle_state_message, *self.battle_state.frame_i()),
+            //             );
+            //         }
+            //         InputMessage::ChangeConfig(change_config) => {
+            //             self.output
+            //                 .send(vec![OutputMessage::ChangeConfig(change_config.clone())])?;
+            //             self.config.react(&change_config);
+            //         }
+            //         InputMessage::SetBattleState(copy) => {
+            //             self.battle_state =
+            //                 Arc::new(BattleState::from_copy(&copy, self.battle_state.map()));
+            //             self.battle_state.resolve();
+            //             self.output.send(vec![OutputMessage::LoadFromCopy(copy)])?;
+            //         }
+            //     };
+            // }
         }
 
         Ok(())

@@ -8,15 +8,15 @@ use battle_core::{
 use glam::Vec2;
 use rand::Rng;
 
-use crate::runner::Runner;
+use crate::runner::soldier::SoldierRunner;
 
-impl Runner {
+impl SoldierRunner {
     pub fn soldier_able_to_fire_on_point<'a>(
         &'a self,
         soldier: &'a Soldier,
         point: &WorldPoint,
     ) -> Option<(WeaponClass, &Weapon)> {
-        if !self.battle_state.point_is_visible_by_soldier(
+        if !self.battle_state().point_is_visible_by_soldier(
             &self.config,
             soldier,
             point,
@@ -45,7 +45,7 @@ impl Runner {
         point: &WorldPoint,
         weapon: (WeaponClass, &Weapon),
     ) -> (GestureContext, Gesture) {
-        let frame_i = self.battle_state.frame_i();
+        let frame_i = self.battle_state().frame_i();
         let current = soldier.gesture();
 
         let gesture = match current {

@@ -1,3 +1,4 @@
+use battle_server::runner::worker::Workers;
 use crossbeam_channel::unbounded;
 use env_logger::Env;
 use std::path::PathBuf;
@@ -61,13 +62,16 @@ fn main() -> Result<(), Error> {
 
     let stop_required_ = stop_required.clone();
     let config = ServerConfig::default();
-    let battle_state = BattleStateBuilder::new(map_name, resources.clone()).build()?;
+    let mut state = Arc::new(BattleStateBuilder::new(map_name, resources.clone()).build()?);
+    let workers = Workers::new(config.clone(), state.clone());
+
     let mut runner = Runner::new(
         config,
+        workers,
         server_input_receiver,
         server_output_sender,
         stop_required_,
-        battle_state,
+        state,
     );
 
     runner.run()?;

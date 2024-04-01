@@ -13,7 +13,9 @@ use battle_core::{
     types::{Precision, SoldierIndex, WorldPoint},
 };
 
-use super::{message::RunnerMessage, Runner};
+use crate::runner::message::RunnerMessage;
+
+use super::SoldierRunner;
 
 mod engage;
 mod fire;
@@ -29,7 +31,7 @@ pub enum GestureResult {
     Cant(Option<FallbackBehavior>),
 }
 
-impl Runner {
+impl SoldierRunner {
     pub fn soldier_gesture(&self, soldier: &Soldier) -> Vec<RunnerMessage> {
         puffin::profile_scope!("soldier_gesture");
         let mut messages = vec![];
@@ -151,7 +153,7 @@ impl Runner {
             ))),
             RunnerMessage::BattleState(BattleStateMessage::Soldier(
                 soldier.uuid(),
-                SoldierMessage::SetLastShootFrameI(*self.battle_state.frame_i()),
+                SoldierMessage::SetLastShootFrameI(*self.battle_state().frame_i()),
             )),
         ]]
         .concat()

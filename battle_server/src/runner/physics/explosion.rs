@@ -1,12 +1,15 @@
 use battle_core::audio::Sound;
+use battle_core::behavior::feeling::Feeling;
+use battle_core::behavior::Behavior;
 use battle_core::entity::soldier::Soldier;
 use battle_core::entity::vehicle::Vehicle;
 use battle_core::game::explosive::ExplosiveType;
 use battle_core::physics::event::explosion::Explosion;
 use battle_core::physics::utils::distance_between_points;
+use battle_core::state::battle::message::{BattleStateMessage, SoldierMessage};
 use battle_core::state::client::ClientStateMessage;
 
-use battle_core::types::Distance;
+use battle_core::types::{Distance, SoldierIndex};
 use rand::seq::SliceRandom;
 use rand::Rng;
 
@@ -18,8 +21,8 @@ impl Runner {
         puffin::profile_scope!("tick_explosions");
         let mut messages = vec![];
 
-        for explosion in self.battle_state.explosions() {
-            if explosion.effective(*self.battle_state.frame_i()) {
+        for explosion in self.battle_state().explosions() {
+            if explosion.effective(*self.battle_state().frame_i()) {
                 messages.extend(self.explosion_effects(explosion))
             }
         }
@@ -37,14 +40,14 @@ impl Runner {
         let point = explosion.point();
         let explosive_type = explosion.type_();
 
-        for soldier in self.battle_state.soldiers() {
+        for soldier in self.battle_state().soldiers() {
             if !soldier.can_feel_explosion() {
                 continue;
             }
 
             // Simple for now, but if in vehicle, don't be affected
             if self
-                .battle_state
+                .battle_state()
                 .soldier_vehicle_place(soldier.uuid())
                 .is_some()
             {
@@ -100,7 +103,7 @@ impl Runner {
             }
         }
 
-        for vehicle in self.battle_state.vehicles() {
+        for vehicle in self.battle_state().vehicles() {
             if vehicle.chassis_shape().contains(point) {
                 messages.extend(self.vehicle_shell_impact_effects(vehicle, explosive_type));
             }
@@ -166,5 +169,30 @@ impl Runner {
                     .expect("Must one be chosen"),
             ),
         )]
+    }
+
+    pub fn soldier_blast_stunned(&self, soldier_index: SoldierIndex) -> Vec<RunnerMessage> {
+        vec![
+            RunnerMessage::BattleState(BattleStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetBehavior(Behavior::Unconscious),
+            )),
+            RunnerMessage::BattleState(BattleStateMessage::Soldier(
+                soldier_index,
+                SoldierMessage::SetUnconscious(true),
+            )),
+        ]
+    }
+
+    // TODO : have a real algorithm here
+    pub fn soldier_blast(
+        &self,
+        soldier_index: SoldierIndex,
+        distance: Distance,
+    ) -> Vec<RunnerMessage> {
+        vec![RunnerMessage::BattleState(BattleStateMessage::Soldier(
+            soldier_index,
+            SoldierMessage::IncreaseUnderFire(Feeling::blast_increase_value(distance)),
+        ))]
     }
 }

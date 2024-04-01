@@ -6,9 +6,9 @@ use battle_core::{
     types::{SoldierIndex, SquadUuid, WorldPath, WorldPaths},
 };
 
-use crate::runner::{fight::choose::ChooseMethod, Runner};
+use crate::runner::soldier::{fight::ChooseMethod, SoldierRunner};
 
-impl Runner {
+impl SoldierRunner {
     pub fn propagate_engage_soldier(
         &self,
         squad_uuid: &SquadUuid,
@@ -16,21 +16,21 @@ impl Runner {
     ) -> Vec<(&Soldier, Order)> {
         let mut orders = vec![];
         let engaged_squad_index = self
-            .battle_state
+            .battle_state()
             .soldier(*engaged_soldier_index)
             .squad_uuid();
-        let engaged_squad = self.battle_state.squad(engaged_squad_index);
+        let engaged_squad = self.battle_state().squad(engaged_squad_index);
 
         let mut after_grid_positions = vec![];
         'subordinates: for member in self
-            .battle_state
+            .battle_state()
             .squad(*squad_uuid)
             .subordinates()
             .iter()
-            .map(|i| self.battle_state.soldier(**i))
+            .map(|i| self.battle_state().soldier(**i))
         {
             let member_grid_point = self
-                .battle_state
+                .battle_state()
                 .map()
                 .grid_point_from_world_point(&member.world_point());
             if self
@@ -53,24 +53,25 @@ impl Runner {
                 let visible_targeted_squad_opponents: Vec<&Soldier> = engaged_squad
                     .members()
                     .iter()
-                    .map(|i| self.battle_state.soldier(*i))
+                    .map(|i| self.battle_state().soldier(*i))
                     .filter(|s| {
-                        self.battle_state
+                        self.battle_state()
                             .soldier_is_visible_by_side(s, member.side())
                     })
                     .collect();
 
                 for visible_opponent in &visible_targeted_squad_opponents {
-                    if let Some(new_grid_point) = CoverFinder::new(&self.battle_state, &self.config)
-                        .exclude_grid_points(after_grid_positions.clone())
-                        .find_better_cover_point_from_point(
-                            member,
-                            &visible_opponent.world_point(),
-                            true,
-                        )
+                    if let Some(new_grid_point) =
+                        CoverFinder::new(&self.battle_state(), &self.config)
+                            .exclude_grid_points(after_grid_positions.clone())
+                            .find_better_cover_point_from_point(
+                                member,
+                                &visible_opponent.world_point(),
+                                true,
+                            )
                     {
                         if let Some(grid_points_path) = find_path(
-                            self.battle_state.map(),
+                            self.battle_state().map(),
                             &member_grid_point,
                             &new_grid_point,
                             true,
@@ -81,7 +82,7 @@ impl Runner {
 
                             let world_point_path = grid_points_path
                                 .iter()
-                                .map(|p| self.battle_state.map().world_point_from_grid_point(*p))
+                                .map(|p| self.battle_state().map().world_point_from_grid_point(*p))
                                 .collect();
                             let world_path = WorldPath::new(world_point_path);
 
