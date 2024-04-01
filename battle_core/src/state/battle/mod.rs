@@ -287,7 +287,7 @@ impl BattleState {
                 self.cannon_blasts.push(cannon_blast)
             }
             BattleStateMessage::SetVisibilities(visibilities) => {
-                self.visibilities.set(visibilities.clone())
+                self.visibilities.update(visibilities.clone())
             }
             BattleStateMessage::SetPhase(phase) => self.phase = phase.clone(),
             BattleStateMessage::SetAConnected(value) => self.a_connected = *value,

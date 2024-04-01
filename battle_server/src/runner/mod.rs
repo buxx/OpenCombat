@@ -43,6 +43,7 @@ pub struct Runner {
     output: Sender<Vec<OutputMessage>>,
     stop_required: Arc<AtomicBool>,
     last: Instant,
+    current_visibility: usize,
     battle_state: BattleState,
 }
 
@@ -60,6 +61,7 @@ impl Runner {
             output,
             stop_required,
             last: Instant::now(),
+            current_visibility: 0,
             battle_state: state,
         }
     }

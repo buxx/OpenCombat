@@ -20,53 +20,58 @@ impl Runner {
     pub fn tick_visibilities(&self) -> Vec<RunnerMessage> {
         puffin::profile_scope!("tick_visibilities");
         let mut messages = vec![];
-        let tick_visibility = self.battle_state.frame_i() % self.config.visibility_update_freq()
-            == 0
-            && self.battle_state.phase().is_battle();
 
-        if tick_visibility {
-            messages.extend(self.update_visibilities());
+        if self.battle_state.soldiers().is_empty() {
+            return vec![];
+        }
+
+        if self.is_tick_update_soldier_freq() {
+            messages.extend(self.update_soldier_visibilities());
+            messages.push(RunnerMessage::IncrementVisibilityIndex);
+        }
+        if self.is_tick_update_orders() {
             messages.extend(self.update_orders_due_to_visibilities());
         }
 
         messages
     }
 
-    pub fn update_visibilities(&self) -> Vec<RunnerMessage> {
-        let side_a_soldiers: Vec<&Soldier> = self
+    fn update_soldier_freq(&self) -> u64 {
+        let soldiers_can_seeks = self.battle_state.soldiers();
+        if soldiers_can_seeks.len() >= self.config.visibility_update_freq() as usize {
+            1
+        } else {
+            self.config.visibility_update_freq() / soldiers_can_seeks.len() as u64
+        }
+    }
+
+    fn is_tick_update_orders(&self) -> bool {
+        self.battle_state.frame_i() % self.config.visibility_update_freq() == 0
+            && self.battle_state.phase().is_battle()
+    }
+
+    fn is_tick_update_soldier_freq(&self) -> bool {
+        self.battle_state.frame_i() % self.update_soldier_freq() == 0
+            && self.battle_state.phase().is_battle()
+    }
+
+    pub fn update_soldier_visibilities(&self) -> Vec<RunnerMessage> {
+        let soldier = self
+            .battle_state
+            .soldier(SoldierIndex(self.current_visibility));
+
+        let other_soldiers: Vec<&Soldier> = self
             .battle_state
             .soldiers()
             .iter()
-            .filter(|s| s.side() == &Side::A)
-            .collect();
-        let side_b_soldiers: Vec<&Soldier> = self
-            .battle_state
-            .soldiers()
-            .iter()
-            .filter(|s| s.side() == &Side::B)
+            .filter(|s| s.side() == &soldier.side().opposite())
             .collect();
 
-        let from_side_a_visibilities: HashMap<(SoldierIndex, SoldierIndex), Visibility> =
-            side_a_soldiers
-                .iter()
-                .map(|s| s.uuid())
-                .collect::<Vec<SoldierIndex>>()
-                .into_par_iter()
-                .flat_map(|i| self.soldier_visibilities(i, &side_b_soldiers))
-                .collect();
-        let from_side_b_visibilities: HashMap<(SoldierIndex, SoldierIndex), Visibility> =
-            side_b_soldiers
-                .iter()
-                .map(|s| s.uuid())
-                .collect::<Vec<SoldierIndex>>()
-                .into_par_iter()
-                .flat_map(|i| self.soldier_visibilities(i, &side_a_soldiers))
-                .collect();
-
-        let visibilities = from_side_a_visibilities
-            .into_iter()
-            .chain(from_side_b_visibilities)
+        let visibilities: HashMap<(SoldierIndex, SoldierIndex), Visibility> = vec![soldier.uuid()]
+            .into_par_iter()
+            .flat_map(|i| self.soldier_visibilities(i, &other_soldiers))
             .collect();
+
         vec![RunnerMessage::BattleState(
             BattleStateMessage::SetVisibilities(visibilities),
         )]
@@ -81,20 +86,25 @@ impl Runner {
         let soldier = self.battle_state.soldier(soldier_index);
 
         if !soldier.can_seek() {
-            return visibilities;
-        }
-
-        for other_soldier in other_soldiers {
-            visibilities.insert(
-                (soldier.uuid(), other_soldier.uuid()),
-                Visibility::between_soldiers(
-                    *self.battle_state.frame_i(),
-                    &self.config,
-                    soldier,
-                    other_soldier,
-                    self.battle_state.map(),
-                ),
-            );
+            for other_soldier in other_soldiers {
+                visibilities.insert(
+                    (soldier.uuid(), other_soldier.uuid()),
+                    Visibility::between_soldiers_no(soldier, other_soldier),
+                );
+            }
+        } else {
+            for other_soldier in other_soldiers {
+                visibilities.insert(
+                    (soldier.uuid(), other_soldier.uuid()),
+                    Visibility::between_soldiers(
+                        *self.battle_state.frame_i(),
+                        &self.config,
+                        soldier,
+                        other_soldier,
+                        self.battle_state.map(),
+                    ),
+                );
+            }
         }
 
         visibilities

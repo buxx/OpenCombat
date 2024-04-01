@@ -8,6 +8,8 @@ use battle_core::{
 #[allow(clippy::enum_variant_names)]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum RunnerMessage {
+    // Runner internal messages
+    IncrementVisibilityIndex,
     // Messages which modify server state (and can be shared with clients)
     BattleState(BattleStateMessage),
     // Messages to directly send to clients

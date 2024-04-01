@@ -20,8 +20,10 @@ pub struct Visibilities {
 }
 
 impl Visibilities {
-    pub fn set(&mut self, value: HashMap<(SoldierIndex, SoldierIndex), Visibility>) {
-        self.visibilities = value;
+    pub fn update(&mut self, value: HashMap<(SoldierIndex, SoldierIndex), Visibility>) {
+        for (k, v) in value {
+            self.visibilities.insert(k, v);
+        }
     }
 
     pub fn get(&self, soldiers: &(SoldierIndex, SoldierIndex)) -> Option<&Visibility> {
@@ -68,6 +70,25 @@ pub struct Visibility {
 }
 
 impl Visibility {
+    pub fn between_soldiers_no(from_soldier: &Soldier, to_soldier: &Soldier) -> Self {
+        let from_point = from_soldier.world_point();
+        let to_point = to_soldier.world_point();
+        let distance =
+            distance_between_points(&from_soldier.world_point(), &to_soldier.world_point());
+        Self {
+            from: from_point,
+            from_soldier: Some(from_soldier.uuid()),
+            to: to_point,
+            to_soldier: Some(to_soldier.uuid()),
+            opacity_segments: vec![],
+            path_final_opacity: 999.,
+            to_scene_item_opacity: 999.,
+            visible: false,
+            distance,
+            break_point: Some(from_point),
+        }
+    }
+
     pub fn between_soldiers(
         frame_i: u64,
         config: &ServerConfig,

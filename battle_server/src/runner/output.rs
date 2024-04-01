@@ -29,6 +29,7 @@ impl Runner {
                         OutputMessage::ClientState(client_state_message.clone()),
                     ))
                 }
+                RunnerMessage::IncrementVisibilityIndex => {}
             }
         }
 

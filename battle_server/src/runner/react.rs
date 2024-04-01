@@ -22,6 +22,12 @@ impl Runner {
                 }
                 // These messages are destined to be directly sent to clients
                 RunnerMessage::ClientsState(_) | RunnerMessage::ClientState(_, _) => {}
+                RunnerMessage::IncrementVisibilityIndex => {
+                    self.current_visibility += 1;
+                    if self.current_visibility >= self.battle_state.soldiers().len() {
+                        self.current_visibility = 0;
+                    }
+                }
             }
         }
 
