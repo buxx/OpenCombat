@@ -84,7 +84,7 @@ impl Component<HudEvent> for SquadStatuses {
     }
 
     fn width(&self, ctx: &Context) -> f32 {
-        ctx.gfx.drawable_size().0 - RIGHT_BOX_WIDTH - MARGIN * 2.
+        ctx.gfx.drawable_size().0 - SQUAD_DETAIL_WIDTH - RIGHT_BOX_WIDTH - MARGIN * 2.
     }
 
     fn height(&self, _ctx: &Context) -> f32 {
