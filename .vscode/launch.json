@@ -34,6 +34,34 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Server (standalone) map1 --profile",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_server",
+                    "--package=battle_server"
+                ],
+                "filter": {
+                    "name": "battle_server",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "map1",
+                "--rep-address",
+                "tcp://0.0.0.0:4255",
+                "--bind-address",
+                "tcp://0.0.0.0:4256",
+                "--profile"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Server (standalone) Demo1 --release",
             "cargo": {
                 "args": [
@@ -130,6 +158,47 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Gui (server embedded) map1 --profile",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "map1",
+                "assets/map1_deployment.json",
+                "--embedded-server",
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "a",
+                "--side-a-control",
+                "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
+                "--side-b-control",
+                "ALL",
+                "--profile"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG": "engage=DEBUG"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Gui (server embedded) map1 --release",
             "cargo": {
                 "args": [
@@ -212,6 +281,47 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Gui (server embedded) Demo1 --profile",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "Demo1",
+                "assets/demo1_deployment.json",
+                "--embedded-server",
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "a",
+                "--side-a-control",
+                "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
+                "--side-b-control",
+                "ALL",
+                "--profile"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG": "DEBUG"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Gui (server embedded) Demo2 (1) --release",
             "cargo": {
                 "args": [
@@ -243,6 +353,48 @@
                 "SW",
                 "--side-b-control",
                 "ALL",
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1",
+                "RUST_LOG": "DEBUG"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Gui (server embedded) Demo2 (1) --release --profile",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "Demo2",
+                "assets/demo2_deployment.json",
+                "--embedded-server",
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "a",
+                "--side-a-control",
+                "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
+                "--side-b-control",
+                "ALL",
+                "--profile",
             ],
             "cwd": "${workspaceFolder}",
             "env": {
@@ -441,6 +593,43 @@
                 "NW",
                 "--side-a-control",
                 "SW",
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Gui a map1 --profile",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "map1",
+                "assets/map1_deployment.json",
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "a",
+                "--side-a-control",
+                "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
+                "--profile"
             ],
             "cwd": "${workspaceFolder}",
             "env": {

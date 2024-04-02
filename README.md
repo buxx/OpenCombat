@@ -40,11 +40,7 @@ Install [puffin_viewer](https://github.com/EmbarkStudios/puffin/tree/main/puffin
 
 Start server or client with `--profile` flag. Example :
 
-    cargo run --bin battle_server -- --rep-address tcp://0.0.0.0:4255 --bind-address tcp://0.0.0.0:4256 --profile
-
-Start puffin viewer :
-
-    puffin_viewer --url 127.0.0.1:8585
+    cargo run --bin battle_gui --  map1 assets/map1_deployment.json --embedded-server --server-rep-address tcp://0.0.0.0:4255 --server-bind-address tcp://0.0.0.0:4256 --side a --side-a-control W --side-a-control NW --side-a-control SW --side-b-control ALL --profile
 
 Output will be like :
 

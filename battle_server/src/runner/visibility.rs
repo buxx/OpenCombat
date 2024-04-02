@@ -56,6 +56,10 @@ impl Runner {
     }
 
     pub fn update_soldier_visibilities(&self) -> Vec<RunnerMessage> {
+        puffin::profile_scope!(
+            "update_soldier_visibilities",
+            format!("soldier index {}", self.current_visibility)
+        );
         let soldier = self
             .battle_state
             .soldier(SoldierIndex(self.current_visibility));
@@ -111,6 +115,7 @@ impl Runner {
     }
 
     fn update_orders_due_to_visibilities(&self) -> Vec<RunnerMessage> {
+        puffin::profile_scope!("update_orders_due_to_visibilities");
         let mut messages = vec![];
 
         for side in [Side::A, Side::B] {

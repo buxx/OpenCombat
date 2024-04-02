@@ -18,6 +18,7 @@ use battle_core::network::error::NetworkError;
 use battle_core::state::battle::builder::BattleStateBuilder;
 use battle_core::state::battle::builder::BattleStateBuilderError;
 use battle_core::state::battle::message::BattleStateMessage;
+use battle_core::utils::start_puffin_server;
 use crossbeam_channel::unbounded;
 use crossbeam_channel::SendError;
 use ggez::conf::WindowMode;
@@ -66,7 +67,7 @@ pub struct Opt {
     #[structopt(long = "profile")]
     profile: bool,
 
-    #[structopt(long = "--profile-address", default_value = "0.0.0.0:8585")]
+    #[structopt(long = "--profile-address", default_value = "127.0.0.1:8585")]
     profile_address: String,
 
     #[structopt(long = "side-a-control")]
@@ -84,13 +85,8 @@ fn main() -> Result<(), GuiError> {
     let resources = Resources::new()?.ensure()?;
 
     // Profiling server
-    // NOTE : We must keep server object to avoid its destruction
-    let _puffin_server = if opt.profile {
-        let puffin_server = puffin_http::Server::new(&opt.profile_address).unwrap();
-        puffin::set_scopes_on(true);
-        Some(puffin_server)
-    } else {
-        None
+    if opt.profile {
+        start_puffin_server(opt.profile_address)
     };
 
     let (input_sender, output_receiver) = if opt.embedded_server {
