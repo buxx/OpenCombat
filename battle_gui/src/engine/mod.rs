@@ -171,7 +171,6 @@ impl EventHandler<ggez::GameError> for Engine {
         // Draw ui
         let mut mesh_builder = MeshBuilder::new();
         self.generate_menu_sprites()?;
-        self.generate_hud_sprites(ctx)?;
 
         self.draw_physics(&mut mesh_builder)?;
         self.generate_debug_meshes(&mut mesh_builder)?;
@@ -180,6 +179,7 @@ impl EventHandler<ggez::GameError> for Engine {
         self.generate_game_play_meshes(&mut mesh_builder)?;
         self.generate_hud_meshes(ctx, &mut mesh_builder)?;
         self.generate_orders_sprites(&mut mesh_builder)?;
+        self.generate_hud_sprites(ctx)?;
 
         let ui_draw_param = graphics::DrawParam::new();
         self.graphics
