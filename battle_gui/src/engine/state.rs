@@ -53,6 +53,8 @@ pub struct GuiState {
     last_cursor_move_frame: u64,
     /// WindowPoint where left click was down, if left click currently down
     left_click_down: Option<WindowPoint>,
+    /// WindowPoint where middle click was down, if middle click currently down
+    middle_click_down: Option<WindowPoint>,
     /// Vector representing current cursor drag
     current_cursor_vector: Option<(WindowPoint, WindowPoint)>,
     /// Vector of UIEvent (will be consumed)
@@ -107,6 +109,7 @@ impl GuiState {
             current_cursor_point: WindowPoint::new(0., 0.),
             last_cursor_move_frame: 0,
             left_click_down: None,
+            middle_click_down: None,
             current_cursor_vector: None,
             ui_events: vec![],
             selected_squads: (None, vec![]),
@@ -168,6 +171,10 @@ impl GuiState {
 
     pub fn left_click_down_window_point(&self) -> &Option<WindowPoint> {
         &self.left_click_down
+    }
+
+    pub fn middle_click_down_window_point(&self) -> &Option<WindowPoint> {
+        &self.middle_click_down
     }
 
     pub fn _left_click_down_world_point(&self) -> Option<WorldPoint> {
@@ -402,6 +409,10 @@ impl GuiState {
                 //
                 self.set_scene_offset_to(ctx, point);
                 self.ensure_correct_scene_offset(ctx);
+            }
+            GuiStateMessage::SetMiddleClickDown(point) => {
+                //
+                self.middle_click_down = *point
             }
         }
     }

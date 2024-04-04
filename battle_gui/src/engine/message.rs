@@ -37,6 +37,7 @@ pub enum EngineMessage {
 pub enum GuiStateMessage {
     SetCursorPoint(WindowPoint),
     SetLeftClickDown(Option<WindowPoint>),
+    SetMiddleClickDown(Option<WindowPoint>),
     SetCurrentCursorVector(Option<(WindowPoint, WindowPoint)>),
     ApplyOnDisplaySceneOffset(Offset),
     SetDisplaySceneOffset(Offset),

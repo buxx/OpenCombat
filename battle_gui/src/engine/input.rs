@@ -237,6 +237,15 @@ impl Engine {
             }
         }
 
+        if self.gui_state.middle_click_down_window_point().is_some() {
+            let last_cursor_point = self.gui_state.current_cursor_window_point();
+            messages.push(EngineMessage::GuiState(
+                GuiStateMessage::ApplyOnDisplaySceneOffset(Offset::from_vec2(
+                    cursor_point.to_vec2() - last_cursor_point.to_vec2(),
+                )),
+            ))
+        }
+
         let point = self.gui_state.current_cursor_window_point();
         let cursor_in_control = self.hud.contains(ctx, &[point]);
         messages.push(EngineMessage::GuiState(GuiStateMessage::SetCursorInHud(
@@ -258,54 +267,64 @@ impl Engine {
         let opened_squad_menu = self.gui_state.squad_menu().is_some();
         let have_pending_order = !self.gui_state.pending_order().is_empty();
 
-        if let MouseButton::Left = button {
-            // Update cursor down position
-            messages.push(EngineMessage::GuiState(GuiStateMessage::SetLeftClickDown(
-                Some(cursor),
-            )));
+        match button {
+            MouseButton::Left => {
+                // Update cursor down position
+                messages.push(EngineMessage::GuiState(GuiStateMessage::SetLeftClickDown(
+                    Some(cursor),
+                )));
 
-            // Check if any order under the cursor
-            if self.gui_state.is_controlling(&Control::Soldiers)
-                && !self.gui_state.cursor_in_hud()
-                && !opened_squad_menu
-                && !have_pending_order
-            {
-                for (order, order_marker, squad_id, world_point, order_marker_i) in
-                    self.battle_state.order_markers(self.gui_state.side())
+                // Check if any order under the cursor
+                if self.gui_state.is_controlling(&Control::Soldiers)
+                    && !self.gui_state.cursor_in_hud()
+                    && !opened_squad_menu
+                    && !have_pending_order
                 {
-                    let world_shape =
-                        self.order_marker_selection_shape(&order, &order_marker, &world_point);
-                    if self
-                        .gui_state
-                        .window_shape_from_world_shape(&world_shape)
-                        .contains(&cursor)
+                    for (order, order_marker, squad_id, world_point, order_marker_i) in
+                        self.battle_state.order_markers(self.gui_state.side())
                     {
-                        let pending_order = self.create_pending_order_from_order_marker(
-                            &order_marker,
-                            &squad_id,
-                            &Some(order_marker_i),
-                            &[],
-                        );
-                        messages.push(EngineMessage::GuiState(GuiStateMessage::SetPendingOrders(
-                            vec![pending_order],
-                        )));
+                        let world_shape =
+                            self.order_marker_selection_shape(&order, &order_marker, &world_point);
+                        if self
+                            .gui_state
+                            .window_shape_from_world_shape(&world_shape)
+                            .contains(&cursor)
+                        {
+                            let pending_order = self.create_pending_order_from_order_marker(
+                                &order_marker,
+                                &squad_id,
+                                &Some(order_marker_i),
+                                &[],
+                            );
+                            messages.push(EngineMessage::GuiState(
+                                GuiStateMessage::SetPendingOrders(vec![pending_order]),
+                            ));
+                        }
                     }
-                }
 
-                if self.battle_state.phase().is_placement() && !self.gui_state.cursor_in_hud() {
-                    let world_point = self.gui_state.current_cursor_world_point();
-                    if let Some(soldier) = self
-                        .soldiers_at_point(world_point, Some(self.gui_state.side()))
-                        .first()
-                    {
-                        messages.push(EngineMessage::GuiState(
-                            GuiStateMessage::SetBeginClickOnSoldier(Some(soldier.uuid())),
-                        ));
+                    if self.battle_state.phase().is_placement() && !self.gui_state.cursor_in_hud() {
+                        let world_point = self.gui_state.current_cursor_world_point();
+                        if let Some(soldier) = self
+                            .soldiers_at_point(world_point, Some(self.gui_state.side()))
+                            .first()
+                        {
+                            messages.push(EngineMessage::GuiState(
+                                GuiStateMessage::SetBeginClickOnSoldier(Some(soldier.uuid())),
+                            ));
+                        }
                     }
                 }
             }
+            MouseButton::Right => {}
+            MouseButton::Middle => {
+                if self.gui_state.middle_click_down_window_point().is_none() {
+                    messages.push(EngineMessage::GuiState(
+                        GuiStateMessage::SetMiddleClickDown(Some(cursor)),
+                    ));
+                }
+            }
+            MouseButton::Other(_) => {}
         }
-
         messages
     }
 
@@ -376,7 +395,7 @@ impl Engine {
                 )));
             }
             MouseButton::Middle => messages.push(EngineMessage::GuiState(
-                GuiStateMessage::CenterSceneOn(self.gui_state.current_cursor_world_point()),
+                GuiStateMessage::SetMiddleClickDown(None),
             )),
             _ => {}
         }
