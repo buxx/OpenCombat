@@ -21,7 +21,6 @@ use battle_core::state::battle::message::BattleStateMessage;
 use battle_core::utils::start_puffin_server;
 use crossbeam_channel::unbounded;
 use crossbeam_channel::SendError;
-use ggez::conf::WindowMode;
 use ggez::event;
 use ggez::GameError;
 use oc_core::resources::Resources;
@@ -77,6 +76,9 @@ pub struct Opt {
 
     #[structopt(long = "side-b-control")]
     b_control: Vec<SpawnZoneName>,
+
+    #[structopt(long = "--init-sync")]
+    init_sync: bool,
 }
 
 fn main() -> Result<(), GuiError> {
@@ -137,13 +139,16 @@ fn main() -> Result<(), GuiError> {
 
     // These messages will initialize the battle state
     // Then, the RequireCompleteSync permit client to be same state than server
-    input_sender.send(vec![
-        InputMessage::LoadDeployment(deployment),
-        InputMessage::LoadControl((a_control.clone(), b_control.clone())),
-        InputMessage::RequireCompleteSync,
-        ready_message,
-    ])?;
-
+    if opt.init_sync {
+        input_sender.send(vec![
+            InputMessage::LoadDeployment(deployment),
+            InputMessage::LoadControl((a_control.clone(), b_control.clone())),
+            InputMessage::RequireCompleteSync,
+            ready_message,
+        ])?;
+    } else {
+        input_sender.send(vec![InputMessage::RequireCompleteSync, ready_message])?;
+    }
     let mut context_builder =
         ggez::ContextBuilder::new("Open Combat", "Bastien Sevajol").window_mode(windowed_mode());
     for resource_path in resources.resources_paths_abs() {

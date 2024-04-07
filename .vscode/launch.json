@@ -776,6 +776,7 @@
                 "SW",
                 "--side-b-control",
                 "ALL",
+                "--init-sync",
             ],
             "cwd": "${workspaceFolder}",
             "env": {
