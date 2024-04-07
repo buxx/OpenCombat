@@ -4,11 +4,15 @@ use battle_core::{
     audio::Sound,
     types::{Offset, WindowPoint},
 };
-use ggez::{event::MouseButton, input::keyboard::KeyInput, winit::event::VirtualKeyCode, Context};
+use ggez::{
+    conf::WindowMode, event::MouseButton, graphics, input::keyboard::KeyInput,
+    winit::event::VirtualKeyCode, Context,
+};
 
 use crate::{
     debug::DebugPhysics,
     engine::{event::UIEvent, message::GuiStateMessage},
+    graphics::{fullscreen_mode, windowed_mode},
     ui::BORDER_MOVE_FACTOR,
 };
 use serde::{Deserialize, Serialize};
@@ -59,16 +63,21 @@ impl Engine {
         messages.push(EngineMessage::GuiState(GuiStateMessage::PushUIEvent(
             UIEvent::ImmobileCursorSince(cursor_immobile_since),
         )));
-        if let Some(border) =
-            self.point_in_border(ctx, self.gui_state.current_cursor_window_point())
+
+        if (!self.gui_state.pending_order().is_empty() || self.gui_state.dragged_squad().is_some())
+            || self.gui_state.is_fullscreen()
         {
-            let (x, y) = border.modifier();
-            messages.push(EngineMessage::GuiState(
-                GuiStateMessage::ApplyOnDisplaySceneOffset(Offset::new(
-                    -x as f32 * BORDER_MOVE_FACTOR * self.gui_state.zoom.factor(),
-                    -y as f32 * BORDER_MOVE_FACTOR * self.gui_state.zoom.factor(),
-                )),
-            ));
+            if let Some(border) =
+                self.point_in_border(ctx, self.gui_state.current_cursor_window_point())
+            {
+                let (x, y) = border.modifier();
+                messages.push(EngineMessage::GuiState(
+                    GuiStateMessage::ApplyOnDisplaySceneOffset(Offset::new(
+                        -x as f32 * BORDER_MOVE_FACTOR * self.gui_state.zoom.factor(),
+                        -y as f32 * BORDER_MOVE_FACTOR * self.gui_state.zoom.factor(),
+                    )),
+                ));
+            }
         }
 
         messages
@@ -136,7 +145,7 @@ impl Engine {
         messages
     }
 
-    pub fn collect_key_released(&self, _ctx: &mut Context, input: KeyInput) -> Vec<EngineMessage> {
+    pub fn collect_key_released(&self, ctx: &mut Context, input: KeyInput) -> Vec<EngineMessage> {
         let mut messages = vec![];
 
         match input.keycode {
@@ -153,6 +162,22 @@ impl Engine {
                 messages.push(EngineMessage::GuiState(
                     GuiStateMessage::SetDisplayDebugGui(!self.gui_state.display_debug_gui()),
                 ));
+            }
+            Some(VirtualKeyCode::F11) => {
+                if self.gui_state.is_fullscreen() {
+                    println!("SET WINDOWED");
+                    if let Err(error) = ctx.gfx.set_mode(windowed_mode()) {
+                        eprintln!("ERROR : when set windowed mode: {}", error);
+                    }
+                } else {
+                    println!("SET FULLSCREEN");
+                    if let Err(error) = ctx.gfx.set_mode(fullscreen_mode()) {
+                        eprintln!("ERROR : when set fullscreen mode: {}", error);
+                    }
+                }
+                messages.push(EngineMessage::GuiState(GuiStateMessage::SetFullscreenMode(
+                    !self.gui_state.is_fullscreen(),
+                )));
             }
             Some(VirtualKeyCode::LControl) | Some(VirtualKeyCode::RControl) => messages.push(
                 EngineMessage::GuiState(GuiStateMessage::SetControl(self.determine_controlling())),

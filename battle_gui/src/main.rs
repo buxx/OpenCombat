@@ -43,6 +43,8 @@ mod utils;
 use server::EmbeddedServerError;
 use structopt::StructOpt;
 
+use crate::graphics::windowed_mode;
+
 #[derive(StructOpt, Debug)]
 #[structopt(name = "basic")]
 pub struct Opt {
@@ -142,12 +144,8 @@ fn main() -> Result<(), GuiError> {
         ready_message,
     ])?;
 
-    let mut context_builder = ggez::ContextBuilder::new("Open Combat", "Bastien Sevajol")
-        .window_mode(
-            WindowMode::default()
-                .dimensions(1024., 768.)
-                .resizable(true),
-        );
+    let mut context_builder =
+        ggez::ContextBuilder::new("Open Combat", "Bastien Sevajol").window_mode(windowed_mode());
     for resource_path in resources.resources_paths_abs() {
         context_builder = context_builder.add_resource_path(resource_path);
     }

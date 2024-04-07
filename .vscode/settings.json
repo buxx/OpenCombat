@@ -10,6 +10,8 @@
                 "Clippy",
                 "consts",
                 "eframe",
+                "fullscreen",
+                "Fullscreen",
                 "ggegui",
                 "ggez",
                 "gids",

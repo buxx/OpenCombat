@@ -84,6 +84,8 @@ pub struct GuiState {
     //
     map_width: f32,
     map_height: f32,
+    //
+    is_fullscreen: bool,
 }
 
 impl GuiState {
@@ -126,6 +128,7 @@ impl GuiState {
             saves: vec![],
             map_width: map.visual_width() as f32,
             map_height: map.visual_height() as f32,
+            is_fullscreen: false,
         }
     }
 
@@ -414,6 +417,10 @@ impl GuiState {
                 //
                 self.middle_click_down = *point
             }
+            GuiStateMessage::SetFullscreenMode(value) => {
+                //
+                self.is_fullscreen = *value
+            }
         }
     }
 
@@ -528,5 +535,9 @@ impl GuiState {
 
     pub fn saves_mut(&mut self) -> &mut Vec<PathBuf> {
         &mut self.saves
+    }
+
+    pub fn is_fullscreen(&self) -> bool {
+        self.is_fullscreen
     }
 }

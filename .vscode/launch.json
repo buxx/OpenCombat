@@ -87,6 +87,35 @@
                 "RUST_BACKTRACE": "1"
             }
         },
+        ,
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Server (standalone) Demo2 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_server",
+                    "--package=battle_server",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "battle_server",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "Demo2",
+                "--rep-address",
+                "tcp://0.0.0.0:4255",
+                "--bind-address",
+                "tcp://0.0.0.0:4256"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
         {
             "type": "lldb",
             "request": "launch",
@@ -739,6 +768,45 @@
                 "tcp://0.0.0.0:4256",
                 "--side",
                 "a",
+                "--side-a-control",
+                "W",
+                "--side-a-control",
+                "NW",
+                "--side-a-control",
+                "SW",
+                "--side-b-control",
+                "ALL",
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Gui b Demo2 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=battle_gui",
+                    "--package=battle_gui",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "battle_gui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "Demo2",
+                "assets/demo2_deployment.json",
+                "--server-rep-address",
+                "tcp://0.0.0.0:4255",
+                "--server-bind-address",
+                "tcp://0.0.0.0:4256",
+                "--side",
+                "b",
                 "--side-a-control",
                 "W",
                 "--side-a-control",

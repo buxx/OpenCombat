@@ -14,6 +14,7 @@ use battle_core::{
     types::{Angle, Scale, SoldierIndex, SquadUuid, VehicleIndex, WindowPoint, WorldPoint},
 };
 use ggez::{
+    conf::{FullscreenType, WindowMode},
     graphics::{self, Canvas, DrawParam, Image, InstanceArray, Mesh, MeshBuilder, Rect},
     Context, GameError, GameResult,
 };
@@ -699,6 +700,17 @@ impl Graphics {
         canvas.draw(&self.minimap, DrawParam::new().dest(dest.to_vec2()));
         Ok(())
     }
+}
+
+pub fn fullscreen_mode() -> WindowMode {
+    WindowMode::default().fullscreen_type(FullscreenType::Desktop)
+}
+
+pub fn windowed_mode() -> WindowMode {
+    WindowMode::default()
+        .dimensions(1024., 768.)
+        .maximized(false)
+        .resizable(true)
 }
 
 pub fn create_batch(file_path: &str, ctx: &mut Context) -> GameResult<InstanceArray> {

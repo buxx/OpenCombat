@@ -61,4 +61,5 @@ pub enum GuiStateMessage {
     SetIntroAck(bool),
     SetSavesList(Vec<PathBuf>),
     CenterSceneOn(WorldPoint),
+    SetFullscreenMode(bool),
 }
