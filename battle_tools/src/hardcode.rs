@@ -1,10 +1,12 @@
 use battle_core::{
+    behavior::{Behavior, Body},
     deployment::{Deployment, SoldierDeployment, VehicleDeployment},
     entity::vehicle::{OnBoardPlace, VehicleType},
     game::{
         weapon::{Magazine, Weapon},
         Side,
     },
+    order::Order,
     types::{SoldierIndex, SoldiersOnBoard, SquadUuid, VehicleIndex, WorldPoint},
     utils,
 };
@@ -34,6 +36,8 @@ pub fn demo1_deployment() -> Deployment {
                     Magazine::full(Magazine::MosinNagant(0)),
                     Magazine::full(Magazine::MosinNagant(0)),
                 ],
+                Order::Idle,
+                Behavior::Idle(Body::StandUp),
             );
             soldiers.push(soldier);
             soldiers_index += 1;
@@ -58,6 +62,8 @@ pub fn demo1_deployment() -> Deployment {
                     Magazine::full(Magazine::MosinNagant(0)),
                     Magazine::full(Magazine::MosinNagant(0)),
                 ],
+                Order::Idle,
+                Behavior::Idle(Body::StandUp),
             );
             soldiers.push(soldier);
             soldiers_index += 1;
@@ -79,6 +85,8 @@ pub fn demo1_deployment() -> Deployment {
         SquadUuid(tank1_squad),
         None,
         vec![],
+        Order::Idle,
+        Behavior::Idle(Body::StandUp),
     );
     soldiers.push(tank_driver);
     soldiers_index += 1;
@@ -93,6 +101,8 @@ pub fn demo1_deployment() -> Deployment {
         SquadUuid(tank1_squad),
         None,
         vec![],
+        Order::Idle,
+        Behavior::Idle(Body::StandUp),
     );
     soldiers.push(tank_gunner);
     boards.insert(

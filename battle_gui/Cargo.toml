@@ -12,6 +12,7 @@ hd = []
 oc_core = { path = "../oc_core" }
 battle_core = { path = "../battle_core" }
 battle_server = { path = "../battle_server" }
+battle_tools = { path = "../battle_tools" }
 rayon = "1"
 ggez = "0.9.3"
 glam = { version = "0.22.0", features = ["mint"]}

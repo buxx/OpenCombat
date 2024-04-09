@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
+    behavior::Behavior,
     entity::{
         soldier::Soldier,
         vehicle::{Vehicle, VehicleType},
@@ -12,6 +13,7 @@ use crate::{
         weapon::{Magazine, Weapon},
         Side,
     },
+    order::Order,
     state::battle::BattleState,
     types::{SoldierIndex, SoldiersOnBoard, SquadUuid, VehicleIndex, WorldPoint},
 };
@@ -103,6 +105,8 @@ pub struct SoldierDeployment {
     squad_uuid: SquadUuid,
     main_weapon: Option<Weapon>,
     magazines: Vec<Magazine>,
+    order: Order,
+    behavior: Behavior,
 }
 
 impl SoldierDeployment {
@@ -113,6 +117,8 @@ impl SoldierDeployment {
         squad_uuid: SquadUuid,
         main_weapon: Option<Weapon>,
         magazines: Vec<Magazine>,
+        order: Order,
+        behavior: Behavior,
     ) -> Self {
         Self {
             uuid,
@@ -121,6 +127,8 @@ impl SoldierDeployment {
             squad_uuid,
             main_weapon,
             magazines,
+            order,
+            behavior,
         }
     }
 
@@ -147,6 +155,14 @@ impl SoldierDeployment {
     pub fn magazines(&self) -> &[Magazine] {
         self.magazines.as_ref()
     }
+
+    pub fn order(&self) -> &Order {
+        &self.order
+    }
+
+    pub fn behavior(&self) -> &Behavior {
+        &self.behavior
+    }
 }
 
 impl From<&Soldier> for SoldierDeployment {
@@ -158,6 +174,8 @@ impl From<&Soldier> for SoldierDeployment {
             squad_uuid: soldier.squad_uuid(),
             main_weapon: soldier.main_weapon().clone(),
             magazines: soldier.magazines().clone(),
+            order: soldier.order().clone(),
+            behavior: soldier.behavior().clone(),
         }
     }
 }

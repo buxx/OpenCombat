@@ -38,7 +38,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 1,
@@ -81,7 +85,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 2,
@@ -124,7 +132,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 3,
@@ -167,7 +179,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 4,
@@ -210,7 +226,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 5,
@@ -253,7 +273,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 6,
@@ -296,7 +320,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 7,
@@ -339,7 +367,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 8,
@@ -382,7 +414,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 9,
@@ -425,7 +461,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 10,
@@ -468,7 +508,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 11,
@@ -511,7 +555,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 12,
@@ -554,7 +602,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 13,
@@ -597,7 +649,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 14,
@@ -640,7 +696,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 15,
@@ -683,7 +743,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 16,
@@ -726,7 +790,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 17,
@@ -769,7 +837,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 18,
@@ -812,7 +884,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 19,
@@ -855,7 +931,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 20,
@@ -898,7 +978,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 21,
@@ -941,7 +1025,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 22,
@@ -984,7 +1072,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 23,
@@ -1027,7 +1119,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 24,
@@ -1070,7 +1166,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 25,
@@ -1113,7 +1213,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 26,
@@ -1156,7 +1260,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 27,
@@ -1199,7 +1307,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 28,
@@ -1242,7 +1354,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 29,
@@ -1285,7 +1401,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 30,
@@ -1328,7 +1448,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 31,
@@ -1371,7 +1495,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 32,
@@ -1414,7 +1542,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 33,
@@ -1457,7 +1589,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 34,
@@ -1500,7 +1636,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 35,
@@ -1543,7 +1683,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 36,
@@ -1586,7 +1730,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 37,
@@ -1629,7 +1777,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 38,
@@ -1672,7 +1824,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 39,
@@ -1715,7 +1871,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 40,
@@ -1758,7 +1918,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 41,
@@ -1801,7 +1965,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 42,
@@ -1844,7 +2012,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 43,
@@ -1887,7 +2059,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 44,
@@ -1930,7 +2106,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         }
     ],
     "vehicles": [],

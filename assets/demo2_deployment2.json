@@ -53,7 +53,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 1,
@@ -108,7 +112,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 2,
@@ -163,7 +171,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 3,
@@ -218,7 +230,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 4,
@@ -273,7 +289,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 5,
@@ -328,7 +348,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 6,
@@ -383,7 +407,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 7,
@@ -438,7 +466,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 8,
@@ -493,7 +525,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 9,
@@ -548,7 +584,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 10,
@@ -603,7 +643,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 11,
@@ -658,7 +702,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 12,
@@ -713,7 +761,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 13,
@@ -768,7 +820,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 14,
@@ -823,7 +879,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 15,
@@ -878,7 +938,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 16,
@@ -933,7 +997,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 17,
@@ -988,7 +1056,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 18,
@@ -1043,7 +1115,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 19,
@@ -1098,7 +1174,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 20,
@@ -1153,7 +1233,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 21,
@@ -1208,7 +1292,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 22,
@@ -1263,7 +1351,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 23,
@@ -1318,7 +1410,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 24,
@@ -1373,7 +1469,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 25,
@@ -1428,7 +1528,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 26,
@@ -1483,7 +1587,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 27,
@@ -1538,7 +1646,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 28,
@@ -1593,7 +1705,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 29,
@@ -1648,7 +1764,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 30,
@@ -1703,7 +1823,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 31,
@@ -1758,7 +1882,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 32,
@@ -1813,7 +1941,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 33,
@@ -1868,7 +2000,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 34,
@@ -1923,7 +2059,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 35,
@@ -1978,7 +2118,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 36,
@@ -2033,7 +2177,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 37,
@@ -2088,7 +2236,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 38,
@@ -2143,7 +2295,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 39,
@@ -2198,7 +2354,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 40,
@@ -2253,7 +2413,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 41,
@@ -2308,7 +2472,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 42,
@@ -2363,7 +2531,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 43,
@@ -2418,7 +2590,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 44,
@@ -2473,7 +2649,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 45,
@@ -2528,7 +2708,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 46,
@@ -2583,7 +2767,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 47,
@@ -2638,7 +2826,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 48,
@@ -2693,7 +2885,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 49,
@@ -2748,14 +2944,18 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 50,
             "side": "B",
             "world_point": {
-                "x": 599.8727,
-                "y": 1041.136
+                "x": 605.8147,
+                "y": 1033.9109
             },
             "squad_uuid": 10,
             "main_weapon": {
@@ -2803,120 +3003,16 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 1.8796985
+            },
+            "behavior": {
+                "Defend": 1.8796985
+            }
         },
         {
             "uuid": 51,
-            "side": "B",
-            "world_point": {
-                "x": 612.0,
-                "y": 1037.0
-            },
-            "squad_uuid": 10,
-            "main_weapon": {
-                "MosinNagantM1924": [
-                    false,
-                    {
-                        "MosinNagant": 5
-                    }
-                ]
-            },
-            "magazines": [
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                }
-            ]
-        },
-        {
-            "uuid": 52,
-            "side": "B",
-            "world_point": {
-                "x": 607.0,
-                "y": 1062.0
-            },
-            "squad_uuid": 10,
-            "main_weapon": {
-                "MosinNagantM1924": [
-                    false,
-                    {
-                        "MosinNagant": 5
-                    }
-                ]
-            },
-            "magazines": [
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                }
-            ]
-        },
-        {
-            "uuid": 53,
             "side": "B",
             "world_point": {
                 "x": 617.0,
@@ -2968,14 +3064,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 1.8796985
+            },
+            "behavior": {
+                "Defend": 1.8796985
+            }
         },
         {
-            "uuid": 54,
+            "uuid": 52,
             "side": "B",
             "world_point": {
-                "x": 602.0,
-                "y": 1072.0
+                "x": 612.0,
+                "y": 1052.0
             },
             "squad_uuid": 10,
             "main_weapon": {
@@ -3023,7 +3125,135 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 1.8796985
+            },
+            "behavior": {
+                "Defend": 1.8796985
+            }
+        },
+        {
+            "uuid": 53,
+            "side": "B",
+            "world_point": {
+                "x": 617.0,
+                "y": 1022.0
+            },
+            "squad_uuid": 10,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ],
+            "order": {
+                "Defend": 1.8796985
+            },
+            "behavior": {
+                "Defend": 1.8796985
+            }
+        },
+        {
+            "uuid": 54,
+            "side": "B",
+            "world_point": {
+                "x": 607.0,
+                "y": 1062.0
+            },
+            "squad_uuid": 10,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ],
+            "order": {
+                "Defend": 1.8796985
+            },
+            "behavior": {
+                "Defend": 1.8796985
+            }
         },
         {
             "uuid": 55,
@@ -3078,7 +3308,13 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.7621741
+            },
+            "behavior": {
+                "Hide": 2.7621741
+            }
         },
         {
             "uuid": 56,
@@ -3133,7 +3369,13 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.7621741
+            },
+            "behavior": {
+                "Hide": 2.7621741
+            }
         },
         {
             "uuid": 57,
@@ -3188,7 +3430,13 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.7621741
+            },
+            "behavior": {
+                "Hide": 2.7621741
+            }
         },
         {
             "uuid": 58,
@@ -3243,7 +3491,13 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.7621741
+            },
+            "behavior": {
+                "Hide": 2.7621741
+            }
         },
         {
             "uuid": 59,
@@ -3298,7 +3552,13 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.7621741
+            },
+            "behavior": {
+                "Hide": 2.7621741
+            }
         },
         {
             "uuid": 60,
@@ -3353,14 +3613,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 3.4125795
+            },
+            "behavior": {
+                "Hide": 3.4125795
+            }
         },
         {
             "uuid": 61,
             "side": "B",
             "world_point": {
-                "x": 1782.0,
-                "y": 132.0
+                "x": 1762.0,
+                "y": 137.0
             },
             "squad_uuid": 12,
             "main_weapon": {
@@ -3408,67 +3674,18 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 3.4125795
+            },
+            "behavior": {
+                "Hide": 3.4125795
+            }
         },
         {
             "uuid": 62,
             "side": "B",
             "world_point": {
-                "x": 1767.0,
-                "y": 137.0
-            },
-            "squad_uuid": 12,
-            "main_weapon": {
-                "MosinNagantM1924": [
-                    false,
-                    {
-                        "MosinNagant": 5
-                    }
-                ]
-            },
-            "magazines": [
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                }
-            ]
-        },
-        {
-            "uuid": 63,
-            "side": "B",
-            "world_point": {
                 "x": 1782.0,
                 "y": 137.0
             },
@@ -3518,13 +3735,80 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 3.4125795
+            },
+            "behavior": {
+                "Hide": 3.4125795
+            }
+        },
+        {
+            "uuid": 63,
+            "side": "B",
+            "world_point": {
+                "x": 1752.0,
+                "y": 137.0
+            },
+            "squad_uuid": 12,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ],
+            "order": {
+                "Hide": 3.4125795
+            },
+            "behavior": {
+                "Hide": 3.4125795
+            }
         },
         {
             "uuid": 64,
             "side": "B",
             "world_point": {
-                "x": 1752.0,
+                "x": 1782.0,
                 "y": 132.0
             },
             "squad_uuid": 12,
@@ -3573,14 +3857,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 3.4125795
+            },
+            "behavior": {
+                "Hide": 3.4125795
+            }
         },
         {
             "uuid": 65,
             "side": "B",
             "world_point": {
-                "x": 1206.9055,
-                "y": 1091.1763
+                "x": 1133.8303,
+                "y": 1093.7756
             },
             "squad_uuid": 13,
             "main_weapon": {
@@ -3628,13 +3918,19 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 2.3620317
+            },
+            "behavior": {
+                "Defend": 2.3620317
+            }
         },
         {
             "uuid": 66,
             "side": "B",
             "world_point": {
-                "x": 1207.0,
+                "x": 1152.0,
                 "y": 1102.0
             },
             "squad_uuid": 13,
@@ -3683,14 +3979,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 2.3620317
+            },
+            "behavior": {
+                "Defend": 2.3620317
+            }
         },
         {
             "uuid": 67,
             "side": "B",
             "world_point": {
-                "x": 1222.0,
-                "y": 1102.0
+                "x": 1132.0,
+                "y": 1107.0
             },
             "squad_uuid": 13,
             "main_weapon": {
@@ -3738,14 +4040,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 2.3620317
+            },
+            "behavior": {
+                "Defend": 2.3620317
+            }
         },
         {
             "uuid": 68,
             "side": "B",
             "world_point": {
-                "x": 1197.0,
-                "y": 1102.0
+                "x": 1162.0,
+                "y": 1097.0
             },
             "squad_uuid": 13,
             "main_weapon": {
@@ -3793,14 +4101,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 2.3620317
+            },
+            "behavior": {
+                "Defend": 2.3620317
+            }
         },
         {
             "uuid": 69,
             "side": "B",
             "world_point": {
-                "x": 1227.0,
-                "y": 1102.0
+                "x": 1122.0,
+                "y": 1107.0
             },
             "squad_uuid": 13,
             "main_weapon": {
@@ -3848,14 +4162,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 2.3620317
+            },
+            "behavior": {
+                "Defend": 2.3620317
+            }
         },
         {
             "uuid": 70,
             "side": "B",
             "world_point": {
-                "x": 313.69177,
-                "y": 1883.5397
+                "x": 420.1945,
+                "y": 1897.129
             },
             "squad_uuid": 14,
             "main_weapon": {
@@ -3903,14 +4223,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 1.659724
+            },
+            "behavior": {
+                "Hide": 1.659724
+            }
         },
         {
             "uuid": 71,
             "side": "B",
             "world_point": {
-                "x": 312.0,
-                "y": 1892.0
+                "x": 427.0,
+                "y": 1877.0
             },
             "squad_uuid": 14,
             "main_weapon": {
@@ -3958,14 +4284,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 1.659724
+            },
+            "behavior": {
+                "Hide": 1.659724
+            }
         },
         {
             "uuid": 72,
             "side": "B",
             "world_point": {
-                "x": 327.0,
-                "y": 1882.0
+                "x": 422.0,
+                "y": 1917.0
             },
             "squad_uuid": 14,
             "main_weapon": {
@@ -4013,14 +4345,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 1.659724
+            },
+            "behavior": {
+                "Hide": 1.659724
+            }
         },
         {
             "uuid": 73,
             "side": "B",
             "world_point": {
-                "x": 302.0,
-                "y": 1872.0
+                "x": 422.0,
+                "y": 1887.0
             },
             "squad_uuid": 14,
             "main_weapon": {
@@ -4068,14 +4406,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 1.659724
+            },
+            "behavior": {
+                "Hide": 1.659724
+            }
         },
         {
             "uuid": 74,
             "side": "B",
             "world_point": {
-                "x": 342.0,
-                "y": 1867.0
+                "x": 412.0,
+                "y": 1922.0
             },
             "squad_uuid": 14,
             "main_weapon": {
@@ -4123,14 +4467,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 1.659724
+            },
+            "behavior": {
+                "Hide": 1.659724
+            }
         },
         {
             "uuid": 75,
             "side": "B",
             "world_point": {
-                "x": 458.44464,
-                "y": 1169.4175
+                "x": 453.12903,
+                "y": 1173.9662
             },
             "squad_uuid": 15,
             "main_weapon": {
@@ -4178,10 +4528,138 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 1.9120651
+            },
+            "behavior": {
+                "Defend": 1.9120651
+            }
         },
         {
             "uuid": 76,
+            "side": "B",
+            "world_point": {
+                "x": 467.0,
+                "y": 1172.0
+            },
+            "squad_uuid": 15,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ],
+            "order": {
+                "Defend": 1.9120651
+            },
+            "behavior": {
+                "Defend": 1.9120651
+            }
+        },
+        {
+            "uuid": 77,
+            "side": "B",
+            "world_point": {
+                "x": 432.0,
+                "y": 1192.0
+            },
+            "squad_uuid": 15,
+            "main_weapon": {
+                "MosinNagantM1924": [
+                    false,
+                    {
+                        "MosinNagant": 5
+                    }
+                ]
+            },
+            "magazines": [
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                },
+                {
+                    "MosinNagant": 5
+                }
+            ],
+            "order": {
+                "Defend": 1.9120651
+            },
+            "behavior": {
+                "Defend": 1.9120651
+            }
+        },
+        {
+            "uuid": 78,
             "side": "B",
             "world_point": {
                 "x": 467.0,
@@ -4233,123 +4711,19 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
-        },
-        {
-            "uuid": 77,
-            "side": "B",
-            "world_point": {
-                "x": 467.0,
-                "y": 1187.0
+            ],
+            "order": {
+                "Defend": 1.9120651
             },
-            "squad_uuid": 15,
-            "main_weapon": {
-                "MosinNagantM1924": [
-                    false,
-                    {
-                        "MosinNagant": 5
-                    }
-                ]
-            },
-            "magazines": [
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                }
-            ]
-        },
-        {
-            "uuid": 78,
-            "side": "B",
-            "world_point": {
-                "x": 467.0,
-                "y": 1162.0
-            },
-            "squad_uuid": 15,
-            "main_weapon": {
-                "MosinNagantM1924": [
-                    false,
-                    {
-                        "MosinNagant": 5
-                    }
-                ]
-            },
-            "magazines": [
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                },
-                {
-                    "MosinNagant": 5
-                }
-            ]
+            "behavior": {
+                "Defend": 1.9120651
+            }
         },
         {
             "uuid": 79,
             "side": "B",
             "world_point": {
-                "x": 462.0,
+                "x": 457.0,
                 "y": 1197.0
             },
             "squad_uuid": 15,
@@ -4398,14 +4772,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 1.9120651
+            },
+            "behavior": {
+                "Defend": 1.9120651
+            }
         },
         {
             "uuid": 80,
             "side": "B",
             "world_point": {
-                "x": 963.70087,
-                "y": 1298.3745
+                "x": 911.672,
+                "y": 1307.1436
             },
             "squad_uuid": 16,
             "main_weapon": {
@@ -4453,13 +4833,19 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.6727533
+            },
+            "behavior": {
+                "Hide": 2.6727533
+            }
         },
         {
             "uuid": 81,
             "side": "B",
             "world_point": {
-                "x": 962.0,
+                "x": 912.0,
                 "y": 1307.0
             },
             "squad_uuid": 16,
@@ -4508,14 +4894,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.6727533
+            },
+            "behavior": {
+                "Hide": 2.6727533
+            }
         },
         {
             "uuid": 82,
             "side": "B",
             "world_point": {
-                "x": 982.0,
-                "y": 1307.0
+                "x": 932.0,
+                "y": 1312.0
             },
             "squad_uuid": 16,
             "main_weapon": {
@@ -4563,13 +4955,19 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.6727533
+            },
+            "behavior": {
+                "Hide": 2.6727533
+            }
         },
         {
             "uuid": 83,
             "side": "B",
             "world_point": {
-                "x": 952.0,
+                "x": 902.0,
                 "y": 1307.0
             },
             "squad_uuid": 16,
@@ -4618,14 +5016,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.6727533
+            },
+            "behavior": {
+                "Hide": 2.6727533
+            }
         },
         {
             "uuid": 84,
             "side": "B",
             "world_point": {
-                "x": 992.0,
-                "y": 1307.0
+                "x": 942.0,
+                "y": 1312.0
             },
             "squad_uuid": 16,
             "main_weapon": {
@@ -4673,14 +5077,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.6727533
+            },
+            "behavior": {
+                "Hide": 2.6727533
+            }
         },
         {
             "uuid": 85,
             "side": "B",
             "world_point": {
-                "x": 1202.3314,
-                "y": 343.883
+                "x": 1265.9764,
+                "y": 461.27216
             },
             "squad_uuid": 17,
             "main_weapon": {
@@ -4728,14 +5138,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.49266
+            },
+            "behavior": {
+                "Hide": 2.49266
+            }
         },
         {
             "uuid": 86,
             "side": "B",
             "world_point": {
-                "x": 1202.0,
-                "y": 337.0
+                "x": 1277.0,
+                "y": 452.0
             },
             "squad_uuid": 17,
             "main_weapon": {
@@ -4783,14 +5199,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.49266
+            },
+            "behavior": {
+                "Hide": 2.49266
+            }
         },
         {
             "uuid": 87,
             "side": "B",
             "world_point": {
-                "x": 1212.0,
-                "y": 327.0
+                "x": 1252.0,
+                "y": 472.0
             },
             "squad_uuid": 17,
             "main_weapon": {
@@ -4838,14 +5260,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.49266
+            },
+            "behavior": {
+                "Hide": 2.49266
+            }
         },
         {
             "uuid": 88,
             "side": "B",
             "world_point": {
-                "x": 1172.0,
-                "y": 337.0
+                "x": 1292.0,
+                "y": 457.0
             },
             "squad_uuid": 17,
             "main_weapon": {
@@ -4893,14 +5321,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.49266
+            },
+            "behavior": {
+                "Hide": 2.49266
+            }
         },
         {
             "uuid": 89,
             "side": "B",
             "world_point": {
-                "x": 1212.0,
-                "y": 332.0
+                "x": 1252.0,
+                "y": 467.0
             },
             "squad_uuid": 17,
             "main_weapon": {
@@ -4948,7 +5382,13 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.49266
+            },
+            "behavior": {
+                "Hide": 2.49266
+            }
         },
         {
             "uuid": 90,
@@ -5003,7 +5443,13 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 2.6792808
+            },
+            "behavior": {
+                "Defend": 2.6792808
+            }
         },
         {
             "uuid": 91,
@@ -5058,14 +5504,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 2.6792808
+            },
+            "behavior": {
+                "Defend": 2.6792808
+            }
         },
         {
             "uuid": 92,
             "side": "B",
             "world_point": {
-                "x": 902.0,
-                "y": 1012.0
+                "x": 917.0,
+                "y": 1007.0
             },
             "squad_uuid": 18,
             "main_weapon": {
@@ -5113,14 +5565,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 2.6792808
+            },
+            "behavior": {
+                "Defend": 2.6792808
+            }
         },
         {
             "uuid": 93,
             "side": "B",
             "world_point": {
-                "x": 917.0,
-                "y": 992.0
+                "x": 887.0,
+                "y": 1007.0
             },
             "squad_uuid": 18,
             "main_weapon": {
@@ -5168,14 +5626,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 2.6792808
+            },
+            "behavior": {
+                "Defend": 2.6792808
+            }
         },
         {
             "uuid": 94,
             "side": "B",
             "world_point": {
-                "x": 897.0,
-                "y": 1012.0
+                "x": 917.0,
+                "y": 1002.0
             },
             "squad_uuid": 18,
             "main_weapon": {
@@ -5223,14 +5687,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Defend": 2.6792808
+            },
+            "behavior": {
+                "Defend": 2.6792808
+            }
         },
         {
             "uuid": 95,
             "side": "B",
             "world_point": {
-                "x": 198.19727,
-                "y": 1410.312
+                "x": 185.92987,
+                "y": 1407.1772
             },
             "squad_uuid": 19,
             "main_weapon": {
@@ -5278,13 +5748,19 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.530449
+            },
+            "behavior": {
+                "Hide": 2.530449
+            }
         },
         {
             "uuid": 96,
             "side": "B",
             "world_point": {
-                "x": 217.0,
+                "x": 202.0,
                 "y": 1412.0
             },
             "squad_uuid": 19,
@@ -5333,14 +5809,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.530449
+            },
+            "behavior": {
+                "Hide": 2.530449
+            }
         },
         {
             "uuid": 97,
             "side": "B",
             "world_point": {
-                "x": 197.0,
-                "y": 1427.0
+                "x": 187.0,
+                "y": 1422.0
             },
             "squad_uuid": 19,
             "main_weapon": {
@@ -5388,13 +5870,19 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.530449
+            },
+            "behavior": {
+                "Hide": 2.530449
+            }
         },
         {
             "uuid": 98,
             "side": "B",
             "world_point": {
-                "x": 227.0,
+                "x": 212.0,
                 "y": 1407.0
             },
             "squad_uuid": 19,
@@ -5443,14 +5931,20 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.530449
+            },
+            "behavior": {
+                "Hide": 2.530449
+            }
         },
         {
             "uuid": 99,
             "side": "B",
             "world_point": {
-                "x": 192.0,
-                "y": 1432.0
+                "x": 177.0,
+                "y": 1427.0
             },
             "squad_uuid": 19,
             "main_weapon": {
@@ -5498,7 +5992,13 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": {
+                "Hide": 2.530449
+            },
+            "behavior": {
+                "Hide": 2.530449
+            }
         },
         {
             "uuid": 100,
@@ -5553,7 +6053,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 101,
@@ -5608,7 +6112,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 102,
@@ -5663,7 +6171,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 103,
@@ -5718,7 +6230,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 104,
@@ -5773,7 +6289,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 105,
@@ -5828,7 +6348,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 106,
@@ -5883,7 +6407,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 107,
@@ -5938,7 +6466,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 108,
@@ -5993,7 +6525,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 109,
@@ -6048,7 +6584,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 110,
@@ -6103,7 +6643,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 111,
@@ -6158,7 +6702,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 112,
@@ -6213,7 +6761,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 113,
@@ -6268,7 +6820,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 114,
@@ -6323,7 +6879,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 115,
@@ -6378,7 +6938,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 116,
@@ -6433,7 +6997,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 117,
@@ -6488,7 +7056,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 118,
@@ -6543,7 +7115,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 119,
@@ -6598,7 +7174,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         }
     ],
     "vehicles": [],

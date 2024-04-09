@@ -502,6 +502,7 @@ dependencies = [
  "anyhow",
  "battle_core",
  "battle_server",
+ "battle_tools",
  "bincode",
  "crossbeam-channel",
  "geo",

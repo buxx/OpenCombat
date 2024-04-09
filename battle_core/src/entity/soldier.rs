@@ -299,15 +299,18 @@ impl Soldier {
 }
 
 impl From<&SoldierDeployment> for Soldier {
-    fn from(soldier: &SoldierDeployment) -> Self {
-        Self::new(
-            soldier.uuid(),
-            soldier.world_point(),
-            soldier.squad_uuid(),
-            soldier.side(),
-            soldier.main_weapon().cloned(),
-            soldier.magazines().to_vec(),
-        )
+    fn from(deployment: &SoldierDeployment) -> Self {
+        let mut soldier = Self::new(
+            deployment.uuid(),
+            deployment.world_point(),
+            deployment.squad_uuid(),
+            deployment.side(),
+            deployment.main_weapon().cloned(),
+            deployment.magazines().to_vec(),
+        );
+        soldier.order = deployment.order().clone();
+        soldier.behavior = deployment.behavior().clone();
+        soldier
     }
 }
 

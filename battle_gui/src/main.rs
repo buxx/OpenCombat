@@ -19,6 +19,7 @@ use battle_core::state::battle::builder::BattleStateBuilder;
 use battle_core::state::battle::builder::BattleStateBuilderError;
 use battle_core::state::battle::message::BattleStateMessage;
 use battle_core::utils::start_puffin_server;
+use battle_tools::hardcode::demo1_deployment;
 use crossbeam_channel::unbounded;
 use crossbeam_channel::SendError;
 use ggez::event;

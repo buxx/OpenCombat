@@ -23,7 +23,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 1,
@@ -48,7 +52,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 2,
@@ -73,7 +81,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 3,
@@ -98,7 +110,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 4,
@@ -123,7 +139,11 @@
                 {
                     "MosinNagant": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 5,
@@ -148,7 +168,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 6,
@@ -173,7 +197,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 7,
@@ -198,7 +226,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 8,
@@ -223,7 +255,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         },
         {
             "uuid": 9,
@@ -248,7 +284,11 @@
                 {
                     "Mauser": 5
                 }
-            ]
+            ],
+            "order": "Idle",
+            "behavior": {
+                "Idle": "StandUp"
+            }
         }
     ],
     "vehicles": [],
