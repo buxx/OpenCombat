@@ -5,6 +5,7 @@ pub enum HudEvent {
     RequestBeginBattle,
     RequestEndBattle,
     SelectSquad(SquadUuid),
+    CenterMapOnSquad(SquadUuid),
     SelectSoldier(SoldierIndex),
     CenterMapOn(WorldPoint),
 }

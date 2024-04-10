@@ -1,4 +1,4 @@
-use battle_core::types::{Offset, WindowPoint, WorldPoint};
+use battle_core::types::{Offset, SquadUuid, WindowPoint, WorldPoint};
 use ggegui::egui::Vec2;
 use ggez::{
     graphics::{
@@ -28,6 +28,7 @@ pub struct Minimap {
     zoom: Zoom,
     blue_positions: Vec<WorldPoint>,
     red_positions: Vec<WorldPoint>,
+    selected_squads: Vec<WorldPoint>,
 }
 
 impl Minimap {
@@ -39,6 +40,7 @@ impl Minimap {
         zoom: Zoom,
         blue_positions: Vec<WorldPoint>,
         red_positions: Vec<WorldPoint>,
+        selected_squads: Vec<WorldPoint>,
     ) -> Self {
         Self {
             point,
@@ -48,6 +50,7 @@ impl Minimap {
             zoom,
             blue_positions,
             red_positions,
+            selected_squads,
         }
     }
 
@@ -90,10 +93,11 @@ impl Minimap {
 
     pub fn draw_squads(&self, ctx: &Context, mesh_builder: &mut MeshBuilder) -> GameResult {
         for position in &self.blue_positions {
-            self.draw_side_squads(ctx, mesh_builder, position, Color::BLUE)?
+            let stroke = self.selected_squads.contains(position);
+            self.draw_side_squads(ctx, mesh_builder, position, Color::BLUE, stroke)?
         }
         for position in &self.red_positions {
-            self.draw_side_squads(ctx, mesh_builder, position, Color::RED)?
+            self.draw_side_squads(ctx, mesh_builder, position, Color::RED, false)?
         }
 
         Ok(())
@@ -105,6 +109,7 @@ impl Minimap {
         mesh_builder: &mut MeshBuilder,
         position: &WorldPoint,
         color: Color,
+        stroke: bool,
     ) -> GameResult {
         let relative_point =
             Vec2::new(position.x, position.y) / Vec2::new(self.map_width, self.map_height);
@@ -124,6 +129,19 @@ impl Minimap {
             ),
             color,
         )?;
+
+        if stroke {
+            mesh_builder.rectangle(
+                DrawMode::Stroke(StrokeOptions::DEFAULT),
+                Rect::new(
+                    point.x - SQUAD_SQUARE_SIZE / 2.,
+                    point.y - SQUAD_SQUARE_SIZE / 2.,
+                    SQUAD_SQUARE_SIZE,
+                    SQUAD_SQUARE_SIZE,
+                ),
+                Color::GREEN,
+            )?;
+        }
 
         Ok(())
     }

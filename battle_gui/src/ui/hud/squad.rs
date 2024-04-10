@@ -228,7 +228,12 @@ impl Component<HudEvent> for SquadStatuses {
                 && mouse_position.y >= draw_card.dest.y
                 && mouse_position.y <= draw_card.dest.y + SQUAD_CARD_HEIGHT
             {
-                return Some(HudEvent::SelectSquad(*draw_card.squad_status.squad_id()));
+                let squad_id = draw_card.squad_status.squad_id();
+                if self.selected_squads.contains(squad_id) {
+                    return Some(HudEvent::CenterMapOnSquad(*squad_id));
+                } else {
+                    return Some(HudEvent::SelectSquad(*squad_id));
+                }
             }
         }
 

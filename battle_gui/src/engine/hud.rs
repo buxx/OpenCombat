@@ -23,6 +23,7 @@ impl Engine {
                 ))]
             }
             HudEvent::SelectSoldier(soldier_index) => self.select_soldier(&soldier_index),
+            HudEvent::CenterMapOnSquad(squad_id) => self.center_screen_on_squad(&squad_id),
         }
     }
 
@@ -44,6 +45,14 @@ impl Engine {
         vec![EngineMessage::GuiState(GuiStateMessage::SetSelectedSquads(
             Some(self.battle_state.squad(*squad_id).leader()),
             vec![*squad_id],
+        ))]
+    }
+
+    pub fn center_screen_on_squad(&self, squad_id: &SquadUuid) -> Vec<EngineMessage> {
+        let squad = self.battle_state.squad(*squad_id);
+        let leader = self.battle_state.soldier(squad.leader());
+        vec![EngineMessage::GuiState(GuiStateMessage::CenterSceneOn(
+            leader.world_point(),
         ))]
     }
 

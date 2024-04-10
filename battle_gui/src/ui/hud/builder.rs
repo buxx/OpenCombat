@@ -148,6 +148,16 @@ impl<'a> HudBuilder<'a> {
             })
             .map(|s| s.world_point())
             .collect();
+        let selected_squads = self
+            .gui_state
+            .selected_squads()
+            .1
+            .clone()
+            .iter()
+            .map(|i| self.battle_state.squad(*i))
+            .map(|s| self.battle_state.soldier(s.leader()))
+            .map(|s| s.world_point())
+            .collect();
         Minimap::new(
             *point,
             self.battle_state.map().visual_width() as f32,
@@ -156,6 +166,7 @@ impl<'a> HudBuilder<'a> {
             self.gui_state.zoom.clone(),
             blue_positions,
             red_positions,
+            selected_squads,
         )
     }
 }
