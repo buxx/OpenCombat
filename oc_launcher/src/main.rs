@@ -45,6 +45,7 @@ impl eframe::App for Launcher {
                 ui.hyperlink_to("📄 Official website", "https://opencombat.bux.fr");
                 ui.hyperlink_to("🖮 Discord", "https://discord.gg/6P2vtFh2Px");
                 ui.hyperlink_to(" Github", "https://github.com/buxx/OpenCombat");
+                ui.hyperlink_to("📄 Manual", "https://github.com/buxx/OpenCombat/blob/master/doc/player/index.md");
             });
             ui.separator();
 
