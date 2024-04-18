@@ -108,7 +108,8 @@ impl BattleLauncher {
             .arg(server_bind_address)
             .arg(side)
             .args(side_a_control)
-            .args(side_b_control);
+            .args(side_b_control)
+            .arg("--init-sync");
 
         let command_line = format!("{:?}", command);
         command
