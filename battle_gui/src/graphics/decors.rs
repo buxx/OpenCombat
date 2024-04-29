@@ -7,6 +7,7 @@ use ggez::{
     graphics::{DrawParam, Image, InstanceArray, Rect},
     Context, GameError, GameResult,
 };
+use glam::Vec2;
 
 use crate::utils::qualified::ToQualified;
 
@@ -113,6 +114,7 @@ impl<'a> DecorsBuilder<'a> {
             map_decor_batches.push(batch);
         }
 
+        let decor_offset = self.map.decor().offset().to_vec2();
         for tile in self.map.decor().tiles() {
             let decor_batch = map_decor_batches
                 .get_mut(tile.tileset_i)
@@ -125,8 +127,9 @@ impl<'a> DecorsBuilder<'a> {
             // Destination computation refer to terrain grid (map.terrain.tileset)
             let dest_x = tile.x as f32 * self.map.tile_width() as f32;
             let dest_y = (tile.y as f32 * self.map.tile_height() as f32) - dest_decal;
-            let dest_point = WorldPoint::new(dest_x, dest_y);
-            let dest_point = dest_point.apply(-self.map.decor().offset().to_vec2());
+            let dest_x = dest_x - decor_offset.x;
+            let dest_y = dest_y - decor_offset.y;
+            let dest_point = WorldPoint::new(dest_x + decor_offset.x, dest_y - decor_offset.y);
             let dest = ScenePoint::new(dest_x, dest_y).to_vec2() * zoom.factor();
 
             if match &self.rule {
