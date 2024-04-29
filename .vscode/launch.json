@@ -87,7 +87,6 @@
                 "RUST_BACKTRACE": "1"
             }
         },
-        ,
         {
             "type": "lldb",
             "request": "launch",

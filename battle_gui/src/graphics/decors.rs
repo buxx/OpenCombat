@@ -126,6 +126,7 @@ impl<'a> DecorsBuilder<'a> {
             let dest_x = tile.x as f32 * self.map.tile_width() as f32;
             let dest_y = (tile.y as f32 * self.map.tile_height() as f32) - dest_decal;
             let dest_point = WorldPoint::new(dest_x, dest_y);
+            let dest_point = dest_point.apply(-self.map.decor().offset().to_vec2());
             let dest = ScenePoint::new(dest_x, dest_y).to_vec2() * zoom.factor();
 
             if match &self.rule {
