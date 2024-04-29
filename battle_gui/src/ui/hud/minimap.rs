@@ -1,4 +1,4 @@
-use battle_core::types::{Offset, SquadUuid, WindowPoint, WorldPoint};
+use battle_core::types::{Offset, WindowPoint, WorldPoint};
 use ggegui::egui::Vec2;
 use ggez::{
     graphics::{

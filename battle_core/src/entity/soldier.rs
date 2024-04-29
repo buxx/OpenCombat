@@ -5,7 +5,7 @@ use crate::{
         weapon::{Magazine, Weapon},
         Side,
     },
-    graphics::{soldier::SoldierAnimationType, weapon::WeaponAnimationType, Sprite},
+    graphics::{soldier::SoldierAnimationType, weapon::WeaponAnimationType},
     order::Order,
     types::*,
 };

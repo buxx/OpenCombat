@@ -15,7 +15,7 @@ impl<'a> BattleSavesListBuilder<'a> {
     pub fn build(&self) -> Result<Vec<PathBuf>, BattleSavesListBuilderError> {
         let mut saves = vec![];
 
-        for file in (fs::read_dir(&Resources::new()?.battle_saves_abs(self.map_name))?).flatten() {
+        for file in (fs::read_dir(Resources::new()?.battle_saves_abs(self.map_name))?).flatten() {
             saves.push(file.path())
         }
 

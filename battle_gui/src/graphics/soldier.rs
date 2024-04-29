@@ -1,8 +1,6 @@
 use battle_core::{
-    behavior::{Behavior, Body},
     config::{SOLDIER_SELECTABLE_SQUARE_SIDE, SOLDIER_SELECTABLE_SQUARE_SIDE_HALF},
     entity::soldier::Soldier,
-    graphics::{soldier::SoldierAnimationType, weapon::WeaponAnimationType, Sprite},
 };
 use ggez::graphics::Rect;
 use keyframe::AnimationSequence;

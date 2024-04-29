@@ -44,7 +44,7 @@ pub fn vehicle_board_from_soldiers_on_board(soldier_on_board: &SoldiersOnBoard) 
     for (soldier_index, (vehicle_index, place)) in soldier_on_board {
         vehicle_board
             .entry(*vehicle_index)
-            .or_insert(vec![])
+            .or_default()
             .push((place.clone(), *soldier_index));
     }
     vehicle_board

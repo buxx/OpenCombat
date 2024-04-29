@@ -79,8 +79,7 @@ impl Runner {
 
         let soldier = self.battle_state.soldier(soldier.uuid());
         if soldier.can_produce_sound() {
-            let pick_from = vec![
-                Sound::MaleScreaming1,
+            let pick_from = [Sound::MaleScreaming1,
                 Sound::MaleScreaming2,
                 Sound::MaleScreaming3,
                 Sound::MaleScreaming4,
@@ -92,8 +91,7 @@ impl Runner {
                 Sound::MaleDie5,
                 Sound::MaleDie6,
                 Sound::MaleDie7,
-                Sound::MaleDie8,
-            ];
+                Sound::MaleDie8];
             messages.push(RunnerMessage::ClientsState(
                 ClientStateMessage::PlayBattleSound(
                     *pick_from
@@ -114,18 +112,14 @@ impl Runner {
 
         let soldier = self.battle_state.soldier(soldier.uuid());
         if soldier.can_produce_sound() {
-            let pick_from = vec![
-                // NOTE : die sounds like injured for now
-                Sound::MaleDie1,
+            let pick_from = [Sound::MaleDie1,
                 Sound::MaleDie2,
                 Sound::MaleDie3,
                 Sound::MaleDie4,
                 Sound::MaleDie5,
                 Sound::MaleDie6,
                 Sound::MaleDie7,
-                Sound::MaleDie8,
-                // TODO (bullet flesh impact)
-            ];
+                Sound::MaleDie8];
             messages.push(RunnerMessage::ClientsState(
                 ClientStateMessage::PlayBattleSound(
                     *pick_from
@@ -140,13 +134,10 @@ impl Runner {
 
     pub fn covered_bullet_effects(&self, soldier: &Soldier) -> Vec<RunnerMessage> {
         puffin::profile_scope!("covered_bullet_effects", soldier.uuid().to_string());
-        let pick_from = vec![
-            // TODO : sound according to tile type
-            Sound::BulletMetalImpact1,
+        let pick_from = [Sound::BulletMetalImpact1,
             Sound::BulletTrunkImpact1,
             Sound::BulletWallImpact1,
-            Sound::BulletGroundImpact1,
-        ];
+            Sound::BulletGroundImpact1];
         vec![RunnerMessage::ClientsState(
             ClientStateMessage::PlayBattleSound(
                 *pick_from

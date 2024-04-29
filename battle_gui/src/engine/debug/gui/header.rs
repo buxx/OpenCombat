@@ -72,8 +72,7 @@ impl Engine {
         ui.horizontal(|ui| {
             ui.label("Cursor physics");
             ui.horizontal(|ui| {
-                let changes = vec![
-                    ui.radio_value(self.gui_state.debug_physics_mut(), DebugPhysics::None, "No")
+                let changes = [ui.radio_value(self.gui_state.debug_physics_mut(), DebugPhysics::None, "No")
                         .changed(),
                     ui.radio_value(
                         self.gui_state.debug_physics_mut(),
@@ -86,8 +85,7 @@ impl Engine {
                         DebugPhysics::BrandtMle2731Shelling,
                         "BrandtMle2731",
                     )
-                    .changed(),
-                ];
+                    .changed()];
 
                 if changes.iter().any(|v| *v) {
                     messages.extend(vec![EngineMessage::GuiState(GuiStateMessage::SetControl(

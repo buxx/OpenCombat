@@ -84,7 +84,7 @@ impl Graphics {
             (soldier_src_end_rect, duration)
         ];
 
-        let weapon_animation_sequence = if let Some(weapon) = soldier.weapon(&WeaponClass::Main) {
+        let weapon_animation_sequence = if let Some(_weapon) = soldier.weapon(&WeaponClass::Main) {
             // FIXME : weapon Y (current Side in src_y function ...)
             let weapon_src_rect_start = TweenableRect::new(
                 weapon_animation_type.src_x_start(),

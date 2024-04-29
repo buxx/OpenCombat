@@ -129,6 +129,8 @@ pub mod test {
 
     #[cfg(test)]
     fn map(spawn_zones: Vec<SpawnZone>, flags: Vec<Flag>) -> Map {
+        use crate::types::Offset;
+
         Map::new(
             "TestMap".to_string(),
             PathBuf::from("."),
@@ -141,7 +143,7 @@ pub mod test {
             vec![],
             1,
             1,
-            Decor::new(vec![], vec![]),
+            Decor::new(vec![], vec![], Offset::new(0., 0.)),
             flags,
         )
     }

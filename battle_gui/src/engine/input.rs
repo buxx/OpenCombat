@@ -5,7 +5,7 @@ use battle_core::{
     types::{Offset, WindowPoint},
 };
 use ggez::{
-    conf::WindowMode, event::MouseButton, graphics, input::keyboard::KeyInput,
+    event::MouseButton, input::keyboard::KeyInput,
     winit::event::VirtualKeyCode, Context,
 };
 

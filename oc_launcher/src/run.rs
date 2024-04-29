@@ -1,6 +1,6 @@
 use std::{env::current_exe, path::PathBuf, process::Command};
 
-use anyhow::{Context, Error, Result};
+use anyhow::{Context, Result};
 
 pub struct BattleLauncher {
     executable_path: PathBuf,

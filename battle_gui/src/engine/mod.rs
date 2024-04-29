@@ -90,7 +90,7 @@ impl Engine {
         gui_state.set_saves(
             BattleSavesListBuilder::new(battle_state.map().name())
                 .build()
-                .unwrap_or(vec![]),
+                .unwrap_or_default(),
         );
 
         let hud = HudBuilder::new(&gui_state, &battle_state).build(ctx);

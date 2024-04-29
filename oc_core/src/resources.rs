@@ -25,7 +25,8 @@ impl Resources {
     }
 
     pub fn ensure(self) -> Result<Self, ResourcesError> {
-        for path in vec![self.cache_abs()] {
+        {
+            let path = self.cache_abs();
             path.ensure()?;
         }
 
