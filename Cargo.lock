@@ -1475,6 +1475,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 
 [[package]]
+name = "examples"
+version = "0.1.0"
+dependencies = [
+ "battle_core",
+ "battle_gui",
+ "battle_server",
+ "battle_tools",
+ "oc_core",
+]
+
+[[package]]
 name = "exr"
 version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
