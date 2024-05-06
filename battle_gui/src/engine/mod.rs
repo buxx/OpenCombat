@@ -24,6 +24,7 @@ use crate::ui::hud::painter::HudPainter;
 use crate::ui::hud::{Hud, HUD_HEIGHT};
 
 use self::debug::gui::state::DebugGuiState;
+use self::message::EngineMessage;
 use self::state::GuiState;
 
 pub mod debug;
@@ -85,6 +86,7 @@ impl Engine {
         stop_required: Arc<AtomicBool>,
         a_control: MapControl,
         b_control: MapControl,
+        apply: Vec<EngineMessage>,
     ) -> GameResult<Engine> {
         let mut gui_state = GuiState::new(*side, battle_state.map());
         gui_state.set_saves(
@@ -94,7 +96,7 @@ impl Engine {
         );
 
         let hud = HudBuilder::new(&gui_state, &battle_state).build(ctx);
-        let engine = Engine {
+        let mut engine = Engine {
             config,
             server_config,
             graphics,
@@ -111,6 +113,8 @@ impl Engine {
             a_control,
             b_control,
         };
+        engine.react(apply, ctx)?;
+
         Ok(engine)
     }
 }

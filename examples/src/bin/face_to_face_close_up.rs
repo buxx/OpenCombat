@@ -64,6 +64,7 @@ fn main() -> Result<(), RunnerError> {
     Runner::new(map)
         .expire(Some(60 * 60))
         .deployment(deployment)
+        .begin(true)
         .run()?;
 
     Ok(())

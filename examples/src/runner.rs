@@ -3,9 +3,11 @@ use battle_core::{
     deployment::Deployment,
     game::{control::MapControl, Side},
     map::Map,
-    state::battle::BattleState,
+    message::InputMessage,
+    state::battle::{message::BattleStateMessage, BattleState},
 };
 use battle_gui::{
+    engine::message::{EngineMessage, GuiStateMessage},
     run::{run, RunSettings},
     GuiError,
 };
@@ -20,6 +22,7 @@ pub struct Runner {
     map: Map,
     expire: Option<u64>, // FIXME BS NOW: use it
     deployment: Deployment,
+    begin: bool,
 }
 
 impl Runner {
@@ -43,6 +46,18 @@ impl Runner {
         let resources = Resources::new()?.ensure()?;
         let battle_state = BattleState::empty(&self.map);
 
+        let mut inputs = vec![];
+        let mut engine_apply = vec![];
+        if self.begin {
+            inputs.extend(vec![
+                InputMessage::BattleState(BattleStateMessage::SetAReady(true)),
+                InputMessage::BattleState(BattleStateMessage::SetBReady(true)),
+            ]);
+            engine_apply.extend(vec![EngineMessage::GuiState(GuiStateMessage::SetIntroAck(
+                true,
+            ))]);
+        }
+
         run(
             settings,
             config,
@@ -54,6 +69,8 @@ impl Runner {
             self.deployment.clone(),
             battle_state,
             true,
+            inputs,
+            engine_apply,
         )?;
 
         Ok(())
@@ -64,6 +81,7 @@ impl Runner {
             map,
             expire: None,
             deployment: Deployment::empty(),
+            begin: false,
         }
     }
 
@@ -74,6 +92,11 @@ impl Runner {
 
     pub fn deployment(mut self, value: Deployment) -> Self {
         self.deployment = value;
+        self
+    }
+
+    pub fn begin(mut self, value: bool) -> Self {
+        self.begin = value;
         self
     }
 }

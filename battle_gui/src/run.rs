@@ -22,6 +22,7 @@ use oc_core::spawn::SpawnZoneName;
 use structopt::StructOpt;
 
 use crate::engine;
+use crate::engine::message::EngineMessage;
 use crate::graphics;
 use crate::graphics::windowed_mode;
 use crate::server::EmbeddedServer;
@@ -114,6 +115,8 @@ pub fn run(
     deployment: Deployment,
     battle_state: BattleState,
     force_server_map: bool,
+    inputs: Vec<InputMessage>,
+    engine_apply: Vec<EngineMessage>,
 ) -> Result<(), GuiError> {
     let sync_required = Arc::new(AtomicBool::new(true));
     let stop_required: Arc<AtomicBool> = Arc::new(AtomicBool::new(false));
@@ -172,14 +175,26 @@ pub fn run(
     // These messages will initialize the battle state
     // Then, the RequireCompleteSync permit client to be same state than server
     if settings.init_sync {
-        input_sender.send(vec![
-            InputMessage::LoadDeployment(deployment),
-            InputMessage::LoadControl((a_control.clone(), b_control.clone())),
-            InputMessage::RequireCompleteSync,
-            ready_message,
-        ])?;
+        input_sender.send(
+            [
+                vec![
+                    InputMessage::LoadDeployment(deployment),
+                    InputMessage::LoadControl((a_control.clone(), b_control.clone())),
+                    InputMessage::RequireCompleteSync,
+                    ready_message,
+                ],
+                inputs,
+            ]
+            .concat(),
+        )?;
     } else {
-        input_sender.send(vec![InputMessage::RequireCompleteSync, ready_message])?;
+        input_sender.send(
+            [
+                vec![InputMessage::RequireCompleteSync, ready_message],
+                inputs,
+            ]
+            .concat(),
+        )?;
     }
 
     let mut context_builder =
@@ -203,6 +218,7 @@ pub fn run(
         stop_required.clone(),
         a_control,
         b_control,
+        engine_apply,
     )?;
 
     // FIXME BS NOW : Closing GUI don't close thread correctly and keep process running

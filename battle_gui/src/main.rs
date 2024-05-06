@@ -42,5 +42,7 @@ fn main() -> Result<(), GuiError> {
         deployment,
         battle_state,
         false,
+        vec![],
+        vec![],
     )
 }
