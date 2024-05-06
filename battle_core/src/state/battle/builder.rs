@@ -1,15 +1,14 @@
-use std::{collections::HashMap, fmt::Display, path::PathBuf};
+use std::{collections::HashMap, fmt::Display};
 
 use crate::{
     game::flag::FlagsOwnership,
-    map::reader::{MapReader, MapReaderError},
+    map::{reader::MapReaderError, Map},
 };
 
 use super::{phase::Phase, BattleState};
 
 pub struct BattleStateBuilder {
-    map_name: String,
-    resources: PathBuf,
+    map: Map,
 }
 
 #[derive(Debug)]
@@ -34,18 +33,14 @@ impl Display for BattleStateBuilderError {
 }
 
 impl BattleStateBuilder {
-    pub fn new(map_name: &str, resources: PathBuf) -> Self {
-        Self {
-            map_name: map_name.to_string(),
-            resources,
-        }
+    pub fn new(map: Map) -> Self {
+        Self { map }
     }
 
     pub fn build(&self) -> Result<BattleState, BattleStateBuilderError> {
-        let map = MapReader::new(&self.map_name, &self.resources)?.build()?;
         let mut state = BattleState::new(
             0,
-            map,
+            self.map.clone(),
             vec![],
             vec![],
             HashMap::new(),

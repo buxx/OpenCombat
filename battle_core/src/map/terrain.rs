@@ -153,6 +153,31 @@ pub struct TerrainTile {
 
 impl TerrainTile {
     #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        type_: TileType,
+        tile_width: u32,
+        tile_height: u32,
+        relative_tile_width: f32,
+        relative_tile_height: f32,
+        x: u32,
+        y: u32,
+        tile_x: u32,
+        tile_y: u32,
+    ) -> Self {
+        Self {
+            type_,
+            tile_width,
+            tile_height,
+            relative_tile_width,
+            relative_tile_height,
+            x,
+            y,
+            tile_x,
+            tile_y,
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
     pub fn from_str_id(
         id: &str,
         tile_width: u32,
@@ -164,8 +189,8 @@ impl TerrainTile {
         tile_x: u32,
         tile_y: u32,
     ) -> Result<Self, TerrainTileError> {
-        Ok(Self {
-            type_: TileType::from_str(id)?,
+        Ok(Self::new(
+            TileType::from_str(id)?,
             tile_width,
             tile_height,
             relative_tile_width,
@@ -174,7 +199,7 @@ impl TerrainTile {
             y,
             tile_x,
             tile_y,
-        })
+        ))
     }
 
     pub fn type_(&self) -> &TileType {

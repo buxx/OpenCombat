@@ -861,7 +861,7 @@
             "name": "launcher",
             "cargo": {
                 "args": [
-                    "build",
+                    "run",
                     "--bin=oc_launcher",
                     "--package=oc_launcher",
                     "--release"
@@ -876,6 +876,27 @@
             "env": {
                 "RUST_BACKTRACE": "1"
             }
-        }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "face_to_face_close_up",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=face_to_face_close_up",
+                    "--package=examples"
+                ],
+                "filter": {
+                    "name": "face_to_face_close_up",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
     ]
 }

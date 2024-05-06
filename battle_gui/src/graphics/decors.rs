@@ -7,7 +7,6 @@ use ggez::{
     graphics::{DrawParam, Image, InstanceArray, Rect},
     Context, GameError, GameResult,
 };
-use glam::Vec2;
 
 use crate::utils::qualified::ToQualified;
 

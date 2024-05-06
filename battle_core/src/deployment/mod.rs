@@ -1,4 +1,4 @@
-use std::{fs, io, path::PathBuf};
+use std::{collections::HashMap, fs, io, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -26,6 +26,26 @@ pub struct Deployment {
 }
 
 impl Deployment {
+    pub fn new(
+        soldiers: Vec<SoldierDeployment>,
+        vehicles: Vec<VehicleDeployment>,
+        boards: SoldiersOnBoard,
+    ) -> Self {
+        Self {
+            soldiers,
+            vehicles,
+            boards,
+        }
+    }
+
+    pub fn empty() -> Self {
+        Self {
+            soldiers: vec![],
+            vehicles: vec![],
+            boards: HashMap::new(),
+        }
+    }
+
     pub fn from_battle_state(battle_state: &BattleState) -> Self {
         let soldiers: Vec<SoldierDeployment> = battle_state
             .soldiers()

@@ -1,3 +1,4 @@
+use battle_core::map::reader::{MapReader, MapReaderError};
 use crossbeam_channel::unbounded;
 use env_logger::Env;
 use std::path::PathBuf;
@@ -61,7 +62,8 @@ fn main() -> Result<(), Error> {
 
     let stop_required_ = stop_required.clone();
     let config = ServerConfig::default();
-    let battle_state = BattleStateBuilder::new(map_name, resources.clone()).build()?;
+    let map = MapReader::new(map_name, &resources)?.build()?;
+    let battle_state = BattleStateBuilder::new(map).build()?;
     let mut runner = Runner::new(
         config,
         server_input_receiver,
@@ -76,6 +78,7 @@ fn main() -> Result<(), Error> {
 
 #[derive(Debug)]
 enum Error {
+    MapReaderError(MapReaderError),
     LoadBattle(BattleStateBuilderError),
     Network(NetworkError),
     Run(RunnerError),
@@ -96,5 +99,11 @@ impl From<NetworkError> for Error {
 impl From<BattleStateBuilderError> for Error {
     fn from(error: BattleStateBuilderError) -> Self {
         Self::LoadBattle(error)
+    }
+}
+
+impl From<MapReaderError> for Error {
+    fn from(error: MapReaderError) -> Self {
+        Self::MapReaderError(error)
     }
 }

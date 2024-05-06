@@ -5,6 +5,8 @@ use std::sync::Arc;
 use std::thread;
 
 use battle_core::config::{ServerConfig, DEFAULT_SERVER_PUB_ADDRESS, DEFAULT_SERVER_REP_ADDRESS};
+use battle_core::map::reader::{MapReader, MapReaderError};
+use battle_core::map::Map;
 use battle_core::message::{InputMessage, OutputMessage};
 use battle_core::network::error::NetworkError;
 use battle_core::network::server::Server;
@@ -20,11 +22,18 @@ pub enum EmbeddedServerError {
     MissingMapName,
     StateBuilderError(BattleStateBuilderError),
     Network(NetworkError),
+    MapReaderError(MapReaderError),
 }
 
 impl From<BattleStateBuilderError> for EmbeddedServerError {
     fn from(error: BattleStateBuilderError) -> Self {
         Self::StateBuilderError(error)
+    }
+}
+
+impl From<MapReaderError> for EmbeddedServerError {
+    fn from(error: MapReaderError) -> Self {
+        Self::MapReaderError(error)
     }
 }
 
@@ -38,6 +47,9 @@ impl Display for EmbeddedServerError {
             EmbeddedServerError::Network(error) => {
                 f.write_str(&format!("Network serve error : {}", error))
             }
+            EmbeddedServerError::MapReaderError(error) => {
+                f.write_str(&format!("Map reader error : {}", error))
+            }
         }
     }
 }
@@ -45,6 +57,7 @@ impl Display for EmbeddedServerError {
 pub struct EmbeddedServer {
     resources: PathBuf,
     map_name: Option<String>,
+    force_map: Option<Map>,
     server_rep_address: String,
     server_pub_address: String,
     gui_input_receiver: Receiver<Vec<InputMessage>>,
@@ -62,6 +75,7 @@ impl EmbeddedServer {
         Self {
             resources: resources.to_path_buf(),
             map_name: None,
+            force_map: None,
             server_rep_address: DEFAULT_SERVER_REP_ADDRESS.to_string(),
             server_pub_address: DEFAULT_SERVER_PUB_ADDRESS.to_string(),
             gui_input_receiver,
@@ -72,6 +86,11 @@ impl EmbeddedServer {
 
     pub fn map_name(mut self, map_name: &str) -> Self {
         self.map_name = Some(map_name.to_string());
+        self
+    }
+
+    pub fn force_map(mut self, map: Option<Map>) -> Self {
+        self.force_map = map;
         self
     }
 
@@ -94,7 +113,13 @@ impl EmbeddedServer {
             .as_ref()
             .ok_or(EmbeddedServerError::MissingMapName)?;
         let config = ServerConfig::default();
-        let state = BattleStateBuilder::new(map_name, self.resources.clone()).build()?;
+
+        let map = if let Some(map) = &self.force_map {
+            map.clone()
+        } else {
+            MapReader::new(map_name, &PathBuf::from("./resources"))?.build()?
+        };
+        let state = BattleStateBuilder::new(map).build()?;
 
         let stop_required_ = self.stop_required.clone();
         thread::Builder::new()
