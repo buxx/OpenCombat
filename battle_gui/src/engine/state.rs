@@ -421,6 +421,10 @@ impl GuiState {
                 //
                 self.is_fullscreen = *value
             }
+            GuiStateMessage::SetDebugPhysicsArea(value) => {
+                //
+                self.debug_physics_areas = *value
+            }
         }
     }
 

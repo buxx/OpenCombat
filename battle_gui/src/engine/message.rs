@@ -49,6 +49,7 @@ pub enum GuiStateMessage {
     PushDebugPoint(DebugPoint),
     SetDebugTerrain(DebugTerrain),
     SetDebugPhysics(DebugPhysics),
+    SetDebugPhysicsArea(bool),
     PushUIEvent(UIEvent),
     ChangeSide,
     SetZoom(Zoom, WorldPoint),

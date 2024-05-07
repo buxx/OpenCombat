@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 
+use crate::{
+    deployment::soldier::ManualSoldiersGenerator,
+    map::{flat::FlatAndEmpty, generator::MapGenerator},
+};
 use battle_core::{
     deployment::Deployment,
     game::{
         weapon::{Magazine, Weapon},
         Side,
     },
+    map::Map,
     types::{SquadUuid, WorldPoint},
-};
-use examples::{
-    deployment::soldier::ManualSoldiersGenerator,
-    map::{flat::FlatAndEmpty, generator::MapGenerator},
-    runner::{Runner, RunnerError},
 };
 
 fn mosin_nagant() -> Weapon {
@@ -39,8 +39,8 @@ fn mauser_magazines() -> Vec<Magazine> {
         Magazine::full(Magazine::Mauser(0)),
     ]
 }
-
-fn main() -> Result<(), RunnerError> {
+pub fn face_to_face(distance: f32) -> (Map, Deployment) {
+    let original_x = 75.;
     let map = MapGenerator::new(FlatAndEmpty)
         .width(500)
         .height(150)
@@ -50,22 +50,14 @@ fn main() -> Result<(), RunnerError> {
         .squad(SquadUuid(0))
         .main_weapon(Some(mosin_nagant()))
         .magazines(mosin_nagant_magazines())
-        .world_point(WorldPoint::new(75.0, 50.0))
+        .world_point(WorldPoint::new(original_x, 50.0))
         .place(5, |p: WorldPoint| p.apply(WorldPoint::new(0., 5.).into()))
         .side(Side::B)
         .squad(SquadUuid(1))
         .main_weapon(Some(mauser()))
         .magazines(mauser_magazines())
-        .world_point(WorldPoint::new(325.0, 50.0))
+        .world_point(WorldPoint::new(original_x + distance, 50.0))
         .place(5, |p: WorldPoint| p.apply(WorldPoint::new(0., 5.).into()))
         .collect();
-    let deployment = Deployment::new(soldiers, vec![], HashMap::new());
-
-    Runner::new(map)
-        .expire(Some(60 * 60))
-        .deployment(deployment)
-        .begin(true)
-        .run()?;
-
-    Ok(())
+    (map, Deployment::new(soldiers, vec![], HashMap::new()))
 }

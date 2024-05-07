@@ -49,7 +49,9 @@ impl Runner {
                 continue;
             }
 
-            let distance = distance_between_points(&soldier.world_point(), point);
+            let from = &soldier.world_point();
+            let distance = distance_between_points(from, point);
+
             if distance.meters() < 1
                 && SoldierCovered::new(self.battle_state.map(), bullet_fire, soldier).compute()
             {
@@ -65,7 +67,7 @@ impl Runner {
                 } else {
                     messages.extend(self.proximity_bullet_effects(soldier, &distance))
                 }
-            } else {
+            } else if distance.meters() < 30 {
                 messages.extend(self.proximity_bullet_effects(soldier, &distance))
             }
         }
@@ -79,7 +81,8 @@ impl Runner {
 
         let soldier = self.battle_state.soldier(soldier.uuid());
         if soldier.can_produce_sound() {
-            let pick_from = [Sound::MaleScreaming1,
+            let pick_from = [
+                Sound::MaleScreaming1,
                 Sound::MaleScreaming2,
                 Sound::MaleScreaming3,
                 Sound::MaleScreaming4,
@@ -91,7 +94,8 @@ impl Runner {
                 Sound::MaleDie5,
                 Sound::MaleDie6,
                 Sound::MaleDie7,
-                Sound::MaleDie8];
+                Sound::MaleDie8,
+            ];
             messages.push(RunnerMessage::ClientsState(
                 ClientStateMessage::PlayBattleSound(
                     *pick_from
@@ -112,14 +116,16 @@ impl Runner {
 
         let soldier = self.battle_state.soldier(soldier.uuid());
         if soldier.can_produce_sound() {
-            let pick_from = [Sound::MaleDie1,
+            let pick_from = [
+                Sound::MaleDie1,
                 Sound::MaleDie2,
                 Sound::MaleDie3,
                 Sound::MaleDie4,
                 Sound::MaleDie5,
                 Sound::MaleDie6,
                 Sound::MaleDie7,
-                Sound::MaleDie8];
+                Sound::MaleDie8,
+            ];
             messages.push(RunnerMessage::ClientsState(
                 ClientStateMessage::PlayBattleSound(
                     *pick_from
@@ -134,10 +140,12 @@ impl Runner {
 
     pub fn covered_bullet_effects(&self, soldier: &Soldier) -> Vec<RunnerMessage> {
         puffin::profile_scope!("covered_bullet_effects", soldier.uuid().to_string());
-        let pick_from = [Sound::BulletMetalImpact1,
+        let pick_from = [
+            Sound::BulletMetalImpact1,
             Sound::BulletTrunkImpact1,
             Sound::BulletWallImpact1,
-            Sound::BulletGroundImpact1];
+            Sound::BulletGroundImpact1,
+        ];
         vec![RunnerMessage::ClientsState(
             ClientStateMessage::PlayBattleSound(
                 *pick_from

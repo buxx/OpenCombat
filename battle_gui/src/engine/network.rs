@@ -38,6 +38,10 @@ impl Engine {
                         self.battle_state = battle_state;
                     }
                     OutputMessage::BattleState(battle_state_message) => {
+                        if self.gui_state.debug_physics_areas {
+                            self.inspect_for_bullet_fire_into_debug_points(battle_state_message);
+                        }
+
                         if !self.sync_required.load(Ordering::Relaxed) {
                             side_effects
                                 .extend(self.battle_state.react(battle_state_message, frame_i));
@@ -49,6 +53,7 @@ impl Engine {
                                 self.gui_state.debug_points_mut().push(DebugPoint {
                                     frame_i: frame_i + 120,
                                     point: debug_point.point,
+                                    color: debug_point.color,
                                 })
                             }
                             ClientStateMessage::PlayInterfaceSound(sound) => {

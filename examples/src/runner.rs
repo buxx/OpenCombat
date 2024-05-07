@@ -23,6 +23,7 @@ pub struct Runner {
     expire: Option<u64>, // FIXME BS NOW: use it
     deployment: Deployment,
     begin: bool,
+    debug_physics: bool,
 }
 
 impl Runner {
@@ -48,6 +49,7 @@ impl Runner {
 
         let mut inputs = vec![];
         let mut engine_apply = vec![];
+
         if self.begin {
             inputs.extend(vec![
                 InputMessage::BattleState(BattleStateMessage::SetAReady(true)),
@@ -56,6 +58,12 @@ impl Runner {
             engine_apply.extend(vec![EngineMessage::GuiState(GuiStateMessage::SetIntroAck(
                 true,
             ))]);
+        }
+
+        if self.debug_physics {
+            engine_apply.extend(vec![EngineMessage::GuiState(
+                GuiStateMessage::SetDebugPhysicsArea(true),
+            )])
         }
 
         run(
@@ -82,6 +90,7 @@ impl Runner {
             expire: None,
             deployment: Deployment::empty(),
             begin: false,
+            debug_physics: false,
         }
     }
 
@@ -97,6 +106,11 @@ impl Runner {
 
     pub fn begin(mut self, value: bool) -> Self {
         self.begin = value;
+        self
+    }
+
+    pub fn debug_physics(mut self, value: bool) -> Self {
+        self.debug_physics = value;
         self
     }
 }

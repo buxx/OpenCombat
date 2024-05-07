@@ -880,15 +880,60 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "face_to_face_close_up",
+            "name": "face_to_face1 --release",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=face_to_face_close_up",
-                    "--package=examples"
+                    "--bin=face_to_face1",
+                    "--package=examples",
+                    "--release"
                 ],
                 "filter": {
-                    "name": "face_to_face_close_up",
+                    "name": "face_to_face1",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "face_to_face2 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=face_to_face2",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "face_to_face2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "face_to_face3 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=face_to_face3",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "face_to_face3",
                     "kind": "bin"
                 }
             },

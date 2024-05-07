@@ -8,6 +8,8 @@ use battle_core::{
     utils::DebugPoint,
 };
 
+use crate::utils::BLUE;
+
 use super::{
     message::{EngineMessage, GuiStateMessage},
     Engine,
@@ -189,6 +191,7 @@ impl Engine {
                     EngineMessage::GuiState(GuiStateMessage::PushDebugPoint(DebugPoint {
                         frame_i: self.gui_state.frame_i() + 60,
                         point: d.point,
+                        color: BLUE.into(),
                     }))
                 }));
 

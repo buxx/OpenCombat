@@ -24,7 +24,7 @@ use battle_core::{
 use crate::{
     engine::event::UIEvent,
     ui::{color::Colorized, hud::HUD_HEIGHT, menu::squad_menu_sprite_info, BORDER_SIZE},
-    utils::GREEN,
+    utils::{BLUE, GREEN},
 };
 
 use super::{
@@ -590,6 +590,7 @@ impl Engine {
                 DebugPoint {
                     frame_i: self.gui_state.frame_i() + 120,
                     point: new_debug_point.point,
+                    color: BLUE.into(),
                 },
             )))
         }

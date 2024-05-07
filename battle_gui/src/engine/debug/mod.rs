@@ -14,6 +14,7 @@ use battle_core::{
     physics::event::{bullet::BulletFire, explosion::Explosion},
     state::battle::message::BattleStateMessage,
     types::WorldPoint,
+    utils::DebugPoint,
 };
 
 use crate::{
@@ -108,7 +109,13 @@ impl Engine {
                 let window_point = self
                     .gui_state
                     .window_point_from_world_point(debug_point.point);
-                mesh_builder.circle(DrawMode::fill(), window_point.to_vec2(), 2.0, 2.0, BLUE)?;
+                mesh_builder.circle(
+                    DrawMode::fill(),
+                    window_point.to_vec2(),
+                    2.0,
+                    2.0,
+                    debug_point.color.into(),
+                )?;
                 debug_points_left.push(debug_point);
             }
         }
@@ -310,10 +317,6 @@ impl Engine {
             self.generate_explosive_areas_meshes(mesh_builder, explosion)?;
         }
 
-        for bullet in self.battle_state.bullet_fires() {
-            self.generate_bullet_areas_meshes(mesh_builder, bullet)?;
-        }
-
         Ok(())
     }
 
@@ -394,16 +397,17 @@ impl Engine {
         Ok(())
     }
 
-    pub fn generate_bullet_areas_meshes(
-        &self,
-        mesh_builder: &mut MeshBuilder,
-        bullet: &BulletFire,
-    ) -> GameResult {
-        let point = self
-            .gui_state
-            .window_point_from_world_point(*bullet.point());
-        mesh_builder.circle(DrawMode::stroke(1.0), point.to_vec2(), 2., 1.0, RED)?;
-
-        Ok(())
+    pub fn inspect_for_bullet_fire_into_debug_points(&mut self, message: &BattleStateMessage) {
+        let frame_i = self.gui_state.frame_i();
+        match message {
+            BattleStateMessage::PushBulletFire(bullet_fire) => {
+                self.gui_state.debug_points_mut().push(DebugPoint {
+                    frame_i: frame_i + 30,
+                    point: bullet_fire.point().clone(),
+                    color: RED.into(),
+                })
+            }
+            _ => {}
+        }
     }
 }

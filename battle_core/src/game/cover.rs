@@ -71,6 +71,7 @@ impl<'a> CoverFinder<'a> {
                                 .battle_state
                                 .map()
                                 .world_point_from_grid_point(*debug_grid_point),
+                            color: (0, 0, 255, 255),
                         })
                     }
                 }
