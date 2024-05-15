@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use battle_core::{
-    map::{decor::Decor, Map},
-    types::Offset,
+    map::{decor::Decor, terrain::TileType, Map},
+    types::{GridPoint, Offset},
 };
 
 use super::MapModel;
@@ -11,6 +11,8 @@ pub struct MapGenerator<T: MapModel> {
     model: T,
     width: u32,
     height: u32,
+    default_tile_type: TileType,
+    placed: Vec<(GridPoint, TileType)>,
 }
 
 impl<T: MapModel> MapGenerator<T> {
@@ -19,6 +21,8 @@ impl<T: MapModel> MapGenerator<T> {
             model,
             width: Default::default(),
             height: Default::default(),
+            default_tile_type: TileType::ShortGrass,
+            placed: vec![],
         }
     }
 
@@ -32,8 +36,23 @@ impl<T: MapModel> MapGenerator<T> {
         self
     }
 
+    pub fn place(mut self, value: Vec<(GridPoint, TileType)>) -> Self {
+        self.placed.extend(value);
+        self
+    }
+
+    pub fn default_tile_type(mut self, value: TileType) -> Self {
+        self.default_tile_type = value;
+        self
+    }
+
     pub fn generate(&self) -> Map {
-        let terrain_tiles = self.model.terrain_tiles(self.width, self.height);
+        let terrain_tiles = self.model.terrain_tiles(
+            self.width,
+            self.height,
+            self.default_tile_type.clone(),
+            &self.placed,
+        );
         let terrain_tile_size = self.model.terrain_tile_size();
 
         Map::new(

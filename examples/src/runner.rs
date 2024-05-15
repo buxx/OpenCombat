@@ -1,5 +1,8 @@
 use battle_core::{
-    config::{GuiConfig, ServerConfig, DEFAULT_SERVER_PUB_ADDRESS, DEFAULT_SERVER_REP_ADDRESS},
+    config::{
+        GuiConfig, ServerConfig, DEFAULT_SERVER_PUB_ADDRESS, DEFAULT_SERVER_REP_ADDRESS,
+        TARGET_CYCLE_DURATION_US,
+    },
     deployment::Deployment,
     game::{control::MapControl, Side},
     map::Map,
@@ -7,6 +10,7 @@ use battle_core::{
     state::battle::{message::BattleStateMessage, BattleState},
 };
 use battle_gui::{
+    debug::DebugTerrain,
     engine::message::{EngineMessage, GuiStateMessage},
     run::{run, RunSettings},
     GuiError,
@@ -20,10 +24,12 @@ use thiserror::Error;
 
 pub struct Runner {
     map: Map,
-    expire: Option<u64>, // FIXME BS NOW: use it
     deployment: Deployment,
     begin: bool,
+    target_cycle_duration: u64,
     debug_physics: bool,
+    debug_terrain: DebugTerrain,
+    when_first_copy_apply: Vec<EngineMessage>,
 }
 
 impl Runner {
@@ -39,7 +45,8 @@ impl Runner {
             target_fps: 60,
             interiors_update_freq: 60,
         };
-        let server_config = ServerConfig::default();
+        let mut server_config = ServerConfig::default();
+        server_config.target_cycle_duration_us = self.target_cycle_duration;
         let (a_control, b_control) = (
             MapControl::new(vec![SpawnZoneName::All]),
             MapControl::new(vec![SpawnZoneName::All]),
@@ -66,6 +73,10 @@ impl Runner {
             )])
         }
 
+        engine_apply.push(EngineMessage::GuiState(GuiStateMessage::SetDebugTerrain(
+            self.debug_terrain.clone(),
+        )));
+
         run(
             settings,
             config,
@@ -79,6 +90,7 @@ impl Runner {
             true,
             inputs,
             engine_apply,
+            self.when_first_copy_apply,
         )?;
 
         Ok(())
@@ -87,16 +99,13 @@ impl Runner {
     pub fn new(map: Map) -> Self {
         Self {
             map,
-            expire: None,
             deployment: Deployment::empty(),
             begin: false,
+            target_cycle_duration: TARGET_CYCLE_DURATION_US,
             debug_physics: false,
+            debug_terrain: DebugTerrain::None,
+            when_first_copy_apply: vec![],
         }
-    }
-
-    pub fn expire(mut self, value: Option<u64>) -> Self {
-        self.expire = value;
-        self
     }
 
     pub fn deployment(mut self, value: Deployment) -> Self {
@@ -111,6 +120,21 @@ impl Runner {
 
     pub fn debug_physics(mut self, value: bool) -> Self {
         self.debug_physics = value;
+        self
+    }
+
+    pub fn debug_terrain(mut self, value: DebugTerrain) -> Self {
+        self.debug_terrain = value;
+        self
+    }
+
+    pub fn target_cycle_duration(mut self, value: u64) -> Self {
+        self.target_cycle_duration = value;
+        self
+    }
+
+    pub fn when_first_copy_apply(mut self, value: Vec<EngineMessage>) -> Self {
+        self.when_first_copy_apply = value;
         self
     }
 }

@@ -3,9 +3,9 @@ use ggez::Context;
 
 use battle_core::config::{
     ChangeConfigMessage, FEELING_DECREASING_FREQ, INTERIORS_UPDATE_FREQ, SOLDIER_ANIMATE_FREQ,
-    SOLDIER_UPDATE_FREQ, TARGET_FPS, TILE_TYPE_OPACITY_BRICK_WALL, TILE_TYPE_OPACITY_CONCRETE,
-    TILE_TYPE_OPACITY_DEEP_WATER, TILE_TYPE_OPACITY_DIRT, TILE_TYPE_OPACITY_HEDGE,
-    TILE_TYPE_OPACITY_HIGH_GRASS, TILE_TYPE_OPACITY_LIGHT_UNDERBRUSH,
+    SOLDIER_UPDATE_FREQ, TARGET_CYCLE_DURATION_US, TARGET_FPS, TILE_TYPE_OPACITY_BRICK_WALL,
+    TILE_TYPE_OPACITY_CONCRETE, TILE_TYPE_OPACITY_DEEP_WATER, TILE_TYPE_OPACITY_DIRT,
+    TILE_TYPE_OPACITY_HEDGE, TILE_TYPE_OPACITY_HIGH_GRASS, TILE_TYPE_OPACITY_LIGHT_UNDERBRUSH,
     TILE_TYPE_OPACITY_MIDDLE_GRASS, TILE_TYPE_OPACITY_MIDDLE_ROCK,
     TILE_TYPE_OPACITY_MIDDLE_WOOD_LOGS, TILE_TYPE_OPACITY_MUD, TILE_TYPE_OPACITY_SHORT_GRASS,
     TILE_TYPE_OPACITY_TRUNK, TILE_TYPE_OPACITY_UNDERBRUSH, TILE_TYPE_OPACITY_WATER,
@@ -38,6 +38,14 @@ impl Engine {
             .striped(true)
             .show(ui, |ui| {
                 for (name, value, min, max, default, message) in [
+                    (
+                        "TARGET_CYCLE_DURATION_US",
+                        &mut self.server_config.target_cycle_duration_us,
+                        0,
+                        TARGET_CYCLE_DURATION_US * 5,
+                        TARGET_CYCLE_DURATION_US,
+                        ChangeConfigMessage::TargetCycleDuration,
+                    ),
                     (
                         "SOLDIER_UPDATE_FREQ",
                         &mut self.server_config.soldier_update_freq,
@@ -79,7 +87,7 @@ impl Engine {
                         ChangeConfigMessage::FeelingDecreasingFreq,
                     ),
                 ]
-                    as [(_, _, _, _, _, fn(_) -> _); 5]
+                    as [(_, _, _, _, _, fn(_) -> _); 6]
                 {
                     ui.label(name);
                     if ui.button("reset").clicked() {

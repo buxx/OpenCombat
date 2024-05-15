@@ -15,36 +15,21 @@ pub enum ChooseMethod {
     RandomFromNearest,
 }
 impl ChooseMethod {
-    fn choose(
-        &self,
-        battle_state: &BattleState,
-        visibles: Vec<&Visibility>,
-    ) -> Option<SoldierIndex> {
+    fn choose(&self, battle_state: &BattleState, soldiers: Vec<&Soldier>) -> Option<SoldierIndex> {
         match self {
-            Self::RandomFromNearest => self.choose_random_from_nearest(battle_state, visibles),
+            Self::RandomFromNearest => self.choose_random_from_nearest(battle_state, soldiers),
         }
     }
 
     fn choose_random_from_nearest(
         &self,
-        battle_state: &BattleState,
-        visibles: Vec<&Visibility>,
+        _battle_state: &BattleState,
+        soldiers: Vec<&Soldier>,
     ) -> Option<SoldierIndex> {
-        if let Some(visibility) = visibles.first() {
-            let soldier = battle_state.soldier(
-                visibility
-                    .to_soldier
-                    .expect("visibles_soldiers_by must returned with to_soldier"),
-            );
+        if let Some(soldier) = soldiers.first() {
             let soldier_position = soldier.world_point();
-            let near_soldiers: Vec<&Soldier> = visibles
-                .iter()
-                .map(|v| {
-                    battle_state.soldier(
-                        v.to_soldier
-                            .expect("visibles_soldiers_by must returned with to_soldier"),
-                    )
-                })
+            let near_soldiers: Vec<&Soldier> = soldiers
+                .into_iter()
                 .filter(|s| {
                     distance_between_points(&soldier_position, &s.world_point())
                         < Distance::from_meters(NEAR_SOLDIERS_DISTANCE_METERS)
@@ -68,40 +53,49 @@ impl Runner {
         &self,
         soldier: &Soldier,
         squad_index: Option<&SquadUuid>,
-        method: &ChooseMethod,
+        choose_method: &ChooseMethod,
     ) -> Option<&Soldier> {
-        let mut visibles = self
+        let around_soldiers: Vec<SoldierIndex> = self
+            .battle_state
+            .get_circle_side_soldiers_able_to_see(
+                soldier.side(),
+                &soldier.world_point(),
+                &Distance::from_meters(20),
+            )
+            .iter()
+            .map(|s| s.uuid())
+            .collect();
+        let mut visibles: Vec<&Soldier> = self
             .battle_state
             .visibilities()
-            .visibles_soldiers_by_soldier(soldier);
+            // FIXME BS NOW: !!! visible by near soldiers instead of all side
+            .visibles_soldiers_by_soldiers(around_soldiers)
+            .iter()
+            .map(|s| self.battle_state.soldier(*s))
+            .collect();
 
-        visibles.retain(|v| {
-            self.battle_state
-                .soldier(v.to_soldier.expect("filtered previously"))
-                .can_be_designed_as_target()
-        });
+        visibles.retain(|s| s.can_be_designed_as_target());
 
         if let Some(squad_index) = squad_index {
-            visibles.retain(|v| {
-                self.battle_state
-                    .soldier(v.to_soldier.expect("filtered previously"))
-                    .squad_uuid()
-                    == *squad_index
+            visibles.retain(|s| s.squad_uuid() == *squad_index)
+        }
+
+        // Why this sort ?
+        // visibles.sort_by(|a, b| {
+        //     a.distance
+        //         .millimeters()
+        //         .partial_cmp(&b.distance.millimeters())
+        //         .expect("Must be i64")
+        // });
+
+        if soldier.behavior().is_hide() {
+            visibles.retain(|s| {
+                distance_between_points(&soldier.world_point(), &s.world_point())
+                    <= self.config.hide_maximum_rayon
             })
         }
 
-        visibles.sort_by(|a, b| {
-            a.distance
-                .millimeters()
-                .partial_cmp(&b.distance.millimeters())
-                .expect("Must be i64")
-        });
-
-        if soldier.behavior().is_hide() {
-            visibles.retain(|v| v.distance <= self.config.hide_maximum_rayon)
-        }
-
-        method
+        choose_method
             .choose(&self.battle_state, visibles)
             .map(|i| self.battle_state.soldier(i))
     }

@@ -55,6 +55,7 @@ impl Display for EmbeddedServerError {
 }
 
 pub struct EmbeddedServer {
+    config: ServerConfig,
     resources: PathBuf,
     map_name: Option<String>,
     force_map: Option<Map>,
@@ -67,12 +68,14 @@ pub struct EmbeddedServer {
 
 impl EmbeddedServer {
     pub fn new(
+        config: ServerConfig,
         resources: &Path,
         gui_input_receiver: Receiver<Vec<InputMessage>>,
         gui_output_sender: Sender<Vec<OutputMessage>>,
         stop_required: Arc<AtomicBool>,
     ) -> Self {
         Self {
+            config,
             resources: resources.to_path_buf(),
             map_name: None,
             force_map: None,
@@ -112,7 +115,7 @@ impl EmbeddedServer {
             .map_name
             .as_ref()
             .ok_or(EmbeddedServerError::MissingMapName)?;
-        let config = ServerConfig::default();
+        let config = self.config.clone();
 
         let map = if let Some(map) = &self.force_map {
             map.clone()

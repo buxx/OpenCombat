@@ -25,17 +25,36 @@ impl<'a> SoldierCovered<'a> {
         }
     }
 
-    pub fn compute(&self) -> bool {
+    pub fn compute(&self, force_target_tile: bool) -> bool {
+        // Make bullet path from the end to get target soldier tiles
         let pixels = Bresenham::new(
-            (
-                self.bullet_fire.from().x as isize,
-                self.bullet_fire.from().y as isize,
-            ),
             (
                 self.bullet_fire.to().x as isize,
                 self.bullet_fire.to().y as isize,
             ),
+            (
+                self.bullet_fire.from().x as isize,
+                self.bullet_fire.from().y as isize,
+            ),
         );
+
+        if force_target_tile {
+            let target_grid_point = self
+                .map
+                .grid_point_from_world_point(&self.soldier.world_point());
+
+            if let Some(tile) = self
+                .map
+                .terrain_tiles()
+                .get((target_grid_point.y * self.map.width() as i32 + target_grid_point.x) as usize)
+            {
+                if let Some(coverage) = tile.type_().coverage(&self.soldier.behavior().posture()) {
+                    let mut rng = rand::thread_rng();
+                    let value: f32 = rng.gen();
+                    return value <= coverage.0;
+                }
+            }
+        }
 
         let mut visited_grid_points = vec![];
         for (pixel_x, pixel_y) in pixels.step_by(COVERAGE_PIXEL_STEPS) {

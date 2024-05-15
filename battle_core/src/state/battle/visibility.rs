@@ -69,8 +69,7 @@ impl BattleState {
         soldier: &Soldier,
         point: &WorldPoint,
         exclude_lasts: usize,
-    ) -> bool {
+    ) -> Visibility {
         Visibility::between_soldier_and_point(config, soldier, point, self.map(), exclude_lasts)
-            .visible
     }
 }

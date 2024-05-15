@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 pub mod feeling;
 pub mod gesture;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Body {
     StandUp,
     Crouched,
@@ -148,6 +148,7 @@ impl Behavior {
 
     pub fn posture(&self) -> Posture {
         // TODO : posture can be different on same behavior (like with SuppressFire, EngageSoldier)
+        // FIXME: Clarify which usage with `Body` !!
         match self {
             Behavior::MoveTo(_) | Behavior::MoveFastTo(_) | Behavior::Idle(_) => Posture::StandUp,
             Behavior::Defend(_)

@@ -12,6 +12,7 @@ use strum::IntoEnumIterator;
 pub const DEFAULT_SERVER_REP_ADDRESS: &str = "tcp://0.0.0.0:4255";
 pub const DEFAULT_SERVER_PUB_ADDRESS: &str = "tcp://0.0.0.0:4256";
 ///
+pub const TARGET_CYCLE_DURATION_US: u64 = 16666;
 pub const TARGET_FPS: u64 = 60;
 pub const SOLDIER_UPDATE_FREQ: u64 = 1;
 pub const FLAGS_UPDATE_FREQ: u64 = 120;
@@ -41,7 +42,7 @@ pub const VISIBILITY_DEAD_MODIFIER: f32 = 0.0;
 pub const VISIBILITY_UNCONSCIOUS_MODIFIER: f32 = 0.0;
 ///
 pub const TILE_TYPE_OPACITY_SHORT_GRASS: f32 = 0.0;
-pub const TILE_TYPE_OPACITY_MIDDLE_GRASS: f32 = 0.008;
+pub const TILE_TYPE_OPACITY_MIDDLE_GRASS: f32 = 0.002;
 pub const TILE_TYPE_OPACITY_HIGH_GRASS: f32 = 0.1;
 pub const TILE_TYPE_OPACITY_DIRT: f32 = 0.0;
 pub const TILE_TYPE_OPACITY_CONCRETE: f32 = 0.0;
@@ -87,6 +88,7 @@ pub const COVER_DISTANCE: i32 = 6;
 // Visibility computing must consider firsts tiles differently
 pub const VISIBILITY_FIRSTS: usize = 6;
 pub const VISIBLE_STARTS_AT: f32 = 0.5;
+pub const TARGET_ALTERATION_BY_OPACITY_FACTOR: f32 = 8.;
 // When compute visibility, configure here each pixels step of line which me considered
 pub const VISIBILITY_PIXEL_STEPS: usize = 5;
 // When compute coverage, configure here each pixels step of line which me considered
@@ -103,6 +105,7 @@ pub const CAN_STANDUP_AFTER: u64 = TARGET_FPS * 60 * 10;
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
     pub send_debug_points: bool,
+    pub target_cycle_duration_us: u64,
     pub flags_update_freq: u64,
     pub soldier_update_freq: u64,
     pub soldier_animate_freq: u64,
@@ -115,6 +118,7 @@ pub struct ServerConfig {
     pub feeling_decreasing_freq: u64,
     pub visibility_firsts: usize,
     pub visible_starts_at: f32,
+    pub target_alteration_by_opacity_factor: f32,
     pub visibility_idle_standup_modifier: f32,
     pub visibility_idle_crouch_modifier: f32,
     pub visibility_idle_lying_modifier: f32,
@@ -167,6 +171,7 @@ impl Default for ServerConfig {
 
         Self {
             send_debug_points: false,
+            target_cycle_duration_us: TARGET_CYCLE_DURATION_US,
             /// Frequency of flags update
             flags_update_freq: FLAGS_UPDATE_FREQ,
             /// Frequency of soldier update :
@@ -194,6 +199,7 @@ impl Default for ServerConfig {
             ///
             visibility_firsts: VISIBILITY_FIRSTS,
             visible_starts_at: VISIBLE_STARTS_AT,
+            target_alteration_by_opacity_factor: TARGET_ALTERATION_BY_OPACITY_FACTOR,
 
             visibility_idle_standup_modifier: VISIBILITY_IDLE_STANDUP_MODIFIER,
             visibility_idle_crouch_modifier: VISIBILITY_IDLE_CROUCH_MODIFIER,
@@ -317,7 +323,7 @@ impl ServerConfig {
         match tile_type {
             TileType::ShortGrass => self.tile_type_opacity_short_grass,
             TileType::MiddleGrass => self.tile_type_opacity_middle_grass,
-            TileType::HighGrass => self.tile_type_opacity_middle_grass,
+            TileType::HighGrass => self.tile_type_opacity_high_grass,
             TileType::Dirt => self.tile_type_opacity_dirt,
             TileType::Concrete => self.tile_type_opacity_concrete,
             TileType::Mud => self.tile_type_opacity_mud,
@@ -337,6 +343,7 @@ impl ServerConfig {
     pub fn react(&mut self, message: &ChangeConfigMessage) {
         match message {
             ChangeConfigMessage::SendDebugPoints(v) => self.send_debug_points = *v,
+            ChangeConfigMessage::TargetCycleDuration(v) => self.target_cycle_duration_us = *v,
             ChangeConfigMessage::SoldierUpdateFreq(v) => self.soldier_update_freq = *v,
             ChangeConfigMessage::SoldierAnimateFreq(v) => self.soldier_animate_freq = *v,
             ChangeConfigMessage::InteriorsUpdateFreq(v) => self.interiors_update_freq = *v,
@@ -410,6 +417,7 @@ impl Default for GuiConfig {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ChangeConfigMessage {
     SendDebugPoints(bool),
+    TargetCycleDuration(u64),
     SoldierUpdateFreq(u64),
     SoldierAnimateFreq(u64),
     InteriorsUpdateFreq(u64),

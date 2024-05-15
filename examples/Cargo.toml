@@ -11,3 +11,4 @@ battle_server = { path = "../battle_server" }
 battle_tools = { path = "../battle_tools" }
 battle_gui = { path = "../battle_gui" }
 thiserror = "1.0.39"
+glam = { version = "0.22.0", features = ["mint"]}

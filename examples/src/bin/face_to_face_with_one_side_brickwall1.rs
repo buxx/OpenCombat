@@ -6,7 +6,7 @@ use examples::{
 };
 
 fn main() -> Result<(), RunnerError> {
-    let (map, deployment) = face_to_face(TileType::ShortGrass, 1500., None);
+    let (map, deployment) = face_to_face(TileType::ShortGrass, 1500., Some(TileType::BrickWall));
 
     Runner::new(map)
         .deployment(deployment)
