@@ -117,6 +117,7 @@ pub fn run(
     force_server_map: bool,
     inputs: Vec<InputMessage>,
     engine_apply: Vec<EngineMessage>,
+    engine_when_first_copy_apply: Vec<EngineMessage>,
 ) -> Result<(), GuiError> {
     let sync_required = Arc::new(AtomicBool::new(true));
     let stop_required: Arc<AtomicBool> = Arc::new(AtomicBool::new(false));
@@ -132,6 +133,7 @@ pub fn run(
         let (output_sender, output_receiver) = unbounded();
 
         if let Err(error) = EmbeddedServer::new(
+            server_config.clone(),
             &resources.lib(),
             input_receiver,
             output_sender,
@@ -219,6 +221,7 @@ pub fn run(
         a_control,
         b_control,
         engine_apply,
+        engine_when_first_copy_apply,
     )?;
 
     // FIXME BS NOW : Closing GUI don't close thread correctly and keep process running

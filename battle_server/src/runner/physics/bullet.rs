@@ -1,5 +1,6 @@
 use battle_core::{
     audio::Sound,
+    behavior::Body,
     entity::soldier::Soldier,
     physics::{
         coverage::SoldierCovered, event::bullet::BulletFire, utils::distance_between_points,
@@ -8,7 +9,6 @@ use battle_core::{
     types::Distance,
 };
 use rand::seq::SliceRandom;
-use rand::Rng;
 
 use crate::runner::{message::RunnerMessage, Runner};
 
@@ -49,25 +49,25 @@ impl Runner {
                 continue;
             }
 
+            let cover = SoldierCovered::new(self.battle_state.map(), bullet_fire, soldier);
             let from = &soldier.world_point();
             let distance = distance_between_points(from, point);
+            // FIXME these values in config
+            let body_surface = match soldier.body() {
+                Body::StandUp => 1000,
+                Body::Crouched => 700,
+                Body::Lying => 600,
+            };
+            let body_impact = distance.millimeters() <= body_surface;
+            let covered = distance.meters() < 1 && cover.compute(body_impact);
+            let proximity = !body_impact && distance.meters() < 30;
 
-            if distance.meters() < 1
-                && SoldierCovered::new(self.battle_state.map(), bullet_fire, soldier).compute()
-            {
+            if covered {
                 messages.extend(self.covered_bullet_effects(soldier));
                 messages.extend(self.proximity_bullet_effects(soldier, &distance))
-            } else if distance.millimeters() < 500 {
-                let mut rng = rand::thread_rng();
-                let value: u8 = rng.gen();
-                if value < 10 {
-                    messages.extend(self.killing_bullet_effects(soldier))
-                } else if value < 50 {
-                    messages.extend(self.injuring_bullet_effects(soldier))
-                } else {
-                    messages.extend(self.proximity_bullet_effects(soldier, &distance))
-                }
-            } else if distance.meters() < 30 {
+            } else if body_impact {
+                messages.extend(self.killing_bullet_effects(soldier))
+            } else if proximity {
                 messages.extend(self.proximity_bullet_effects(soldier, &distance))
             }
         }

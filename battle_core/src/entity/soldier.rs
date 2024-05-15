@@ -296,6 +296,23 @@ impl Soldier {
         let weapon_animation_type = WeaponAnimationType::from(&animation_type);
         (animation_type, weapon_animation_type)
     }
+
+    pub fn body(&self) -> Body {
+        match self.behavior {
+            Behavior::MoveTo(_) => Body::StandUp,
+            Behavior::MoveFastTo(_) => Body::StandUp,
+            Behavior::SneakTo(_) => Body::Lying,
+            Behavior::DriveTo(_) => Body::Crouched,
+            Behavior::RotateTo(_) => Body::Crouched,
+            Behavior::Idle(body) => body,
+            Behavior::Defend(_) => Body::Lying,
+            Behavior::Hide(_) => Body::Lying,
+            Behavior::Dead => Body::Lying,
+            Behavior::Unconscious => Body::Lying,
+            Behavior::SuppressFire(_) => Body::Lying,
+            Behavior::EngageSoldier(_) => Body::Lying,
+        }
+    }
 }
 
 impl From<&SoldierDeployment> for Soldier {

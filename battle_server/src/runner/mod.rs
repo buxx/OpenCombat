@@ -35,8 +35,6 @@ mod vehicle;
 mod victory;
 mod visibility;
 
-const TARGET_CYCLE_DURATION_US: u64 = 16666;
-
 pub struct Runner {
     config: ServerConfig,
     input: Receiver<Vec<InputMessage>>,
@@ -87,10 +85,10 @@ impl Runner {
 
     fn sleep_duration(&self) -> Duration {
         let elapsed = self.last.elapsed().as_micros() as u64;
-        if elapsed > TARGET_CYCLE_DURATION_US {
+        if elapsed > self.config.target_cycle_duration_us {
             Duration::from_micros(0)
         } else {
-            Duration::from_micros(TARGET_CYCLE_DURATION_US - elapsed)
+            Duration::from_micros(self.config.target_cycle_duration_us - elapsed)
         }
     }
 }

@@ -36,6 +36,12 @@ impl Engine {
 
                         self.sync_required.swap(false, Ordering::Relaxed);
                         self.battle_state = battle_state;
+
+                        if !self.first_copy_loaded {
+                            self.first_copy_loaded = true;
+                            self.react(self.when_first_copy_messages.clone(), ctx)?;
+                            self.when_first_copy_messages = vec![];
+                        }
                     }
                     OutputMessage::BattleState(battle_state_message) => {
                         if self.gui_state.debug_physics_areas {

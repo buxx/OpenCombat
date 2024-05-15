@@ -69,6 +69,9 @@ pub struct Engine {
     hud: Hud,
     a_control: MapControl,
     b_control: MapControl,
+    //
+    first_copy_loaded: bool,
+    when_first_copy_messages: Vec<EngineMessage>,
 }
 
 impl Engine {
@@ -87,6 +90,7 @@ impl Engine {
         a_control: MapControl,
         b_control: MapControl,
         apply: Vec<EngineMessage>,
+        when_first_copy_apply: Vec<EngineMessage>,
     ) -> GameResult<Engine> {
         let mut gui_state = GuiState::new(*side, battle_state.map());
         gui_state.set_saves(
@@ -112,6 +116,8 @@ impl Engine {
             hud,
             a_control,
             b_control,
+            first_copy_loaded: false,
+            when_first_copy_messages: when_first_copy_apply,
         };
         engine.react(apply, ctx)?;
 

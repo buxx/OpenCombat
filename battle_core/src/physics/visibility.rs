@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
 use bresenham::Bresenham;
+use glam::Vec2;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -61,6 +63,7 @@ pub struct Visibility {
     pub from_soldier: Option<SoldierIndex>,
     pub to: WorldPoint,
     pub to_soldier: Option<SoldierIndex>,
+    pub altered_to: WorldPoint,
     pub path_final_opacity: f32,
     pub to_scene_item_opacity: f32,
     pub opacity_segments: Vec<(WorldPoint, f32)>,
@@ -79,6 +82,7 @@ impl Visibility {
             from: from_point,
             from_soldier: Some(from_soldier.uuid()),
             to: to_point,
+            altered_to: to_point,
             to_soldier: Some(to_soldier.uuid()),
             opacity_segments: vec![],
             path_final_opacity: 999.,
@@ -96,6 +100,7 @@ impl Visibility {
         to_soldier: &Soldier,
         map: &Map,
     ) -> Self {
+        let mut rng = rand::thread_rng();
         let from_point = from_soldier.world_point();
         let to_point = to_soldier.world_point();
         let last_shoot_frame_i = to_soldier.last_shoot_frame_i();
@@ -119,6 +124,16 @@ impl Visibility {
                 exclude_lasts,
             );
 
+        // Compute a target point altered by opacity
+        let altered_to = if path_final_opacity > 0. {
+            let range = path_final_opacity * config.target_alteration_by_opacity_factor;
+            let x_change = rng.gen_range(-range..range);
+            let y_change = rng.gen_range(-range..range);
+            to_point.apply(Vec2::new(x_change, y_change))
+        } else {
+            to_point
+        };
+
         to_soldier_item_opacity -= by_behavior_modifier;
         let visible = to_soldier_item_opacity < config.visible_starts_at;
 
@@ -129,6 +144,7 @@ impl Visibility {
             from_soldier: Some(from_soldier.uuid()),
             to: to_point,
             to_soldier: Some(to_soldier.uuid()),
+            altered_to,
             opacity_segments,
             path_final_opacity,
             to_scene_item_opacity: to_soldier_item_opacity,
@@ -138,6 +154,7 @@ impl Visibility {
         }
     }
 
+    // FIXME BS NOW: add altered point (due to last tiles opacities)
     pub fn between_soldier_and_point(
         config: &ServerConfig,
         from_soldier: &Soldier,
@@ -164,6 +181,7 @@ impl Visibility {
             from_soldier: Some(from_soldier.uuid()),
             to: *to_point,
             to_soldier: None,
+            altered_to: *to_point,
             opacity_segments,
             path_final_opacity,
             to_scene_item_opacity: to_soldier_item_opacity,
@@ -189,6 +207,7 @@ impl Visibility {
             from_soldier: None,
             to: *to_point,
             to_soldier: None,
+            altered_to: *to_point,
             opacity_segments,
             path_final_opacity,
             to_scene_item_opacity: to_soldier_item_opacity,

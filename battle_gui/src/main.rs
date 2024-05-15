@@ -44,5 +44,6 @@ fn main() -> Result<(), GuiError> {
         false,
         vec![],
         vec![],
+        vec![],
     )
 }

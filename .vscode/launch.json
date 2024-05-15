@@ -902,6 +902,27 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "face_to_face1",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=face_to_face1",
+                    "--package=examples",
+                ],
+                "filter": {
+                    "name": "face_to_face1",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "face_to_face2 --release",
             "cargo": {
                 "args": [
@@ -934,6 +955,181 @@
                 ],
                 "filter": {
                     "name": "face_to_face3",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "face_to_face_with_one_side_brickwall1 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=face_to_face_with_one_side_brickwall1",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "face_to_face_with_one_side_brickwall1",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "face_to_face_with_one_side_brickwall2 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=face_to_face_with_one_side_brickwall2",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "face_to_face_with_one_side_brickwall2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "face_to_face_with_one_side_brickwall3 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=face_to_face_with_one_side_brickwall3",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "face_to_face_with_one_side_brickwall3",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "face_to_face_opaque1 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=face_to_face_opaque1",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "face_to_face_opaque1",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "face_to_face_opaque2 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=face_to_face_opaque2",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "face_to_face_opaque2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "running_with_one_side_brickwall1 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=running_with_one_side_brickwall1",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "running_with_one_side_brickwall1",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "walking_with_one_side_brickwall1 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=walking_with_one_side_brickwall1",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "walking_with_one_side_brickwall1",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "walking_with_one_side_brickwall1",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=walking_with_one_side_brickwall1",
+                    "--package=examples",
+                ],
+                "filter": {
+                    "name": "walking_with_one_side_brickwall1",
                     "kind": "bin"
                 }
             },

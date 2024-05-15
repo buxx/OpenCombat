@@ -15,24 +15,25 @@ impl Runner {
         &'a self,
         soldier: &'a Soldier,
         point: &WorldPoint,
-    ) -> Option<(WeaponClass, &Weapon)> {
-        if !self.battle_state.point_is_visible_by_soldier(
+    ) -> Option<(WeaponClass, &Weapon, WorldPoint)> {
+        let visibility = self.battle_state.point_is_visible_by_soldier(
             &self.config,
             soldier,
             point,
             // Shoot a hidden point is possible (like fire through a wall)
             self.config.visibility_by_last_frame_shoot_distance,
-        ) {
+        );
+        if !visibility.visible {
             return None;
         }
 
         if let Some((weapon_class, weapon)) = self.soldier_weapon_for_point(soldier, point) {
             if weapon.can_fire() || weapon.can_reload() {
-                return Some((weapon_class, weapon));
+                return Some((weapon_class, weapon, visibility.altered_to));
             }
 
             if self.soldier_can_reload_with(soldier, weapon).is_some() {
-                return Some((weapon_class, weapon));
+                return Some((weapon_class, weapon, visibility.altered_to));
             }
         }
 
@@ -42,31 +43,34 @@ impl Runner {
     pub fn engage_point_gesture(
         &self,
         soldier: &Soldier,
-        point: &WorldPoint,
-        weapon: (WeaponClass, &Weapon),
+        engagement: (WeaponClass, &Weapon, WorldPoint),
     ) -> (GestureContext, Gesture) {
         let frame_i = self.battle_state.frame_i();
         let current = soldier.gesture();
+        let (weapon_class, weapon, point) = engagement;
 
         let gesture = match current {
             Gesture::Idle => {
                 //
                 Gesture::Reloading(
-                    self.soldier_reloading_end(soldier, weapon.1),
-                    weapon.0.clone(),
+                    self.soldier_reloading_end(soldier, weapon),
+                    weapon_class.clone(),
                 )
             }
             Gesture::Reloading(_, _) => {
                 //
                 current.next(
                     *frame_i,
-                    Gesture::Aiming(self.soldier_aiming_end(soldier, weapon.1), weapon.0.clone()),
+                    Gesture::Aiming(
+                        self.soldier_aiming_end(soldier, weapon),
+                        weapon_class.clone(),
+                    ),
                 )
             }
             Gesture::Aiming(_, _) => {
                 //
-                let end = self.soldier_firing_end(soldier, weapon.1);
-                current.next(*frame_i, Gesture::Firing(end, weapon.0.clone()))
+                let end = self.soldier_firing_end(soldier, weapon);
+                current.next(*frame_i, Gesture::Firing(end, weapon_class.clone()))
             }
             Gesture::Firing(_, _) => {
                 //
@@ -74,7 +78,7 @@ impl Runner {
             }
         };
 
-        let final_point = self.soldier_fire_point(soldier, &weapon.0, point);
+        let final_point = self.soldier_fire_point(soldier, &weapon_class, &point);
         (GestureContext::Firing(final_point, None), gesture)
     }
 
@@ -87,9 +91,9 @@ impl Runner {
     ) -> WorldPoint {
         let mut rng = rand::thread_rng();
         // TODO : change precision according to weapon, stress, distance, etc
-        let range = 1.5
-            * (distance_between_points(&soldier.world_point(), target_point).meters() as f32
-                / 500.);
+        let factor_by_meter = 0.075;
+        let distance = distance_between_points(&soldier.world_point(), target_point);
+        let range = distance.meters() as f32 * factor_by_meter;
 
         if range == 0. {
             eprintln!(
@@ -101,8 +105,7 @@ impl Runner {
 
         let x_change = rng.gen_range(-range..range);
         let y_change = rng.gen_range(-range..range);
-        let final_point = target_point.apply(Vec2::new(x_change, y_change));
 
-        final_point
+        target_point.apply(Vec2::new(x_change, y_change))
     }
 }

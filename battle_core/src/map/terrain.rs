@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use crate::{game::posture::Posture, types::Coverage};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum TileType {
     ShortGrass,
     MiddleGrass,
@@ -113,14 +113,14 @@ impl TileType {
                 TileType::Mud => Some(Coverage(0.3)),
                 TileType::Concrete => None,
                 TileType::BrickWall => Some(Coverage(0.8)),
-                TileType::Trunk => Some(Coverage(0.9)),
+                TileType::Trunk => Some(Coverage(0.7)),
                 TileType::Water => None,
                 TileType::DeepWater => None,
                 TileType::Underbrush => None,
                 TileType::LightUnderbrush => None,
                 TileType::MiddleWoodLogs => Some(Coverage(0.7)),
                 TileType::Hedge => Some(Coverage(0.15)),
-                TileType::MiddleRock => Some(Coverage(0.9)),
+                TileType::MiddleRock => Some(Coverage(0.75)),
             },
         }
     }
