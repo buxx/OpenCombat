@@ -15,36 +15,21 @@ pub enum ChooseMethod {
     RandomFromNearest,
 }
 impl ChooseMethod {
-    fn choose(
-        &self,
-        battle_state: &BattleState,
-        visibles: Vec<&Visibility>,
-    ) -> Option<SoldierIndex> {
+    fn choose(&self, battle_state: &BattleState, soldiers: Vec<&Soldier>) -> Option<SoldierIndex> {
         match self {
-            Self::RandomFromNearest => self.choose_random_from_nearest(battle_state, visibles),
+            Self::RandomFromNearest => self.choose_random_from_nearest(battle_state, soldiers),
         }
     }
 
     fn choose_random_from_nearest(
         &self,
-        battle_state: &BattleState,
-        visibles: Vec<&Visibility>,
+        _battle_state: &BattleState,
+        soldiers: Vec<&Soldier>,
     ) -> Option<SoldierIndex> {
-        if let Some(visibility) = visibles.first() {
-            let soldier = battle_state.soldier(
-                visibility
-                    .to_soldier
-                    .expect("visibles_soldiers_by must returned with to_soldier"),
-            );
+        if let Some(soldier) = soldiers.first() {
             let soldier_position = soldier.world_point();
-            let near_soldiers: Vec<&Soldier> = visibles
-                .iter()
-                .map(|v| {
-                    battle_state.soldier(
-                        v.to_soldier
-                            .expect("visibles_soldiers_by must returned with to_soldier"),
-                    )
-                })
+            let near_soldiers: Vec<&Soldier> = soldiers
+                .into_iter()
                 .filter(|s| {
                     distance_between_points(&soldier_position, &s.world_point())
                         < Distance::from_meters(NEAR_SOLDIERS_DISTANCE_METERS)
@@ -70,35 +55,37 @@ impl Runner {
         squad_index: Option<&SquadUuid>,
         method: &ChooseMethod,
     ) -> Option<&Soldier> {
-        let mut visibles = self
+        // FIXME BS NOW bug: il faut choisir parmis les soldats visibles de son SIDE
+        // PUIS, quand test si soldat point touchable (appel a soldier_able_to_fire_on_point)
+        // Il faut donner l'objet soldier target (ou simplement tester si soldat target est visible && pas d'obstacle entre ? exclude quelques tuiles a la fin ?)
+        // et pas juste le point (car on doit pouvoir cibler un soldat connu mais pas vu direct)
+        let mut visibles: Vec<&Soldier> = self
             .battle_state
             .visibilities()
-            .visibles_soldiers_by_soldier(soldier);
+            .visibles_soldiers_by_side(soldier.side())
+            .iter()
+            .map(|s| self.battle_state.soldier(*s))
+            .collect();
 
-        visibles.retain(|v| {
-            self.battle_state
-                .soldier(v.to_soldier.expect("filtered previously"))
-                .can_be_designed_as_target()
-        });
+        visibles.retain(|s| s.can_be_designed_as_target());
 
         if let Some(squad_index) = squad_index {
-            visibles.retain(|v| {
-                self.battle_state
-                    .soldier(v.to_soldier.expect("filtered previously"))
-                    .squad_uuid()
-                    == *squad_index
-            })
+            visibles.retain(|s| s.squad_uuid() == *squad_index)
         }
 
-        visibles.sort_by(|a, b| {
-            a.distance
-                .millimeters()
-                .partial_cmp(&b.distance.millimeters())
-                .expect("Must be i64")
-        });
+        // Why this sort ?
+        // visibles.sort_by(|a, b| {
+        //     a.distance
+        //         .millimeters()
+        //         .partial_cmp(&b.distance.millimeters())
+        //         .expect("Must be i64")
+        // });
 
         if soldier.behavior().is_hide() {
-            visibles.retain(|v| v.distance <= self.config.hide_maximum_rayon)
+            visibles.retain(|s| {
+                distance_between_points(&soldier.world_point(), &s.world_point())
+                    <= self.config.hide_maximum_rayon
+            })
         }
 
         method

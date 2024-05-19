@@ -12,13 +12,13 @@ use examples::{
 };
 
 fn main() -> Result<(), RunnerError> {
-    let (map, deployment) = face_to_face(TileType::MiddleGrass, 1200., Some(TileType::BrickWall));
+    let (map, deployment) = face_to_face(TileType::MiddleGrass, 700., Some(TileType::BrickWall));
 
     let messages = vec![
         EngineMessage::BattleState(BattleStateMessage::Soldier(
             SoldierIndex(0),
             SoldierMessage::SetOrder(Order::MoveTo(
-                WorldPaths::new(vec![WorldPath::new(vec![WorldPoint::new(1250., 50.)])]),
+                WorldPaths::new(vec![WorldPath::new(vec![WorldPoint::new(750., 50.)])]),
                 None,
             )),
         )),

@@ -1139,5 +1139,91 @@
                 "RUST_BACKTRACE": "1"
             }
         },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "walking_with_one_side_brickwall2 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=walking_with_one_side_brickwall2",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "walking_with_one_side_brickwall2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "walking_with_one_side_brickwall2",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=walking_with_one_side_brickwall2",
+                    "--package=examples"
+                ],
+                "filter": {
+                    "name": "walking_with_one_side_brickwall2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "walking_with_one_side_brickwall3 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=walking_with_one_side_brickwall3",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "walking_with_one_side_brickwall3",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "walking_with_one_side_brickwall3",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=walking_with_one_side_brickwall3",
+                    "--package=examples"
+                ],
+                "filter": {
+                    "name": "walking_with_one_side_brickwall3",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
     ]
 }

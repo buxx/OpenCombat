@@ -1482,6 +1482,7 @@ dependencies = [
  "battle_gui",
  "battle_server",
  "battle_tools",
+ "glam 0.22.0",
  "oc_core",
  "thiserror",
 ]

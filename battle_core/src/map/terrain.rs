@@ -124,6 +124,26 @@ impl TileType {
             },
         }
     }
+
+    pub fn block_bullet(&self) -> bool {
+        match self {
+            TileType::ShortGrass => false,
+            TileType::MiddleGrass => false,
+            TileType::HighGrass => false,
+            TileType::Dirt => false,
+            TileType::Mud => false,
+            TileType::Concrete => false,
+            TileType::BrickWall => true,
+            TileType::Trunk => true,
+            TileType::Water => false,
+            TileType::DeepWater => false,
+            TileType::Underbrush => false,
+            TileType::LightUnderbrush => false,
+            TileType::MiddleWoodLogs => false, // true ?
+            TileType::Hedge => false,
+            TileType::MiddleRock => false, // true ?
+        }
+    }
 }
 
 #[derive(Debug)]

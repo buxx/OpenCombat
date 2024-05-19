@@ -88,7 +88,7 @@ pub const COVER_DISTANCE: i32 = 6;
 // Visibility computing must consider firsts tiles differently
 pub const VISIBILITY_FIRSTS: usize = 6;
 pub const VISIBLE_STARTS_AT: f32 = 0.5;
-pub const TARGET_ALTERATION_BY_OPACITY_FACTOR: f32 = 10.;
+pub const TARGET_ALTERATION_BY_OPACITY_FACTOR: f32 = 25.;
 // When compute visibility, configure here each pixels step of line which me considered
 pub const VISIBILITY_PIXEL_STEPS: usize = 5;
 // When compute coverage, configure here each pixels step of line which me considered
@@ -323,7 +323,7 @@ impl ServerConfig {
         match tile_type {
             TileType::ShortGrass => self.tile_type_opacity_short_grass,
             TileType::MiddleGrass => self.tile_type_opacity_middle_grass,
-            TileType::HighGrass => self.tile_type_opacity_middle_grass,
+            TileType::HighGrass => self.tile_type_opacity_high_grass,
             TileType::Dirt => self.tile_type_opacity_dirt,
             TileType::Concrete => self.tile_type_opacity_concrete,
             TileType::Mud => self.tile_type_opacity_mud,

@@ -10,21 +10,25 @@ use examples::{
     runner::{Runner, RunnerError},
     scenarios::face_to_face::face_to_face,
 };
+use glam::Vec2;
 
 fn main() -> Result<(), RunnerError> {
-    let (map, deployment) = face_to_face(TileType::MiddleGrass, 1200., Some(TileType::BrickWall));
+    let (map, deployment) = face_to_face(TileType::HighGrass, 300., Some(TileType::BrickWall));
 
     let messages = vec![
         EngineMessage::BattleState(BattleStateMessage::Soldier(
             SoldierIndex(0),
             SoldierMessage::SetOrder(Order::MoveTo(
-                WorldPaths::new(vec![WorldPath::new(vec![WorldPoint::new(1250., 50.)])]),
+                WorldPaths::new(vec![WorldPath::new(vec![WorldPoint::new(350., 50.)])]),
                 None,
             )),
         )),
         EngineMessage::BattleState(BattleStateMessage::Soldier(
             SoldierIndex(5),
-            SoldierMessage::SetOrder(Order::Hide(Angle(0.75))),
+            SoldierMessage::SetOrder(Order::Hide(Angle::from_points(
+                &Vec2::new(0.0, 0.0),
+                &Vec2::new(1.0, 0.0),
+            ))),
         )),
     ];
 

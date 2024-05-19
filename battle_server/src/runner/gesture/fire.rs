@@ -16,6 +16,15 @@ impl Runner {
         soldier: &'a Soldier,
         point: &WorldPoint,
     ) -> Option<(WeaponClass, &Weapon, WorldPoint)> {
+        if soldier.uuid().0 == 2 {
+            let a = 42;
+        }
+        // FIXME BS NOW: aut. tir si:
+        // - visible
+        // - ou visible par soldat a proximité
+        // - FIXME BS NOW: pk  path_final_opacity differents de '2 see {}'
+        // Algo pas le même ... ajouter une notion que on shoot un soldat vu donc c bon
+        // ne bloquer le tir que si obstacle avant la fin ?
         let visibility = self.battle_state.point_is_visible_by_soldier(
             &self.config,
             soldier,
@@ -23,7 +32,8 @@ impl Runner {
             // Shoot a hidden point is possible (like fire through a wall)
             self.config.visibility_by_last_frame_shoot_distance,
         );
-        if !visibility.visible {
+
+        if visibility.blocked {
             return None;
         }
 
