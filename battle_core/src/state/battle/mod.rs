@@ -12,12 +12,13 @@ use crate::{
     physics::{
         event::{bullet::BulletFire, cannon_blast::CannonBlast, explosion::Explosion},
         path::{Direction, PathMode},
+        utils::distance_between_points,
         visibility::Visibilities,
     },
     sync::BattleStateCopy,
     types::{
-        SoldierBoard, SoldierIndex, SoldiersOnBoard, SquadComposition, SquadUuid, VehicleBoard,
-        VehicleIndex,
+        Distance, SoldierBoard, SoldierIndex, SoldiersOnBoard, SquadComposition, SquadUuid,
+        VehicleBoard, VehicleIndex, WorldPoint,
     },
     utils::{vehicle_board_from_soldiers_on_board, WorldShape},
 };
@@ -403,6 +404,23 @@ impl BattleState {
 
     pub fn b_morale(&self) -> &Morale {
         &self.b_morale
+    }
+
+    pub fn get_circle_side_soldiers_able_to_see(
+        &self,
+        side: &Side,
+        point: &WorldPoint,
+        distance: &Distance,
+    ) -> Vec<&Soldier> {
+        self.soldiers
+            .iter()
+            .filter(|s| s.can_seek())
+            .filter(|s| s.side() == side)
+            .filter(|s| {
+                distance_between_points(&s.world_point(), &point).millimeters()
+                    <= distance.millimeters()
+            })
+            .collect()
     }
 }
 

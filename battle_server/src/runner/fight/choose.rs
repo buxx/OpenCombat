@@ -53,16 +53,23 @@ impl Runner {
         &self,
         soldier: &Soldier,
         squad_index: Option<&SquadUuid>,
-        method: &ChooseMethod,
+        choose_method: &ChooseMethod,
     ) -> Option<&Soldier> {
-        // FIXME BS NOW bug: il faut choisir parmis les soldats visibles de son SIDE
-        // PUIS, quand test si soldat point touchable (appel a soldier_able_to_fire_on_point)
-        // Il faut donner l'objet soldier target (ou simplement tester si soldat target est visible && pas d'obstacle entre ? exclude quelques tuiles a la fin ?)
-        // et pas juste le point (car on doit pouvoir cibler un soldat connu mais pas vu direct)
+        let around_soldiers: Vec<SoldierIndex> = self
+            .battle_state
+            .get_circle_side_soldiers_able_to_see(
+                soldier.side(),
+                &soldier.world_point(),
+                &Distance::from_meters(20),
+            )
+            .iter()
+            .map(|s| s.uuid())
+            .collect();
         let mut visibles: Vec<&Soldier> = self
             .battle_state
             .visibilities()
-            .visibles_soldiers_by_side(soldier.side())
+            // FIXME BS NOW: !!! visible by near soldiers instead of all side
+            .visibles_soldiers_by_soldiers(around_soldiers)
             .iter()
             .map(|s| self.battle_state.soldier(*s))
             .collect();
@@ -88,7 +95,7 @@ impl Runner {
             })
         }
 
-        method
+        choose_method
             .choose(&self.battle_state, visibles)
             .map(|i| self.battle_state.soldier(i))
     }

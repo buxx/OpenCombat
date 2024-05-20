@@ -16,9 +16,6 @@ impl Runner {
         soldier: &'a Soldier,
         point: &WorldPoint,
     ) -> Option<(WeaponClass, &Weapon, WorldPoint)> {
-        if soldier.uuid().0 == 2 {
-            let a = 42;
-        }
         // FIXME BS NOW: aut. tir si:
         // - visible
         // - ou visible par soldat a proximité
@@ -58,7 +55,6 @@ impl Runner {
         let frame_i = self.battle_state.frame_i();
         let current = soldier.gesture();
         let (weapon_class, weapon, point) = engagement;
-
         let gesture = match current {
             Gesture::Idle => {
                 //

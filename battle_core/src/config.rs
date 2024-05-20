@@ -88,7 +88,7 @@ pub const COVER_DISTANCE: i32 = 6;
 // Visibility computing must consider firsts tiles differently
 pub const VISIBILITY_FIRSTS: usize = 6;
 pub const VISIBLE_STARTS_AT: f32 = 0.5;
-pub const TARGET_ALTERATION_BY_OPACITY_FACTOR: f32 = 25.;
+pub const TARGET_ALTERATION_BY_OPACITY_FACTOR: f32 = 8.;
 // When compute visibility, configure here each pixels step of line which me considered
 pub const VISIBILITY_PIXEL_STEPS: usize = 5;
 // When compute coverage, configure here each pixels step of line which me considered
