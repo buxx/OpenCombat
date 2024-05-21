@@ -8,7 +8,7 @@ use battle_core::{
     game::{
         explosive::ExplosiveType,
         squad::{squad_positions, Formation},
-        weapon::Weapon,
+        weapon::{Shot, Weapon},
         Side,
     },
     physics::event::{bullet::BulletFire, explosion::Explosion},
@@ -281,11 +281,13 @@ impl Engine {
                 messages.extend(
                     [vec![EngineMessage::BattleState(
                         BattleStateMessage::PushBulletFire(BulletFire::new(
+                            0,
                             from,
                             to,
                             None,
                             weapon.ammunition(),
-                            weapon.gun_fire_sound_type(),
+                            Some(weapon.gun_fire_sound_type()),
+                            Shot::x1,
                         )),
                     )]]
                     .concat(),

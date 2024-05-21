@@ -4,14 +4,23 @@ use battle_core::{
         Behavior,
     },
     entity::soldier::{Soldier, WeaponClass},
-    game::weapon::Weapon,
-    physics::event::{bullet::BulletFire, cannon_blast::CannonBlast},
+    game::{
+        weapon::{Shot, Weapon},
+        Side,
+    },
+    physics::{
+        event::{bullet::BulletFire, cannon_blast::CannonBlast},
+        utils::distance_between_points,
+        visibility::Visibility,
+    },
     state::{
         battle::message::{BattleStateMessage, SoldierMessage},
         client::ClientStateMessage,
     },
-    types::{Precision, SoldierIndex, WorldPoint},
+    types::{Distance, Precision, SoldierIndex, WorldPoint},
 };
+use glam::Vec2;
+use rand::Rng;
 
 use super::{message::RunnerMessage, Runner};
 
@@ -90,9 +99,11 @@ impl Runner {
                 }
             }
             (_, Gesture::Aiming(_, _)) => {}
-            (GestureContext::Firing(point, target), Gesture::Firing(_, class)) => {
+            (GestureContext::Firing(point, target, visibility), Gesture::Firing(_, class)) => {
                 if let Some(weapon) = soldier.weapon(class) {
-                    return self.firing_gesture_messages(soldier, class, weapon, point, target);
+                    return self.firing_gesture_messages(
+                        soldier, class, weapon, point, target, visibility,
+                    );
                 }
             }
             _ => {}
@@ -130,30 +141,88 @@ impl Runner {
         weapon: &Weapon,
         point: &WorldPoint,
         target: &Option<(SoldierIndex, Precision)>,
+        visibility: &Visibility,
     ) -> Vec<RunnerMessage> {
-        [vec![
-            RunnerMessage::BattleState(BattleStateMessage::Soldier(
-                soldier.uuid(),
-                SoldierMessage::WeaponShot(class.clone()),
-            )),
-            RunnerMessage::BattleState(BattleStateMessage::PushBulletFire(BulletFire::new(
-                soldier.world_point(),
-                *point,
-                target.clone(),
-                weapon.ammunition(),
-                weapon.gun_fire_sound_type(),
-            ))),
-            RunnerMessage::BattleState(BattleStateMessage::PushCannonBlast(CannonBlast::new(
-                soldier.world_point(),
-                soldier.get_looking_direction(),
-                weapon.sprite_type(),
-                soldier.animation_type().0,
-            ))),
-            RunnerMessage::BattleState(BattleStateMessage::Soldier(
-                soldier.uuid(),
-                SoldierMessage::SetLastShootFrameI(*self.battle_state.frame_i()),
-            )),
-        ]]
+        let mut rng = rand::thread_rng();
+        // TODO: value in config
+        let opponents_around = self.count_opponents_around(
+            &soldier.side().opposite(),
+            &visibility.to,
+            Distance::from_meters(5),
+        );
+        let shot = weapon.shot_type(opponents_around);
+
+        // FIXME BS NOW: generate multiple BulletFire & CannonBlast
+        // FIXME BS NOW: warn about sound !
+
+        let bullet_fires = (0..shot.count())
+            .map(|i| {
+                let point = if i > 0 {
+                    let weapon_factor_multiplier = weapon.range_on_burst();
+                    let factor_by_meter = self.config.inaccurate_fire_factor_by_meter;
+                    let distance = visibility.distance;
+                    let range =
+                        distance.meters() as f32 * factor_by_meter * weapon_factor_multiplier;
+                    if range > 0. {
+                        let x_change = rng.gen_range(-range..range);
+                        let y_change = rng.gen_range(-range..range);
+                        point.apply(Vec2::new(x_change, y_change))
+                    } else {
+                        *point
+                    }
+                } else {
+                    *point
+                };
+                let sound = if i == 0 {
+                    Some(weapon.gun_fire_sound_type())
+                } else {
+                    None
+                };
+                RunnerMessage::BattleState(BattleStateMessage::PushBulletFire(BulletFire::new(
+                    weapon.frame_offset_on_burst() * i as u64,
+                    soldier.world_point(),
+                    point,
+                    target.clone(),
+                    weapon.ammunition(),
+                    sound,
+                    shot,
+                )))
+            })
+            .collect();
+
+        [
+            vec![
+                RunnerMessage::BattleState(BattleStateMessage::Soldier(
+                    soldier.uuid(),
+                    SoldierMessage::WeaponShot(class.clone(), shot),
+                )),
+                RunnerMessage::BattleState(BattleStateMessage::PushCannonBlast(CannonBlast::new(
+                    soldier.world_point(),
+                    soldier.get_looking_direction(),
+                    weapon.sprite_type(),
+                    soldier.animation_type().0,
+                ))),
+                RunnerMessage::BattleState(BattleStateMessage::Soldier(
+                    soldier.uuid(),
+                    SoldierMessage::SetLastShootFrameI(*self.battle_state.frame_i()),
+                )),
+            ],
+            bullet_fires,
+        ]
         .concat()
+    }
+
+    fn count_opponents_around(&self, side: &Side, point: &WorldPoint, distance: Distance) -> usize {
+        self.battle_state
+            .soldiers()
+            .iter()
+            .filter(|s| s.side() == side)
+            .filter(|s| s.can_be_designed_as_target())
+            .filter(|s| {
+                distance_between_points(&s.world_point(), point).millimeters()
+                    <= distance.millimeters()
+            })
+            .collect::<Vec<&Soldier>>()
+            .len()
     }
 }

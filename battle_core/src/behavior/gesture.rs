@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::soldier::WeaponClass,
+    physics::visibility::Visibility,
     types::{Precision, SoldierIndex, WorldPoint},
 };
 
@@ -33,5 +34,5 @@ impl Gesture {
 
 pub enum GestureContext {
     Idle,
-    Firing(WorldPoint, Option<(SoldierIndex, Precision)>),
+    Firing(WorldPoint, Option<(SoldierIndex, Precision)>, Visibility),
 }

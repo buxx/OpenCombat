@@ -89,6 +89,7 @@ pub const COVER_DISTANCE: i32 = 6;
 pub const VISIBILITY_FIRSTS: usize = 6;
 pub const VISIBLE_STARTS_AT: f32 = 0.5;
 pub const TARGET_ALTERATION_BY_OPACITY_FACTOR: f32 = 8.;
+pub const INACCURATE_FIRE_FACTOR_BY_METER: f32 = 0.075;
 // When compute visibility, configure here each pixels step of line which me considered
 pub const VISIBILITY_PIXEL_STEPS: usize = 5;
 // When compute coverage, configure here each pixels step of line which me considered
@@ -119,6 +120,7 @@ pub struct ServerConfig {
     pub visibility_firsts: usize,
     pub visible_starts_at: f32,
     pub target_alteration_by_opacity_factor: f32,
+    pub inaccurate_fire_factor_by_meter: f32,
     pub visibility_idle_standup_modifier: f32,
     pub visibility_idle_crouch_modifier: f32,
     pub visibility_idle_lying_modifier: f32,
@@ -200,6 +202,7 @@ impl Default for ServerConfig {
             visibility_firsts: VISIBILITY_FIRSTS,
             visible_starts_at: VISIBLE_STARTS_AT,
             target_alteration_by_opacity_factor: TARGET_ALTERATION_BY_OPACITY_FACTOR,
+            inaccurate_fire_factor_by_meter: INACCURATE_FIRE_FACTOR_BY_METER,
 
             visibility_idle_standup_modifier: VISIBILITY_IDLE_STANDUP_MODIFIER,
             visibility_idle_crouch_modifier: VISIBILITY_IDLE_CROUCH_MODIFIER,

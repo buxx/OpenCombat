@@ -22,8 +22,10 @@ impl Engine {
         let mut messages = vec![];
 
         if bullet_fire.start() == self.gui_state.frame_i() {
-            for sound in bullet_fire.gun_fire_sound_type().fire_sounds() {
-                messages.push(EngineMessage::PlaySound(sound));
+            if let Some(sound_type) = bullet_fire.gun_fire_sound_type() {
+                for sound in sound_type.fire_sounds(bullet_fire.shots()) {
+                    messages.push(EngineMessage::PlaySound(sound));
+                }
             }
         }
 
@@ -32,13 +34,15 @@ impl Engine {
 
     pub fn draw_bullet_fires(&self, mesh_builder: &mut MeshBuilder) -> GameResult {
         for bullet_fire in self.battle_state.bullet_fires() {
-            let from = self
-                .gui_state
-                .window_point_from_world_point(*bullet_fire.from());
-            let to = self
-                .gui_state
-                .window_point_from_world_point(*bullet_fire.to());
-            mesh_builder.line(&[from.to_vec2(), to.to_vec2()], 1.0, GREY)?;
+            if self.gui_state.frame_i() >= bullet_fire.start() {
+                let from = self
+                    .gui_state
+                    .window_point_from_world_point(*bullet_fire.from());
+                let to = self
+                    .gui_state
+                    .window_point_from_world_point(*bullet_fire.to());
+                mesh_builder.line(&[from.to_vec2(), to.to_vec2()], 1.0, GREY)?;
+            }
         }
         Ok(())
     }

@@ -2,7 +2,7 @@ use battle_core::{
     behavior::gesture::{Gesture, GestureContext},
     entity::soldier::{Soldier, WeaponClass},
     game::weapon::Weapon,
-    physics::utils::distance_between_points,
+    physics::{utils::distance_between_points, visibility::Visibility},
     types::WorldPoint,
 };
 use glam::Vec2;
@@ -15,13 +15,7 @@ impl Runner {
         &'a self,
         soldier: &'a Soldier,
         point: &WorldPoint,
-    ) -> Option<(WeaponClass, &Weapon, WorldPoint)> {
-        // FIXME BS NOW: aut. tir si:
-        // - visible
-        // - ou visible par soldat a proximité
-        // - FIXME BS NOW: pk  path_final_opacity differents de '2 see {}'
-        // Algo pas le même ... ajouter une notion que on shoot un soldat vu donc c bon
-        // ne bloquer le tir que si obstacle avant la fin ?
+    ) -> Option<(WeaponClass, &Weapon, Visibility)> {
         let visibility = self.battle_state.point_is_visible_by_soldier(
             &self.config,
             soldier,
@@ -36,11 +30,11 @@ impl Runner {
 
         if let Some((weapon_class, weapon)) = self.soldier_weapon_for_point(soldier, point) {
             if weapon.can_fire() || weapon.can_reload() {
-                return Some((weapon_class, weapon, visibility.altered_to));
+                return Some((weapon_class, weapon, visibility));
             }
 
             if self.soldier_can_reload_with(soldier, weapon).is_some() {
-                return Some((weapon_class, weapon, visibility.altered_to));
+                return Some((weapon_class, weapon, visibility));
             }
         }
 
@@ -50,18 +44,24 @@ impl Runner {
     pub fn engage_point_gesture(
         &self,
         soldier: &Soldier,
-        engagement: (WeaponClass, &Weapon, WorldPoint),
+        engagement: (WeaponClass, &Weapon, Visibility),
     ) -> (GestureContext, Gesture) {
         let frame_i = self.battle_state.frame_i();
         let current = soldier.gesture();
-        let (weapon_class, weapon, point) = engagement;
+        let (weapon_class, weapon, visibility) = engagement;
         let gesture = match current {
             Gesture::Idle => {
-                //
-                Gesture::Reloading(
-                    self.soldier_reloading_end(soldier, weapon),
-                    weapon_class.clone(),
-                )
+                if weapon.can_fire() {
+                    Gesture::Aiming(
+                        self.soldier_aiming_end(soldier, weapon),
+                        weapon_class.clone(),
+                    )
+                } else {
+                    Gesture::Reloading(
+                        self.soldier_reloading_end(soldier, weapon),
+                        weapon_class.clone(),
+                    )
+                }
             }
             Gesture::Reloading(_, _) => {
                 //
@@ -84,8 +84,11 @@ impl Runner {
             }
         };
 
-        let final_point = self.soldier_fire_point(soldier, &weapon_class, &point);
-        (GestureContext::Firing(final_point, None), gesture)
+        let final_point = self.soldier_fire_point(soldier, &weapon_class, &visibility.altered_to);
+        (
+            GestureContext::Firing(final_point, None, visibility),
+            gesture,
+        )
     }
 
     // FIXME : use realistic range error (angle from target)
@@ -97,7 +100,7 @@ impl Runner {
     ) -> WorldPoint {
         let mut rng = rand::thread_rng();
         // TODO : change precision according to weapon, stress, distance, etc
-        let factor_by_meter = 0.075;
+        let factor_by_meter = self.config.inaccurate_fire_factor_by_meter;
         let distance = distance_between_points(&soldier.world_point(), target_point);
         let range = distance.meters() as f32 * factor_by_meter;
 

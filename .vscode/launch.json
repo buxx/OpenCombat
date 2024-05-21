@@ -1225,5 +1225,92 @@
                 "RUST_BACKTRACE": "1"
             }
         },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "bren_mark2 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=bren_mark2",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "bren_mark2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "bren_mark2",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=bren_mark2",
+                    "--package=examples"
+                ],
+                "filter": {
+                    "name": "bren_mark2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "bren_mark2_multiples --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=bren_mark2_multiples",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "bren_mark2_multiples",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "bren_mark2_multiples2 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=bren_mark2_multiples2",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "bren_mark2_multiples2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
     ]
 }

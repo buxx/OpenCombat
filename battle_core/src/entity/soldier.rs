@@ -2,7 +2,7 @@ use crate::{
     behavior::{feeling::Feeling, gesture::Gesture, Behavior, Body},
     deployment::SoldierDeployment,
     game::{
-        weapon::{Magazine, Weapon},
+        weapon::{Magazine, Shot, Weapon},
         Side,
     },
     graphics::{soldier::SoldierAnimationType, weapon::WeaponAnimationType},
@@ -246,16 +246,25 @@ impl Soldier {
                     if weapon.accepted_magazine(&magazine) {
                         weapon.set_magazine(magazine);
                         break;
+                    } else {
+                        magazines.push(magazine)
                     }
                 }
+            } else {
+                eprintln!(
+                    "Tried to reload weapon {:?} but magazine already here",
+                    weapon
+                )
             }
+        } else {
+            eprintln!("Tried to reload weapon class {:?} but no weapon", class)
         }
         self.magazines = magazines;
     }
 
-    pub fn weapon_shot(&mut self, class: &WeaponClass) {
+    pub fn weapon_shot(&mut self, class: &WeaponClass, shot: &Shot) {
         if let Some(weapon) = self.weapon_mut(class) {
-            weapon.shot();
+            weapon.shot(shot);
         }
     }
 

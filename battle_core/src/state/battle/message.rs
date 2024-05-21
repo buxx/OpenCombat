@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     behavior::{gesture::Gesture, Behavior},
     entity::soldier::WeaponClass,
-    game::flag::FlagsOwnership,
+    game::{flag::FlagsOwnership, weapon::Shot},
     order::Order,
     physics::{
         event::{bullet::BulletFire, cannon_blast::CannonBlast, explosion::Explosion},
@@ -50,7 +50,7 @@ pub enum SoldierMessage {
     IncreaseUnderFire(u32),
     DecreaseUnderFire,
     ReloadWeapon(WeaponClass),
-    WeaponShot(WeaponClass),
+    WeaponShot(WeaponClass, Shot),
     SetLastShootFrameI(u64),
 }
 
