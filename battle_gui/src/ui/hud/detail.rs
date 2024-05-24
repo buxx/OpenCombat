@@ -12,11 +12,11 @@ use ggez::{
 use glam::Vec2;
 use oc_core::graphics::squad::{
     SOLDIER_HEIGHT, SOLDIER_REL_1_START_X, SOLDIER_REL_1_START_Y, SOLDIER_REL_HEIGHT,
-    SOLDIER_REL_WIDTH, SOLDIER_WIDTH, SQUAD_REL_TYPE1_HEIGHT, SQUAD_REL_TYPE1_START_X,
-    SQUAD_REL_TYPE1_START_Y, SQUAD_REL_TYPE1_WIDTH, SQUAD_TYPE_HEIGHT, SQUAD_TYPE_WIDTH,
+    SOLDIER_REL_WIDTH, SOLDIER_WIDTH, SQUAD_TYPE_HEIGHT, SQUAD_TYPE_WIDTH,
 };
 
 use crate::{
+    graphics::utils::IntoDrawParam,
     ui::{
         component::Component,
         health::{HEALTH_HEIGHT, HEALTH_WIDTH},
@@ -77,13 +77,9 @@ impl Component<HudEvent> for SquadDetail {
             let squad_illustration_point = self.point;
             // FIXME BS NOW: According to squad type
             params.push(
-                DrawParam::new()
-                    .src(Rect::new(
-                        SQUAD_REL_TYPE1_START_X,
-                        SQUAD_REL_TYPE1_START_Y,
-                        SQUAD_REL_TYPE1_WIDTH,
-                        SQUAD_REL_TYPE1_HEIGHT,
-                    ))
+                squad
+                    .squad_type()
+                    .to_draw_param()
                     .dest(squad_illustration_point.to_vec2()),
             );
 
@@ -93,15 +89,11 @@ impl Component<HudEvent> for SquadDetail {
                 let soldier_dest = soldiers_healths_start_point
                     .apply(Vec2::new(0., (SOLDIER_HEIGHT + MARGIN) * i as f32));
 
-                // FIXME BS NOW: According to soldier
+                // FIXME BS NOW: According to soldier type
                 params.push(
-                    DrawParam::new()
-                        .src(Rect::new(
-                            SOLDIER_REL_1_START_X,
-                            SOLDIER_REL_1_START_Y,
-                            SOLDIER_REL_WIDTH,
-                            SOLDIER_REL_HEIGHT,
-                        ))
+                    soldier_status
+                        .type_()
+                        .to_draw_param()
                         .dest(soldier_dest.to_vec2()),
                 );
 

@@ -9,11 +9,13 @@ use crate::{
     order::Order,
     types::*,
 };
+use oc_core::game::soldier::SoldierType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Soldier {
     uuid: SoldierIndex,
+    type_: SoldierType,
     side: Side,
     world_point: WorldPoint,
     squad_uuid: SquadUuid,
@@ -33,6 +35,7 @@ pub struct Soldier {
 impl Soldier {
     pub fn new(
         uuid: SoldierIndex,
+        type_: SoldierType,
         world_point: WorldPoint,
         squad_uuid: SquadUuid,
         side: Side,
@@ -41,6 +44,7 @@ impl Soldier {
     ) -> Self {
         Self {
             uuid,
+            type_,
             side,
             world_point,
             squad_uuid,
@@ -61,6 +65,7 @@ impl Soldier {
     pub fn from_soldier(soldier: &Soldier) -> Self {
         Self::new(
             soldier.uuid(),
+            *soldier.type_(),
             soldier.world_point(),
             soldier.squad_uuid(),
             *soldier.side(),
@@ -250,11 +255,6 @@ impl Soldier {
                         magazines.push(magazine)
                     }
                 }
-            } else {
-                eprintln!(
-                    "Tried to reload weapon {:?} but magazine already here",
-                    weapon
-                )
             }
         } else {
             eprintln!("Tried to reload weapon class {:?} but no weapon", class)
@@ -270,6 +270,10 @@ impl Soldier {
 
     pub fn alive(&self) -> bool {
         self.alive
+    }
+
+    pub fn type_(&self) -> &SoldierType {
+        &self.type_
     }
 
     pub fn unconscious(&self) -> bool {
@@ -328,6 +332,7 @@ impl From<&SoldierDeployment> for Soldier {
     fn from(deployment: &SoldierDeployment) -> Self {
         let mut soldier = Self::new(
             deployment.uuid(),
+            *deployment.type_(),
             deployment.world_point(),
             deployment.squad_uuid(),
             deployment.side(),

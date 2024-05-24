@@ -9,12 +9,9 @@ use ggez::{
     Context, GameResult,
 };
 use glam::Vec2;
-use oc_core::graphics::squad::{
-    SQUAD_REL_TYPE1_HEIGHT, SQUAD_REL_TYPE1_START_X, SQUAD_REL_TYPE1_START_Y,
-    SQUAD_REL_TYPE1_WIDTH, SQUAD_TYPE_WIDTH,
-};
+use oc_core::graphics::squad::SQUAD_TYPE_WIDTH;
 
-use crate::{ui::component::Component, utils::IntoSprite};
+use crate::{graphics::utils::IntoDrawParam, ui::component::Component, utils::IntoSprite};
 
 use super::{
     builder::{BOTTOM_LINE_HEIGHT, MARGIN, RIGHT_BOX_WIDTH},
@@ -96,13 +93,10 @@ impl Component<HudEvent> for SquadStatuses {
         for draw_card in self.cards(ctx) {
             // FIXME BS NOW: According to squad type
             params.push(
-                DrawParam::new()
-                    .src(Rect::new(
-                        SQUAD_REL_TYPE1_START_X,
-                        SQUAD_REL_TYPE1_START_Y,
-                        SQUAD_REL_TYPE1_WIDTH,
-                        SQUAD_REL_TYPE1_HEIGHT,
-                    ))
+                draw_card
+                    .squad_status
+                    .squad_type()
+                    .to_draw_param()
                     .dest(draw_card.dest.to_vec2()),
             );
 

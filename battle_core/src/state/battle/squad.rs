@@ -1,5 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
+use oc_core::game::squad::SquadType;
+
 use crate::{
     behavior::BehaviorMode,
     types::{SoldierIndex, SquadComposition, SquadUuid},
@@ -16,13 +18,20 @@ impl BattleState {
                 .elect_squad_leader(squad_uuid)
                 .expect("At this point, there must be at least one soldier in the squad");
             let squad_entities = self.squad_entities(squad_uuid);
+            let type_ = self.squad_type(&squad_uuid);
             new_squads.insert(
                 squad_uuid,
-                SquadComposition::new(new_squad_leader, squad_entities),
+                SquadComposition::new(new_squad_leader, type_.clone(), squad_entities),
             );
         }
 
         self.set_squads(new_squads);
+    }
+
+    pub fn squad_type(&self, squad_id: &SquadUuid) -> &SquadType {
+        self.squad_types
+            .get(squad_id)
+            .expect(&format!("Squad consistency required ({:?})", squad_id))
     }
 
     fn unique_squad_ids(&self) -> Vec<SquadUuid> {

@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fmt::Display};
 
 use crate::{
+    deployment::SquadTypes,
     game::flag::FlagsOwnership,
     map::{reader::MapReaderError, Map},
 };
@@ -44,6 +45,7 @@ impl BattleStateBuilder {
             vec![],
             vec![],
             HashMap::new(),
+            SquadTypes::new(),
             Phase::Placement,
             FlagsOwnership::empty(),
         );

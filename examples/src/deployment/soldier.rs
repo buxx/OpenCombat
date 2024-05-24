@@ -8,9 +8,11 @@ use battle_core::{
     order::Order,
     types::{SoldierIndex, SquadUuid, WorldPoint},
 };
+use oc_core::game::soldier::SoldierType;
 
 pub struct ManualSoldiersGenerator {
     soldiers: Vec<SoldierDeployment>,
+    type_: SoldierType,
     side: Side,
     squad: SquadUuid,
     main_weapon: Option<Weapon>,
@@ -19,6 +21,11 @@ pub struct ManualSoldiersGenerator {
 }
 
 impl ManualSoldiersGenerator {
+    pub fn type_(mut self, value: SoldierType) -> Self {
+        self.type_ = value;
+        self
+    }
+
     pub fn side(mut self, value: Side) -> Self {
         self.side = value;
         self
@@ -49,12 +56,13 @@ impl ManualSoldiersGenerator {
         F: FnOnce(WorldPoint) -> WorldPoint + Copy,
     {
         for _ in 0..count {
-            self.world_point = placer(self.world_point.clone());
+            self.world_point = placer(self.world_point);
             let soldier = SoldierDeployment::new(
                 SoldierIndex(self.soldiers.len()),
-                self.side.clone(),
-                self.world_point.clone(),
-                self.squad.clone(),
+                self.type_,
+                self.side,
+                self.world_point,
+                self.squad,
                 self.main_weapon.clone(),
                 self.magazines.clone(),
                 Order::Idle,
@@ -75,6 +83,7 @@ impl Default for ManualSoldiersGenerator {
     fn default() -> Self {
         Self {
             soldiers: vec![],
+            type_: SoldierType::Type1,
             side: Side::A,
             squad: SquadUuid(0),
             main_weapon: None,

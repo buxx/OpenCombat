@@ -175,7 +175,8 @@
                 "--side-a-control",
                 "SW",
                 "--side-b-control",
-                "ALL"
+                "ALL",
+                "--init-sync"
             ],
             "cwd": "${workspaceFolder}",
             "env": {
@@ -1303,6 +1304,28 @@
                 ],
                 "filter": {
                     "name": "bren_mark2_multiples2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "mg34 --release",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=mg34",
+                    "--package=examples",
+                    "--release"
+                ],
+                "filter": {
+                    "name": "mg34",
                     "kind": "bin"
                 }
             },

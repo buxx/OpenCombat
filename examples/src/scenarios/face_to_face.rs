@@ -5,7 +5,7 @@ use crate::{
     map::{flat::Flat, generator::MapGenerator, MapModel},
 };
 use battle_core::{
-    deployment::Deployment,
+    deployment::{Deployment, SquadTypes},
     game::{
         weapon::{Magazine, Weapon},
         Side,
@@ -13,6 +13,7 @@ use battle_core::{
     map::{terrain::TileType, Map},
     types::{GridPoint, SquadUuid, WorldPoint},
 };
+use oc_core::game::squad::SquadType;
 
 fn mosin_nagant() -> Weapon {
     Weapon::MosinNagantM1924(true, Some(Magazine::full(Magazine::MosinNagant(0))))
@@ -93,5 +94,13 @@ pub fn face_to_face(
             p.apply(WorldPoint::new(0., y_increment).into())
         })
         .collect();
-    (map, Deployment::new(soldiers, vec![], HashMap::new()))
+
+    let mut squad_types = SquadTypes::new();
+    squad_types.insert(SquadUuid(0), SquadType::Type1);
+    squad_types.insert(SquadUuid(1), SquadType::Type1);
+
+    (
+        map,
+        Deployment::new(soldiers, vec![], HashMap::new(), squad_types),
+    )
 }

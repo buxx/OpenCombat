@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use oc_core::morale::Morale;
 
 use crate::{
-    deployment::Deployment,
+    deployment::{Deployment, SquadTypes},
     entity::{soldier::Soldier, vehicle::Vehicle},
     game::{control::MapControl, flag::FlagsOwnership, Side},
     graphics::vehicle::VehicleGraphicInfos,
@@ -46,6 +46,7 @@ pub struct BattleState {
     soldier_on_board: SoldiersOnBoard,
     vehicle_board: VehicleBoard,
     squads: HashMap<SquadUuid, SquadComposition>,
+    squad_types: SquadTypes,
     bullet_fires: Vec<BulletFire>,
     explosions: Vec<Explosion>,
     cannon_blasts: Vec<CannonBlast>,
@@ -66,6 +67,7 @@ impl BattleState {
         soldiers: Vec<Soldier>,
         vehicles: Vec<Vehicle>,
         soldier_on_board: SoldiersOnBoard,
+        squad_types: SquadTypes,
         phase: Phase,
         flags: FlagsOwnership,
     ) -> Self {
@@ -79,6 +81,7 @@ impl BattleState {
             soldier_on_board,
             vehicle_board,
             squads: HashMap::new(),
+            squad_types,
             bullet_fires: vec![],
             explosions: vec![],
             cannon_blasts: vec![],
@@ -103,6 +106,7 @@ impl BattleState {
             soldier_on_board: HashMap::new(),
             vehicle_board: HashMap::new(),
             squads: HashMap::new(),
+            squad_types: SquadTypes::new(),
             bullet_fires: vec![],
             explosions: vec![],
             cannon_blasts: vec![],
@@ -124,6 +128,7 @@ impl BattleState {
             copy.soldiers().clone(),
             copy.vehicles().clone(),
             copy.soldier_on_board().clone(),
+            copy.squad_types().clone(),
             copy.phase().clone(),
             copy.flags().clone(),
         )
@@ -318,6 +323,7 @@ impl BattleState {
             self.vehicles.push(Vehicle::from(vehicle_deployment))
         }
         self.soldier_on_board = deployment.boards().clone();
+        self.squad_types = deployment.squad_types().clone();
         self.resolve();
     }
 
@@ -341,6 +347,7 @@ impl BattleState {
             self.soldiers.clone(),
             self.vehicles.clone(),
             self.soldier_on_board.clone(),
+            self.squad_types.clone(),
             self.phase.clone(),
             self.flags.clone(),
         )

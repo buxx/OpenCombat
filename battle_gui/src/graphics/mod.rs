@@ -1,3 +1,4 @@
+pub mod utils;
 use std::{collections::HashMap, fs, path::PathBuf};
 
 use battle_core::{
@@ -66,6 +67,7 @@ pub mod minimap;
 pub mod order;
 pub mod qualified;
 pub mod soldier;
+pub mod squad;
 pub mod vehicles;
 pub mod weapons;
 

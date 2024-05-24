@@ -5,6 +5,7 @@ use std::{
     ops::{Add, Neg},
 };
 
+use oc_core::game::squad::SquadType;
 use serde::{Deserialize, Serialize};
 
 use glam::Vec2;
@@ -393,11 +394,11 @@ pub struct ExplosionIndex(pub usize);
 pub struct SquadUuid(pub usize);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct SquadComposition(SoldierIndex, Vec<SoldierIndex>);
+pub struct SquadComposition(SoldierIndex, SquadType, Vec<SoldierIndex>);
 
 impl SquadComposition {
-    pub fn new(leader: SoldierIndex, members: Vec<SoldierIndex>) -> Self {
-        Self(leader, members)
+    pub fn new(leader: SoldierIndex, type_: SquadType, members: Vec<SoldierIndex>) -> Self {
+        Self(leader, type_, members)
     }
 
     pub fn leader(&self) -> SoldierIndex {
@@ -408,12 +409,16 @@ impl SquadComposition {
         &mut self.0
     }
 
-    pub fn members(&self) -> &Vec<SoldierIndex> {
+    pub fn type_(&self) -> &SquadType {
         &self.1
     }
 
+    pub fn members(&self) -> &Vec<SoldierIndex> {
+        &self.2
+    }
+
     pub fn subordinates(&self) -> Vec<&SoldierIndex> {
-        self.1.iter().filter(|i| i != &&self.0).collect()
+        self.2.iter().filter(|i| i != &&self.0).collect()
     }
 }
 

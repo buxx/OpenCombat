@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use battle_core::{
     behavior::{Behavior, Body},
     deployment::{Deployment, SoldierDeployment, VehicleDeployment},
@@ -11,23 +13,27 @@ use battle_core::{
     utils,
 };
 use glam::Vec2;
+use oc_core::game::{soldier::SoldierType, squad::SquadType};
 
 pub fn demo1_deployment() -> Deployment {
     let mut soldiers = vec![];
     let mut vehicles = vec![];
     let mut boards = SoldiersOnBoard::new();
+    let mut squad_types = HashMap::new();
     let mut soldiers_index: usize = 0;
 
     for x in 0..5 {
-        let squad = utils::new_squad_uuid();
+        let squad = SquadUuid(utils::new_squad_uuid());
+        squad_types.insert(squad, SquadType::Type1);
         for y in 0..5 {
             // let x: f32 = rng.gen_range(0.0..800.0);
             // let y: f32 = rng.gen_range(0.0..800.0);
             let soldier = SoldierDeployment::new(
                 SoldierIndex(soldiers_index),
+                SoldierType::Type1,
                 Side::A,
                 WorldPoint::from(Vec2::new(x as f32 * 10. + 20.0, y as f32 * 10. + 100.)),
-                SquadUuid(squad),
+                squad,
                 Some(Weapon::MosinNagantM1924(
                     false,
                     Some(Magazine::full(Magazine::MosinNagant(0))),
@@ -45,15 +51,17 @@ pub fn demo1_deployment() -> Deployment {
     }
 
     for x in 0..4 {
-        let squad = utils::new_squad_uuid();
+        let squad = SquadUuid(utils::new_squad_uuid());
+        squad_types.insert(squad, SquadType::Type1);
         for y in 0..5 {
             // let x: f32 = rng.gen_range(0.0..800.0);
             // let y: f32 = rng.gen_range(0.0..800.0);
             let soldier = SoldierDeployment::new(
                 SoldierIndex(soldiers_index),
+                SoldierType::Type1,
                 Side::B,
                 WorldPoint::from(Vec2::new(x as f32 * 10. + 550., y as f32 * 10. + 250.)),
-                SquadUuid(squad),
+                squad,
                 Some(Weapon::MosinNagantM1924(
                     false,
                     Some(Magazine::full(Magazine::MosinNagant(0))),
@@ -77,12 +85,14 @@ pub fn demo1_deployment() -> Deployment {
     );
     vehicles.push(tank);
 
-    let tank1_squad = utils::new_squad_uuid();
+    let tank1_squad = SquadUuid(utils::new_squad_uuid());
+    squad_types.insert(tank1_squad, SquadType::Type1);
     let tank_driver = SoldierDeployment::new(
         SoldierIndex(soldiers_index),
+        SoldierType::Type1,
         Side::A,
         WorldPoint::from(Vec2::new(0., 0.)),
-        SquadUuid(tank1_squad),
+        tank1_squad,
         None,
         vec![],
         Order::Idle,
@@ -96,9 +106,10 @@ pub fn demo1_deployment() -> Deployment {
     );
     let tank_gunner = SoldierDeployment::new(
         SoldierIndex(soldiers_index),
+        SoldierType::Type1,
         Side::A,
         WorldPoint::from(Vec2::new(0., 0.)),
-        SquadUuid(tank1_squad),
+        tank1_squad,
         None,
         vec![],
         Order::Idle,
@@ -113,5 +124,5 @@ pub fn demo1_deployment() -> Deployment {
         ),
     );
 
-    Deployment::from((soldiers, vehicles, boards))
+    Deployment::from((soldiers, vehicles, boards, squad_types))
 }

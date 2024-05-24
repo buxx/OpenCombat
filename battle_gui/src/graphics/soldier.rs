@@ -4,6 +4,14 @@ use battle_core::{
 };
 use ggez::graphics::Rect;
 use keyframe::AnimationSequence;
+use oc_core::{
+    game::soldier::SoldierType,
+    graphics::squad::{
+        SOLDIER_REL_1_START_X, SOLDIER_REL_1_START_Y, SOLDIER_REL_BREN_START_X,
+        SOLDIER_REL_BREN_START_Y, SOLDIER_REL_HEIGHT, SOLDIER_REL_MG34_START_X,
+        SOLDIER_REL_MG34_START_Y, SOLDIER_REL_WIDTH,
+    },
+};
 
 use super::{AssetsType, Graphics, TweenableRect};
 
@@ -12,6 +20,7 @@ use ggez::{
     Context, GameError, GameResult,
 };
 
+use super::utils::IntoDrawParam;
 use crate::utils::qualified::ToQualified;
 
 use super::{batch::QualifiedBatch, qualified::Zoom};
@@ -123,5 +132,30 @@ impl SoldierAnimationSequence {
 
     pub fn weapon_mut(&mut self) -> &mut Option<AnimationSequence<TweenableRect>> {
         &mut self.weapon
+    }
+}
+
+impl IntoDrawParam for SoldierType {
+    fn to_draw_param(&self) -> DrawParam {
+        match self {
+            SoldierType::Type1 => DrawParam::new().src(Rect::new(
+                SOLDIER_REL_1_START_X,
+                SOLDIER_REL_1_START_Y,
+                SOLDIER_REL_WIDTH,
+                SOLDIER_REL_HEIGHT,
+            )),
+            SoldierType::Bren => DrawParam::new().src(Rect::new(
+                SOLDIER_REL_BREN_START_X,
+                SOLDIER_REL_BREN_START_Y,
+                SOLDIER_REL_WIDTH,
+                SOLDIER_REL_HEIGHT,
+            )),
+            SoldierType::Mg34 => DrawParam::new().src(Rect::new(
+                SOLDIER_REL_MG34_START_X,
+                SOLDIER_REL_MG34_START_Y,
+                SOLDIER_REL_WIDTH,
+                SOLDIER_REL_HEIGHT,
+            )),
+        }
     }
 }

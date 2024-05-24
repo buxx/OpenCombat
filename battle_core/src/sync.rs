@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    deployment::SquadTypes,
     entity::{soldier::Soldier, vehicle::Vehicle},
     game::flag::FlagsOwnership,
     state::battle::phase::Phase,
@@ -13,6 +14,7 @@ pub struct BattleStateCopy {
     soldiers: Vec<Soldier>,
     vehicles: Vec<Vehicle>,
     soldier_on_board: SoldiersOnBoard,
+    squad_types: SquadTypes,
     phase: Phase,
     flags: FlagsOwnership,
 }
@@ -23,6 +25,7 @@ impl BattleStateCopy {
         soldiers: Vec<Soldier>,
         vehicles: Vec<Vehicle>,
         soldier_on_board: SoldiersOnBoard,
+        squad_types: SquadTypes,
         phase: Phase,
         flags: FlagsOwnership,
     ) -> BattleStateCopy {
@@ -31,6 +34,7 @@ impl BattleStateCopy {
             soldiers,
             vehicles,
             soldier_on_board,
+            squad_types,
             phase,
             flags,
         }
@@ -58,5 +62,9 @@ impl BattleStateCopy {
 
     pub fn flags(&self) -> &FlagsOwnership {
         &self.flags
+    }
+
+    pub fn squad_types(&self) -> &SquadTypes {
+        &self.squad_types
     }
 }

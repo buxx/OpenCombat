@@ -2114,5 +2114,6 @@
         }
     ],
     "vehicles": [],
-    "boards": {}
+    "boards": {},
+    "squad_types": {}
 }

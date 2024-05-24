@@ -292,5 +292,9 @@
         }
     ],
     "vehicles": [],
-    "boards": {}
+    "boards": {},
+    "squad_types": {
+        "0": "Type1",
+        "1": "Type1"
+    }
 }

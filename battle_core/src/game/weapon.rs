@@ -20,6 +20,8 @@ pub enum Magazine {
     MosinNagant(usize),
     Mauser(usize),
     BrenCurved30(usize),
+    Patronengurtx792x57s50(usize),
+    Patronengurtx792x57s250(usize),
 }
 
 impl Magazine {
@@ -27,7 +29,9 @@ impl Magazine {
         match self {
             Magazine::MosinNagant(_) => "Mosin Nagant",
             Magazine::Mauser(_) => "Mauser",
-            Magazine::BrenCurved30(_) => "Bren curved",
+            Magazine::BrenCurved30(_) => "Bren curved (30)",
+            Magazine::Patronengurtx792x57s50(_) => "Patronengurt 7.92×57mm (50)",
+            Magazine::Patronengurtx792x57s250(_) => "Patronengurt 7.92×57mm (250)",
         }
     }
 
@@ -36,6 +40,8 @@ impl Magazine {
             Magazine::MosinNagant(_) => Magazine::MosinNagant(5),
             Magazine::Mauser(_) => Magazine::Mauser(5),
             Magazine::BrenCurved30(_) => Magazine::BrenCurved30(30),
+            Magazine::Patronengurtx792x57s50(_) => Magazine::Patronengurtx792x57s50(50),
+            Magazine::Patronengurtx792x57s250(_) => Magazine::Patronengurtx792x57s250(250),
         }
     }
 
@@ -44,30 +50,28 @@ impl Magazine {
             Magazine::MosinNagant(_) => Ammunition::x762x54R,
             Magazine::Mauser(_) => Ammunition::x792x57,
             Magazine::BrenCurved30(_) => Ammunition::x303British,
+            Magazine::Patronengurtx792x57s50(_) => Ammunition::x792x57,
+            Magazine::Patronengurtx792x57s250(_) => Ammunition::x792x57,
         }
     }
 
     pub fn filled(&self) -> bool {
         match self {
-            Magazine::MosinNagant(fill) => *fill > 0,
-            Magazine::Mauser(fill) => *fill > 0,
-            Magazine::BrenCurved30(fill) => *fill > 0,
+            Magazine::MosinNagant(fill)
+            | Magazine::Mauser(fill)
+            | Magazine::BrenCurved30(fill)
+            | Magazine::Patronengurtx792x57s50(fill)
+            | Magazine::Patronengurtx792x57s250(fill) => *fill > 0,
         }
     }
 
     fn remove_one(&mut self) {
         match self {
-            Magazine::MosinNagant(fill) => {
-                if *fill > 0 {
-                    *fill -= 1;
-                }
-            }
-            Magazine::Mauser(fill) => {
-                if *fill > 0 {
-                    *fill -= 1;
-                }
-            }
-            Magazine::BrenCurved30(fill) => {
+            Magazine::MosinNagant(fill)
+            | Magazine::Mauser(fill)
+            | Magazine::BrenCurved30(fill)
+            | Magazine::Patronengurtx792x57s50(fill)
+            | Magazine::Patronengurtx792x57s250(fill) => {
                 if *fill > 0 {
                     *fill -= 1;
                 }
@@ -77,7 +81,9 @@ impl Magazine {
 
     fn remove(&mut self, count: usize) {
         match self {
-            Magazine::BrenCurved30(fill) => {
+            Magazine::BrenCurved30(fill)
+            | Magazine::Patronengurtx792x57s250(fill)
+            | Magazine::Patronengurtx792x57s50(fill) => {
                 if *fill < count {
                     eprintln!(
                         "Tried to remove {} bullet from magazine with {} ammo ",
@@ -91,7 +97,7 @@ impl Magazine {
                     *fill = 0
                 }
             }
-            _ => {
+            Magazine::Mauser(_) | Magazine::MosinNagant(_) => {
                 if count > 1 {
                     eprintln!(
                         "Tried to remove {} bullet from {} magazine ",
@@ -109,7 +115,9 @@ impl Magazine {
         match self {
             Magazine::MosinNagant(count)
             | Magazine::Mauser(count)
-            | Magazine::BrenCurved30(count) => *count,
+            | Magazine::BrenCurved30(count)
+            | Magazine::Patronengurtx792x57s50(count)
+            | Magazine::Patronengurtx792x57s250(count) => *count,
         }
     }
 
@@ -118,6 +126,8 @@ impl Magazine {
             Magazine::MosinNagant(_) => Ok(Shot::x1),
             Magazine::Mauser(_) => Ok(Shot::x1),
             Magazine::BrenCurved30(count) => Shot::try_from(*count.min(&16)),
+            Magazine::Patronengurtx792x57s50(count) => Shot::try_from(*count.min(&16)),
+            Magazine::Patronengurtx792x57s250(count) => Shot::try_from(*count.min(&16)),
         } {
             Ok(shot) => shot,
             Err(err) => {
@@ -136,6 +146,8 @@ impl Magazine {
             Magazine::MosinNagant(_) => Ok(Shot::x1),
             Magazine::Mauser(_) => Ok(Shot::x1),
             Magazine::BrenCurved30(count) => Shot::try_from(*count.min(&10)),
+            Magazine::Patronengurtx792x57s50(count) => Shot::try_from(*count.min(&10)),
+            Magazine::Patronengurtx792x57s250(count) => Shot::try_from(*count.min(&14)),
         } {
             Ok(shot) => shot,
             Err(err) => {
@@ -154,6 +166,8 @@ impl Magazine {
             Magazine::MosinNagant(_) => Ok(Shot::x1),
             Magazine::Mauser(_) => Ok(Shot::x1),
             Magazine::BrenCurved30(count) => Shot::try_from(*count.min(&5)),
+            Magazine::Patronengurtx792x57s50(count) => Shot::try_from(*count.min(&5)),
+            Magazine::Patronengurtx792x57s250(count) => Shot::try_from(*count.min(&10)),
         } {
             Ok(shot) => shot,
             Err(err) => {
@@ -172,6 +186,8 @@ impl Magazine {
             Magazine::MosinNagant(_) => Ok(Shot::x1),
             Magazine::Mauser(_) => Ok(Shot::x1),
             Magazine::BrenCurved30(count) => Shot::try_from(*count.min(&3)),
+            Magazine::Patronengurtx792x57s50(count) => Shot::try_from(*count.min(&3)),
+            Magazine::Patronengurtx792x57s250(count) => Shot::try_from(*count.min(&5)),
         } {
             Ok(shot) => shot,
             Err(err) => {
@@ -211,6 +227,7 @@ pub enum GunFireSoundType {
     MosinNagant,
     MauserRiffle,
     BrenMark2,
+    Mg34,
 }
 
 #[allow(non_camel_case_types)]
@@ -318,6 +335,24 @@ impl GunFireSoundType {
                 Shot::x15 => vec![Sound::BrenMark2x15],
                 Shot::x16 => vec![Sound::BrenMark2x16],
             },
+            GunFireSoundType::Mg34 => match shots {
+                Shot::x1 => vec![Sound::Mg34x1],
+                Shot::x2 => vec![Sound::Mg34x2],
+                Shot::x3 => vec![Sound::Mg34x3],
+                Shot::x4 => vec![Sound::Mg34x4],
+                Shot::x5 => vec![Sound::Mg34x5],
+                Shot::x6 => vec![Sound::Mg34x6],
+                Shot::x7 => vec![Sound::Mg34x7],
+                Shot::x8 => vec![Sound::Mg34x8],
+                Shot::x9 => vec![Sound::Mg34x9],
+                Shot::x10 => vec![Sound::Mg34x10],
+                Shot::x11 => vec![Sound::Mg34x11],
+                Shot::x12 => vec![Sound::Mg34x12],
+                Shot::x13 => vec![Sound::Mg34x13],
+                Shot::x14 => vec![Sound::Mg34x14],
+                Shot::x15 => vec![Sound::Mg34x15],
+                Shot::x16 => vec![Sound::Mg34x16],
+            },
         };
         let sound = *pick_from
             .choose(&mut rand::thread_rng())
@@ -333,6 +368,7 @@ pub enum Weapon {
     MosinNagantM1924(bool, Option<Magazine>),
     MauserG41(bool, Option<Magazine>),
     BrenMark2(Option<Magazine>),
+    Mg34(Option<Magazine>),
 }
 
 impl Weapon {
@@ -341,6 +377,7 @@ impl Weapon {
             Weapon::MosinNagantM1924(_, _) => "Mosin Nagant M1924",
             Weapon::MauserG41(_, _) => "Mauser G41",
             Weapon::BrenMark2(_) => "Bren Mark2",
+            Weapon::Mg34(_) => "Mg34",
         }
     }
 
@@ -349,6 +386,7 @@ impl Weapon {
             Weapon::MosinNagantM1924(_, _) => GunFireSoundType::MosinNagant,
             Weapon::MauserG41(_, _) => GunFireSoundType::MauserRiffle,
             Weapon::BrenMark2(_) => GunFireSoundType::BrenMark2,
+            Weapon::Mg34(_) => GunFireSoundType::Mg34,
         }
     }
 
@@ -362,6 +400,7 @@ impl Weapon {
             ],
             Weapon::MauserG41(_, _) => vec![Sound::MauserRiffleReload1, Sound::MauserRiffleReload2],
             Weapon::BrenMark2(_) => vec![Sound::ReloadGeneric1],
+            Weapon::Mg34(_) => vec![Sound::ReloadGeneric1],
         };
         let sound = *pick_from
             .choose(&mut rand::thread_rng())
@@ -375,6 +414,7 @@ impl Weapon {
             Weapon::MosinNagantM1924(_, magazine) => magazine,
             Weapon::MauserG41(_, magazine) => magazine,
             Weapon::BrenMark2(magazine) => magazine,
+            Weapon::Mg34(magazine) => magazine,
         }
     }
 
@@ -383,6 +423,10 @@ impl Weapon {
             Weapon::MosinNagantM1924(_, _) => matches!(magazine, Magazine::MosinNagant(_)),
             Weapon::MauserG41(_, _) => matches!(magazine, Magazine::Mauser(_)),
             Weapon::BrenMark2(_) => matches!(magazine, Magazine::BrenCurved30(_)),
+            Weapon::Mg34(_) => {
+                matches!(magazine, Magazine::Patronengurtx792x57s50(_))
+                    || matches!(magazine, Magazine::Patronengurtx792x57s250(_))
+            }
         }
     }
 
@@ -396,14 +440,16 @@ impl Weapon {
             Weapon::MosinNagantM1924(_, _) => Ammunition::x762x54R,
             Weapon::MauserG41(_, _) => Ammunition::x792x57,
             Weapon::BrenMark2(_) => Ammunition::x303British,
+            Weapon::Mg34(_) => Ammunition::x792x57,
         }
     }
 
     pub fn can_fire(&self) -> bool {
         match self {
-            Weapon::MosinNagantM1924(ammunition, _) => *ammunition,
-            Weapon::MauserG41(ammunition, _) => *ammunition,
-            Weapon::BrenMark2(magazine) => magazine
+            Weapon::MosinNagantM1924(ammunition, _) | Weapon::MauserG41(ammunition, _) => {
+                *ammunition
+            }
+            Weapon::BrenMark2(magazine) | Weapon::Mg34(magazine) => magazine
                 .as_ref()
                 .unwrap_or(&Magazine::BrenCurved30(0))
                 .filled(),
@@ -425,6 +471,7 @@ impl Weapon {
             }
             // No bullet reload
             Weapon::BrenMark2(_) => {}
+            Weapon::Mg34(_) => {}
         }
 
         false
@@ -449,6 +496,7 @@ impl Weapon {
                 }
             }
             Weapon::BrenMark2(_) => {}
+            Weapon::Mg34(_) => {}
         }
     }
 
@@ -456,7 +504,7 @@ impl Weapon {
         match self {
             Weapon::MosinNagantM1924(ready_bullet, _) => *ready_bullet = false,
             Weapon::MauserG41(ready_bullet, _) => *ready_bullet = false,
-            Weapon::BrenMark2(magazine) => {
+            Weapon::BrenMark2(magazine) | Weapon::Mg34(magazine) => {
                 if let Some(magazine) = magazine {
                     magazine.remove(shot.count())
                 }
@@ -466,7 +514,8 @@ impl Weapon {
         match self {
             Weapon::MosinNagantM1924(_, magazine)
             | Weapon::MauserG41(_, magazine)
-            | Weapon::BrenMark2(magazine) => {
+            | Weapon::BrenMark2(magazine)
+            | Weapon::Mg34(magazine) => {
                 if let Some(magazine_) = magazine {
                     if !magazine_.filled() {
                         *magazine = None
@@ -478,17 +527,20 @@ impl Weapon {
 
     pub fn set_magazine(&mut self, new_magazine: Magazine) {
         match self {
-            Weapon::MosinNagantM1924(_, magazine) => *magazine = Some(new_magazine),
-            Weapon::MauserG41(_, magazine) => *magazine = Some(new_magazine),
-            Weapon::BrenMark2(magazine) => *magazine = Some(new_magazine),
+            Weapon::MosinNagantM1924(_, magazine)
+            | Weapon::MauserG41(_, magazine)
+            | Weapon::BrenMark2(magazine)
+            | Weapon::Mg34(magazine) => *magazine = Some(new_magazine),
         }
     }
 
+    // TODO: according to magazine type (mixed ?)
     pub fn ok_count_magazines(&self) -> usize {
         match self {
             Weapon::MosinNagantM1924(_, _) => 5,
             Weapon::MauserG41(_, _) => 5,
             Weapon::BrenMark2(_) => 4,
+            Weapon::Mg34(_) => 4,
         }
     }
 
@@ -496,7 +548,7 @@ impl Weapon {
         match self {
             Weapon::MosinNagantM1924(_, _) | Weapon::MauserG41(_, _) => WeaponSprite::Riffle,
             // FIXME: machine gun sprite
-            Weapon::BrenMark2(_) => WeaponSprite::Riffle,
+            Weapon::BrenMark2(_) | Weapon::Mg34(_) => WeaponSprite::Riffle,
         }
     }
 
@@ -510,7 +562,7 @@ impl Weapon {
                     Shot::x1
                 }
             }
-            Weapon::BrenMark2(magazine) => {
+            Weapon::BrenMark2(magazine) | Weapon::Mg34(magazine) => {
                 if let Some(magazine) = magazine {
                     match opponents_count {
                         5.. => magazine.very_long_shot(),
@@ -530,6 +582,7 @@ impl Weapon {
         match self {
             Weapon::MosinNagantM1924(_, _) | Weapon::MauserG41(_, _) => 0,
             Weapon::BrenMark2(_) => (TARGET_FPS as f32 / (500. / 60.)) as u64,
+            Weapon::Mg34(_) => (TARGET_FPS as f32 / (800. / 60.)) as u64,
         }
     }
 
@@ -538,6 +591,7 @@ impl Weapon {
         match self {
             Weapon::MosinNagantM1924(_, _) | Weapon::MauserG41(_, _) => 1.,
             Weapon::BrenMark2(_) => 1.05,
+            Weapon::Mg34(_) => 1.045,
         }
     }
 
@@ -546,6 +600,7 @@ impl Weapon {
             Weapon::MosinNagantM1924(_, _) => TARGET_FPS,
             Weapon::MauserG41(_, _) => TARGET_FPS,
             Weapon::BrenMark2(_) => TARGET_FPS * 3,
+            Weapon::Mg34(_) => TARGET_FPS * 3,
         }
     }
 
@@ -554,6 +609,7 @@ impl Weapon {
             Weapon::MosinNagantM1924(_, _) => TARGET_FPS / 2,
             Weapon::MauserG41(_, _) => TARGET_FPS / 2,
             Weapon::BrenMark2(_) => TARGET_FPS,
+            Weapon::Mg34(_) => TARGET_FPS,
         }
     }
 
@@ -563,6 +619,7 @@ impl Weapon {
             Weapon::MauserG41(_, _) => TARGET_FPS / 5,
             // FIXME: according to Shot type
             Weapon::BrenMark2(_) => TARGET_FPS,
+            Weapon::Mg34(_) => TARGET_FPS,
         }
     }
 }

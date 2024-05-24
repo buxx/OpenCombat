@@ -1,6 +1,11 @@
 use std::collections::HashMap;
 
-use oc_core::{graphics::ammunition::AmmunitionReserveStatus, health::Health, morale::Morale};
+use oc_core::{
+    game::{soldier::SoldierType, squad::SquadType},
+    graphics::ammunition::AmmunitionReserveStatus,
+    health::Health,
+    morale::Morale,
+};
 
 use crate::{
     behavior::{feeling::UNDER_FIRE_MAX, gesture::Gesture, Behavior},
@@ -90,6 +95,7 @@ impl SquadStatusesResume {
 #[derive(Clone, Debug)]
 pub struct SquadStatusResume {
     squad_id: SquadUuid,
+    squad_type: SquadType,
     health: SquadHealth,
     members: Vec<SquadMemberStatus>,
 }
@@ -99,6 +105,7 @@ impl SquadStatusResume {
         let squad = battle_state.squad(*squad_id);
         Self {
             squad_id: *squad_id,
+            squad_type: *battle_state.squad_type(squad_id),
             health: SquadHealth::from_squad(battle_state, squad),
             members: squad
                 .members()
@@ -124,6 +131,10 @@ impl SquadStatusResume {
 
     pub fn squad_id(&self) -> &SquadUuid {
         &self.squad_id
+    }
+
+    pub fn squad_type(&self) -> &SquadType {
+        &self.squad_type
     }
 }
 
@@ -154,6 +165,7 @@ impl SquadHealth {
 #[derive(Clone, Debug)]
 pub struct SquadMemberStatus {
     soldier_index: SoldierIndex,
+    type_: SoldierType,
     health: Health,
     main_weapon: Option<Weapon>,
     magazines: Vec<Magazine>,
@@ -193,6 +205,7 @@ impl SquadMemberStatus {
     ) -> Self {
         Self {
             soldier_index: soldier.uuid(),
+            type_: *soldier.type_(),
             health: SoldierHealthBuilder::new(soldier).build(),
             main_weapon: soldier.main_weapon().clone(),
             magazines: soldier.magazines().clone(),
@@ -233,6 +246,10 @@ impl SquadMemberStatus {
 
     pub fn soldier_index(&self) -> SoldierIndex {
         self.soldier_index
+    }
+
+    pub fn type_(&self) -> SoldierType {
+        self.type_
     }
 }
 

@@ -1,5 +1,6 @@
 use std::{collections::HashMap, fs, io, path::PathBuf};
 
+use oc_core::game::{soldier::SoldierType, squad::SquadType};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -18,11 +19,14 @@ use crate::{
     types::{SoldierIndex, SoldiersOnBoard, SquadUuid, VehicleIndex, WorldPoint},
 };
 
+pub type SquadTypes = HashMap<SquadUuid, SquadType>;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Deployment {
     soldiers: Vec<SoldierDeployment>,
     vehicles: Vec<VehicleDeployment>,
     boards: SoldiersOnBoard,
+    squad_types: SquadTypes,
 }
 
 impl Deployment {
@@ -30,11 +34,13 @@ impl Deployment {
         soldiers: Vec<SoldierDeployment>,
         vehicles: Vec<VehicleDeployment>,
         boards: SoldiersOnBoard,
+        squad_types: SquadTypes,
     ) -> Self {
         Self {
             soldiers,
             vehicles,
             boards,
+            squad_types,
         }
     }
 
@@ -43,6 +49,7 @@ impl Deployment {
             soldiers: vec![],
             vehicles: vec![],
             boards: HashMap::new(),
+            squad_types: HashMap::new(),
         }
     }
 
@@ -57,11 +64,17 @@ impl Deployment {
             .iter()
             .map(VehicleDeployment::from)
             .collect();
+        let squad_types: SquadTypes = battle_state
+            .squads()
+            .iter()
+            .map(|s| (*s.0, s.1.type_().clone()))
+            .collect();
 
         Self {
             soldiers,
             vehicles,
             boards: battle_state.soldier_on_board().clone(),
+            squad_types,
         }
     }
 
@@ -76,6 +89,10 @@ impl Deployment {
     pub fn boards(&self) -> &SoldiersOnBoard {
         &self.boards
     }
+
+    pub fn squad_types(&self) -> &SquadTypes {
+        &self.squad_types
+    }
 }
 
 impl
@@ -83,6 +100,7 @@ impl
         Vec<SoldierDeployment>,
         Vec<VehicleDeployment>,
         SoldiersOnBoard,
+        SquadTypes,
     )> for Deployment
 {
     fn from(
@@ -90,12 +108,14 @@ impl
             Vec<SoldierDeployment>,
             Vec<VehicleDeployment>,
             SoldiersOnBoard,
+            SquadTypes,
         ),
     ) -> Self {
         Self {
             soldiers: value.0,
             vehicles: value.1,
             boards: value.2,
+            squad_types: value.3,
         }
     }
 }
@@ -120,6 +140,7 @@ pub enum DeploymentReaderError {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SoldierDeployment {
     uuid: SoldierIndex,
+    type_: SoldierType,
     side: Side,
     world_point: WorldPoint,
     squad_uuid: SquadUuid,
@@ -132,6 +153,7 @@ pub struct SoldierDeployment {
 impl SoldierDeployment {
     pub fn new(
         uuid: SoldierIndex,
+        type_: SoldierType,
         side: Side,
         world_point: WorldPoint,
         squad_uuid: SquadUuid,
@@ -142,6 +164,7 @@ impl SoldierDeployment {
     ) -> Self {
         Self {
             uuid,
+            type_,
             side,
             world_point,
             squad_uuid,
@@ -183,12 +206,17 @@ impl SoldierDeployment {
     pub fn behavior(&self) -> &Behavior {
         &self.behavior
     }
+
+    pub fn type_(&self) -> &SoldierType {
+        &self.type_
+    }
 }
 
 impl From<&Soldier> for SoldierDeployment {
     fn from(soldier: &Soldier) -> Self {
         Self {
             uuid: soldier.uuid(),
+            type_: *soldier.type_(),
             side: *soldier.side(),
             world_point: soldier.world_point(),
             squad_uuid: soldier.squad_uuid(),

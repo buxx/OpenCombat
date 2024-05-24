@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use battle_core::{
     config::TARGET_CYCLE_DURATION_US,
-    deployment::Deployment,
+    deployment::{Deployment, SquadTypes},
     game::{
         weapon::{Magazine, Weapon},
         Side,
@@ -15,6 +15,7 @@ use examples::{
     map::{flat::Flat, generator::MapGenerator},
     runner::{Runner, RunnerError},
 };
+use oc_core::game::squad::SquadType;
 
 fn main() -> Result<(), RunnerError> {
     let map = MapGenerator::new(Flat).width(1600).height(150).generate();
@@ -40,7 +41,10 @@ fn main() -> Result<(), RunnerError> {
         .world_point(WorldPoint::new(1550., 25.))
         .place(10, |p: WorldPoint| p.apply(WorldPoint::new(0., 5.).into()))
         .collect();
-    let deployment = Deployment::new(soldiers, vec![], HashMap::new());
+    let mut squad_types = SquadTypes::new();
+    squad_types.insert(SquadUuid(0), SquadType::Bren);
+    squad_types.insert(SquadUuid(1), SquadType::Type1);
+    let deployment = Deployment::new(soldiers, vec![], HashMap::new(), squad_types);
 
     Runner::new(map)
         .deployment(deployment)
