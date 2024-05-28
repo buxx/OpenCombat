@@ -1,4 +1,4 @@
-use crate::types::{Distance, WorldPoint};
+use crate::types::{Distance, GridPoint, WorldPoint};
 
 // Coefficient to convert distance from two scene points into meters
 // TODO : fix it with sprites, maps, etc

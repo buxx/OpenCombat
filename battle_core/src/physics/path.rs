@@ -1,4 +1,4 @@
-use crate::{map::Map, types::*, utils::angleg};
+use crate::{config::ServerConfig, map::Map, types::*, utils::angleg};
 use pathfinding::prelude::astar;
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
@@ -157,6 +157,7 @@ impl Direction {
 
 // TODO : When "to" is unreachable (ex. for vehicle) do not search a path (it consume all path before stop)
 pub fn find_path(
+    config: &ServerConfig,
     map: &Map,
     from: &GridPoint,
     to: &GridPoint,
@@ -172,7 +173,10 @@ pub fn find_path(
     match astar(
         &(*from, start_direction),
         |p| map.successors(p, path_mode),
-        |p| (p.0.x.abs_diff(to.x) + p.0.y.abs_diff(to.y)) as i32,
+        |p| {
+            (p.0.to_vec2().distance(to.to_vec2()) * config.path_finding_heuristic_coefficient)
+                as i32
+        },
         |p| p.0 == *to,
     ) {
         None => None,

@@ -103,6 +103,9 @@ pub const CAN_CROUCH_AFTER: u64 = TARGET_FPS * 60 * 5;
 // How many frames after last proximity shoot needed before soldier go from crouch to standup when idle
 pub const CAN_STANDUP_AFTER: u64 = TARGET_FPS * 60 * 10;
 
+// Adjust distance (computed by pixels) according to tile cost
+pub const PATH_FINDING_HEURISTIC_COEFFICIENT: f32 = 10.;
+
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
     pub send_debug_points: bool,
@@ -155,6 +158,7 @@ pub struct ServerConfig {
     pub explosive_regressive_death_rayon: HashMap<ExplosiveType, Distance>,
     pub explosive_regressive_injured_rayon: HashMap<ExplosiveType, Distance>,
     pub hide_maximum_rayon: Distance,
+    pub path_finding_heuristic_coefficient: f32,
 }
 
 impl Default for ServerConfig {
@@ -241,6 +245,7 @@ impl Default for ServerConfig {
             explosive_regressive_injured_rayon,
 
             hide_maximum_rayon: Distance::from_meters(HIDE_MAXIMUM_RAYON),
+            path_finding_heuristic_coefficient: PATH_FINDING_HEURISTIC_COEFFICIENT,
         }
     }
 }
