@@ -8,6 +8,8 @@ Open source close combat inspired game. Presentation available [here](http://www
 
 ## Development
 
+Note: Game engine is being rewritten for its final version, see [here](https://github.com/buxx/oc).
+
 ### Requirements
 
 To be able to compile, please install (Debian packages example)
