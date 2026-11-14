@@ -350,6 +350,15 @@ test-world-explosion-alter-wall:
 test-world-smoke-grenade:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- world smoke-grenade --test
 
+# Basecamp starts the battle gui found next to its executable (target/release)
+build-for-basecamp:
+    cargo build --release -p oc_basecamp -p oc_battle_gui
+
+# Debug basecamp starts the debug battle gui (target/debug)
+build-for-basecamp-debug:
+    cargo build -p oc_battle_gui --features debug
+    cargo build -p oc_basecamp --features debug
+
 build-basecamp-e2e:
     cargo build -p oc_battle_gui --features debug
     cargo test -p oc_basecamp --features e2e --test battle --no-run
