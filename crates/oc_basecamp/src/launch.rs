@@ -13,6 +13,7 @@ use oc_root::side::Side;
 use oc_world::{
     flag::Ownership,
     snapshot::{IndividualState, State},
+    spawn::SpawnZoneName,
 };
 
 use crate::{
@@ -77,16 +78,18 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
         write_battle_deployment(&dir, side, &slots)?;
     }
 
-    // FIXME BS NOW: must use world.ocws spawn zones if world.ocws exist
-    let spawns = |side: Side| {
-        match side {
-            Side::A => scenario.a_start_spawn_zones(),
-            Side::B => scenario.b_start_spawn_zones(),
-        }
-        .iter()
-        .map(|zone| zone.0.as_str())
-        .collect::<Vec<_>>()
-        .join(",")
+    let state = dir.join(WORLD_STATE_FILE);
+    let (spawns_a, spawns_b) = battle_spawn_zones(
+        &state,
+        scenario.a_start_spawn_zones(),
+        scenario.b_start_spawn_zones(),
+    )?;
+    let spawns = |zones: &[SpawnZoneName]| {
+        zones
+            .iter()
+            .map(|zone| zone.0.as_str())
+            .collect::<Vec<_>>()
+            .join(",")
     };
     let side = match player {
         Side::A => "a",
@@ -94,7 +97,6 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
     };
     let cwd = std::env::current_dir().map_err(|e| format!("Current folder: {e}"))?;
     let cache = oc_game::cache_dir(ctx.app_dir).join(SERVER_CACHE_FOLDER);
-    let state = dir.join(WORLD_STATE_FILE);
 
     let mut command = Command::new(battle_gui_bin());
     command
@@ -107,8 +109,8 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
         .arg(dir.join(battle_deployment_file(Side::A)))
         .arg("--deployment-b")
         .arg(dir.join(battle_deployment_file(Side::B)))
-        .args(["--spawns-a", &spawns(Side::A)])
-        .args(["--spawns-b", &spawns(Side::B)])
+        .args(["--spawns-a", &spawns(&spawns_a)])
+        .args(["--spawns-b", &spawns(&spawns_b)])
         .arg("--cache")
         .arg(cache)
         .arg(format!("--end=save-map-persist-to:{}", state.display()))
@@ -118,6 +120,22 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
     command
         .spawn()
         .map_err(|e| format!("Start {}: {e}", command.get_program().display()))
+}
+
+/// Spawn zones owned by side A and B at battle start: from world state saved by previous battle
+/// (`state` file) when it exists, elsewhere scenario start spawn zones.
+fn battle_spawn_zones(
+    state: &Path,
+    a_start: &[SpawnZoneName],
+    b_start: &[SpawnZoneName],
+) -> Result<(Vec<SpawnZoneName>, Vec<SpawnZoneName>), String> {
+    if !state.is_file() {
+        return Ok((a_start.to_vec(), b_start.to_vec()));
+    }
+
+    let state = State::load(&state.to_path_buf())
+        .map_err(|e| format!("Load world state '{}': {e}", state.display()))?;
+    Ok((state.side_a_spawns, state.side_b_spawns))
 }
 
 /// Battle gui binary: next to current executable, elsewhere from PATH
@@ -240,4 +258,46 @@ fn write_battle_deployment(dir: &Path, side: Side, slots: &[Option<usize>]) -> R
     };
 
     write_deployment(&dir.join(battle_deployment_file(side)), &deployment)
+}
+
+#[cfg(test)]
+mod tests {
+    use oc_world::flag::Flags;
+
+    use super::*;
+
+    fn names(values: &[&str]) -> Vec<SpawnZoneName> {
+        values.iter().map(|v| SpawnZoneName::new(*v)).collect()
+    }
+
+    #[test]
+    fn first_battle_uses_scenario_start_spawn_zones() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = dir.path().join(WORLD_STATE_FILE);
+
+        let spawns = battle_spawn_zones(&state, &names(&["A1"]), &names(&["B1", "B2"]));
+
+        assert_eq!(spawns, Ok((names(&["A1"]), names(&["B1", "B2"]))));
+    }
+
+    #[test]
+    fn next_battle_uses_world_state_spawn_zones() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = dir.path().join(WORLD_STATE_FILE);
+        State::new(
+            vec![],
+            vec![],
+            vec![],
+            names(&["A1", "B1"]),
+            names(&["B2"]),
+            vec![],
+            Flags::default(),
+        )
+        .save(&state)
+        .unwrap();
+
+        let spawns = battle_spawn_zones(&state, &names(&["A1"]), &names(&["B1", "B2"]));
+
+        assert_eq!(spawns, Ok((names(&["A1", "B1"]), names(&["B2"]))));
+    }
 }
