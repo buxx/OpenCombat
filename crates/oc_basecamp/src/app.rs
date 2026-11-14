@@ -216,6 +216,10 @@ impl App {
                 selected_mod: &self.selected_mod,
             };
             if let Some(next) = self.page.show(ui, &mut ctx) {
+                // New page must be drawn now, not at next user input (like a redirection)
+                if next != self.page {
+                    ui.ctx().request_repaint();
+                }
                 self.page = next;
             }
         });

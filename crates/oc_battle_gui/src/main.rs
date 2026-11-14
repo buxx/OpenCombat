@@ -25,6 +25,10 @@ pub struct Args {
     #[cfg(feature = "debug")]
     #[clap(long, global = true, value_parser = oc_battle_gui::auto_end::parse_kill_squad)]
     pub debug_kill_squad: Vec<(Side, u32)>,
+    /// With --debug-auto-end, give all flags to given side before ending
+    #[cfg(feature = "debug")]
+    #[clap(long, value_enum, global = true)]
+    pub debug_own_flags: Option<Side>,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -73,6 +77,7 @@ fn main() -> anyhow::Result<()> {
     let install = args.debug_auto_end.then(|| -> run::InstallFn {
         let plugin = oc_battle_gui::auto_end::AutoEndPlugin {
             kill_squads: args.debug_kill_squad.clone(),
+            own_flags: args.debug_own_flags,
         };
         Box::new(move |app| {
             app.add_plugins(plugin.clone());

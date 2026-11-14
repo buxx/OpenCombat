@@ -85,6 +85,45 @@ fn solo_battle_test1_killed_squad_is_no_more_available() {
     assert_only_assault(harness);
 }
 
+#[test]
+fn solo_battle_test1_all_flags_owned_is_finished() {
+    // Battle gui gives all flags to side A (Allied, the player side), then ends the battle
+    let battle_args = ["--debug-auto-end", "--debug-own-flags", "a"]
+        .map(String::from)
+        .to_vec();
+    let mut basecamp = common::start_with(move |app| app.with_battle_args(battle_args));
+    let harness = &mut basecamp.harness;
+
+    select_mod(harness, "tests1");
+    click_through(
+        harness,
+        &[
+            ("Solo", Page::Solo),
+            ("Battle", Page::Battle),
+            ("Test1", Page::Battle),
+            ("Scenario 1", Page::Battle),
+            ("New game", Page::NewBattle),
+            ("Start", Page::PrepareBattle),
+            ("Choose Allied", Page::ChooseSquads),
+            ("Start battle", Page::BattleInProgress),
+        ],
+    );
+    wait_battle_end_on(harness, Page::BattleFinished);
+    harness.get_by_label("Victory");
+
+    // Same when the game is reopened from the scenario games list
+    click_through(harness, &[("Battle", Page::Battle)]);
+    harness.get_by_label_contains("(Allied)").click();
+    harness.run_ok();
+    assert_eq!(
+        harness.state().page(),
+        Page::BattleFinished,
+        "after opening game (errors: {:?})",
+        harness.state().error_messages()
+    );
+    harness.get_by_label("Victory");
+}
+
 fn assert_only_assault(harness: &Harness<'static, App>) {
     assert_squads(harness, &[("Assault", "ooo")]);
     assert!(
@@ -130,8 +169,13 @@ fn assert_squads(harness: &Harness<'static, App>, squads: &[(&str, &str)]) {
     }
 }
 
-/// Wait battle gui ends the battle and exits
+/// Wait battle gui ends the battle and exits, then basecamp shows choose squads page
 fn wait_battle_end(harness: &mut Harness<'static, App>) {
+    wait_battle_end_on(harness, Page::ChooseSquads);
+}
+
+/// Wait battle gui ends the battle and exits, then basecamp shows `page`
+fn wait_battle_end_on(harness: &mut Harness<'static, App>, page: Page) {
     let started = Instant::now();
     while harness.state().page() == Page::BattleInProgress {
         assert!(
@@ -143,11 +187,12 @@ fn wait_battle_end(harness: &mut Harness<'static, App>) {
     }
     harness.run_ok();
 
-    // Successful exit goes back to choose squads page, with deployments updated from world state
+    // Successful exit goes to choose squads page (or battle finished page, when battle is
+    // finished), with deployments and game status updated from world state
     assert_eq!(
         harness.state().error_messages(),
         &[] as &[String],
         "battle errors (is target/debug/oc_battle_gui built with `--features debug`?)"
     );
-    assert_eq!(harness.state().page(), Page::ChooseSquads);
+    assert_eq!(harness.state().page(), page);
 }

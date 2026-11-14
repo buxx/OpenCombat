@@ -145,6 +145,7 @@ test-e2e speed="" jobs="4":
         test-world-explosion-alter-wall
         test-world-smoke-grenade
         test-basecamp-battle-test1
+        test-basecamp-battle-finished
     )
     # Build once, so parallel runs below don't compete on cargo build lock
     cargo build --bins --features test || exit 1
@@ -364,7 +365,10 @@ build-basecamp-e2e:
     cargo test -p oc_basecamp --features e2e --test battle --no-run
 
 test-basecamp-battle-test1: build-basecamp-e2e
-    RUST_LOG=ERROR cargo test -p oc_basecamp --features e2e --test battle
+    RUST_LOG=ERROR cargo test -p oc_basecamp --features e2e --test battle -- --skip solo_battle_test1_all_flags_owned_is_finished
+
+test-basecamp-battle-finished: build-basecamp-e2e
+    RUST_LOG=ERROR cargo test -p oc_basecamp --features e2e --test battle -- --exact solo_battle_test1_all_flags_owned_is_finished
 
 test-all:
     just test

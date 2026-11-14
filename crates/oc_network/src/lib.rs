@@ -91,6 +91,9 @@ pub enum ToServer {
     DebugEndBattle,
     #[cfg(feature = "debug")]
     DebugKillSquad(oc_root::side::Side, u32),
+    /// Give ownership of all flags to given side
+    #[cfg(feature = "debug")]
+    DebugOwnFlags(oc_root::side::Side),
 }
 
 #[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq, Constructor)]

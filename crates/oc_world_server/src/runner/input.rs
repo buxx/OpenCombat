@@ -64,7 +64,22 @@ impl<'a, E: Client> Dealer<'a, E> {
             }
             #[cfg(feature = "debug")]
             ToServer::DebugKillSquad(side, nth) => self.kill_squad(side, nth),
+            #[cfg(feature = "debug")]
+            ToServer::DebugOwnFlags(side) => self.own_flags(side),
         }
+    }
+
+    #[cfg(feature = "debug")]
+    fn own_flags(&self, side: oc_root::side::Side) -> Vec<Update> {
+        let mut flags = self.state.world().flags.clone();
+        let ownership = match side {
+            oc_root::side::Side::A => oc_world::flag::Ownership::A,
+            oc_root::side::Side::B => oc_world::flag::Ownership::B,
+        };
+        for (_, owner) in flags.iter_mut() {
+            *owner = ownership.clone();
+        }
+        vec![Update::UpdateFlags(flags)]
     }
 
     #[cfg(feature = "debug")]

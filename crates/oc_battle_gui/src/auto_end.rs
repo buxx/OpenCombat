@@ -8,27 +8,42 @@ use crate::{
 };
 
 /// End the battle as soon as game config is received, then exit. Before ending, kill
-/// `kill_squads` squads (side, nth squad of this side).
+/// `kill_squads` squads (side, nth squad of this side) and give all flags to `own_flags` side.
 #[derive(Default, Clone)]
 pub struct AutoEndPlugin {
     pub kill_squads: Vec<(Side, u32)>,
+    pub own_flags: Option<Side>,
 }
 
 #[derive(Resource)]
 struct KillSquads(Vec<(Side, u32)>);
 
+#[derive(Resource)]
+struct OwnFlags(Option<Side>);
+
 impl Plugin for AutoEndPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(KillSquads(self.kill_squads.clone()))
+            .insert_resource(OwnFlags(self.own_flags))
             .add_observer(on_game_config)
             .add_observer(on_end_resume);
     }
 }
 
-fn on_game_config(_: On<GameConfigReceived>, kill: Res<KillSquads>, mut commands: Commands) {
+fn on_game_config(
+    _: On<GameConfigReceived>,
+    kill: Res<KillSquads>,
+    own_flags: Res<OwnFlags>,
+    mut commands: Commands,
+) {
     for (side, nth) in &kill.0 {
         tracing::info!("Auto end: kill squad {nth} of side {side:?}");
         commands.trigger(ToServerEvent(ToServer::DebugKillSquad(*side, *nth)));
+    }
+
+    if let Some(side) = own_flags.0 {
+        tracing::info!("Auto end: give all flags to side {side:?}");
+        commands.trigger(ToServerEvent(ToServer::DebugOwnFlags(side)));
     }
 
     tracing::info!("Auto end: request battle end");
