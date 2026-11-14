@@ -1,8 +1,12 @@
 use eframe::egui;
 
-use oc_basecamp::{UI_ZOOM, app};
+use oc_basecamp::{UI_ZOOM, app, use_exe_dir_if_data_beside};
 
 fn main() -> eframe::Result {
+    if let Err(error) = use_exe_dir_if_data_beside() {
+        eprintln!("Use executable folder as current folder: {error}");
+    }
+
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([1600.0, 1000.0]),
         ..Default::default()
