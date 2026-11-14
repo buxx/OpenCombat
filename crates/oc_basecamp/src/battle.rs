@@ -3,7 +3,7 @@ use std::path::Path;
 use oc_battle::check::check_battle;
 pub use oc_battle::{Battle, Scenario};
 
-const BATTLES_FOLDER: &str = "battles";
+pub const BATTLES_FOLDER: &str = "battles";
 pub const MAPS_FOLDER: &str = "maps";
 
 pub fn load_all() -> (Vec<Battle>, Vec<String>) {

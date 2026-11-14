@@ -102,7 +102,7 @@ impl App {
                     ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
                 }
             });
-            ui.menu_button("Help", |ui| {
+            ui.menu_button("Other", |ui| {
                 if ui.button("About").clicked() {
                     self.show_about = true;
                     ui.close();
