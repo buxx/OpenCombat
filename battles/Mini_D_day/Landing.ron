@@ -1,0 +1,32 @@
+(
+  name: "Landing",
+  description: "Allied are landing !",
+  deploy_a: "Landing_deploy_a.ron",
+  deploy_b: "Landing_deploy_b.ron",
+  a_squad_count: 8,
+  b_squad_count: 5,
+  a_start_spawn_zones: [
+    "SouthBeach"
+  ],
+  b_start_spawn_zones: [
+    "Middle",
+    "North",
+  ],
+  a_default: [
+    "Riffle",
+    "Riffle",
+    "Riffle",
+    "Riffle",
+    "Riffle",
+    "Bren",
+    "Bren",
+    "Bren",
+  ],
+  b_default: [
+    "Riffle",
+    "Riffle",
+    "Riffle",
+    "Mg34",
+    "Mg34",
+  ],
+)

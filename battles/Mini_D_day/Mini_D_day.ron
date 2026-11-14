@@ -1,0 +1,6 @@
+(
+  name: "Mini D-Day",
+  description: "A miniature reenactment of part of the Allied landings on the beaches of Normandy.",
+  map: "minidblue",
+  scenarios: ["Landing.ron", "Take_the_town.ron"],
+)

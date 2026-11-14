@@ -427,7 +427,7 @@
  <imagelayer id="3" name="interiors_image" visible="0" opacity="0.45">
   <image source="interiors.png" width="1000" height="1000"/>
  </imagelayer>
- <objectgroup id="3" name="spawn_zones" visible="0">
+ <objectgroup id="3" name="spawn_zones">
   <object id="92" name="SouthBeach" x="0" y="800" width="1000" height="200"/>
   <object id="93" name="MiddleBeach" x="0" y="580" width="1000" height="220"/>
   <object id="94" name="BeachEnds" x="0" y="425">
@@ -440,7 +440,7 @@
    <polygon points="0,0 1000,0 1000,160 665,160 580,190 450,250 0,250"/>
   </object>
  </objectgroup>
- <objectgroup id="7" name="places" visible="0">
+ <objectgroup id="7" name="places">
   <object id="20" x="50" y="905">
    <point/>
   </object>
@@ -507,7 +507,7 @@
   <object id="41" x="945" y="680">
    <point/>
   </object>
-  <object id="42" x="25" y="420">
+  <object id="42" x="60.8612" y="371.482">
    <point/>
   </object>
   <object id="43" x="125" y="430">
@@ -528,7 +528,7 @@
   <object id="48" x="860" y="435">
    <point/>
   </object>
-  <object id="49" x="955" y="440">
+  <object id="49" x="957.109" y="395.701">
    <point/>
   </object>
   <object id="50" x="175" y="345">

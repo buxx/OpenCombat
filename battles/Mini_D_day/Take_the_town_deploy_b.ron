@@ -13,7 +13,7 @@
             main: Some("Mauser G41"),
             grenades: ["Frag grenade", "Frag grenade"],
           ),
-          magazines: [(count: 10, name: "Mauser5x")],
+          magazines: [(count: 12, name: "Mauser5x")],
         ),
       ],
     ),

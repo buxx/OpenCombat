@@ -412,7 +412,7 @@
  </imagelayer>
  <objectgroup id="5" name="flags" visible="0">
   <object id="11" name="House3" x="825" y="956" width="90" height="52"/>
-  <object id="12" name="Orchad2" x="861.333" y="1386.67" width="327.667" height="198"/>
+  <object id="12" name="Orchard2" x="861.333" y="1386.67" width="327.667" height="198"/>
   <object id="14" name="Cutting zone" x="509" y="932" width="140" height="264"/>
   <object id="15" name="SW Road" x="531" y="1315" width="178" height="131"/>
   <object id="17" name="Forest center" x="612" y="510" width="485" height="172.667"/>
@@ -422,8 +422,8 @@
   <object id="22" name="House1" x="192.667" y="1115.33" width="88.6667" height="54.6667"/>
   <object id="23" name="NE corner" x="1734" y="33.5" width="196.5" height="137.25"/>
   <object id="24" name="Big farm" x="1500" y="1554" width="320" height="330"/>
-  <object id="25" name="Orchad1" x="862.667" y="1138.67" width="282.667" height="132"/>
-  <object id="26" name="Orchad3" x="856.667" y="1726" width="320.667" height="218.667"/>
+  <object id="25" name="Orchard1" x="862.667" y="1138.67" width="282.667" height="132"/>
+  <object id="26" name="Orchard3" x="856.667" y="1726" width="320.667" height="218.667"/>
   <object id="27" name="Forest N" x="920" y="83" width="437" height="278"/>
   <object id="28" name="NW corner" x="21" y="29" width="259" height="255"/>
   <object id="29" name="N field" x="412" y="209" width="143" height="104"/>

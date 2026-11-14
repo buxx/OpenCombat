@@ -1,7 +1,7 @@
 (
   squads: [
     (
-      count: 10,
+      count: 15,
       label: "Riffle",
       illustration: "default",
       individuals: [
@@ -11,14 +11,14 @@
           xp: (149, 40),
           weapons: (
             main: Some("Mosin Nagant M1924"),
-            grenades: ["Frag grenade", "Frag grenade"],
+            grenades: ["Frag grenade", "Frag grenade", "Smoke grenade"],
           ),
           magazines: [(count: 10, name: "MosinNagant5x")],
         ),
       ],
     ),
     (
-      count: 5,
+      count: 8,
       label: "Bren",
       illustration: "BrenMark2Squad",
       individuals: [
