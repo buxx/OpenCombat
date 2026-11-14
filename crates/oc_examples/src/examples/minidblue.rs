@@ -57,13 +57,13 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         Case::Empty => deployment::Deployments::default(),
 
         Case::EnagedBattleMiddle => deployment::Deployments::from_files(
-            &PathBuf::from("maps/deployment1a.yml"),
-            &PathBuf::from("maps/deployment1b.yml"),
+            &PathBuf::from("examples/deployment1a.yml"),
+            &PathBuf::from("examples/deployment1b.yml"),
         )
         .unwrap(),
         Case::DeploySouthBeach => deployment::Deployments::from_files(
-            &PathBuf::from("maps/deployment_allied1.yml"),
-            &PathBuf::from("maps/deployment_axis1.yml"),
+            &PathBuf::from("examples/deployment_allied1.yml"),
+            &PathBuf::from("examples/deployment_axis1.yml"),
         )
         .unwrap()
         .with_spawns(
