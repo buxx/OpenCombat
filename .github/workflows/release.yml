@@ -11,7 +11,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
           mkdir "$name"
           # Executables only (no .d files, no build dirs)
           find target/release -maxdepth 1 -type f \( -perm -u+x -o -name '*.exe' \) \
-            ! -name '*.so' ! -name '*.dll' ! -name '*.d' -exec cp {} "$name"/ \;
+            ! -name '*.so' ! -name '*.dylib' ! -name '*.dll' ! -name '*.d' -exec cp {} "$name"/ \;
           cp -r mods examples assets maps battles templates "$name"/
           if [ "$RUNNER_OS" = "Windows" ]; then
             7z a "$name.zip" "$name"
