@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/*"]
 
 [workspace.package]
-version = "0.1.4"
+version = "0.1.5"
 
 [profile.dev]
 opt-level = 1
