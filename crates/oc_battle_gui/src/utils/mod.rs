@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 pub mod drag;
 pub mod hover;
+pub mod pick_radius;
 pub mod point;
 pub mod selected;
 

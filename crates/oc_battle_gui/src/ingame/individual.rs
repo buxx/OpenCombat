@@ -46,6 +46,7 @@ use crate::sprites::weapon::{
 use crate::states::{AppState, GameConfig, PointerIn};
 use crate::utils::drag::{self, Dragged, Dragging, Phantom};
 use crate::utils::hover::{self, Hovered, HoveredPlugin};
+use crate::utils::pick_radius::{PickRadius, PickRadiusPlugin};
 use crate::utils::selected::{self, Selected, SelectedPlugin};
 use crate::world::World;
 
@@ -294,6 +295,7 @@ pub fn on_insert_individual(
             // Surface (clicking, etc)
             (
                 Pickable::default(),
+                PickRadius(PICK_RADIUS),
                 Hovered::default(),
                 Selected::default(),
                 Dragged::<IndividualIndex>::default(),
@@ -457,6 +459,9 @@ pub fn on_update_individual(update: On<UpdateIndividualEvent>, mut commands: Com
     }
 }
 
+/// World pixels around individual center where cursor hits it
+const PICK_RADIUS: f32 = 8.;
+
 pub struct IndividualPlugin;
 
 impl Plugin for IndividualPlugin {
@@ -466,6 +471,7 @@ impl Plugin for IndividualPlugin {
             UpdateIndividualPhysicsEvent,
         >::default())
             .add_plugins(HoveredPlugin::<Hover>::default())
+            .add_plugins(PickRadiusPlugin)
             .add_plugins(SelectedPlugin::<Selection>::default())
             .init_resource::<EntityMapping<oc_individual::IndividualIndex>>()
             .add_observer(on_insert_individual)
@@ -720,8 +726,8 @@ impl Dragging for IndividualIndex {
         commands.trigger(SpawnIndividualPhantom(marker));
     }
 
-    fn drop(commands: &mut Commands, subject: Entity, point: WorldVec2) {
-        commands.trigger(DropIndividualPhantom(subject, point));
+    fn drop(commands: &mut Commands, subject: Entity, _point: WorldVec2, offset: WorldVec2) {
+        commands.trigger(DropIndividualPhantom(subject, offset));
     }
 
     fn visual() -> drag::Visual {
@@ -762,10 +768,15 @@ pub fn on_drop_individual_phantom(
     individuals: Query<&IndividualIndex>,
     zones: Query<&SpawnZone, With<OwnSpawnZone>>,
 ) {
-    let (subject, drop) = (event.0, event.1);
+    let (subject, offset) = (event.0, event.1);
     let_ok!(individual = individuals.get(subject), return);
-    let_some!((squad_i, _) = world.individual_squad(individual.0), return);
+    let squad = world.individual_squad(individual.0);
+    let_some!((squad_i, squad) = squad, return);
+    let_some!(leader = world.individual(squad.leader()), return);
     commands.trigger(SetLeftClick(LeftClickMode::Select));
+
+    // Move leader by the drag offset (whatever the dragged squad member), so all dragged squads keep their relative positions.
+    let drop = WorldVec2::new(leader.position.x + offset.x, leader.position.y + offset.y);
 
     if !zones.iter().any(|zone| zone.contains(drop)) {
         tracing::trace!(name="ingame-individual-on-drop-individual-outside-own-spawn", drop=?drop);

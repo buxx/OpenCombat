@@ -1,7 +1,11 @@
 use std::marker::PhantomData;
 
 use bevy::prelude::*;
-use oc_root::{WcfgFrom, geo::WorldVec2, y::V};
+use oc_root::{
+    WcfgFrom,
+    geo::{ScreenVec2, WorldVec2},
+    y::V,
+};
 use oc_utils::{d2::Direction, let_ok, let_some};
 
 use crate::{cursor_to, states::GameConfig, utils::selected};
@@ -93,8 +97,9 @@ impl<T: Dragging + std::fmt::Debug + Send + Sync + 'static, S: States + Copy> Pl
 pub trait Dragging {
     /// Implementation must spawn bundle (or trigger event which spawn bundle) owning the given marker
     fn spawn(commands: &mut Commands, marker: Phantom);
-    /// Implementation assume consequences of drop
-    fn drop(commands: &mut Commands, subject: Entity, point: WorldVec2);
+    /// Implementation assume consequences of drop. `offset` is the cursor move since drag start,
+    /// allowing implementations to preserve relative positions of multiple dragged entities.
+    fn drop(commands: &mut Commands, subject: Entity, point: WorldVec2, offset: WorldVec2);
     /// Which visual method to apply
     fn visual() -> Visual;
 }
@@ -151,6 +156,9 @@ pub fn on_drag_stop<T>(
     let_some!(cursor_ = cursor.0, return);
     let_ok!(mut dragged = dragged.get_mut(event.dropped), return);
     let point = WorldVec2::new(point.x, point.y);
+    // Drag start cursor is stored in screen coordinates
+    let start = WorldVec2::from_(ScreenVec2::new(cursor_.0.x, cursor_.0.y), &g.w);
+    let offset = point - start;
     dragged.0 = cursor_.1;
     cursor.0 = None;
 
@@ -159,8 +167,8 @@ pub fn on_drag_stop<T>(
             commands.entity(entity).despawn()
         }
 
-        tracing::trace!(name="utils-drag-on-drag-stop-drop", point=?point, entity=?entity);
-        T::drop(&mut commands, phantom.0, point);
+        tracing::trace!(name="utils-drag-on-drag-stop-drop", point=?point, offset=?offset, entity=?entity);
+        T::drop(&mut commands, phantom.0, point, offset);
     }
 
     event.propagate(false);

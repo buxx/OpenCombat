@@ -122,7 +122,7 @@ impl Dragging for PositionSquadOrder {
         commands.trigger(SpawnSquadOrderMarkerPhantom(marker));
     }
 
-    fn drop(commands: &mut Commands, subject: Entity, point: WorldVec2) {
+    fn drop(commands: &mut Commands, subject: Entity, point: WorldVec2, _offset: WorldVec2) {
         commands.trigger(DropSquadOrderMarkerPhantom(subject, point));
     }
 
@@ -154,7 +154,7 @@ impl Dragging for DirectionSquadOrder {
         commands.trigger(EnterDragDirectionSquadOrderMarker(marker));
     }
 
-    fn drop(commands: &mut Commands, subject: Entity, point: WorldVec2) {
+    fn drop(commands: &mut Commands, subject: Entity, point: WorldVec2, _offset: WorldVec2) {
         commands.entity(subject).remove::<Phantom>();
         tracing::trace!(name = "ingame-behavior-dragging-direction-squad-order-drop-trigger",);
         commands.trigger(UpdateDirectionSquadOrderTarget(subject, point));
