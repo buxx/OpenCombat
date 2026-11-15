@@ -326,7 +326,8 @@ fn install(app: &mut bevy::app::App) {
         });
 
         #[cfg(feature = "debug")]
-        app.add_systems(Update, fire_explosion);
+        app.init_resource::<Fired>()
+            .add_systems(Update, fire_explosion);
 
         #[cfg(feature = "test")]
         if args.test {
@@ -349,7 +350,7 @@ fn install(app: &mut bevy::app::App) {
 fn fire_explosion(
     mut commands: Commands,
     mut start: Local<Option<std::time::Instant>>,
-    mut fired: Local<usize>,
+    mut fired: ResMut<Fired>,
     individuals: Query<&oc_battle_gui::entity::individual::IndividualIndex>,
     g: Res<GameConfig>,
 ) {
@@ -367,7 +368,8 @@ fn fire_explosion(
     let_some!(g = &g.0, return);
     let start = *start.get_or_insert_with(std::time::Instant::now);
     let explosions = Args::parse_from(crate::args()).case.explosions(g.w.speed());
-    while let Some((delay, shell, position)) = explosions.get(*fired) {
+    fired.frames_since_last = fired.frames_since_last.saturating_add(1);
+    while let Some((delay, shell, position)) = explosions.get(fired.count) {
         if start.elapsed() < *delay {
             break;
         }
@@ -375,11 +377,24 @@ fn fire_explosion(
             *shell,
             WorldVec2::from(*position),
         )));
-        *fired += 1;
+        fired.count += 1;
+        fired.frames_since_last = 0;
     }
 }
 
 const MIN_TEST_DURATION: Duration = Duration::from_millis(500);
+/// Frames to wait after last explosion before checking result: explosion effects are received by
+/// network, so test must not depend only on (wall clock) duration when frames are slow
+#[cfg(feature = "test")]
+const MIN_FRAMES_AFTER_LAST_EXPLOSION: u32 = 10;
+
+/// Count of explosions fired, and frames elapsed since the last one
+#[cfg(feature = "debug")]
+#[derive(Debug, Resource, Default)]
+struct Fired {
+    count: usize,
+    frames_since_last: u32,
+}
 
 #[cfg(feature = "test")]
 #[derive(Debug, Resource, Default)]
@@ -393,6 +408,7 @@ fn explosion_protected_test(
     mut commands: Commands,
     mut test: ResMut<ExplosionProtectedTest>,
     g: Res<GameConfig>,
+    fired_: Res<Fired>,
     individuals: Query<(
         &oc_battle_gui::entity::individual::IndividualIndex,
         &oc_battle_gui::ingame::individual::Status,
@@ -411,10 +427,10 @@ fn explosion_protected_test(
     let dead = individuals
         .iter()
         .any(|(_, status)| matches!(status.0, oc_individual::Status::Dead));
-    let elapsed = fired.elapsed()
-        > Args::parse_from(crate::args())
-            .case
-            .test_duration(g.w.speed());
+    let case = Args::parse_from(crate::args()).case;
+    let all_fired = fired_.count == case.explosions(g.w.speed()).len()
+        && fired_.frames_since_last >= MIN_FRAMES_AFTER_LAST_EXPLOSION;
+    let elapsed = all_fired && fired.elapsed() > case.test_duration(g.w.speed());
     if !(dead || elapsed) {
         return;
     }
@@ -450,7 +466,9 @@ fn test_interior_visibility(
         _ => return,
     }
     .div_f32(speed)
-    .max(Duration::from_secs(1));
+    // Success is detected as soon as it happens: a large minimal timeout does not slow down the
+    // test, and let time to (maybe slow) app start and rendering
+    .max(Duration::from_secs(15));
 
     if match args.case {
         Case::Enter => query.iter().any(|(_, v)| matches!(v, Visibility::Visible)),

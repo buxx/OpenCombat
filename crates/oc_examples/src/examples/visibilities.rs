@@ -39,8 +39,10 @@ use oc_world::{meta::Meta, tile::Tile};
 use tests::{individual::TestIndividual, squad::TestSquad};
 
 #[cfg(feature = "test")]
-/// Minimal time to let bevy make "network" exchange with server, whatever the speed
-const MIN_TIMEOUT: Duration = Duration::from_secs(1);
+/// Minimal time to let bevy make "network" exchange with server, whatever the speed. Success is
+/// detected as soon as it happens: a large value does not slow down tests, and let time to (maybe
+/// slow) rendering
+const MIN_TIMEOUT: Duration = Duration::from_secs(30);
 const MIN_EXPLOSION_DELAY: Duration = Duration::from_secs(1);
 const AFTER_SUCCESS_WAIT: Duration = Duration::from_secs(1);
 const MOD: &str = "mods/tests1";

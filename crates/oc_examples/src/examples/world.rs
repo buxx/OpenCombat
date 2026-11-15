@@ -57,6 +57,9 @@ const SMOKE_TOLERANCE: Duration = Duration::from_millis(900);
 /// Network and frames precision, whatever the speed
 #[cfg(feature = "test")]
 const SMOKE_MIN_TOLERANCE: Duration = Duration::from_millis(300);
+/// Minimal test duration before considering it failed
+#[cfg(feature = "test")]
+const MIN_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
@@ -247,7 +250,9 @@ fn setup(app: &mut App, center: WorldVec2, #[allow(unused)] speed: f32) {
         Case::SmokeGrenade => {
             app.add_observer(request_fight);
             #[cfg(feature = "test")]
-            app.add_systems(Update, smoke_test);
+            app.init_resource::<SmokeWatch>()
+                .add_observer(on_smoke_update)
+                .add_systems(Update, smoke_test);
         }
         Case::EndMorale => {
             app.add_observer(request_fight);
@@ -265,8 +270,10 @@ fn setup(app: &mut App, center: WorldVec2, #[allow(unused)] speed: f32) {
 
     #[cfg(feature = "test")]
     {
+        // Success is detected as soon as it happens: a large minimal timeout does not slow down
+        // tests, and let time to (maybe slow) app start and rendering
         let timeout = Duration::from_secs(30).div_f32(speed);
-        app.insert_resource(Timeout(timeout.max(Duration::from_secs(5))))
+        app.insert_resource(Timeout(timeout.max(MIN_TIMEOUT)))
             .add_observer(on_fx)
             .add_systems(Update, timeout_exit);
     }
@@ -337,15 +344,53 @@ fn alter_wall_test(
     commands.write_message(AppExit::from_code(0));
 }
 
+// WARNING: AI generated
 #[cfg(feature = "test")]
-#[derive(Default)]
+#[derive(Debug, Resource, Default)]
 struct SmokeWatch {
-    /// Elapsed time when the cloud was first seen (displayed and in world)
-    seen: Option<Duration>,
-    /// Opacity seen at first
+    /// When the target tile smoke was first received
+    seen: Option<std::time::Instant>,
+    /// Same than `seen`, but in app time: smoke fx lifetime is ticked with it, and app time is
+    /// slower than real one when frames are very slow (delta is clamped)
+    seen_app: Duration,
+    /// Opacity received at first
     initial: oc_utils::percent::Percent,
+    /// Opacity changes received for target tile after the first one: when, and opacity
+    changes: Vec<(std::time::Instant, oc_utils::percent::Percent)>,
 }
 
+// WARNING: AI generated
+/// Follow target tile smoke from received updates (and not from world state at each frame): at
+/// fast speed, smoke can appear and disappear between two (slow) frames.
+#[cfg(feature = "test")]
+fn on_smoke_update(
+    update: On<oc_battle_gui::world::UpdateSmoke>,
+    g: Res<oc_battle_gui::states::GameConfig>,
+    center: Res<Center>,
+    time: Res<Time>,
+    mut watch: ResMut<SmokeWatch>,
+) {
+    let_some!(g = &g.0, return);
+    let target = WorldVec2::new(center.0.x + Meters(10.).pixels(&g.w), center.0.y);
+    let tile = oc_geo::tile::TileXy::from_([target.x, target.y], &g.w);
+    let tile = oc_geo::tile::WorldTileIndex::from_(tile, &g.w);
+    let Some((_, opacity)) = update.1.iter().find(|(i, _)| *i == tile) else {
+        return;
+    };
+    let now = std::time::Instant::now();
+
+    match watch.seen {
+        None if !opacity.is_zero() => {
+            watch.seen = Some(now);
+            watch.seen_app = time.elapsed();
+            watch.initial = *opacity;
+        }
+        None => {}
+        Some(_) => watch.changes.push((now, *opacity)),
+    }
+}
+
+// WARNING: AI generated
 /// Smoke cloud must keep its full opacity (displayed and in world) during smoke_duration of
 /// grenade, then be gone after smoke_fade_duration.
 #[cfg(feature = "test")]
@@ -355,7 +400,7 @@ fn smoke_test(
     g: Res<oc_battle_gui::states::GameConfig>,
     center: Res<Center>,
     time: Res<Time>,
-    mut watch: Local<SmokeWatch>,
+    watch: Res<SmokeWatch>,
     mut commands: Commands,
 ) {
     let_some!(g = &g.0, return);
@@ -364,7 +409,8 @@ fn smoke_test(
     let speed = g.w.speed();
     let hold = Duration::from_secs_f32(grenade.smoke_duration / speed);
     let fade = Duration::from_secs_f32(grenade.smoke_fade_duration / speed);
-    let tolerance = SMOKE_TOLERANCE.div_f32(speed).max(SMOKE_MIN_TOLERANCE);
+    // Frames can be slow (software rendering, parallel tests): updates are received at frame time
+    let tolerance = SMOKE_TOLERANCE.div_f32(speed).max(SMOKE_MIN_TOLERANCE) + time.delta() * 2;
 
     let target = WorldVec2::new(center.0.x + Meters(10.).pixels(&g.w), center.0.y);
     let tile = oc_geo::tile::TileXy::from_([target.x, target.y], &g.w);
@@ -376,29 +422,37 @@ fn smoke_test(
         commands.write_message(AppExit::from_code(0));
     };
 
-    let Some(seen) = watch.seen else {
-        if displayed && !opacity.is_zero() {
-            watch.seen = Some(time.elapsed());
-            watch.initial = opacity;
-        }
-        return;
-    };
-    let age = time.elapsed() - seen;
+    let_some!(seen = watch.seen, return);
+    // Opacity comes from server (real time), display from smoke fx (app time)
+    let age = seen.elapsed();
+    let app_age = time.elapsed().saturating_sub(watch.seen_app);
 
-    if age + tolerance < hold && (!displayed || opacity != watch.initial) {
+    // Opacity must not change during hold
+    if let Some((at, changed)) = watch
+        .changes
+        .iter()
+        .find(|(at, _)| at.duration_since(seen) + tolerance < hold)
+    {
         let message = format!(
-            "Smoke must be kept during {hold:?}, but at {age:?}: displayed={displayed}, \
-             opacity={opacity:?} (initial {:?})",
+            "Smoke must be kept during {hold:?}, but at {:?}: opacity={changed:?} (initial {:?})",
+            at.duration_since(seen),
             watch.initial
         );
         return fail(&mut commands, message);
     }
 
-    if age > hold + fade + tolerance {
+    // Smoke fx is spawned from a message which can be processed in the frame after the update one
+    if app_age > time.delta() * 2 && app_age + tolerance < hold && !displayed {
+        let message = format!("Smoke must be displayed during {hold:?}, but not at {app_age:?}");
+        return fail(&mut commands, message);
+    }
+
+    // App time is not faster than real time: `age` is also passed
+    if app_age > hold + fade + tolerance {
         if displayed || !opacity.is_zero() {
             let message = format!(
-                "Smoke must be gone after {:?}, but at {age:?}: displayed={displayed}, \
-                 opacity={opacity:?}",
+                "Smoke must be gone after {:?}, but at {age:?} ({app_age:?} app time): \
+                 displayed={displayed}, opacity={opacity:?}",
                 hold + fade
             );
             return fail(&mut commands, message);
@@ -439,9 +493,16 @@ fn request_fight(_: On<GameConfigReceived>, mut commands: Commands) {
 struct EndWatch {
     // Position when battle start
     start: Option<WorldVec3>,
-    // Position when BattlePhase::End is received
+    /// Frames elapsed since BattlePhase::End is received
+    ended_since_frames: Option<u32>,
+    // Position (and time) a few frames after BattlePhase::End is received
     end: Option<(Duration, WorldVec3)>,
 }
+
+/// Frames to wait after End before reading individual position: updates received with End (in the
+/// same frame) are applied on components by deferred commands
+#[cfg(feature = "test")]
+const END_POSITION_FRAMES: u32 = 2;
 
 #[cfg(feature = "test")]
 fn individual_position(
@@ -457,21 +518,10 @@ fn individual_position(
 }
 
 #[cfg(feature = "test")]
-fn on_battle_phase(
-    phase: On<SetBattlePhase>,
-    time: Res<Time>,
-    individuals: Query<(
-        &Position,
-        &oc_battle_gui::entity::individual::IndividualIndex,
-    )>,
-    mut watch: ResMut<EndWatch>,
-    mut commands: Commands,
-) {
+fn on_battle_phase(phase: On<SetBattlePhase>, mut watch: ResMut<EndWatch>, mut commands: Commands) {
     match (phase.phase(), phase.end()) {
         (oc_battle_gui::ingame::BattlePhase::End, Some(End::Time(_))) => {
-            if let Some(position) = individual_position(&individuals) {
-                watch.end = Some((time.elapsed(), position));
-            };
+            watch.ended_since_frames.get_or_insert(0);
         }
         (oc_battle_gui::ingame::BattlePhase::End, end) => {
             eprintln!("❌ Expected End::Time, got {:?}", end);
@@ -516,6 +566,14 @@ fn watch_individual_after_end(
     let_some!(g = &g.0, return);
     let_some!(position = individual_position(&individuals), return);
     let start = *watch.start.get_or_insert(position);
+    let_some!(ended_since_frames = watch.ended_since_frames, return);
+    if watch.end.is_none() {
+        if ended_since_frames < END_POSITION_FRAMES {
+            watch.ended_since_frames = Some(ended_since_frames + 1);
+            return;
+        }
+        watch.end = Some((time.elapsed(), position));
+    }
     let_some!((end_time, end_position) = watch.end, return);
 
     if !position.almost_equal(end_position, 0.001) {
@@ -556,6 +614,7 @@ fn on_fx(fx: On<FxEvent>, center: Res<Center>, mut commands: Commands) {
 #[cfg(feature = "test")]
 fn timeout_exit(time: Res<Time>, timeout: Res<Timeout>, mut commands: Commands) {
     if time.elapsed() > timeout.0 {
+        eprintln!("❌ Timeout reached ({:?})", timeout.0);
         commands.write_message(AppExit::from_code(0));
     }
 }

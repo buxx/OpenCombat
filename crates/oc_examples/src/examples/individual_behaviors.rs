@@ -237,6 +237,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                             TestCase::Idle => {}
                             TestCase::Stunned => {
                                 app.init_resource::<StunnedTest>()
+                                    .add_observer(on_stunned_set_status)
+                                    .add_observer(on_stunned_set_intent)
                                     .add_systems(Update, stunned_test);
                             }
                             TestCase::ThrowGrenade
@@ -411,6 +413,8 @@ enum StunnedStep {
 #[derive(Debug, Resource, Default)]
 struct StunnedTest {
     step: StunnedStep,
+    /// Test result, once known (true for success)
+    result: Option<bool>,
 }
 
 /// Explosion and move order are sent at the same time, once individual is in game.
@@ -450,55 +454,75 @@ fn stunned_fire(
     )));
 }
 
-/// Individual must be stunned, then operational, then moving.
+/// Individual must be stunned, then operational, then moving. Steps are followed from received
+/// updates (and not from components state at each frame): stun can be shorter than a frame (with
+/// fast speed and slow rendering), so stunned then operational status can be received in one frame.
 #[cfg(feature = "test")]
-fn stunned_test(
-    mut commands: Commands,
+fn on_stunned_set_status(
+    event: On<oc_battle_gui::ingame::individual::SetStatusEvent>,
     mut test: ResMut<StunnedTest>,
-    game: Res<Game>,
-    w: Res<Wcfg>,
-    individuals: Query<(
-        &oc_battle_gui::entity::individual::IndividualIndex,
-        &oc_battle_gui::ingame::individual::Status,
-        &oc_battle_gui::entity::individual::Intent,
-    )>,
+) {
+    if event.0 != oc_individual::IndividualIndex(0) || test.result.is_some() {
+        return;
+    }
+
+    match (test.step, event.1) {
+        (StunnedStep::Stunned, oc_individual::Status::Stunned(_)) => {
+            println!("✅ (GUI) Individual stunned");
+            test.step = StunnedStep::Operational;
+        }
+        (StunnedStep::Operational, oc_individual::Status::Operational) => {
+            println!("✅ (GUI) Individual operational again");
+            test.step = StunnedStep::Moving;
+        }
+        _ => {}
+    }
+}
+
+#[cfg(feature = "test")]
+fn on_stunned_set_intent(
+    event: On<oc_battle_gui::ingame::individual::SetIntentEvent>,
+    mut test: ResMut<StunnedTest>,
 ) {
     use oc_individual::behavior::Intent;
 
+    if event.0 != oc_individual::IndividualIndex(0)
+        || test.result.is_some()
+        || !matches!(event.1, Intent::MoveTo(..))
+    {
+        return;
+    }
+
+    if test.step == StunnedStep::Moving {
+        println!("✅ (GUI) Individual moving");
+        test.result = Some(true);
+    } else {
+        eprintln!("❌ Individual moves before ({:?})", test.step);
+        test.result = Some(false);
+    }
+}
+
+#[cfg(feature = "test")]
+fn stunned_test(mut commands: Commands, test: Res<StunnedTest>, game: Res<Game>, w: Res<Wcfg>) {
     let_some!(w = &w.0, return);
+    match test.result {
+        Some(true) => {
+            commands.write_message(bevy::app::AppExit::from_code(0));
+            return;
+        }
+        Some(false) => {
+            commands.write_message(bevy::app::AppExit::from_code(1));
+            return;
+        }
+        None => {}
+    }
+
     let timeout = Duration::from_secs(20)
         .div_f32(w.speed())
         .max(Duration::from_secs(5));
     if game.started.elapsed() > timeout {
         eprintln!("❌ Timeout reached ! Step {:?} not reached", test.step);
         commands.write_message(bevy::app::AppExit::from_code(1));
-        return;
-    }
-
-    let individual = oc_individual::IndividualIndex(0);
-    let Some((_, status, intent)) = individuals.iter().find(|(i, _, _)| i.0 == individual) else {
-        return;
-    };
-
-    let moving = matches!(intent.0, Intent::MoveTo(..));
-    match (test.step, status.0) {
-        (StunnedStep::Stunned, oc_individual::Status::Stunned(_)) => {
-            println!("✅ (GUI) Individual stunned");
-            test.step = StunnedStep::Operational;
-        }
-        (StunnedStep::Stunned | StunnedStep::Operational, _) if moving => {
-            eprintln!("❌ Individual moves before ({:?})", test.step);
-            commands.write_message(bevy::app::AppExit::from_code(1));
-        }
-        (StunnedStep::Operational, oc_individual::Status::Operational) => {
-            println!("✅ (GUI) Individual operational again");
-            test.step = StunnedStep::Moving;
-        }
-        (StunnedStep::Moving, oc_individual::Status::Operational) if moving => {
-            println!("✅ (GUI) Individual moving");
-            commands.write_message(bevy::app::AppExit::from_code(0));
-        }
-        _ => {}
     }
 }
 

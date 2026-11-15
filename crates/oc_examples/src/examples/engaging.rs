@@ -688,8 +688,9 @@ fn on_set_gesture(event: On<SetGestureEvent>, mut state: ResMut<State>) {
 fn test_tracker(mut commands: Commands, game: Res<Game>, state: ResMut<State>, w: Res<Wcfg>) {
     let args = Args::parse_from(crate::args());
     let speed = w.0.as_ref().map(|w| w.speed()).unwrap_or(1.0);
-    // Ensure a minimal timeout to let time to bevy to make "network" exchange with server
-    let timeout = args.timeout().div_f32(speed).max(Duration::from_secs(1));
+    // Success is detected as soon as it happens: a large minimal timeout does not slow down tests,
+    // and let time to (maybe slow) rendering and "network" exchange with server
+    let timeout = args.timeout().div_f32(speed).max(Duration::from_secs(30));
     if game.started.elapsed() > timeout
         || state
             .success
