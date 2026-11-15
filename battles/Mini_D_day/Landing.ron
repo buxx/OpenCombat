@@ -1,3 +1,4 @@
+#![enable(implicit_some)]
 (
   name: "Landing",
   description: "Allied are landing !",
@@ -38,4 +39,6 @@
     ("Riffle", "42"),
     ("Riffle", "49"),
   ],
+  a_order: Defend,
+  b_order: Defend,
 )

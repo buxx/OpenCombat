@@ -98,10 +98,21 @@ impl Placer {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, serde_derive::Deserialize)]
 pub enum OrderPolicy {
     None,
     #[default]
     Hide,
     Defend,
+}
+
+impl OrderPolicy {
+    /// Name of the policy as command line argument value (like `--order-a hide`)
+    pub fn arg_name(&self) -> &'static str {
+        match self {
+            OrderPolicy::None => "none",
+            OrderPolicy::Hide => "hide",
+            OrderPolicy::Defend => "defend",
+        }
+    }
 }

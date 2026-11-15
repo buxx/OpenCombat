@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use bon::Builder;
-use oc_deployment::generator::profile::Profile;
+use oc_deployment::{deployment::place::OrderPolicy, generator::profile::Profile};
 use oc_world::{
     spawn::SpawnZoneName,
     support::{Support, SupportType},
@@ -30,6 +30,8 @@ pub struct Scenario {
     a_places: Vec<SquadPlace>,
     #[builder(default)]
     b_places: Vec<SquadPlace>,
+    a_order: Option<OrderPolicy>,
+    b_order: Option<OrderPolicy>,
 }
 
 /// Squad (by its label, like `"Mg34"`) to place at a map place (by its name, like `"50"`)
@@ -70,6 +72,12 @@ struct ScenarioRaw {
     /// Side B squads to place at map places, like `[("Mg34", "50")]`
     #[serde(default)]
     b_places: Vec<SquadPlace>,
+    /// Side A squads initial order, like `Defend` (default: decided by battle gui)
+    #[serde(default)]
+    a_order: Option<OrderPolicy>,
+    /// Side B squads initial order, like `Hide` (default: decided by battle gui)
+    #[serde(default)]
+    b_order: Option<OrderPolicy>,
 }
 
 impl Scenario {
@@ -129,6 +137,14 @@ impl Scenario {
         &self.b_places
     }
 
+    pub fn a_order(&self) -> Option<OrderPolicy> {
+        self.a_order
+    }
+
+    pub fn b_order(&self) -> Option<OrderPolicy> {
+        self.b_order
+    }
+
     pub fn from_ron_file(path: impl AsRef<Path>) -> Result<Self, Error> {
         let path = path.as_ref();
         let dir = path.parent().unwrap_or(Path::new("."));
@@ -149,6 +165,32 @@ impl Scenario {
             b_supports: Support(raw.b_supports),
             a_places: raw.a_places,
             b_places: raw.b_places,
+            a_order: raw.a_order,
+            b_order: raw.b_order,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn orders_without_some() {
+        let dir = std::env::temp_dir().join(format!("oc_battle_scenario_{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("orders.ron");
+        std::fs::write(&path, "#![enable(implicit_some)]\n(a_order: Hide, b_order: Some(Defend))").unwrap();
+
+        #[derive(Deserialize)]
+        struct Orders {
+            a_order: Option<OrderPolicy>,
+            b_order: Option<OrderPolicy>,
+        }
+        let orders: Orders = read_ron(&path).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+
+        assert_eq!(orders.a_order, Some(OrderPolicy::Hide));
+        assert_eq!(orders.b_order, Some(OrderPolicy::Defend));
     }
 }

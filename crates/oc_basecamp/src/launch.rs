@@ -105,6 +105,11 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
             })
             .collect::<Vec<_>>()
     };
+    let order = |side: &str, order: Option<oc_deployment::deployment::place::OrderPolicy>| {
+        order
+            .map(|order| vec![format!("--order-{side}"), order.arg_name().to_string()])
+            .unwrap_or_default()
+    };
     let side = match player {
         Side::A => "a",
         Side::B => "b",
@@ -127,6 +132,8 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
         .args(["--spawns-b", &spawns(&spawns_b)])
         .args(supports("a", scenario.a_supports()))
         .args(supports("b", scenario.b_supports()))
+        .args(order("a", scenario.a_order()))
+        .args(order("b", scenario.b_order()))
         .args(
             places
                 .iter()

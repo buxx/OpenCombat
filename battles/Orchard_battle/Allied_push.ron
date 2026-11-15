@@ -1,3 +1,4 @@
+#![enable(implicit_some)]
 (
   name: "Allied push",
   description: "Allied attack the village by South-West during Axis own the rest of lands.",
@@ -39,4 +40,6 @@
     "Mg34",
     "Mg34",
   ],
+  a_order: Defend,
+  b_order: Defend,
 )

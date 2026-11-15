@@ -159,3 +159,18 @@ impl Generate {
         Ok(snapshot)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use clap::ValueEnum;
+
+    use super::*;
+
+    #[test]
+    fn order_policy_arg_name_is_initial_order_value() {
+        for policy in [OrderPolicy::None, OrderPolicy::Hide, OrderPolicy::Defend] {
+            let order = InitialOrder::from_str(policy.arg_name(), false).unwrap();
+            assert_eq!(OrderPolicy::from(order), policy);
+        }
+    }
+}
