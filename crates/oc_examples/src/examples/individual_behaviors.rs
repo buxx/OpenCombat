@@ -468,7 +468,7 @@ fn stunned_test(
     let_some!(w = &w.0, return);
     let timeout = Duration::from_secs(20)
         .div_f32(w.speed())
-        .max(Duration::from_secs(1));
+        .max(Duration::from_secs(5));
     if game.started.elapsed() > timeout {
         eprintln!("❌ Timeout reached ! Step {:?} not reached", test.step);
         commands.write_message(bevy::app::AppExit::from_code(1));

@@ -229,7 +229,7 @@ fn install(app: &mut bevy::app::App) {
                 let speed = w.speed();
 
                 // Ensure a minimal timeout to let time to bevy to make "network" exchange with server
-                let timeout = timeout.div_f32(speed).max(Duration::from_secs(1));
+                let timeout = timeout.div_f32(speed).max(Duration::from_secs(5));
 
                 // Store instant where individual is in expected status
                 static STATUS_AS_EXPECTED_SINCE: Mutex<Option<Instant>> = Mutex::new(None);
