@@ -46,6 +46,26 @@ pub struct Squad {
 }
 
 impl Squad {
+    /// Apply an update (as emitted by server) on this squad
+    pub fn apply(&mut self, update: &Update) {
+        match update {
+            Update::SetOrders(orders) => self.orders = orders.clone(),
+            Update::SetOrderPosition(index, position) => {
+                // Order index is counted from orders end
+                if let Some(i) = self.orders.len().checked_sub(1 + index.0 as usize)
+                    && let Some(order) = self.orders.get_mut(i)
+                {
+                    order.set_position(*position);
+                }
+            }
+            Update::SetPosition(position) => self.position = *position,
+            Update::SetActives(actives) => self.actives = *actives,
+            Update::SetLeader(leader) => self.leader = *leader,
+            Update::SetStatus(status) => self.status = *status,
+            Update::Accomplished => {}
+        }
+    }
+
     pub fn fresh(side: Side, members: Vec<IndividualIndex>, position: WorldVec2) -> Self {
         let actives = members.len() as u8;
         let leader = *members

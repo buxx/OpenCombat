@@ -125,6 +125,26 @@ impl From<i32> for IndividualIndex {
 }
 
 impl Individual {
+    /// Apply an update (as emitted by server) on this individual
+    pub fn apply(&mut self, update: &Update) {
+        match update {
+            Update::SetPosition(position) => self.position = *position,
+            Update::SetBehavior(behavior) => self.behavior = behavior.clone(),
+            Update::SetOrders(orders) => self.orders = orders.clone(),
+            Update::SetForces(forces) => self.forces = forces.clone(),
+            Update::SetStatus(status) => self.status = *status,
+            Update::SetGesture(gesture) => self.gesture = gesture.clone(),
+            Update::SetIntent(intent) => self.intent = intent.clone(),
+            Update::Accomplished => {
+                self.orders.pop();
+            }
+            Update::MoveStepAccomplished => self.intent.move_step_accomplished(),
+            Update::SetWeapons(weapons) => self.weapons = weapons.clone(),
+            Update::SetSuppress(suppress) => self.suppress = *suppress,
+            Update::SetMagazines(magazines) => self.magazines = magazines.clone(),
+        }
+    }
+
     pub fn fresh(w: &WorldConfig, side: Side, position: WorldVec3) -> Self {
         let tile_xy = TileXy(Xy(
             position.x as u64 / w.geo_pixels_per_tile(),

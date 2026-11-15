@@ -141,27 +141,15 @@ pub fn draw(
     }
 
     for (intent, position) in intents {
-        match &intent.0 {
-            oc_individual::behavior::Intent::Idle(_)
-            | oc_individual::behavior::Intent::Defend(_)
-            | oc_individual::behavior::Intent::Hide(_)
-            | oc_individual::behavior::Intent::Engage(_)
-            | oc_individual::behavior::Intent::Suppress(_)
-            | oc_individual::behavior::Intent::Grenade(_)
-            | oc_individual::behavior::Intent::Smoke(_) => {}
-            oc_individual::behavior::Intent::MoveTo(_, path)
-            | oc_individual::behavior::Intent::MoveFastTo(_, path)
-            | oc_individual::behavior::Intent::SneakTo(_, path) => {
-                let mut previous = ScreenVec2::from_(position.0, &g.w);
-                for point in path.iter() {
-                    let point = ScreenVec2::from_(*point, &g.w);
-                    let start = Vec3::new(previous.x, previous.y, ingame::draw::Z_PATH);
-                    let stop = Vec3::new(point.x, point.y, ingame::draw::Z_PATH);
+        let_some!((_, path) = intent.0.path(), continue);
+        let mut previous = ScreenVec2::from_(position.0, &g.w);
+        for point in path.iter() {
+            let point = ScreenVec2::from_(*point, &g.w);
+            let start = Vec3::new(previous.x, previous.y, ingame::draw::Z_PATH);
+            let stop = Vec3::new(point.x, point.y, ingame::draw::Z_PATH);
 
-                    gizmos.line(start, stop, color);
-                    previous = point;
-                }
-            }
+            gizmos.line(start, stop, color);
+            previous = point;
         }
     }
 }

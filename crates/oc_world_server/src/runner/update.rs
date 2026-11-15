@@ -336,40 +336,12 @@ impl<E: Client> super::State<E> {
     ) -> Vec<(Listening, Vec<ToClient>)> {
         let squad = world.squad_mut(i);
 
-        let update = match &update {
-            oc_individual::squad::Update::Accomplished => {
-                // This update is essentially for gui (to log it)
-                update.clone()
+        squad.apply(&update);
+        let update = match update {
+            oc_individual::squad::Update::SetOrderPosition(_, _) => {
+                oc_individual::squad::Update::SetOrders(squad.orders.clone())
             }
-            oc_individual::squad::Update::SetOrderPosition(index, position) => {
-                let mut orders = squad.orders.clone();
-                let index = orders.len() - 1 - index.0 as usize;
-                if let Some(order) = orders.get_mut(index) {
-                    order.set_position(*position);
-                }
-                squad.orders = orders.clone();
-                oc_individual::squad::Update::SetOrders(orders)
-            }
-            oc_individual::squad::Update::SetOrders(orders) => {
-                squad.orders = orders.clone();
-                update.clone()
-            }
-            oc_individual::squad::Update::SetPosition(position) => {
-                squad.position = *position;
-                update.clone()
-            }
-            oc_individual::squad::Update::SetActives(actives) => {
-                squad.actives = *actives;
-                update.clone()
-            }
-            oc_individual::squad::Update::SetLeader(leader) => {
-                squad.leader = *leader;
-                update.clone()
-            }
-            oc_individual::squad::Update::SetStatus(status) => {
-                squad.status = *status;
-                update.clone()
-            }
+            update => update,
         };
 
         let update = oc_individual::network::Squad::Update(i, update);

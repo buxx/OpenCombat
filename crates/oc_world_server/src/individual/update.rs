@@ -1,6 +1,5 @@
-use oc_individual::{IndividualIndex, Update, behavior::Intent, network};
+use oc_individual::{IndividualIndex, Update, network};
 use oc_network::ToClient;
-use oc_physics::UpdatePhysic;
 use oc_world::World;
 
 use crate::routing::Listening;
@@ -11,48 +10,7 @@ pub fn write(
     i: IndividualIndex,
 ) -> Vec<(Listening, Vec<ToClient>)> {
     let individual = world.individual_mut(i);
-
-    match &update {
-        Update::SetPosition(position) => {
-            individual.set_position(*position);
-        }
-        Update::SetBehavior(behavior) => {
-            individual.behavior = behavior.clone();
-        }
-        Update::SetOrders(orders) => {
-            individual.orders = orders.clone();
-        }
-        Update::SetForces(forces) => {
-            individual.forces = forces.clone();
-        }
-        Update::SetStatus(status) => {
-            individual.status = *status;
-        }
-        Update::SetGesture(gesture) => {
-            individual.gesture = gesture.clone();
-        }
-        Update::SetIntent(intent) => {
-            individual.intent = intent.clone();
-        }
-        Update::Accomplished => {
-            individual.orders.pop();
-        }
-        Update::MoveStepAccomplished => match &mut individual.intent {
-            Intent::Idle(_)
-            | Intent::Defend(_)
-            | Intent::Hide(_)
-            | Intent::Engage(_)
-            | Intent::Suppress(_)
-            | Intent::Grenade(_)
-            | Intent::Smoke(_) => {}
-            Intent::MoveTo(_, path) | Intent::MoveFastTo(_, path) | Intent::SneakTo(_, path) => {
-                path.remove(0);
-            }
-        },
-        Update::SetWeapons(weapons) => individual.weapons = weapons.clone(),
-        Update::SetSuppress(value) => individual.suppress = *value,
-        Update::SetMagazines(magazines) => individual.magazines = magazines.clone(),
-    }
+    individual.apply(&update);
 
     let region = individual.region;
     let update = network::Individual::Update(i, update);

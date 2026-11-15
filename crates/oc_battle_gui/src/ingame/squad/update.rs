@@ -52,46 +52,29 @@ fn update_squad(
         let_some!(squads = world.squads.get_mut(&region), return vec![]);
         let_some!(squad = squads.get_mut(&i), return vec![]);
 
-        match update {
-            Update::SetOrders(orders) => {
-                squad.orders = orders.clone();
-                (
-                    None,
-                    vec![UpdateSquadEffect::RefreshSquadsOrders(
-                        RefreshSquadsOrdersEvent(i, orders.clone()),
-                    )],
-                )
-            }
-            Update::SetOrderPosition(_, _) => {
-                // Server will emit Update::SetOrders
-                (None, vec![])
-            }
+        // Server will emit Update::SetOrders for an Update::SetOrderPosition
+        if !matches!(update, Update::SetOrderPosition(_, _)) {
+            squad.apply(update);
+        }
 
+        match update {
+            Update::SetOrders(orders) => (
+                None,
+                vec![UpdateSquadEffect::RefreshSquadsOrders(
+                    RefreshSquadsOrdersEvent(i, orders.clone()),
+                )],
+            ),
             Update::SetPosition(position) => {
                 let now_tile = TileXy::from_(*position, w);
                 let now_region = RegionXy::from_(now_tile, w);
                 let now_region = WorldRegionIndex::from_(now_region, w);
-                squad.position = *position;
-
-                if now_region != region {
-                    (Some(now_region), vec![])
-                } else {
-                    (None, vec![])
-                }
+                ((now_region != region).then_some(now_region), vec![])
             }
-            Update::SetActives(actives) => {
-                squad.actives = *actives;
-                (None, vec![])
-            }
-            Update::SetLeader(leader) => {
-                squad.leader = *leader;
-                (None, vec![])
-            }
-            Update::SetStatus(status) => {
-                squad.status = *status;
-                (None, vec![])
-            }
-            Update::Accomplished => (None, vec![]),
+            Update::SetOrderPosition(_, _)
+            | Update::SetActives(_)
+            | Update::SetLeader(_)
+            | Update::SetStatus(_)
+            | Update::Accomplished => (None, vec![]),
         }
     };
 

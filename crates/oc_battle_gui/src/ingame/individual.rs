@@ -59,62 +59,101 @@ pub struct ForgotIndividual(pub oc_individual::IndividualIndex);
 #[derive(Debug, Deref, Event)]
 pub struct RefreshRender(pub oc_individual::IndividualIndex);
 
-#[derive(Debug, Event)]
-pub struct SetPositionEvent(oc_individual::IndividualIndex, WorldVec3);
+/// Declare one event by `oc_individual::Update` variant, and `trigger_update_event` which
+/// triggers the event matching an update.
+macro_rules! individual_update_events {
+    (
+        values { $($variant:ident($ty:ty) => $event:ident $(, refresh = $refresh:literal)?;)* }
+        signals { $($signal:ident => $signal_event:ident;)* }
+    ) => {
+        $(
+            #[derive(Debug, Clone, Event)]
+            pub struct $event(pub oc_individual::IndividualIndex, pub $ty);
+        )*
 
-#[derive(Debug, Event)]
-pub struct SetBehaviorEvent(
-    pub oc_individual::IndividualIndex,
-    pub oc_individual::behavior::Behavior,
+        $(
+            #[derive(Debug, Clone, Event, Deref)]
+            pub struct $signal_event(pub oc_individual::IndividualIndex);
+        )*
+
+        /// Trigger the event matching `update`. Return true if individual render must be refreshed
+        fn trigger_update_event(
+            commands: &mut Commands,
+            i: oc_individual::IndividualIndex,
+            update: &oc_individual::Update,
+        ) -> bool {
+            match update {
+                $(
+                    oc_individual::Update::$variant(value) => {
+                        commands.trigger($event(i, value.clone()));
+                        false $(|| $refresh)?
+                    }
+                )*
+                $(
+                    oc_individual::Update::$signal => {
+                        commands.trigger($signal_event(i));
+                        false
+                    }
+                )*
+            }
+        }
+    };
+}
+
+individual_update_events! {
+    values {
+        SetPosition(WorldVec3) => SetPositionEvent;
+        SetBehavior(oc_individual::behavior::Behavior) => SetBehaviorEvent;
+        SetOrders(Vec<oc_individual::order::Order>) => SetOrdersEvent;
+        SetForces(Vec<oc_physics::Force>) => SetForcesEvent;
+        SetStatus(oc_individual::Status) => SetStatusEvent, refresh = true;
+        SetGesture(oc_individual::Gesture) => SetGestureEvent, refresh = true;
+        SetIntent(oc_individual::behavior::Intent) => SetIntentEvent;
+        SetWeapons(oc_individual::Weapons) => SetWeaponsEvent;
+        SetSuppress(oc_root::behavior::Suppress) => SetSuppressEvent;
+        SetMagazines(Vec<MagazineIndex>) => SetMagazinesEvent;
+    }
+    signals {
+        Accomplished => AccomplishedEvent;
+        MoveStepAccomplished => MoveStepAccomplishedEvent;
+    }
+}
+
+/// Observer which copies event value into individual component and into world individual field
+macro_rules! sync_individual_field {
+    ($name:ident, $event:ty, $component:ty, $field:ident) => {
+        fn $name(
+            event: On<$event>,
+            mut query: Query<&mut $component>,
+            state: Res<EntityMapping<oc_individual::IndividualIndex>>,
+            mut world: ResMut<crate::world::World>,
+        ) {
+            let_some!(entity = state.get(&event.0), return);
+            let_ok!(mut component = query.get_mut(*entity), return);
+            let_some!(individual = world.get_individual_mut(event.0), return);
+            tracing::trace!(
+                name = concat!("update-individual-set-", stringify!($field)),
+                i = ?event.0,
+                value = ?event.1
+            );
+
+            component.0 = event.1.clone();
+            individual.$field = event.1.clone();
+        }
+    };
+}
+
+sync_individual_field!(on_set_intent_event, SetIntentEvent, Intent, intent);
+sync_individual_field!(on_set_behavior_event, SetBehaviorEvent, Behavior, behavior);
+sync_individual_field!(on_set_forces_event, SetForcesEvent, Forces, forces);
+sync_individual_field!(on_set_weapons_event, SetWeaponsEvent, Weapons, weapons);
+sync_individual_field!(on_set_suppress_event, SetSuppressEvent, Suppress, suppress);
+sync_individual_field!(
+    on_set_magazines_event,
+    SetMagazinesEvent,
+    Magazines,
+    magazines
 );
-
-#[derive(Debug, Event)]
-pub struct SetForcesEvent(
-    pub oc_individual::IndividualIndex,
-    pub Vec<oc_physics::Force>,
-);
-
-#[derive(Debug, Event)]
-pub struct SetOrdersEvent(
-    pub oc_individual::IndividualIndex,
-    pub Vec<oc_individual::order::Order>,
-);
-
-#[derive(Debug, Event)]
-pub struct SetStatusEvent(
-    pub oc_individual::IndividualIndex,
-    pub oc_individual::Status,
-);
-
-#[derive(Debug, Event)]
-pub struct SetGestureEvent(
-    pub oc_individual::IndividualIndex,
-    pub oc_individual::Gesture,
-);
-
-#[derive(Debug, Event)]
-pub struct SetIntentEvent(
-    oc_individual::IndividualIndex,
-    oc_individual::behavior::Intent,
-);
-
-#[derive(Debug, Event)]
-pub struct SetWeaponsEvent(
-    pub oc_individual::IndividualIndex,
-    pub oc_individual::Weapons,
-);
-
-#[derive(Debug, Clone, Event, Deref)]
-pub struct AccomplishedEvent(oc_individual::IndividualIndex);
-
-#[derive(Debug, Clone, Event, Deref)]
-pub struct MoveStepAccomplishedEvent(oc_individual::IndividualIndex);
-
-#[derive(Debug, Clone, Event)]
-pub struct SetSuppressEvent(oc_individual::IndividualIndex, oc_root::behavior::Suppress);
-
-#[derive(Debug, Clone, Event)]
-pub struct SetMagazinesEvent(pub oc_individual::IndividualIndex, pub Vec<MagazineIndex>);
 
 #[derive(Debug, Deref, Component)]
 pub struct Status(pub oc_individual::Status);
@@ -412,58 +451,7 @@ pub fn on_update_individual(update: On<UpdateIndividualEvent>, mut commands: Com
     let (i, update) = (update.0, &update.1);
     tracing::trace!(name="ingame-individual-update", i=?i, update=?update);
 
-    // TODO: use macro to automatise events declaration and mapping here
-    let refresh = match update {
-        oc_individual::Update::SetPosition(position) => {
-            commands.trigger(SetPositionEvent(i, *position));
-            false
-        }
-        oc_individual::Update::SetBehavior(behavior) => {
-            commands.trigger(SetBehaviorEvent(i, behavior.clone()));
-            false
-        }
-        oc_individual::Update::SetOrders(orders) => {
-            commands.trigger(SetOrdersEvent(i, orders.clone()));
-            false
-        }
-        oc_individual::Update::SetForces(forces) => {
-            commands.trigger(SetForcesEvent(i, forces.clone()));
-            false
-        }
-        oc_individual::Update::SetStatus(status) => {
-            commands.trigger(SetStatusEvent(i, *status));
-            true
-        }
-        oc_individual::Update::SetGesture(gesture) => {
-            commands.trigger(SetGestureEvent(i, gesture.clone()));
-            true
-        }
-        oc_individual::Update::SetIntent(intent) => {
-            commands.trigger(SetIntentEvent(i, intent.clone()));
-            false
-        }
-        oc_individual::Update::Accomplished => {
-            commands.trigger(AccomplishedEvent(i));
-            false
-        }
-        oc_individual::Update::MoveStepAccomplished => {
-            commands.trigger(MoveStepAccomplishedEvent(i));
-            false
-        }
-        oc_individual::Update::SetWeapons(weapons) => {
-            commands.trigger(SetWeaponsEvent(i, weapons.clone()));
-            false
-        }
-        oc_individual::Update::SetSuppress(value) => {
-            commands.trigger(SetSuppressEvent(i, *value));
-            false
-        }
-        oc_individual::Update::SetMagazines(value) => {
-            commands.trigger(SetMagazinesEvent(i, value.clone()));
-            false
-        }
-    };
-
+    let refresh = trigger_update_event(&mut commands, i, update);
     if refresh {
         commands.trigger(RefreshRender(i));
     }
@@ -589,36 +577,6 @@ fn on_set_gesture_event(
     individual.gesture = gesture.1.clone();
 }
 
-fn on_set_intent_event(
-    intent: On<SetIntentEvent>,
-    mut query: Query<&mut Intent>,
-    state: Res<EntityMapping<oc_individual::IndividualIndex>>,
-    mut world: ResMut<crate::world::World>,
-) {
-    let_some!(entity = state.get(&intent.0), return);
-    let_ok!(mut intent_ = query.get_mut(*entity), return);
-    let_some!(individual = world.get_individual_mut(intent.0), return);
-    tracing::trace!(name = "update-individual-intent", i=?intent.0, intent=?intent.1);
-
-    intent_.0 = intent.1.clone();
-    individual.intent = intent.1.clone();
-}
-
-fn on_set_behavior_event(
-    behavior: On<SetBehaviorEvent>,
-    mut query: Query<&mut Behavior>,
-    state: Res<EntityMapping<oc_individual::IndividualIndex>>,
-    mut world: ResMut<crate::world::World>,
-) {
-    let_some!(entity = state.get(&behavior.0), return);
-    let_ok!(mut behavior_ = query.get_mut(*entity), return);
-    let_some!(individual = world.get_individual_mut(behavior.0), return);
-    tracing::trace!(name = "update-individual-behavior", i=?behavior.0, behavior=?behavior.1);
-
-    behavior_.0 = behavior.1.clone();
-    individual.behavior = behavior.1.clone();
-}
-
 fn on_move_step_accomplished_event(
     accomplished: On<MoveStepAccomplishedEvent>,
     mut query: Query<&mut Intent>,
@@ -628,22 +586,7 @@ fn on_move_step_accomplished_event(
     let_ok!(mut intent = query.get_mut(*entity), return);
     tracing::trace!(name = "update-individual-move-step-accomplished", i=?accomplished.0);
 
-    match &mut intent.0 {
-        oc_individual::behavior::Intent::Idle(_)
-        | oc_individual::behavior::Intent::Defend(_)
-        | oc_individual::behavior::Intent::Hide(_)
-        | oc_individual::behavior::Intent::Engage(_)
-        | oc_individual::behavior::Intent::Suppress(_)
-        | oc_individual::behavior::Intent::Grenade(_)
-        | oc_individual::behavior::Intent::Smoke(_) => {}
-        oc_individual::behavior::Intent::MoveTo(_, path)
-        | oc_individual::behavior::Intent::MoveFastTo(_, path)
-        | oc_individual::behavior::Intent::SneakTo(_, path) => {
-            if !path.is_empty() {
-                path.remove(0);
-            }
-        }
-    }
+    intent.0.move_step_accomplished();
 }
 
 fn on_accomplished_event(
@@ -709,21 +652,6 @@ fn on_battle_end(
     }
 }
 
-fn on_set_forces_event(
-    forces: On<SetForcesEvent>,
-    mut query: Query<&mut Forces>,
-    state: Res<EntityMapping<oc_individual::IndividualIndex>>,
-    mut world: ResMut<crate::world::World>,
-) {
-    let_some!(entity = state.get(&forces.0), return);
-    let_ok!(mut forces_ = query.get_mut(*entity), return);
-    let_some!(individual = world.get_individual_mut(forces.0), return);
-    tracing::trace!(name = "update-individual-set-forces", i=?forces.0, forces=?forces.1);
-
-    forces_.0 = forces.1.clone();
-    individual.forces = forces.1.clone();
-}
-
 fn on_set_status_event(
     status: On<SetStatusEvent>,
     mut query: Query<&mut Status>,
@@ -748,51 +676,6 @@ fn on_set_status_event(
         }
         commands.trigger(DespawnIndividualOrders(status.0));
     }
-}
-
-fn on_set_weapons_event(
-    weapons: On<SetWeaponsEvent>,
-    mut query: Query<&mut Weapons>,
-    state: Res<EntityMapping<oc_individual::IndividualIndex>>,
-    mut world: ResMut<crate::world::World>,
-) {
-    let_some!(entity = state.get(&weapons.0), return);
-    let_ok!(mut weapons_ = query.get_mut(*entity), return);
-    let_some!(individual = world.get_individual_mut(weapons.0), return);
-    tracing::trace!(name = "update-individual-set-weapons", i=?weapons.0, weapons=?weapons.1);
-
-    weapons_.0 = weapons.1.clone();
-    individual.weapons = weapons.1.clone();
-}
-
-fn on_set_suppress_event(
-    suppress: On<SetSuppressEvent>,
-    mut query: Query<&mut Suppress>,
-    state: Res<EntityMapping<oc_individual::IndividualIndex>>,
-    mut world: ResMut<crate::world::World>,
-) {
-    let_some!(entity = state.get(&suppress.0), return);
-    let_ok!(mut suppress_ = query.get_mut(*entity), return);
-    let_some!(individual = world.get_individual_mut(suppress.0), return);
-    tracing::trace!(name = "set-individual-suppress", i=?suppress.0, suppress=?suppress.1);
-
-    suppress_.0 = suppress.1;
-    individual.suppress = suppress.1;
-}
-
-fn on_set_magazines_event(
-    magazines: On<SetMagazinesEvent>,
-    mut query: Query<&mut Magazines>,
-    state: Res<EntityMapping<oc_individual::IndividualIndex>>,
-    mut world: ResMut<crate::world::World>,
-) {
-    let_some!(entity = state.get(&magazines.0), return);
-    let_ok!(mut magazines_ = query.get_mut(*entity), return);
-    let_some!(individual = world.get_individual_mut(magazines.0), return);
-    tracing::trace!(name = "set-individual-magazines", i=?magazines.0, magazines=?magazines.1);
-
-    magazines_.0 = magazines.1.clone();
-    individual.magazines = magazines.1.clone();
 }
 
 // TODO: should be automatized (macro? derive ?)
