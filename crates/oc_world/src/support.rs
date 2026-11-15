@@ -27,6 +27,19 @@ impl SupportType {
             SupportType::NavalBombard => "Naval bombard",
         }
     }
+
+    /// Command line argument name, like in `--support-a naval-bombard=3`
+    pub fn arg_name(&self) -> &'static str {
+        match self {
+            SupportType::NavalBombard => "naval-bombard",
+        }
+    }
+
+    pub fn from_arg_name(value: &str) -> Option<Self> {
+        [SupportType::NavalBombard]
+            .into_iter()
+            .find(|type_| type_.arg_name() == value)
+    }
 }
 
 #[derive(

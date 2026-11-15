@@ -6602,6 +6602,7 @@ dependencies = [
  "serde",
  "serde_yaml",
  "tempfile",
+ "uuid",
 ]
 
 [[package]]

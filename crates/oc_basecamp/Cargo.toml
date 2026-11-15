@@ -12,18 +12,19 @@ test =  []
 e2e =  ["debug"]  # Run end-to-end tests (needs a display and debug battle gui built)
 
 [dependencies]
-eframe = "0.36"
-serde.workspace = true
-ron.workspace = true
+oc_root = { path = "../oc_root" }
+oc_mod = { path = "../oc_mod" }
+oc_individual = { path = "../oc_individual" }
 oc_world = { path = "../oc_world" }
 oc_battle = { path = "../oc_battle" }
 oc_game = { path = "../oc_game" }
-chrono.workspace = true
 oc_deployment = { path = "../oc_deployment" }
-oc_mod = { path = "../oc_mod" }
+eframe = "0.36"
+serde.workspace = true
+ron.workspace = true
+chrono.workspace = true
+uuid.workspace = true
 serde_yaml.workspace = true
-oc_root = { path = "../oc_root" }
-oc_individual = { path = "../oc_individual" }
 image.workspace = true
 egui_extras = { version = "0.36", features = ["image", "file"] }
 

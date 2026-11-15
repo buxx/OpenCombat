@@ -1,4 +1,3 @@
-//! Start a battle: run `oc_battle_gui` (embedded server mode) on current game
 use std::{
     path::{Path, PathBuf},
     process::{Child, Command},
@@ -6,6 +5,7 @@ use std::{
 
 use std::collections::HashMap;
 
+use oc_battle::SquadPlace;
 use oc_deployment::deployment::{Deployment, individual::Status, weapon::Weapons};
 use oc_game::Game;
 use oc_mod::Mod;
@@ -15,6 +15,7 @@ use oc_world::{
     snapshot::{IndividualState, State},
     spawn::SpawnZoneName,
 };
+use uuid::Uuid;
 
 use crate::{
     battle::{MAPS_FOLDER, Scenario},
@@ -65,6 +66,7 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
     let player = (*ctx.selected_side).ok_or("No side selected")?;
     let dir = game.dir(ctx.app_dir);
 
+    let mut places = vec![];
     for side in [Side::A, Side::B] {
         let slots = if side == player {
             ctx.squad_slots.clone()
@@ -75,7 +77,8 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
             default_slots(&deployment, defaults, count)
         };
 
-        write_battle_deployment(&dir, side, &slots)?;
+        let deployment = write_battle_deployment(&dir, side, &slots)?;
+        places.extend(squad_places(&deployment, side_places(scenario, side)));
     }
 
     let state = dir.join(WORLD_STATE_FILE);
@@ -90,6 +93,17 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
             .map(|zone| zone.0.as_str())
             .collect::<Vec<_>>()
             .join(",")
+    };
+    let supports = |side: &str, support: &oc_world::support::Support| {
+        support
+            .iter()
+            .flat_map(|(type_, count)| {
+                [
+                    format!("--support-{side}"),
+                    format!("{}={count}", type_.arg_name()),
+                ]
+            })
+            .collect::<Vec<_>>()
     };
     let side = match player {
         Side::A => "a",
@@ -111,6 +125,13 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
         .arg(dir.join(battle_deployment_file(Side::B)))
         .args(["--spawns-a", &spawns(&spawns_a)])
         .args(["--spawns-b", &spawns(&spawns_b)])
+        .args(supports("a", scenario.a_supports()))
+        .args(supports("b", scenario.b_supports()))
+        .args(
+            places
+                .iter()
+                .flat_map(|(uuid, place)| ["--place".to_string(), format!("{uuid}={place}")]),
+        )
         .arg("--cache")
         .arg(cache)
         .arg(format!("--end=save-map-persist-to:{}", state.display()))
@@ -175,6 +196,30 @@ fn side_defaults(scenario: &Scenario, side: Side) -> (usize, &[String]) {
         Side::A => (scenario.a_squad_count(), scenario.a_default()),
         Side::B => (scenario.b_squad_count(), scenario.b_default()),
     }
+}
+
+fn side_places(scenario: &Scenario, side: Side) -> &[SquadPlace] {
+    match side {
+        Side::A => scenario.a_places(),
+        Side::B => scenario.b_places(),
+    }
+}
+
+fn squad_places(deployment: &Deployment, places: &[SquadPlace]) -> Vec<(Uuid, String)> {
+    let mut taken = vec![false; deployment.squads.len()];
+
+    places
+        .iter()
+        .filter_map(|place| {
+            let index = deployment
+                .squads
+                .iter()
+                .enumerate()
+                .position(|(i, squad)| !taken[i] && squad.label == place.squad())?;
+            taken[index] = true;
+            Some((deployment.squads[index].uuid, place.place().to_string()))
+        })
+        .collect()
 }
 
 /// Side deployment (all available squads) from game folder
@@ -243,8 +288,11 @@ fn write_deployment(path: &Path, deployment: &Deployment) -> Result<(), String> 
     std::fs::write(path, yaml).map_err(|e| format!("Write '{}': {e}", path.display()))
 }
 
-/// Write side deployment restricted to `slots` squads
-fn write_battle_deployment(dir: &Path, side: Side, slots: &[Option<usize>]) -> Result<(), String> {
+fn write_battle_deployment(
+    dir: &Path,
+    side: Side,
+    slots: &[Option<usize>],
+) -> Result<Deployment, String> {
     let deployment = load_deployment(dir, side)?;
     let mut squads: Vec<_> = deployment.squads.into_iter().map(Some).collect();
     let squads = slots
@@ -257,7 +305,8 @@ fn write_battle_deployment(dir: &Path, side: Side, slots: &[Option<usize>]) -> R
         spawns: vec![],
     };
 
-    write_deployment(&dir.join(battle_deployment_file(side)), &deployment)
+    write_deployment(&dir.join(battle_deployment_file(side)), &deployment)?;
+    Ok(deployment)
 }
 
 #[cfg(test)]
@@ -268,6 +317,42 @@ mod tests {
 
     fn names(values: &[&str]) -> Vec<SpawnZoneName> {
         values.iter().map(|v| SpawnZoneName::new(*v)).collect()
+    }
+
+    fn squad(label: &str) -> oc_deployment::deployment::squad::Squad {
+        oc_deployment::deployment::squad::Squad {
+            uuid: Uuid::new_v4(),
+            label: label.to_string(),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn squad_places_by_label() {
+        let deployment = Deployment {
+            squads: vec![squad("Riffle"), squad("Mg34"), squad("Riffle")],
+            spawns: vec![],
+        };
+        let place = |squad: &str, place: &str| SquadPlace(squad.into(), place.into());
+        let places = [
+            place("Riffle", "1"),
+            place("Riffle", "2"),
+            place("Riffle", "3"),
+            place("Bren", "4"),
+            place("Mg34", "5"),
+        ];
+
+        let placed = squad_places(&deployment, &places);
+
+        let uuid = |i: usize| deployment.squads[i].uuid;
+        assert_eq!(
+            placed,
+            vec![
+                (uuid(0), "1".to_string()),
+                (uuid(2), "2".to_string()),
+                (uuid(1), "5".to_string()),
+            ]
+        );
     }
 
     #[test]

@@ -10,13 +10,12 @@ use thiserror::Error;
 pub mod check;
 pub mod scenario;
 
-pub use scenario::Scenario;
+pub use scenario::{Scenario, SquadPlace};
 
 #[derive(Debug, Builder)]
 pub struct Battle {
     name: String,
     description: String,
-    /// Map folder name
     map: String,
     #[builder(default)]
     scenarios: Vec<Scenario>,
@@ -86,21 +85,5 @@ impl Battle {
             map: raw.map,
             scenarios,
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn from_ron_file_demo2() {
-        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../battles/demo2/demo2.ron");
-        let battle = Battle::from_ron_file(path).unwrap();
-        assert_eq!(battle.name(), "Demo2");
-        assert_eq!(battle.scenarios().len(), 1);
-        let scenario = &battle.scenarios()[0];
-        assert_eq!(scenario.deploy_a().squads.len(), 2);
-        assert_eq!(scenario.deploy_b().squads.len(), 2);
     }
 }

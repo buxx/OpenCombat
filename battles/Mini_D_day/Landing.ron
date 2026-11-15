@@ -29,4 +29,13 @@
     "Mg34",
     "Mg34",
   ],
+  a_supports: [
+    (NavalBombard, 3),
+  ],
+  b_places: [
+    ("Mg34", "50"),
+    ("Mg34", "56"),
+    ("Riffle", "42"),
+    ("Riffle", "49"),
+  ],
 )
