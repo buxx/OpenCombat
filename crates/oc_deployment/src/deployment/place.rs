@@ -37,12 +37,13 @@ impl Placer {
             return *place;
         }
 
-        // Elsewhere, find a place in available spawn zone
-        if let Some(place) = self
+        // Elsewhere, pick randomly a free place in available spawn zone
+        let candidates: Vec<&WorldVec2> = self
             .places
             .iter()
-            .find(|p| !occupied.contains(p) && spawns.iter().any(|s| s.contains(**p)))
-        {
+            .filter(|p| !occupied.contains(p) && spawns.iter().any(|s| s.contains(**p)))
+            .collect();
+        if let Some(place) = fastrand::choice(candidates) {
             return *place;
         }
 
