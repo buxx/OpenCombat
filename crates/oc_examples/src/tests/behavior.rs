@@ -1,3 +1,4 @@
+use oc_utils::index::AtIndex;
 use std::path::PathBuf;
 
 use anyhow::Context as ContextExt;
@@ -135,7 +136,7 @@ fn individual(
         position[1] as u64 / w.geo_pixels_per_tile(),
     ));
     let tile_i = WorldTileIndex::from_(tile_xy, w);
-    let z = tiles[tile_i.0 as usize].z_pixels(w);
+    let z = tiles.at(tile_i).z_pixels(w);
 
     oc_individual::Individual::fresh(w, side, [position[0], position[1], z].into())
         .with_gesture(Gesture::body(BodyGesture::StandUp(DIRECTION)))
@@ -151,7 +152,7 @@ fn squads(setup: &[([f32; 2], Vec<Order>)], count: usize) -> Vec<Squad> {
     setup
         .iter()
         .map(|(position, orders)| {
-            let members = (0..count).map(|i| IndividualIndex(i as u64)).collect();
+            let members = (0..count).map(IndividualIndex::from).collect();
             squad(Side::A, *position, orders, members)
         })
         .collect()

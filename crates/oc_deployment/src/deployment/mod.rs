@@ -1,3 +1,4 @@
+use oc_utils::index::AtIndex;
 use std::{collections::HashSet, path::PathBuf};
 
 use anyhow::Context;
@@ -183,7 +184,7 @@ impl Deployments {
                 }
                 let xy = TileXy(Xy(x as u64, y as u64));
                 let index = WorldTileIndex::from_(xy, w);
-                let tile = &tiles[index.0 as usize];
+                let tile = tiles.at(index);
                 if taken.contains(&index) || tile.allow.deny(MaterialKind::Individual) {
                     continue;
                 }
@@ -225,7 +226,7 @@ impl Deployments {
     ) -> Result<Individual, anyhow::Error> {
         // FIXME BS NOW: z; and according to formation (and according to best opacity tile)
         let tile = WorldTileIndex::from_(squad_position, w);
-        let tile = &tiles[tile.0 as usize];
+        let tile = tiles.at(tile);
         let z = tile.z_pixels(w);
         let position = squad_position.extend(z);
         let mut individual = Individual::fresh(w, side, position)

@@ -6,7 +6,9 @@ use thiserror::Error;
 
 pub const SOUNDS_FOLDER: &str = "sounds";
 
-index_type!(SoundIndex(u32));
+oc_utils::index_type! {
+    pub struct SoundIndex(pub u32);
+}
 
 pub type IndexedSound = Indexed<SoundIndex, Sound>;
 #[oc_derive::archivable(serde)]

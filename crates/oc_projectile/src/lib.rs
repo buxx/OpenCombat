@@ -1,8 +1,6 @@
 // derive_more::Constructor triggers a false positive
 #![allow(clippy::redundant_field_names)]
 
-use std::fmt::Display;
-
 use oc_geo::{
     Geo, UpdateGeo,
     region::{Region, WorldRegionIndex},
@@ -23,14 +21,8 @@ pub mod bullet;
 pub mod network;
 pub mod spawn;
 
-#[oc_derive::archivable(serde)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct ProjectileId(pub u64);
-
-impl Display for ProjectileId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&format!("{}", self.0))
-    }
+oc_utils::index_type! {
+    pub struct ProjectileId(pub u64);
 }
 
 impl From<&ProjectileId> for ProjectileId {

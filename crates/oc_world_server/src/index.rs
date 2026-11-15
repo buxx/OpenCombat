@@ -1,3 +1,4 @@
+use oc_utils::index::AtIndex;
 use std::ops::{Deref, DerefMut};
 
 use oc_geo::region::Region;
@@ -72,8 +73,8 @@ impl Indexes {
         let mut squad_of_member: Vec<Option<SquadIndex>> = vec![None; individuals.len()];
         for (squad_i, squad) in world.squads.iter().enumerate().rev() {
             for member in &squad.members {
-                if let Some(slot) = squad_of_member.get_mut(member.0 as usize) {
-                    *slot = Some(SquadIndex(squad_i as u64));
+                if let Some(slot) = squad_of_member.get_at_mut(*member) {
+                    *slot = Some(SquadIndex::from(squad_i));
                 }
             }
         }
@@ -96,20 +97,20 @@ impl Indexes {
                     continue;
                 }
                 let tile_ = WorldTileIndex::from_(tile_, w);
-                tiles_individuals[tile_.0 as usize].push(i.into());
+                tiles_individuals.at_mut(tile_).push(i.into());
             }
 
             // List tiles covered by "proximity" rule
             for tile_ in shape_from_tile(tile, w.proximity_individual_rayon(), w) {
-                proximity_individuals[tile_.0 as usize].push(i.into());
+                proximity_individuals.at_mut(tile_).push(i.into());
             }
 
             match individual.side {
-                Side::A => side_a_individuals.push(IndividualIndex(i as u64)),
-                Side::B => side_b_individuals.push(IndividualIndex(i as u64)),
+                Side::A => side_a_individuals.push(IndividualIndex::from(i)),
+                Side::B => side_b_individuals.push(IndividualIndex::from(i)),
             }
 
-            regions_individuals[region.0 as usize].push(i.into());
+            regions_individuals.at_mut(region).push(i.into());
 
             match squad_of_member.get(i).copied().flatten() {
                 Some(squad_i) => individuals_squad.push(squad_i),
@@ -121,13 +122,13 @@ impl Indexes {
             let tile: WorldTileIndex = projectile.tile();
             let region: WorldRegionIndex = tile.into_(&world.w);
 
-            regions_projectiles[region.0 as usize].push(*id);
+            regions_projectiles.at_mut(region).push(*id);
         }
 
         for (i, crater) in world.craters.iter().enumerate() {
             let tile = WorldTileIndex::from_(TileXy::from_(crater.position, w), w);
             let region: WorldRegionIndex = tile.into_(&world.w);
-            regions_craters[region.0 as usize].push(i);
+            regions_craters.at_mut(region).push(i);
         }
 
         Self {
@@ -144,7 +145,7 @@ impl Indexes {
 
     /// `i` is the position of the crater in `World::craters`
     pub fn insert_crater(&mut self, i: usize, region: WorldRegionIndex) {
-        self.regions_craters[region.0 as usize].push(i);
+        self.regions_craters.at_mut(region).push(i);
     }
 
     pub fn insert_projectile(&mut self, id: ProjectileId, projectile: &Projectile) {
@@ -153,7 +154,7 @@ impl Indexes {
 
     pub fn remove_projectile(&mut self, id: &ProjectileId, projectile: &Projectile) {
         let region = projectile.region();
-        self.regions_projectiles[region.0 as usize].retain(|p| p != id);
+        self.regions_projectiles.at_mut(region).retain(|p| p != id);
     }
 
     fn update_individual_position(
@@ -177,7 +178,7 @@ impl Indexes {
                 continue;
             }
             let before = WorldTileIndex::from_(before, w);
-            self.tiles_individuals[before.0 as usize].retain(|i_| *i_ != i);
+            self.tiles_individuals.at_mut(before).retain(|i_| *i_ != i);
         }
 
         // List tiles covered by "proximity" rule after move
@@ -193,7 +194,7 @@ impl Indexes {
                 continue;
             }
             let now = WorldTileIndex::from_(now, w);
-            self.tiles_individuals[now.0 as usize].push(i);
+            self.tiles_individuals.at_mut(now).push(i);
         }
 
         let before = TileXy::from_(before, w);
@@ -203,12 +204,14 @@ impl Indexes {
 
         // List tiles covered by "proximity" rule before move
         for before in shape_from_tile(before, w.proximity_individual_rayon(), w) {
-            self.proximity_individuals[before.0 as usize].retain(|i_| *i_ != i);
+            self.proximity_individuals
+                .at_mut(before)
+                .retain(|i_| *i_ != i);
         }
 
         // List tiles covered by individual shape after move
         for now in shape_from_tile(now, w.proximity_individual_rayon(), w) {
-            self.proximity_individuals[now.0 as usize].push(i);
+            self.proximity_individuals.at_mut(now).push(i);
         }
     }
 
@@ -218,8 +221,10 @@ impl Indexes {
         now: WorldRegionIndex,
         before: WorldRegionIndex,
     ) {
-        self.regions_individuals[before.0 as usize].retain(|i_| *i_ != i);
-        self.regions_individuals[now.0 as usize].push(i);
+        self.regions_individuals
+            .at_mut(before)
+            .retain(|i_| *i_ != i);
+        self.regions_individuals.at_mut(now).push(i);
     }
 
     fn update_projectile_region(
@@ -228,32 +233,34 @@ impl Indexes {
         now: WorldRegionIndex,
         before: WorldRegionIndex,
     ) {
-        self.regions_projectiles[before.0 as usize].retain(|id_| *id_ != id);
-        self.regions_projectiles[now.0 as usize].push(id);
+        self.regions_projectiles
+            .at_mut(before)
+            .retain(|id_| *id_ != id);
+        self.regions_projectiles.at_mut(now).push(id);
     }
 
     pub fn tile_individuals(&self, tile: WorldTileIndex) -> &Vec<IndividualIndex> {
-        &self.tiles_individuals[tile.0 as usize]
+        self.tiles_individuals.at(tile)
     }
 
     pub fn proximity_individuals(&self, tile: WorldTileIndex) -> &Vec<IndividualIndex> {
-        &self.proximity_individuals[tile.0 as usize]
+        self.proximity_individuals.at(tile)
     }
 
     pub fn region_individuals(&self, region: WorldRegionIndex) -> &Vec<IndividualIndex> {
-        &self.regions_individuals[region.0 as usize]
+        self.regions_individuals.at(region)
     }
 
     pub fn region_projectiles(&self, region: WorldRegionIndex) -> &Vec<ProjectileId> {
-        &self.regions_projectiles[region.0 as usize]
+        self.regions_projectiles.at(region)
     }
 
     pub fn region_craters(&self, region: WorldRegionIndex) -> &Vec<usize> {
-        &self.regions_craters[region.0 as usize]
+        self.regions_craters.at(region)
     }
 
     pub fn individual_squad(&self, individual: IndividualIndex) -> SquadIndex {
-        self.individuals_squad[individual.0 as usize]
+        *self.individuals_squad.at(individual)
     }
 
     pub fn react(&mut self, effect: Effect, w: &WorldConfig) {

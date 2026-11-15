@@ -4,6 +4,7 @@ use oc_individual::{BodyGesture, IndividualIndex, behavior::Behavior};
 use oc_lov::Modifier;
 use oc_root::side::Side;
 use oc_root::{WcfgFrom, WorldConfig, opacity::CumulatedOpacity};
+use oc_utils::index::AtIndex;
 use oc_utils::{d2::Xy, polygon::Polygon};
 use oc_world::{World, visibility::Visibility};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
@@ -71,7 +72,7 @@ impl<'a> Processor<'a> {
 
             // Individuals inside an interior are hidden from opposite having nobody inside it,
             // except when they stand on an altered tile.
-            let on_altered_tile = self.world.altered_tiles[individual2.tile.0 as usize].is_some();
+            let on_altered_tile = self.world.altered_tiles.at(individual2.tile).is_some();
             let occupied = match individual1.side {
                 Side::A => &occupied_a,
                 Side::B => &occupied_b,
@@ -256,7 +257,7 @@ mod tests {
         if target_on_altered_tile {
             let tile = world.individual(TARGET).tile;
             let nature = world.tile(tile).expect("Tile must exist").nature;
-            world.altered_tiles[tile.0 as usize] =
+            *world.altered_tiles.at_mut(tile) =
                 Some(oc_world::tile::AlteredTile::new(tile, nature));
         }
         let indexes = Indexes::new(&world, &w);

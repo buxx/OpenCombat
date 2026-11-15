@@ -11,7 +11,9 @@ use thiserror::Error;
 
 pub const SHELLS_RON: &str = "shells.ron";
 
-index_type!(ShellIndex(u16));
+oc_utils::index_type! {
+    pub struct ShellIndex(pub u16);
+}
 
 pub type IndexedShell = Indexed<ShellIndex, Shell>;
 

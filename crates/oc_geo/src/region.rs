@@ -13,9 +13,9 @@ impl From<RegionXy> for (u64, u64) {
     }
 }
 
-#[oc_derive::archivable]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize)]
-pub struct WorldRegionIndex(pub u64);
+oc_utils::index_type! {
+    pub struct WorldRegionIndex(pub u64);
+}
 
 impl WorldRegionIndex {
     pub fn background_file_name(&self) -> String {

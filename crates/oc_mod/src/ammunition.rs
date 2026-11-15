@@ -6,7 +6,9 @@ use thiserror::Error;
 
 pub const PROJECTILES_RON: &str = "amunitions.ron";
 
-index_type!(AmmunitionIndex(u32));
+oc_utils::index_type! {
+    pub struct AmmunitionIndex(pub u32);
+}
 
 pub type IndexedAmmunition = Indexed<AmmunitionIndex, Ammunition>;
 

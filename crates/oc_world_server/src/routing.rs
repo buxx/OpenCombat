@@ -1,5 +1,6 @@
 use oc_geo::region::WorldRegionIndex;
 use oc_root::{WorldConfig, identity::Identity, side::Side};
+use oc_utils::index::AtIndex;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::hash::Hash;
 
@@ -59,7 +60,7 @@ impl<T: Clone + PartialEq + Hash + std::cmp::Eq> Listeners<T> {
 
     pub fn listen_region(&mut self, listener: &T, region: WorldRegionIndex) {
         tracing::trace!(name = "listeners-listen-region", region = ?region);
-        self.regions_listeners[region.0 as usize].push(listener.clone());
+        self.regions_listeners.at_mut(region).push(listener.clone());
         self.listeners_regions
             .entry(listener.clone())
             .or_default()
@@ -67,7 +68,9 @@ impl<T: Clone + PartialEq + Hash + std::cmp::Eq> Listeners<T> {
     }
 
     pub fn forgot_region(&mut self, listener: &T, region: WorldRegionIndex) {
-        self.regions_listeners[region.0 as usize].retain(|l| l != listener);
+        self.regions_listeners
+            .at_mut(region)
+            .retain(|l| l != listener);
     }
 
     // TODO: maybe more performant to return references ?
@@ -77,7 +80,7 @@ impl<T: Clone + PartialEq + Hash + std::cmp::Eq> Listeners<T> {
                 .into_iter()
                 .map(|tile| {
                     let region: WorldRegionIndex = tile;
-                    self.regions_listeners[region.0 as usize].clone()
+                    self.regions_listeners.at(region).clone()
                 })
                 .collect::<Vec<_>>()
                 .into_iter()

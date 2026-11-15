@@ -1,4 +1,3 @@
-use derive_more::Deref;
 use enum_type_derive::EnumType;
 use glam::Vec2;
 use oc_root::geo::WorldVec2;
@@ -6,10 +5,10 @@ use oc_utils::d2::Direction;
 
 use crate::IndividualIndex;
 
-/// Index of squad order in squad order, by starting end
-#[oc_derive::archivable]
-#[derive(Debug, Clone, Copy, Deref, PartialEq)]
-pub struct OrderIndex(pub u32);
+oc_utils::index_type! {
+    /// Index of squad order in squad order, by starting end
+    pub struct OrderIndex(pub u32);
+}
 
 #[oc_derive::archivable(serde)]
 #[derive(Debug, Clone, PartialEq, EnumType)]

@@ -1,4 +1,3 @@
-use derive_more::Constructor;
 use getset::WithSetters;
 use glam::Vec2;
 use oc_mod::illustration::IllustrationIndex;
@@ -10,9 +9,9 @@ use crate::{
     order::{Order, OrderIndex},
 };
 
-#[oc_derive::archivable(serde)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Constructor, Hash)]
-pub struct SquadIndex(pub u64);
+oc_utils::index_type! {
+    pub struct SquadIndex(pub u64);
+}
 
 #[oc_derive::archivable(serde)]
 #[derive(Debug, Clone, PartialEq, WithSetters)]

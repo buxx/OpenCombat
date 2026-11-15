@@ -114,9 +114,9 @@ impl WcfgFrom<TileXy> for [f32; 3] {
     }
 }
 
-#[oc_derive::archivable(serde)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct WorldTileIndex(pub u64);
+oc_utils::index_type! {
+    pub struct WorldTileIndex(pub u64);
+}
 
 impl WorldTileIndex {
     // WARNING: AI generated
@@ -139,8 +139,9 @@ impl WorldTileIndex {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct WorldHeightIndex(pub u64);
+oc_utils::index_type! {
+    pub struct WorldHeightIndex(pub u64);
+}
 
 impl From<WorldHeightIndex> for WorldTileIndex {
     fn from(value: WorldHeightIndex) -> Self {

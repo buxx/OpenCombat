@@ -1,3 +1,4 @@
+use oc_utils::index::AtIndex;
 use std::path::Path;
 
 use oc_root::{
@@ -20,7 +21,9 @@ use crate::{
 pub const WEAPONS_RON: &str = "weapons.ron";
 pub const DEFAULT_RELOAD_SOUND: &str = "ReloadGeneric1.ogg";
 
-index_type!(WeaponIndex(u32));
+oc_utils::index_type! {
+    pub struct WeaponIndex(pub u32);
+}
 
 pub type IndexedWeapon = Indexed<WeaponIndex, Weapon>;
 
@@ -89,7 +92,7 @@ impl Weapon {
     }
 
     pub fn shot(&self, index: ShotModeIndex) -> &ShotMode {
-        &self.gun().shots[index.0 as usize]
+        self.gun().shots.at(index)
     }
 
     pub fn reload(&self, w: &WorldConfig) -> Seconds {
@@ -226,7 +229,7 @@ pub fn load(path: &Path, mod_: &Mod) -> Result<Vec<IndexedWeapon>, Error> {
 impl PickSound<(WeaponIndex, ShotModeIndex)> for Mod {
     fn pick_sound(&self, (weapon, shot): (WeaponIndex, ShotModeIndex)) -> Option<SoundIndex> {
         let weapon = self.weapon(weapon);
-        let shot = &weapon.shots()[shot.0 as usize];
+        let shot = weapon.shots().at(shot);
         let sounds = shot.sounds();
         if sounds.is_empty() {
             return None;

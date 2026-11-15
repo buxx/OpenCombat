@@ -3,6 +3,7 @@ use oc_individual::IndividualIndex;
 #[cfg(feature = "debug")]
 use oc_root::geo::WorldVec3;
 use oc_root::opacity::CumulatedOpacity;
+use oc_utils::index::AtIndex;
 
 #[derive(Debug, Clone, Deref, DerefMut)]
 pub struct Visibilities {
@@ -37,7 +38,7 @@ impl Visibilities {
     }
 
     pub fn for_(&self, i: IndividualIndex) -> &Vec<Visibility> {
-        &self.values[i.0 as usize]
+        self.values.at(i)
     }
 
     #[cfg(feature = "tests")]

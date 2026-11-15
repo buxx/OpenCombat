@@ -160,12 +160,12 @@ impl<'a> Processor<'a> {
             .filter(|&(_i, v)| v.visible)
             .filter(|&(i, _v)| {
                 self.world
-                    .individual(IndividualIndex(i as u64))
+                    .individual(IndividualIndex::from(i))
                     .status
                     .is_target()
             })
             .map(|(i, v)| {
-                let target = IndividualIndex(i as u64);
+                let target = IndividualIndex::from(i);
                 let target_ = self.world.individual(target);
                 let distance = reference.distance(target_.position);
                 let distance = Meters(distance / self.world.w.geo_pixels_per_meters());

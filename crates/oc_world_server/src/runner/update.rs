@@ -1,3 +1,4 @@
+use oc_utils::index::AtIndex;
 use oc_utils::percent::Percent;
 use std::time::{Duration, Instant};
 
@@ -287,7 +288,7 @@ impl<E: Client> super::State<E> {
             world.visibilities = Visibilities::empty(count);
 
             for (i1, i2, visibility) in visibilities.clone() {
-                world.visibilities[i1.0 as usize][i2.0 as usize] = visibility;
+                *world.visibilities.at_mut(i1).at_mut(i2) = visibility;
             }
             visibilities
         };

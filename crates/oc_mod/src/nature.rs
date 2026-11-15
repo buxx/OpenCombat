@@ -10,7 +10,9 @@ use thiserror::Error;
 
 pub const NATURES_RON: &str = "natures.ron";
 
-index_type!(NatureIndex(u16));
+oc_utils::index_type! {
+    pub struct NatureIndex(pub u16);
+}
 
 pub type IndexedNature = Indexed<NatureIndex, Nature>;
 
@@ -252,7 +254,7 @@ fn resolve(raws: &[NatureRaw]) -> Result<Vec<Nature>, Error> {
                 .as_deref()
                 .map(|name| {
                     let index = raws.iter().position(|n| n.name == name);
-                    index.map(|i| NatureIndex(i as u16)).ok_or_else(|| {
+                    index.map(NatureIndex::from).ok_or_else(|| {
                         Error::InvalidFormat(format!(
                             "Nature '{}' destruction_alter refers to unknown nature '{name}'",
                             raw.name

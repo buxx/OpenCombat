@@ -1,9 +1,6 @@
 // derive_more::Constructor triggers a false positive
 #![allow(clippy::redundant_field_names)]
 
-use std::fmt::Display;
-use std::ops::Deref;
-
 use derive_more::Constructor;
 use getset::WithSetters;
 use oc_geo::Geo;
@@ -62,14 +59,8 @@ pub const INDIVIDUAL_PRONE_VOLUME_DEPTH: Meters = Meters(0.8);
 // Must stay under the navmesh agent radius (2.5px), or individuals cut corners and enter walls.
 pub const WANT_STOP_TOLERANCE: f32 = 1.0;
 
-#[oc_derive::archivable(serde)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Constructor, Hash)]
-pub struct IndividualIndex(pub u64);
-
-impl Display for IndividualIndex {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&format!("{}", self.0))
-    }
+oc_utils::index_type! {
+    pub struct IndividualIndex(pub u64);
 }
 
 #[oc_derive::archivable]
@@ -124,26 +115,6 @@ impl Region for Individual {
 
     fn set_region(&mut self, value: WorldRegionIndex) {
         self.region = value;
-    }
-}
-
-impl Deref for IndividualIndex {
-    type Target = u64;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl From<usize> for IndividualIndex {
-    fn from(value: usize) -> Self {
-        Self(value as u64)
-    }
-}
-
-impl From<u64> for IndividualIndex {
-    fn from(value: u64) -> Self {
-        Self(value)
     }
 }
 

@@ -18,7 +18,9 @@ pub enum IllustrationKind {
     IngameIndividual,
 }
 
-index_type!(IllustrationIndex(u32));
+oc_utils::index_type! {
+    pub struct IllustrationIndex(pub u32);
+}
 
 #[oc_derive::archivable(serde)]
 #[derive(Debug, Clone, PartialEq)]

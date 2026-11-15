@@ -432,7 +432,7 @@ fn on_refresh_squad_orders(event: On<RefreshSquadsOrdersEvent>, mut commands: Co
             | Order::Grenade(_)
             | Order::Smoke(_) => Some(SpawnSquadOrder::Position(
                 i,
-                OrderIndex(o as u32),
+                OrderIndex::from(o),
                 order.clone(),
             )),
             Order::Defend(_) | Order::Hide(_) => {
@@ -644,7 +644,7 @@ fn on_spawn_squad_orders(event: On<SpawnSquadOrders>, mut commands: Commands) {
             | Order::Grenade(_)
             | Order::Smoke(_) => Some(SpawnSquadOrder::Position(
                 i,
-                OrderIndex(o as u32),
+                OrderIndex::from(o),
                 order.clone(),
             )),
             Order::Defend(_) | Order::Hide(_) => {

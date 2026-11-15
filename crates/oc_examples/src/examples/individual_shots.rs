@@ -181,7 +181,7 @@ fn individuals(
         .iter()
         .enumerate()
         .map(|(i, position)| {
-            let individual = IndividualIndex(i as u64);
+            let individual = IndividualIndex::from(i);
             oc_individual::squad::Squad {
                 side: Side::A,
                 illustration: IllustrationIndex(0),

@@ -1,6 +1,7 @@
 // derive_more::Constructor triggers a false positive
 #![allow(clippy::redundant_field_names)]
 
+use oc_utils::index::AtIndex;
 use std::{
     collections::HashSet,
     path::{Path, PathBuf},
@@ -28,12 +29,11 @@ use crate::{
     weapons::{IndexedWeapon, WeaponIndex},
 };
 
-#[macro_use]
-pub mod indexed;
 pub mod ammunition;
 pub mod armament;
 pub mod grenade;
 pub mod illustration;
+pub mod indexed;
 pub mod magazine;
 pub mod nature;
 pub mod shell;
@@ -183,11 +183,11 @@ impl Mod {
     }
 
     pub fn grenade(&self, index: GrenadeIndex) -> &IndexedGrenade {
-        &self.grenades[index.0 as usize]
+        self.grenades.at(index)
     }
 
     pub fn shell(&self, index: ShellIndex) -> &IndexedShell {
-        &self.shells[index.0 as usize]
+        self.shells.at(index)
     }
 
     fn resolve_support(&self, raw: support::SupportRaw) -> Result<support::Support, Error> {
@@ -230,15 +230,15 @@ impl Mod {
     }
 
     pub fn ammunition(&self, index: AmmunitionIndex) -> &Ammunition {
-        &self.ammunitions[index.0 as usize]
+        self.ammunitions.at(index)
     }
 
     pub fn weapon(&self, index: WeaponIndex) -> &IndexedWeapon {
-        &self.weapons[index.0 as usize]
+        self.weapons.at(index)
     }
 
     pub fn magazine(&self, index: MagazineIndex) -> &IndexedMagazine {
-        &self.magazines[index.0 as usize]
+        self.magazines.at(index)
     }
 
     fn find_sounds(&self, sounds: &[String]) -> Result<Vec<&IndexedSound>, Error> {
@@ -338,19 +338,17 @@ impl Mod {
         index: IllustrationIndex,
     ) -> &IndexedIllustration {
         match kind {
-            IllustrationKind::IngameSquad => &self.illustrations.ingame_squads[index.0 as usize],
-            IllustrationKind::IngameIndividual => {
-                &self.illustrations.ingame_individuals[index.0 as usize]
-            }
+            IllustrationKind::IngameSquad => self.illustrations.ingame_squads.at(index),
+            IllustrationKind::IngameIndividual => self.illustrations.ingame_individuals.at(index),
         }
     }
 
     pub fn sound(&self, sound: sound::SoundIndex) -> &IndexedSound {
-        &self.sounds[sound.0 as usize]
+        self.sounds.at(sound)
     }
 
     pub fn nature(&self, index: NatureIndex) -> &Nature {
-        &self.natures[index.0 as usize]
+        self.natures.at(index)
     }
 
     pub fn alter_nature(&self, alter: Alter) -> NatureIndex {

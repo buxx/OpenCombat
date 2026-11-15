@@ -1,6 +1,7 @@
 #![cfg_attr(not(feature = "test"), allow(dead_code, unused_imports))]
 #![allow(clippy::unwrap_used)]
 
+use oc_utils::index::AtIndex;
 #[cfg(feature = "test")]
 use std::time::Instant;
 use std::{path::PathBuf, time::Duration};
@@ -211,7 +212,7 @@ fn individuals(
         Case::Enter => {
             let position = WorldVec2::new(915., 50.);
             let tile: WorldTileIndex = position.into_(w);
-            let tile = &tiles[tile.0 as usize];
+            let tile = tiles.at(tile);
             let position = position.extend(tile.z_pixels(w));
             vec![
                 TestIndividual::builder()
@@ -224,7 +225,7 @@ fn individuals(
         Case::Out => {
             let position = WorldVec2::new(850., 70.);
             let tile: WorldTileIndex = position.into_(w);
-            let tile = &tiles[tile.0 as usize];
+            let tile = tiles.at(tile);
             let position = position.extend(tile.z_pixels(w));
             vec![
                 TestIndividual::builder()
@@ -246,7 +247,7 @@ fn individuals(
             .map(|position| {
                 let position = WorldVec2::from(position);
                 let tile: WorldTileIndex = position.into_(w);
-                let tile = &tiles[tile.0 as usize];
+                let tile = tiles.at(tile);
                 let position = position.extend(tile.z_pixels(w));
                 TestIndividual::builder()
                     .side(Side::A)

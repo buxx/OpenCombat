@@ -1,6 +1,7 @@
 // derive_more::Constructor triggers a false positive
 #![allow(clippy::redundant_field_names)]
 
+use oc_utils::index::AtIndex;
 use oc_utils::percent::Percent;
 use std::time::{Duration, Instant};
 
@@ -103,7 +104,7 @@ impl World {
     }
 
     pub fn tile(&self, i: WorldTileIndex) -> Option<&Tile> {
-        self.tiles.get(i.0 as usize)
+        self.tiles.get_at(i)
     }
 
     // TODO: unit test me
@@ -153,24 +154,24 @@ impl World {
     pub fn region_altered_tiles(&self, region: WorldRegionIndex) -> Vec<AlteredTile> {
         self.region_tiles(region)
             .into_iter()
-            .filter_map(|(i, _)| self.altered_tiles[i.0 as usize].clone())
+            .filter_map(|(i, _)| self.altered_tiles.at(i).clone())
             .collect()
     }
 
     pub fn region_decor(&self, region: WorldRegionIndex) -> Vec<Decor> {
         self.region_tiles(region)
             .into_iter()
-            .filter_map(|(i, _)| self.decor[i.0 as usize].clone())
+            .filter_map(|(i, _)| self.decor.at(i).clone())
             .collect()
     }
 
     pub fn smoke_at(&self, i: WorldTileIndex) -> Percent {
-        self.smoke.get(i.0 as usize).copied().unwrap_or_default()
+        self.smoke.get_at(i).copied().unwrap_or_default()
     }
 
     pub fn set_smoke(&mut self, smoke: &[(WorldTileIndex, Percent)]) {
         for (i, opacity) in smoke {
-            self.smoke[i.0 as usize] = *opacity;
+            *self.smoke.at_mut(*i) = *opacity;
         }
     }
 
@@ -206,7 +207,7 @@ impl World {
 
     pub fn remove_decor(&mut self, tiles: &[WorldTileIndex]) {
         for i in tiles {
-            self.decor[i.0 as usize] = None;
+            *self.decor.at_mut(*i) = None;
         }
     }
 
@@ -215,11 +216,11 @@ impl World {
     }
 
     pub fn individual(&self, i: IndividualIndex) -> &Individual {
-        &self.individuals[i.0 as usize]
+        self.individuals.at(i)
     }
 
     pub fn individual_mut(&mut self, i: IndividualIndex) -> &mut Individual {
-        &mut self.individuals[i.0 as usize]
+        self.individuals.at_mut(i)
     }
 
     pub fn squads(&self) -> &[Squad] {
@@ -227,11 +228,11 @@ impl World {
     }
 
     pub fn squad(&self, i: SquadIndex) -> &Squad {
-        &self.squads[i.0 as usize]
+        self.squads.at(i)
     }
 
     pub fn squad_mut(&mut self, i: SquadIndex) -> &mut Squad {
-        &mut self.squads[i.0 as usize]
+        self.squads.at_mut(i)
     }
 
     pub fn projectiles(&self) -> Vec<(&ProjectileId, &Projectile)> {
@@ -282,7 +283,7 @@ impl World {
                     // Opposite squads are sent for minimap display only: don't leak their orders
                     squad.orders = vec![];
                 }
-                (SquadIndex(i as u64), squad)
+                (SquadIndex::from(i), squad)
             })
             .collect();
         let phase = self.phase;
@@ -478,18 +479,14 @@ mod tests {
         world.alter_tiles(vec![AlteredTile::new(wall, rock)]);
 
         // Then
-        assert_eq!(world.tiles[wall.0 as usize].nature, rock);
-        assert!(
-            world.tiles[wall.0 as usize]
-                .allow
-                .deny(MaterialKind::Individual)
-        );
+        assert_eq!(world.tiles.at(wall).nature, rock);
+        assert!(world.tiles.at(wall).allow.deny(MaterialKind::Individual));
         assert_eq!(
-            world.altered_tiles[wall.0 as usize],
+            *world.altered_tiles.at(wall),
             Some(AlteredTile::new(wall, rock))
         );
         assert!(!world.navmesh.point_in_mesh(center(wall)));
         assert!(world.navmesh.point_in_mesh(center(other)));
-        assert_eq!(world.altered_tiles[other.0 as usize], None);
+        assert_eq!(*world.altered_tiles.at(other), None);
     }
 }

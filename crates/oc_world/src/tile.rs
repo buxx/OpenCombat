@@ -178,6 +178,7 @@ mod test {
 
     use super::*;
     use oc_root::{WcfgFrom, physics::MetersSeconds, side::Side, utils::Frequency};
+    use oc_utils::index::AtIndex;
 
     struct MyObject(WorldVec3, Vec<Force>);
     #[derive(Debug, Clone, Copy, serde::Serialize, PartialEq)]
@@ -264,7 +265,7 @@ mod test {
         let object = MyObject([0.0, 0.0, 10.0].into(), vec![force]);
         let objects = |xy| -> Vec<(MyObjectId, &dyn Physic)> {
             let tile = WorldTileIndex::from_(TileXy(xy), &w);
-            vec![(MyObjectId(1), &tiles[tile.0 as usize] as &dyn Physic)]
+            vec![(MyObjectId(1), tiles.at(tile) as &dyn Physic)]
         };
 
         // When

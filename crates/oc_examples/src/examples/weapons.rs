@@ -180,7 +180,7 @@ fn squads(
                     squads.push(
                         TestSquad::builder()
                             .position(individuals.get(i).unwrap().position.into())
-                            .members(vec![oc_individual::IndividualIndex(i as u64)])
+                            .members(vec![oc_individual::IndividualIndex::from(i)])
                             .orders(vec![Order::Suppress(WorldVec2::new(
                                 255. + 50. * x as f32,
                                 4100. + 50. * y as f32,

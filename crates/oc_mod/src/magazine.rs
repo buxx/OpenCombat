@@ -6,7 +6,9 @@ use thiserror::Error;
 
 pub const MAGAZINES_RON: &str = "magazine.ron";
 
-index_type!(MagazineIndex(u32));
+oc_utils::index_type! {
+    pub struct MagazineIndex(pub u32);
+}
 
 pub type IndexedMagazine = Indexed<MagazineIndex, Magazine>;
 

@@ -2,6 +2,7 @@ use oc_geo::tile::{TileXy, WorldTileIndex};
 use oc_mod::Mod;
 use oc_root::{WcfgFrom, WorldConfig};
 use oc_utils::d2::Xy;
+use oc_utils::index::AtIndex;
 use polyanya::*;
 
 // function built by AI (claude), then modified by myself
@@ -65,7 +66,7 @@ fn blocked_rectangles(
     cols: u64,
     rows: u64,
 ) -> Vec<(u64, u64, u64, u64)> {
-    let blocked = |col, row| grid[WorldTileIndex::from_(TileXy(Xy(col, row)), w).0 as usize];
+    let blocked = |col, row| *grid.at(WorldTileIndex::from_(TileXy(Xy(col, row)), w));
 
     let mut rectangles: Vec<(u64, u64, u64, u64)> = vec![];
     // Rectangles (index in `rectangles`) still extensible downward, by their first col

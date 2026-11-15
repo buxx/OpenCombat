@@ -4,6 +4,7 @@ use oc_individual::{Individual, IndividualIndex, squad::Squad};
 use oc_mod::{Mod, nature::NatureIndex};
 use oc_projectile::{Projectile, ProjectileId};
 use oc_root::{WorldConfig, battle::BattlePhase};
+use oc_utils::index::AtIndex;
 use oc_utils::percent::Percent;
 use oc_world::{
     World,
@@ -69,7 +70,7 @@ impl TestWorld {
         let decor = self.decor.unwrap_or_else(|| vec![None; tiles.len()]);
         let mut smoke = vec![Percent::ZERO; tiles.len()];
         for (i, opacity) in self.smoke.unwrap_or_default() {
-            smoke[i.0 as usize] = opacity;
+            *smoke.at_mut(i) = opacity;
         }
         let walls = tiles.as_walls(&self.mod_);
         let navmesh = navmesh(w, &walls);
@@ -80,7 +81,7 @@ impl TestWorld {
                 .map(|(i, individual)| {
                     TestSquad::builder()
                         .position(individual.position.into())
-                        .members(vec![IndividualIndex(i as u64)])
+                        .members(vec![IndividualIndex::from(i)])
                         .build()
                         .make()
                 })

@@ -290,7 +290,7 @@ impl Processor<'_> {
                     .iter()
                     .enumerate()
                     .filter(|&(_, v)| v.visible)
-                    .map(|(i, _)| IndividualIndex(i as u64))
+                    .map(|(i, _)| IndividualIndex::from(i))
             })
             .filter(|target| self.world.individual(*target).status.is_target())
             .map(|target| {

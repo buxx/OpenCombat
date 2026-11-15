@@ -16,25 +16,7 @@ pub trait ArchivedDebug: Archive<Archived: std::fmt::Debug> {}
 
 impl<T: Archive<Archived: std::fmt::Debug>> ArchivedDebug for T {}
 
-/// Newtype index of a mod item (position in its list)
-pub trait IndexType: Copy {
-    fn from_usize(i: usize) -> Self;
-}
-
-/// Declare an index newtype (`pub struct NameIndex(pub u16)`) usable in [`Indexed`].
-macro_rules! index_type {
-    ($name:ident($int:ty)) => {
-        #[oc_derive::archivable(serde)]
-        #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, derive_more::Deref)]
-        pub struct $name(pub $int);
-
-        impl $crate::indexed::IndexType for $name {
-            fn from_usize(i: usize) -> Self {
-                Self(i as $int)
-            }
-        }
-    };
-}
+pub use oc_utils::index::IndexType;
 
 /// A mod item with its index. Derefs to the item.
 #[oc_derive::archivable(serde)]

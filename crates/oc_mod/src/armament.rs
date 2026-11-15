@@ -3,7 +3,9 @@ use oc_root::physics::Seconds;
 use crate::indexed::Indexed;
 use crate::{Mod, sound::SoundIndex};
 
-index_type!(ShotModeIndex(u32));
+oc_utils::index_type! {
+    pub struct ShotModeIndex(pub u32);
+}
 
 pub type IndexedShotMode = Indexed<ShotModeIndex, ShotMode>;
 

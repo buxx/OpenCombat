@@ -1,3 +1,4 @@
+use oc_utils::index::AtIndex;
 use oc_utils::percent::Percent;
 use std::time::{Duration, Instant};
 
@@ -308,7 +309,9 @@ fn destructed_decor(
     tiles_in_destruction_rayon(world, explosion, position)
         .into_iter()
         .filter(|i| {
-            world.decor[i.0 as usize]
+            world
+                .decor
+                .at(*i)
                 .as_ref()
                 .is_some_and(|decor| decor.destruction_resistance < explosion.destruction_force)
         })
@@ -387,7 +390,7 @@ fn protected_by_interior(
     // Penetrated if explosion position is on already destructed tile of this interior. A tile
     // outside the interior (like a wall one) can be destructed without penetrating the interior.
     let explosion_tile = WorldTileIndex::from_(TileXy::from_(position, &world.w), &world.w);
-    if world.altered_tiles[explosion_tile.0 as usize].is_some()
+    if world.altered_tiles.at(explosion_tile).is_some()
         && interior.contains(tile_center(&world.w, explosion_tile))
     {
         return false;
@@ -441,7 +444,7 @@ fn tile_center(w: &WorldConfig, i: WorldTileIndex) -> WorldVec2 {
 /// Nature of tile, considering its alteration
 fn tile_nature(world: &World, i: WorldTileIndex) -> Option<oc_mod::nature::NatureIndex> {
     let tile = world.tile(i)?;
-    Some(match &world.altered_tiles[i.0 as usize] {
+    Some(match world.altered_tiles.at(i) {
         Some(altered) => altered.nature,
         None => tile.nature,
     })

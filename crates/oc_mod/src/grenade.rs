@@ -10,7 +10,9 @@ use thiserror::Error;
 
 pub const GRENADES_RON: &str = "grenades.ron";
 
-index_type!(GrenadeIndex(u16));
+oc_utils::index_type! {
+    pub struct GrenadeIndex(pub u16);
+}
 
 #[oc_derive::archivable(serde)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

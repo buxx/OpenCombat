@@ -9,6 +9,7 @@ pub mod d2;
 pub mod debug;
 pub mod error;
 pub mod image;
+pub mod index;
 pub mod number;
 pub mod percent;
 pub mod polygon;

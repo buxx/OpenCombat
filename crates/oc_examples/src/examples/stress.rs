@@ -166,7 +166,7 @@ fn battalions(w: &WorldConfig, mod_: &Mod, squads_by_side: usize) -> (Vec<Indivi
                     .position(position)
                     .members(
                         (first..first + INDIVIDUALS_BY_SQUAD)
-                            .map(|i| IndividualIndex(i as u64))
+                            .map(IndividualIndex::from)
                             .collect(),
                     )
                     .orders(orders)
