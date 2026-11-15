@@ -228,6 +228,17 @@ pub fn visibility(
     }
 }
 
+/// Number of distinct z slots available for individuals (for z)
+const Z_INDIVIDUAL_SLOTS: u64 = 10_000;
+/// Z range (above `Z_INDIVIDUAL`) used to give each individual a distinct z
+const Z_INDIVIDUAL_SPAN: f32 = 0.5;
+
+/// Distinct z per individual to avoid z-fighting when sprites overlap
+fn z(i: oc_individual::IndividualIndex) -> f32 {
+    let slot = (i.0 % Z_INDIVIDUAL_SLOTS) as f32 / Z_INDIVIDUAL_SLOTS as f32;
+    Z_INDIVIDUAL + slot * Z_INDIVIDUAL_SPAN
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn on_insert_individual(
     individual: On<InsertIndividualEvent>,
@@ -290,7 +301,8 @@ pub fn on_insert_individual(
                 visibility,
                 sprite,
                 SpritesheetAnimation::new(animation),
-                Transform::from_xyz(position_.x, position_.y, Z_INDIVIDUAL).with_rotation(rotation),
+                Transform::from_xyz(position_.x, position_.y, z(individual.0))
+                    .with_rotation(rotation),
             ),
             // Surface (clicking, etc)
             (
