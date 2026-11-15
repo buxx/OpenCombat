@@ -108,10 +108,8 @@ pub fn load(path: &Path, mod_: &Mod) -> Result<Vec<IndexedGrenade>, Error> {
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("{0}")]
-    Any(#[from] anyhow::Error),
-    #[error("Format: {0}")]
-    Format(#[from] ron::de::SpannedError),
+    #[error(transparent)]
+    File(#[from] oc_root::format::FileError),
     #[error("{0}")]
     Mod(#[from] Box<crate::Error>),
 }

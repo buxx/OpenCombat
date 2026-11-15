@@ -7,7 +7,7 @@ use std::{
     path::Path,
 };
 
-use anyhow::Context;
+use oc_root::format::FileError;
 use rkyv::Archive;
 use serde::de::DeserializeOwned;
 
@@ -59,13 +59,11 @@ pub fn index_all<I: IndexType + ArchivedDebug, T: ArchivedDebug>(
         .collect()
 }
 
-/// Read and parse a `.ron` file
+/// Read and parse the `.ron` file named `file` in `path` directory
 pub fn read_ron<T, E>(path: &Path, file: &str) -> Result<T, E>
 where
     T: DeserializeOwned,
-    E: From<anyhow::Error> + From<ron::de::SpannedError>,
+    E: From<FileError>,
 {
-    let path = path.join(file);
-    let content = std::fs::read_to_string(&path).context(format!("Read {}", path.display()))?;
-    Ok(ron::from_str(&content)?)
+    Ok(oc_root::format::read_ron(&path.join(file))?)
 }

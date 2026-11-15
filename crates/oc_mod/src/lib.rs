@@ -22,6 +22,7 @@ use crate::{
     ammunition::{Ammunition, AmmunitionIndex, IndexedAmmunition},
     grenade::{GrenadeIndex, IndexedGrenade},
     illustration::{IllustrationIndex, IllustrationKind, IndexedIllustration},
+    indexed::read_ron,
     magazine::{IndexedMagazine, MagazineIndex},
     nature::{Nature, NatureIndex},
     shell::{IndexedShell, ShellIndex},
@@ -364,10 +365,7 @@ impl Mod {
 }
 
 fn load_mod(path: &Path) -> Result<Mod, ModError> {
-    let path = path.join(MOD_RON);
-    let mod_ = std::fs::read_to_string(&path);
-    let mod_ = mod_.context(format!("Read {}", path.display()))?;
-    Ok(ron::from_str(&mod_)?)
+    read_ron(path, MOD_RON)
 }
 
 // TODO: centralize caching at server startup
@@ -447,10 +445,8 @@ pub enum Error {
 
 #[derive(Debug, Error)]
 pub enum ModError {
-    #[error("{0}")]
-    Any(#[from] anyhow::Error),
-    #[error("Format: {0}")]
-    Format(#[from] ron::de::SpannedError),
+    #[error(transparent)]
+    File(#[from] oc_root::format::FileError),
 }
 
 #[derive(Debug, Error)]

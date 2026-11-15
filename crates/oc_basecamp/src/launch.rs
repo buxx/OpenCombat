@@ -1,3 +1,4 @@
+use oc_root::format::RkyvFile;
 use std::{
     path::{Path, PathBuf},
     process::{Child, Command},
@@ -161,8 +162,8 @@ fn battle_spawn_zones(
         return Ok((a_start.to_vec(), b_start.to_vec()));
     }
 
-    let state = State::load(&state.to_path_buf())
-        .map_err(|e| format!("Load world state '{}': {e}", state.display()))?;
+    let state =
+        State::load(state).map_err(|e| format!("Load world state '{}': {e}", state.display()))?;
     Ok((state.side_a_spawns, state.side_b_spawns))
 }
 
@@ -291,8 +292,7 @@ fn weapons(mod_: &Mod, weapons: &oc_individual::Weapons) -> Weapons {
 }
 
 fn write_deployment(path: &Path, deployment: &Deployment) -> Result<(), String> {
-    let yaml = serde_yaml::to_string(deployment).map_err(|e| format!("{}: {e}", path.display()))?;
-    std::fs::write(path, yaml).map_err(|e| format!("Write '{}': {e}", path.display()))
+    oc_root::format::write_yaml(path, deployment).map_err(|e| e.to_string())
 }
 
 fn write_battle_deployment(

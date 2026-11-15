@@ -1,7 +1,7 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use derive_more::Constructor;
-use thiserror::Error;
+use oc_root::format::{FileError, read_toml};
 
 #[oc_derive::archivable(serde)]
 #[derive(Debug, Constructor, Clone, PartialEq)]
@@ -27,7 +27,7 @@ impl Default for Meta {
 }
 
 impl Meta {
-    pub fn from_file(path: &PathBuf) -> Result<Self, LoadError> {
+    pub fn from_file(path: &Path) -> Result<Self, FileError> {
         // TODO
         let name = path
             .parent()
@@ -37,7 +37,7 @@ impl Meta {
             .to_str()
             .unwrap()
             .to_string();
-        let mut meta: Self = toml::from_str(&std::fs::read_to_string(path)?)?;
+        let mut meta: Self = read_toml(path)?;
         meta.name = name;
         Ok(meta)
     }
@@ -49,12 +49,4 @@ impl Meta {
     pub fn archive(&self) -> String {
         format!("{}.tar.gz", self.canonical())
     }
-}
-
-#[derive(Debug, Error)]
-pub enum LoadError {
-    #[error("Io: {0}")]
-    Io(#[from] std::io::Error),
-    #[error("Toml: {0}")]
-    Toml(#[from] toml::de::Error),
 }

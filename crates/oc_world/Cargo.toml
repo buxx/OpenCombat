@@ -26,7 +26,6 @@ thiserror.workspace = true
 image.workspace = true
 uuid.workspace = true
 rayon.workspace = true
-toml.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 rustc-hash.workspace = true

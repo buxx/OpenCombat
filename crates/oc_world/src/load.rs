@@ -17,7 +17,7 @@ use crate::{
     World,
     cache::{self, CacheRegionBackgroundError},
     flag::Flags,
-    meta::{self, Meta},
+    meta::Meta,
     navmesh::{Walls, navmesh},
     reader::{MapReader, MapReaderError},
     snapshot::Snapshot,
@@ -345,7 +345,7 @@ pub enum MetaError {
     #[error("Is not a file")]
     NotAFile,
     #[error("Io: {0}")]
-    Load(#[from] meta::LoadError),
+    Load(#[from] oc_root::format::FileError),
 }
 
 #[derive(Debug, Error)]

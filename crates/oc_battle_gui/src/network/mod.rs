@@ -1,3 +1,4 @@
+use oc_root::format::{decode, encode};
 use std::{
     net::SocketAddr,
     sync::mpsc::{Receiver, Sender},
@@ -12,9 +13,8 @@ use message_io::{
     network::{NetEvent, Transport},
     node::NodeListener,
 };
-use oc_network::{ArchivedToClient, ToClient, ToServer};
+use oc_network::{ToClient, ToServer};
 use oc_utils::{error::OkOrLogError, unwrap_or_log};
-use rkyv::{api::low::deserialize, rancor::Error, util::AlignedVec};
 
 use crate::network::{
     connect::{on_connect, on_connected},
@@ -83,16 +83,8 @@ fn listen(
             }
             NetEvent::Accepted(_, _) => unreachable!(),
             NetEvent::Message(_, bytes_) => {
-                let mut bytes: AlignedVec = rkyv::util::AlignedVec::with_capacity(bytes_.len());
-                bytes.extend_from_slice(bytes_);
-                let message = unwrap_or_log!(
-                    rkyv::access::<ArchivedToClient, Error>(&bytes),
-                    "Decode message from server"
-                );
-                let message = unwrap_or_log!(
-                    deserialize::<ToClient, Error>(message),
-                    "Deserialize message from server"
-                );
+                let message =
+                    unwrap_or_log!(decode::<ToClient>(bytes_), "Decode message from server");
                 tracing::trace!(name="network-received", message = ?message);
                 input
                     .send(NetworkMessage::Message(Box::new(message)))
@@ -116,7 +108,7 @@ fn send(
 ) -> Result<(), Box<dyn std::error::Error>> {
     while let Ok(message) = output.recv() {
         tracing::trace!(name="network-send", message = ?message);
-        let bytes = rkyv::to_bytes::<Error>(&message).unwrap(); // TODO
+        let bytes = encode(&message).unwrap(); // TODO
         handler.network().send(server, &bytes);
     }
 

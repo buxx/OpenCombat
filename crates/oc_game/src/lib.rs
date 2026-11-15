@@ -1,11 +1,11 @@
-use std::{
-    fs, io,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use chrono::{DateTime, Utc};
 use directories::UserDirs;
-use oc_root::side::Side;
+use oc_root::{
+    format::{FileError, read_ron, write_ron},
+    side::Side,
+};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
@@ -21,10 +21,8 @@ const BATTLE_FOLDER: &str = "Battle";
 pub enum Error {
     #[error("Unable to determine user home directory")]
     NoHome,
-    #[error("Read/write '{path}': {source}")]
-    Io { path: PathBuf, source: io::Error },
-    #[error("Format of '{path}': {message}")]
-    Format { path: PathBuf, message: String },
+    #[error(transparent)]
+    File(#[from] FileError),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -153,23 +151,7 @@ impl Game {
 
     pub fn save(&self, app_dir: &Path) -> Result<PathBuf, Error> {
         let path = self.path(app_dir);
-        let io_error = |source| Error::Io {
-            path: path.clone(),
-            source,
-        };
-
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(io_error)?;
-        }
-        let content =
-            ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).map_err(|e| {
-                Error::Format {
-                    path: path.clone(),
-                    message: e.to_string(),
-                }
-            })?;
-        fs::write(&path, content).map_err(io_error)?;
-
+        write_ron(&path, self)?;
         Ok(path)
     }
 }
@@ -216,14 +198,7 @@ fn battle_game_files(games_dir: &Path, errors: &mut Vec<String>) -> Vec<PathBuf>
 }
 
 fn load(path: &Path) -> Result<Game, Error> {
-    let content = fs::read_to_string(path).map_err(|source| Error::Io {
-        path: path.to_path_buf(),
-        source,
-    })?;
-    ron::from_str(&content).map_err(|e| Error::Format {
-        path: path.to_path_buf(),
-        message: e.to_string(),
-    })
+    Ok(read_ron(path)?)
 }
 
 /// Protect from battle or scenario which own "/" in its name
@@ -234,6 +209,7 @@ pub fn folder_name(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
 
     fn game() -> Game {
         Game::Battle(BattleGame::new("std1", "Demo2", "Scenario 1", Side::A))

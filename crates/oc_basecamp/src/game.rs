@@ -1,4 +1,5 @@
 //! Game lifecycle: creation (when player choose its side), opening, update after a battle
+use oc_root::format::RkyvFile;
 use std::path::{Path, PathBuf};
 
 use oc_deployment::generator::Generator;

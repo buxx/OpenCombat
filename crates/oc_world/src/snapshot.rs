@@ -1,5 +1,4 @@
 use oc_utils::percent::Percent;
-use std::path::PathBuf;
 use std::time::{Duration, Instant, SystemTime};
 
 use derive_more::Constructor;
@@ -11,7 +10,6 @@ use oc_root::battle::BattlePhase;
 use oc_root::geo::WorldVec2;
 use oc_root::side::Side;
 use oc_root::uuids::Uuids;
-use rkyv::rancor::Error;
 use rkyv::with::{AsUnixTime, Map};
 use uuid::Uuid;
 
@@ -178,19 +176,6 @@ impl Snapshot {
         }
     }
 
-    pub fn load(path: &PathBuf) -> Result<Self, LoadError> {
-        tracing::info!("Load snapshot from {}", path.display());
-        let bytes_ = std::fs::read(path);
-        let bytes_ = bytes_.map_err(|e| LoadError::SourceIo(path.clone(), e))?;
-        let mut bytes: rkyv::util::AlignedVec = rkyv::util::AlignedVec::with_capacity(bytes_.len());
-        bytes.extend_from_slice(&bytes_);
-        let snapshot = rkyv::access::<ArchivedSnapshot, Error>(&bytes[..]);
-        let snapshot = snapshot.map_err(|e| LoadError::Format(path.clone(), e))?;
-        let snapshot = rkyv::deserialize::<Snapshot, Error>(snapshot);
-        let snapshot = snapshot.map_err(|e| LoadError::Format(path.clone(), e))?;
-        Ok(snapshot)
-    }
-
     pub fn with_tiles(mut self, tiles: Vec<Tile>) -> Self {
         self.altered_tiles = vec![None; tiles.len()];
         self.decor = vec![None; tiles.len()];
@@ -227,14 +212,6 @@ impl Snapshot {
     pub fn with_supports(mut self, value: Supports) -> Self {
         self.supports = value;
         self
-    }
-
-    pub fn save(&self, to: &PathBuf) -> Result<(), SaveError> {
-        let bytes = rkyv::to_bytes::<Error>(self);
-        let bytes = bytes.map_err(|e| SaveError::Encode(to.clone(), e))?;
-        let write = std::fs::write(to, &bytes);
-        write.map_err(|e| SaveError::Write(to.clone(), e))?;
-        Ok(())
     }
 }
 
@@ -296,46 +273,4 @@ fn individuals_states(world: &World) -> Vec<IndividualState> {
             )
         })
         .collect()
-}
-
-impl State {
-    // TODO: deserializations can be refactored accord all source code ?
-    pub fn load(path: &PathBuf) -> Result<Self, LoadError> {
-        tracing::info!("Load state from {}", path.display());
-        let bytes_ = std::fs::read(path);
-        let bytes_ = bytes_.map_err(|e| LoadError::SourceIo(path.clone(), e))?;
-        let mut bytes: rkyv::util::AlignedVec = rkyv::util::AlignedVec::with_capacity(bytes_.len());
-        bytes.extend_from_slice(&bytes_);
-        let state = rkyv::access::<ArchivedState, Error>(&bytes[..]);
-        let state = state.map_err(|e| LoadError::Format(path.clone(), e))?;
-        let state = rkyv::deserialize::<State, Error>(state);
-        let state = state.map_err(|e| LoadError::Format(path.clone(), e))?;
-        Ok(state)
-    }
-
-    // TODO: serializations can be refactored accord all source code ?
-    pub fn save(&self, to: &PathBuf) -> Result<(), SaveError> {
-        tracing::info!("Save state to {}", to.display());
-        let bytes = rkyv::to_bytes::<Error>(self);
-        let bytes = bytes.map_err(|e| SaveError::Encode(to.clone(), e))?;
-        let write = std::fs::write(to, &bytes);
-        write.map_err(|e| SaveError::Write(to.clone(), e))?;
-        Ok(())
-    }
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum LoadError {
-    #[error("Load snapshot file '{0}' io error: {1}")]
-    SourceIo(PathBuf, std::io::Error),
-    #[error("Load snapshot file '{0}' format error: {1}")]
-    Format(PathBuf, rkyv::rancor::Error),
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum SaveError {
-    #[error("Save snapshot to file '{0}' encode error: {1}")]
-    Encode(PathBuf, rkyv::rancor::Error),
-    #[error("Save snapshot to file '{0}' write error: {1}")]
-    Write(PathBuf, std::io::Error),
 }

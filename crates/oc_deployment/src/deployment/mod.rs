@@ -1,5 +1,6 @@
 use oc_utils::index::AtIndex;
-use std::{collections::HashSet, path::PathBuf};
+use std::collections::HashSet;
+use std::path::Path;
 
 use anyhow::Context;
 use glam::Vec2;
@@ -40,16 +41,13 @@ pub struct Deployment {
 }
 
 impl Deployment {
-    pub fn from_file(path: &PathBuf) -> Result<Self, anyhow::Error> {
-        let raw = std::fs::read_to_string(path).context(format!("Read file {}", path.display()))?;
-        let deployment = serde_yaml::from_str(&raw);
-        let deployment = deployment.context(format!("Deserialize from file {}", path.display()))?;
-        Ok(deployment)
+    pub fn from_file(path: &Path) -> Result<Self, anyhow::Error> {
+        Ok(oc_root::format::read_yaml(path)?)
     }
 }
 
 impl Deployments {
-    pub fn from_files(side_a: &PathBuf, side_b: &PathBuf) -> Result<Self, anyhow::Error> {
+    pub fn from_files(side_a: &Path, side_b: &Path) -> Result<Self, anyhow::Error> {
         Ok(Self {
             side_a: Deployment::from_file(side_a)?,
             side_b: Deployment::from_file(side_b)?,

@@ -12,7 +12,6 @@ workspace = true
 oc_derive = { path = "../oc_derive" }
 oc_root = { path = "../oc_root" }
 oc_utils = { path = "../oc_utils" }
-ron.workspace = true
 serde.workspace = true
 serde_derive.workspace = true
 thiserror.workspace = true

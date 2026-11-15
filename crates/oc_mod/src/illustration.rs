@@ -4,7 +4,6 @@ use std::{
 };
 
 use crate::indexed::{Indexed, index_all};
-use anyhow::Context;
 use derive_more::Constructor;
 use strum_macros::Display;
 use thiserror::Error;
@@ -65,8 +64,7 @@ pub fn load(path: &Path) -> Result<IndexedIllustrations, Error> {
         return Err(Error::NotFound(path));
     }
 
-    let raw = std::fs::read_to_string(&path).context(format!("Read {}", path.display()))?;
-    let raw: RawIllustrations = ron::from_str(&raw)?;
+    let raw: RawIllustrations = oc_root::format::read_ron(&path)?;
 
     if !raw.ingame_squads.sprites.iter().any(|n| n == "default") {
         return Err(Error::NoDefault(IllustrationKind::IngameSquad));
@@ -120,14 +118,12 @@ fn index_sheet(
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("{0}")]
-    Any(#[from] anyhow::Error),
     #[error("No default sprite for {0}")]
     NoDefault(IllustrationKind),
     #[error("No illustration file ({0}) found")]
     NotFound(PathBuf),
-    #[error("Format: {0}")]
-    Format(#[from] ron::de::SpannedError),
+    #[error(transparent)]
+    File(#[from] oc_root::format::FileError),
     #[error("SpriteSheet {0}: columns must be greater than 0")]
     NoColumns(IllustrationKind),
     #[error("Duplicate illustration name: {0}")]

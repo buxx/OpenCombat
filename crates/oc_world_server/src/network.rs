@@ -1,14 +1,12 @@
+use oc_root::format::{decode, encode};
 use std::net::SocketAddr;
 use std::sync::mpsc::{Receiver, Sender, channel};
 
 use message_io::network::{Endpoint, NetEvent, Transport};
 use message_io::node::{self};
 use oc_individual::IndividualIndex;
-use oc_network::{ArchivedToServer, ToClient, ToServer};
+use oc_network::{ToClient, ToServer};
 use oc_projectile::ProjectileId;
-use rkyv::api::low::deserialize;
-use rkyv::rancor::Error;
-use rkyv::util::AlignedVec;
 
 use crate::bridge::Event;
 
@@ -49,10 +47,7 @@ fn listen_(
                 input.send(Event::Connected(endpoint)).unwrap(); // TODO
             }
             NetEvent::Message(endpoint, bytes_) => {
-                let mut bytes: AlignedVec = rkyv::util::AlignedVec::with_capacity(bytes_.len());
-                bytes.extend_from_slice(bytes_);
-                let message = rkyv::access::<ArchivedToServer, Error>(&bytes[..]).unwrap(); // TODO
-                let message = deserialize::<ToServer, Error>(message).unwrap(); // TODO
+                let message = decode::<ToServer>(bytes_).unwrap(); // TODO
                 tracing::trace!(name="network-message-received", endpoint = ?endpoint, message = ?message);
                 input.send(Event::Message(endpoint, message)).unwrap(); // TODO
             }
@@ -65,7 +60,7 @@ fn listen_(
 
     while let Ok((endpoint, message)) = output.recv() {
         tracing::trace!(name="network-message-send", endpoint = ?endpoint, message = ?message);
-        let bytes = rkyv::to_bytes::<Error>(&message).unwrap(); // TODO
+        let bytes = encode(&message).unwrap(); // TODO
         handler.network().send(endpoint, &bytes);
     }
 

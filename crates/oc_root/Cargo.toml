@@ -17,6 +17,10 @@ rkyv = { workspace = true, features = ["uuid-1"] }
 derive_more = { workspace = true, features = ["constructor", "deref", "from", "into", "add", "mul"] }
 serde = { workspace = true, features = ["serde_derive"] }
 serde_derive = { workspace = true }
+ron.workspace = true
+serde_yaml.workspace = true
+toml.workspace = true
+thiserror.workspace = true
 glam.workspace = true
 strum.workspace = true
 strum_macros.workspace = true

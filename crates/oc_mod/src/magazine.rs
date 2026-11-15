@@ -78,10 +78,8 @@ pub fn load(path: &Path) -> Result<Vec<IndexedMagazine>, Error> {
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("{0}")]
-    Any(#[from] anyhow::Error),
-    #[error("Format: {0}")]
-    Format(#[from] ron::de::SpannedError),
+    #[error(transparent)]
+    File(#[from] oc_root::format::FileError),
     #[error("No amunitions defined (require at least one)")]
     Empty,
 }

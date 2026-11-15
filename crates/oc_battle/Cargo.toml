@@ -15,7 +15,6 @@ oc_world = { path = "../oc_world" }
 derive_more = { workspace = true, features = ["constructor"] }
 serde = { workspace = true, features = ["derive"] }
 bon.workspace = true
-ron.workspace = true
 thiserror.workspace = true
 getset.workspace = true
 

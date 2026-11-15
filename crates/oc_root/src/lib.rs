@@ -24,6 +24,7 @@ pub mod craters;
 pub mod end;
 pub mod explosion;
 pub mod files;
+pub mod format;
 pub mod geo;
 pub mod identity;
 pub mod ids;

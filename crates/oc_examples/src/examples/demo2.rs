@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use oc_root::format::RkyvFile;
 use std::{collections::HashMap, path::PathBuf};
 
 use crate::{logging, run, utils::find_spawn};

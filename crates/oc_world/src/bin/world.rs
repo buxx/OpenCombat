@@ -1,3 +1,4 @@
+use oc_root::format::RkyvFile;
 use std::path::{Path, PathBuf};
 
 use ::image::{ImageBuffer, Rgba};

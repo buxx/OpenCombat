@@ -1,3 +1,4 @@
+use oc_root::format::{FileError, RkyvFile};
 use std::{marker::PhantomData, path::PathBuf};
 
 use oc_individual::{Individual, squad::Squad};
@@ -5,7 +6,7 @@ use oc_mod::Mod;
 use oc_projectile::Projectile;
 use oc_root::{WorldConfig, battle::BattlePhase};
 use oc_world::{
-    snapshot::{SaveError, Snapshot},
+    snapshot::Snapshot,
     spawn::SpawnZoneName,
     support::Supports,
     tile::{AlteredTile, Tile},
@@ -125,7 +126,7 @@ pub enum Error {
     #[error("Tempfile keep error: {0}")]
     Keep(#[from] tempfile::PersistError),
     #[error("Build error: {0}")]
-    Save(#[from] SaveError),
+    Save(#[from] FileError),
 }
 
 pub struct EmptyGenerator<T>(PhantomData<T>);

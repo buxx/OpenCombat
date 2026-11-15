@@ -1,9 +1,10 @@
-use std::{fs::read_to_string, path::PathBuf};
+use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::Parser;
 use oc_deployment::generator::{Generator, profile::Profile};
 use oc_mod::Mod;
+use oc_root::format::read_yaml;
 
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
@@ -21,10 +22,7 @@ fn main() -> Result<(), anyhow::Error> {
     let mod_ = Mod::load(&args.r#mod, None);
     let mod_ = mod_.context(format!("Load mod from {}", args.r#mod.display()))?;
 
-    let path = args.profile.display();
-    let raw = read_to_string(&args.profile).context(format!("Read {}", path))?;
-    let profile = serde_yaml::from_str(&raw);
-    let profile: Profile = profile.context(format!("Load yaml from {} content", path))?;
+    let profile: Profile = read_yaml(&args.profile)?;
 
     let deployment = Generator::new()
         .generate(&mod_, &profile)

@@ -1,11 +1,7 @@
-use std::{
-    fs, io,
-    path::{Path, PathBuf},
-};
+use std::path::Path;
 
 use bon::Builder;
 use serde::Deserialize;
-use thiserror::Error;
 
 pub mod check;
 pub mod scenario;
@@ -21,16 +17,7 @@ pub struct Battle {
     scenarios: Vec<Scenario>,
 }
 
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("Read file {path}: {source}")]
-    Io { path: PathBuf, source: io::Error },
-    #[error("Format of {path}: {source}")]
-    Format {
-        path: PathBuf,
-        source: Box<ron::de::SpannedError>,
-    },
-}
+pub use oc_root::format::{FileError as Error, read_ron};
 
 #[derive(Deserialize)]
 struct BattleRaw {
@@ -38,17 +25,6 @@ struct BattleRaw {
     description: String,
     map: String,
     scenarios: Vec<String>,
-}
-
-pub fn read_ron<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T, Error> {
-    let content = fs::read_to_string(path).map_err(|source| Error::Io {
-        path: path.to_path_buf(),
-        source,
-    })?;
-    ron::from_str(&content).map_err(|source| Error::Format {
-        path: path.to_path_buf(),
-        source: Box::new(source),
-    })
 }
 
 impl Battle {
