@@ -165,6 +165,13 @@ test-e2e speed="" jobs="4":
     export logs
     printf '%s\n' "${tests[@]}" | xargs -P {{ jobs }} -I{} bash -c 'run {}'
 
+# Same as test-e2e, but windows are rendered in a virtual X server (Xvfb), so not shown.
+# WAYLAND_DISPLAY is removed to force X11 (Xvfb) instead of the Wayland session.
+# Hardware GPU drivers can't present on Xvfb (no DRI3), so force Vulkan with Mesa software driver (lavapipe)
+test-e2e-headless speed="" jobs="4":
+    env -u WAYLAND_DISPLAY WGPU_BACKEND=vulkan VK_DRIVER_FILES=/usr/share/vulkan/icd.d/lvp_icd.json \
+      xvfb-run -a just test-e2e "{{ speed }}" {{ jobs }}
+
 test-projectiles-obstacles-one-wall:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- projectiles-obstacles one-against-wall --test
 
@@ -373,6 +380,10 @@ test-basecamp-battle-finished: build-basecamp-e2e
 test-all:
     just test
     just test-e2e fast
+
+test-all-headless:
+    just test
+    just test-e2e-headless fast
 
 list:
     just --list
