@@ -3,7 +3,7 @@ use oc_geo::tile::WorldTileIndex;
 use oc_individual::{Individual, IndividualIndex, squad::Squad};
 use oc_mod::{Mod, nature::NatureIndex};
 use oc_projectile::{Projectile, ProjectileId};
-use oc_root::{WorldConfig, battle::BattlePhase};
+use oc_root::{WorldConfig, battle::BattlePhase, side::BySide};
 use oc_utils::index::AtIndex;
 use oc_utils::percent::Percent;
 use oc_world::{
@@ -97,8 +97,7 @@ impl TestWorld {
             altered_tiles,
             decor,
             craters: vec![],
-            side_a_spawn_zones: vec![],
-            side_b_spawn_zones: vec![],
+            side_spawn_zones: BySide::default(),
             spawn_zones: vec![],
             smoke,
             smoke_clouds: vec![],

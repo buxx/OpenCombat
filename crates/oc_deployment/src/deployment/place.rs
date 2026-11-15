@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use getset::WithSetters;
-use oc_root::{geo::WorldVec2, side::Side};
+use oc_root::{geo::WorldVec2, side::BySide};
 use oc_utils::{d2::Direction, polygon::Polygon};
 use oc_world::spawn::SpawnZone;
 use uuid::Uuid;
@@ -11,9 +11,7 @@ pub struct Placer {
     places: Vec<WorldVec2>,
     assigned: HashMap<Uuid, WorldVec2>,
     #[getset(set_with = "pub")]
-    a_order: OrderPolicy,
-    #[getset(set_with = "pub")]
-    b_order: OrderPolicy,
+    orders: BySide<OrderPolicy>,
 }
 
 impl Placer {
@@ -21,8 +19,7 @@ impl Placer {
         Self {
             places,
             assigned: HashMap::default(),
-            a_order: OrderPolicy::default(),
-            b_order: OrderPolicy::default(),
+            orders: BySide::default(),
         }
     }
 
@@ -63,10 +60,7 @@ impl Placer {
         snapshot: &oc_world::snapshot::Snapshot,
         squad: &oc_individual::squad::Squad,
     ) -> Vec<oc_individual::order::Order> {
-        let policy = match squad.side {
-            Side::A => &self.a_order,
-            Side::B => &self.b_order,
-        };
+        let policy = &self.orders[squad.side];
 
         if matches!(policy, OrderPolicy::None) {
             return vec![];

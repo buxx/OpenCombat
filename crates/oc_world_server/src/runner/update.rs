@@ -24,7 +24,7 @@ use oc_root::battle::BattlePhase;
 use oc_root::explosion::Explosion;
 use oc_root::geo::WorldVec2;
 use oc_root::geo::WorldVec3;
-use oc_root::side::Side;
+use oc_root::side::BySide;
 use oc_root::{Client, WcfgFrom, WcfgInto, WorldConfig};
 use oc_world::crater::Crater;
 use oc_world::flag::Flags;
@@ -303,27 +303,22 @@ impl<E: Client> super::State<E> {
     ) -> Vec<(Listening, Vec<ToClient>)> {
         let world = self.world();
         let count = world.individuals().len(); // Prepare memory for more than side individuals in favor of cpu performance
-        let mut side_a = Vec::with_capacity(count);
-        let mut side_b = Vec::with_capacity(count);
+        let mut sides = BySide::from_fn(|_| Vec::with_capacity(count));
 
         for (i1, i2, visibility) in visibilities {
             let watcher = world.individual(i1);
-            match watcher.side {
-                oc_root::side::Side::A => side_a.push((i1, i2, visibility)),
-                oc_root::side::Side::B => side_b.push((i1, i2, visibility)),
-            }
+            sides[watcher.side].push((i1, i2, visibility));
         }
 
-        vec![
-            (
-                Listening::Side(Side::A),
-                vec![ToClient::UpdateVisibilities(side_a)],
-            ),
-            (
-                Listening::Side(Side::B),
-                vec![ToClient::UpdateVisibilities(side_b)],
-            ),
-        ]
+        sides
+            .into_iter()
+            .map(|(side, visibilities)| {
+                (
+                    Listening::Side(side),
+                    vec![ToClient::UpdateVisibilities(visibilities)],
+                )
+            })
+            .collect()
     }
 
     fn update_squad(

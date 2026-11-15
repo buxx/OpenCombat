@@ -11,13 +11,18 @@ use oc_deployment::deployment::{
     place::{OrderPolicy, Placer},
 };
 use oc_mod::Mod;
-use oc_root::{WorldConfig, battle::BattlePhase, geo::WorldVec2, physics::Meters, side::Side};
+use oc_root::{
+    WorldConfig,
+    battle::BattlePhase,
+    geo::WorldVec2,
+    physics::Meters,
+    side::{BySide, Side},
+};
 use oc_world::{
     load::WorldPath,
     meta::Meta,
     place::PlaceName,
     snapshot::Snapshot,
-    spawn::SpawnZoneName,
     support::{Support, SupportType, Supports},
 };
 use uuid::Uuid;
@@ -90,20 +95,9 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             ),
         });
 
-    snapshot.side_a_spawns = deployments
-        .side_a
-        .spawns
-        .iter()
-        .map(|s| s.name.clone())
-        .collect::<Vec<SpawnZoneName>>()
-        .clone();
-    snapshot.side_b_spawns = deployments
-        .side_b
-        .spawns
-        .iter()
-        .map(|s| s.name.clone())
-        .collect::<Vec<SpawnZoneName>>()
-        .clone();
+    snapshot.spawns = deployments
+        .as_ref()
+        .map(|d| d.spawns.iter().map(|s| s.name.clone()).collect());
 
     match args.case {
         Case::Empty => {}
@@ -170,8 +164,7 @@ fn deploy_engaged_battle_middle(
                 *places.get(&"53".into()).unwrap(),
             ),
         ])
-        .with_a_order(OrderPolicy::Hide)
-        .with_b_order(OrderPolicy::Defend);
+        .with_orders(BySide::new(OrderPolicy::Hide, OrderPolicy::Defend));
 
     deployments
         // FIXME BS NOW: 1/ Début de partie ne doit pas impliquer mouvement de membres pour se place.
@@ -225,12 +218,8 @@ fn deploy_south_beach(
         Side::B => vec![],
     });
     let placer = match side {
-        Side::A => placer
-            .with_a_order(OrderPolicy::Hide)
-            .with_b_order(OrderPolicy::Defend),
-        Side::B => placer
-            .with_a_order(OrderPolicy::Defend)
-            .with_b_order(OrderPolicy::Hide),
+        Side::A => placer.with_orders(BySide::new(OrderPolicy::Hide, OrderPolicy::Defend)),
+        Side::B => placer.with_orders(BySide::new(OrderPolicy::Defend, OrderPolicy::Hide)),
     };
 
     deployments

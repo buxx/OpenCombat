@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use std::path::Path;
 
 use anyhow::Context;
+use derive_more::{Deref, DerefMut};
 use glam::Vec2;
 use oc_geo::tile::{TileXy, WorldTileIndex};
 use oc_individual::Xp;
@@ -11,7 +12,13 @@ use oc_individual::{
     squad::{Squad, SquadFormation},
 };
 use oc_mod::{Mod, illustration::IllustrationKind};
-use oc_root::{WcfgFrom, WorldConfig, geo::WorldVec2, material::MaterialKind, side::Side, y::V};
+use oc_root::{
+    WcfgFrom, WorldConfig,
+    geo::WorldVec2,
+    material::MaterialKind,
+    side::{BySide, Side},
+    y::V,
+};
 use oc_utils::{
     d2::{Angle, Xy},
     polygon::Polygon,
@@ -27,11 +34,10 @@ pub mod place;
 pub mod squad;
 pub mod weapon;
 
-#[derive(Debug, Deserialize, Serialize, Default)]
-pub struct Deployments {
-    pub side_a: Deployment,
-    pub side_b: Deployment,
-}
+/// Deployment of each side
+#[derive(Debug, Deserialize, Serialize, Default, Deref, DerefMut)]
+#[serde(transparent)]
+pub struct Deployments(pub BySide<Deployment>);
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct Deployment {
@@ -48,15 +54,15 @@ impl Deployment {
 
 impl Deployments {
     pub fn from_files(side_a: &Path, side_b: &Path) -> Result<Self, anyhow::Error> {
-        Ok(Self {
-            side_a: Deployment::from_file(side_a)?,
-            side_b: Deployment::from_file(side_b)?,
-        })
+        Ok(Self(BySide::new(
+            Deployment::from_file(side_a)?,
+            Deployment::from_file(side_b)?,
+        )))
     }
 
     pub fn with_spawns(mut self, side_a: Vec<SpawnZone>, side_b: Vec<SpawnZone>) -> Self {
-        self.side_a.spawns = side_a;
-        self.side_b.spawns = side_b;
+        self.a.spawns = side_a;
+        self.b.spawns = side_b;
         self
     }
 
@@ -73,16 +79,11 @@ impl Deployments {
         snapshot.uuids.individuals.clear();
         let mut i: u64 = 0;
 
-        let mut fill_with = |deployment: &Deployment, side: Side| -> Result<(), anyhow::Error> {
+        for (side, deployment) in self.iter() {
             for squad in &deployment.squads {
                 self.fill_squad(w, mod_, snapshot, placer, &mut i, side, squad, tiles)?;
             }
-
-            Ok(())
-        };
-
-        fill_with(&self.side_a, Side::A)?;
-        fill_with(&self.side_b, Side::B)?;
+        }
 
         // Orders (do it here after fills to have all individuals when compute orders)
         for (i, squad) in snapshot.squads.clone().iter().enumerate() {
@@ -107,10 +108,7 @@ impl Deployments {
         tiles: &[Tile],
     ) -> Result<(), anyhow::Error> {
         let mut individuals = vec![];
-        let spawns = match side {
-            Side::A => &self.side_a.spawns,
-            Side::B => &self.side_b.spawns,
-        };
+        let spawns = &self[side].spawns;
         let occupied: Vec<WorldVec2> = snapshot.squads.iter().map(|s| s.position).collect();
         let position = placer.place(spawns, squad.uuid, &occupied);
         let places =

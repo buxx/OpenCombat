@@ -9,7 +9,7 @@ use derive_more::Constructor;
 use oc_geo::region::WorldRegionIndex;
 use oc_mod::Mod;
 use oc_projectile::NextProjectileId;
-use oc_root::{WorldConfig, files, ids::Ids};
+use oc_root::{WorldConfig, files, ids::Ids, side::BySide};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use thiserror::Error;
 
@@ -81,8 +81,7 @@ impl WorldLoader {
                 .checked_sub(elapsed)
                 .unwrap_or_else(Instant::now)
         });
-        let a_spawns = snapshot.side_a_spawns;
-        let b_spawns = snapshot.side_b_spawns;
+        let spawns = snapshot.spawns;
         let supports = snapshot.supports;
         let pending_supports = snapshot
             .pending_supports
@@ -107,17 +106,14 @@ impl WorldLoader {
         let flags = map.flags()?;
         let interiors = map.interiors()?;
         let spawn_zones = map.spawn_zones()?;
-        let a_spawns_: Vec<SpawnZone> = spawn_zones
-            .iter()
-            .filter(|s| a_spawns.contains(&s.name))
-            .cloned()
-            .collect();
-        let b_spawns_: Vec<SpawnZone> = spawn_zones
-            .iter()
-            .filter(|s| b_spawns.contains(&s.name))
-            .cloned()
-            .collect();
-        let flags = Flags::from_control(flags, &a_spawns_, &b_spawns_);
+        let side_spawn_zones: BySide<Vec<SpawnZone>> = spawns.map(|names| {
+            spawn_zones
+                .iter()
+                .filter(|s| names.contains(&s.name))
+                .cloned()
+                .collect()
+        });
+        let flags = Flags::from_control(flags, &side_spawn_zones.a, &side_spawn_zones.b);
 
         tracing::debug!("World built");
         Ok(World::new(
@@ -127,8 +123,7 @@ impl WorldLoader {
             phase,
             duration,
             start,
-            a_spawns_,
-            b_spawns_,
+            side_spawn_zones,
             spawn_zones,
             flags,
             supports,

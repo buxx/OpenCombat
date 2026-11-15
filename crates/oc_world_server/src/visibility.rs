@@ -2,7 +2,7 @@ use derive_more::Constructor;
 use oc_geo::tile::{TileXy, WorldTileIndex};
 use oc_individual::{BodyGesture, IndividualIndex, behavior::Behavior};
 use oc_lov::Modifier;
-use oc_root::side::Side;
+use oc_root::side::{BySide, Side};
 use oc_root::{WcfgFrom, WorldConfig, opacity::CumulatedOpacity};
 use oc_utils::index::AtIndex;
 use oc_utils::{d2::Xy, polygon::Polygon};
@@ -21,8 +21,8 @@ impl<'a> Processor<'a> {
     /// Visibilities of all opposite sides pairs
     #[allow(dead_code)]
     pub fn compute(&self) -> Vec<(IndividualIndex, IndividualIndex, Visibility)> {
-        let a = self.index.side_a_individuals();
-        let b = self.index.side_b_individuals();
+        let a = self.index.side_individuals(Side::A);
+        let b = self.index.side_individuals(Side::B);
         let mut visibilities = self.compute_for(a, b);
         visibilities.extend(self.compute_for(b, a));
         visibilities
@@ -52,8 +52,8 @@ impl<'a> Processor<'a> {
         let w = &self.world.w;
         let mod_ = &self.world.mod_;
         let at = |xy, z| path_objects_at(w, mod_, self.world, xy, z);
-        let occupied_a = self.occupied_interiors(self.index.side_a_individuals());
-        let occupied_b = self.occupied_interiors(self.index.side_b_individuals());
+        let occupied =
+            BySide::from_fn(|side| self.occupied_interiors(self.index.side_individuals(side)));
 
         let compute_pair = |i1: &IndividualIndex, i2: &IndividualIndex| {
             tracing::trace!(name = "visibility-processor-compute", i1=?i1, i2=?i2);
@@ -73,10 +73,7 @@ impl<'a> Processor<'a> {
             // Individuals inside an interior are hidden from opposite having nobody inside it,
             // except when they stand on an altered tile.
             let on_altered_tile = self.world.altered_tiles.at(individual2.tile).is_some();
-            let occupied = match individual1.side {
-                Side::A => &occupied_a,
-                Side::B => &occupied_b,
-            };
+            let occupied = &occupied[individual1.side];
             let hidden_by_interior = !on_altered_tile
                 && self
                     .world

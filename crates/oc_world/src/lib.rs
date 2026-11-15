@@ -17,8 +17,12 @@ use oc_individual::{
 use oc_mod::Mod;
 use oc_projectile::{Projectile, ProjectileId};
 use oc_root::{
-    WcfgInto, WorldConfig, battle::BattlePhase, identity::Identity, material::MaterialKind,
-    side::Side, uuids::Uuids,
+    WcfgInto, WorldConfig,
+    battle::BattlePhase,
+    identity::Identity,
+    material::MaterialKind,
+    side::{BySide, Side},
+    uuids::Uuids,
 };
 use oc_utils::{d2::Xy, let_some};
 use rustc_hash::FxHashMap;
@@ -72,8 +76,7 @@ pub struct World {
     pub phase: BattlePhase,
     pub duration: Duration,
     pub start: Option<Instant>,
-    pub side_a_spawn_zones: Vec<crate::spawn::SpawnZone>,
-    pub side_b_spawn_zones: Vec<crate::spawn::SpawnZone>,
+    pub side_spawn_zones: BySide<Vec<crate::spawn::SpawnZone>>,
     pub spawn_zones: Vec<crate::spawn::SpawnZone>,
     pub flags: Flags,
     pub supports: Supports,
@@ -97,10 +100,7 @@ pub struct World {
 impl World {
     /// Spawn zones owned by given side
     pub fn spawn_zones(&self, side: Side) -> &[crate::spawn::SpawnZone] {
-        match side {
-            Side::A => &self.side_a_spawn_zones,
-            Side::B => &self.side_b_spawn_zones,
-        }
+        &self.side_spawn_zones[side]
     }
 
     pub fn tile(&self, i: WorldTileIndex) -> Option<&Tile> {
@@ -266,8 +266,7 @@ impl World {
             .iter()
             .filter(|p| p.side == side && p.type_ == type_)
             .count();
-        self.supports
-            .side(side)
+        self.supports[side]
             .count(type_)
             .saturating_sub(pending.min(u8::MAX as usize) as u8)
     }
@@ -287,29 +286,20 @@ impl World {
             })
             .collect();
         let phase = self.phase;
-        let support = self
-            .supports
-            .side(identity.side)
+        let support = self.supports[identity.side]
             .0
             .iter()
             .map(|(t, _)| (*t, self.available_support(identity.side, *t)))
             .collect();
-        let side_a_spawns = self
-            .side_a_spawn_zones
-            .iter()
-            .map(|z| z.name.clone())
-            .collect();
-        let side_b_spawns = self
-            .side_b_spawn_zones
-            .iter()
-            .map(|z| z.name.clone())
-            .collect();
+        let spawns = self
+            .side_spawn_zones
+            .as_ref()
+            .map(|zones| zones.iter().map(|z| z.name.clone()).collect());
 
         WorldResume {
             squads,
             phase,
-            side_a_spawns,
-            side_b_spawns,
+            spawns,
             support,
         }
     }
@@ -381,8 +371,7 @@ mod tests {
             BattlePhase::Fight,
             DEFAULT_FIGHT_DURATION,
             Some(Instant::now()),
-            vec![],
-            vec![],
+            BySide::default(),
             vec![],
             Flags::default(),
             Supports::default(),
@@ -443,8 +432,7 @@ mod tests {
             BattlePhase::Fight,
             DEFAULT_FIGHT_DURATION,
             Some(Instant::now()),
-            vec![],
-            vec![],
+            BySide::default(),
             vec![],
             Flags::default(),
             Supports::default(),

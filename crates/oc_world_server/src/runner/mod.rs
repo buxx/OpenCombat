@@ -267,8 +267,8 @@ impl<E: Client> Runner<E> {
 
                     matches!(world.phase, BattlePhase::Fight).then(|| {
                         (
-                            indexes.side_a_individuals().to_vec(),
-                            indexes.side_b_individuals().to_vec(),
+                            indexes.side_individuals(Side::A).to_vec(),
+                            indexes.side_individuals(Side::B).to_vec(),
                         )
                     })
                 };

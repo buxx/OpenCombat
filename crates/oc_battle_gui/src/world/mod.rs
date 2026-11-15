@@ -489,8 +489,8 @@ fn on_world_resume(
     }
 
     commands.trigger(ShowSpawnZones(
-        event.0.side_a_spawns.clone(),
-        event.0.side_b_spawns.clone(),
+        event.0.spawns.a.clone(),
+        event.0.spawns.b.clone(),
     ));
     let phase_ = match event.0.phase {
         oc_root::battle::BattlePhase::Deployment => BattlePhase::Deployment,

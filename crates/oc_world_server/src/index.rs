@@ -11,7 +11,7 @@ use oc_individual::{
 };
 use oc_projectile::Projectile;
 use oc_projectile::ProjectileId;
-use oc_root::side::Side;
+use oc_root::side::{BySide, Side};
 use oc_root::{WcfgFrom, WcfgInto, WorldConfig};
 use oc_utils::d2::{Xy, shape_cover_tiles};
 use oc_world::World;
@@ -50,8 +50,7 @@ pub struct Indexes {
     regions_projectiles: SizedIndex<ProjectileId>,
     regions_craters: SizedIndex<usize>,
     individuals_squad: Vec<SquadIndex>,
-    side_a_individuals: Vec<IndividualIndex>,
-    side_b_individuals: Vec<IndividualIndex>,
+    side_individuals: BySide<Vec<IndividualIndex>>,
 }
 
 impl Indexes {
@@ -64,10 +63,9 @@ impl Indexes {
         let mut regions_projectiles = SizedIndex::new(world.w.regions_count() as usize);
         let mut regions_craters = SizedIndex::new(world.w.regions_count() as usize);
         let mut individuals_squad = Vec::with_capacity(world.individuals.len());
-        let side_a_count = individuals.iter().filter(|i| i.side == Side::A).count();
-        let mut side_a_individuals = Vec::with_capacity(side_a_count);
-        let side_b_count = individuals.iter().filter(|i| i.side == Side::B).count();
-        let mut side_b_individuals = Vec::with_capacity(side_b_count);
+        let mut side_individuals = BySide::from_fn(|side| {
+            Vec::with_capacity(individuals.iter().filter(|i| i.side == side).count())
+        });
 
         // First squad owning each member (looked up once, not by individual)
         let mut squad_of_member: Vec<Option<SquadIndex>> = vec![None; individuals.len()];
@@ -105,10 +103,7 @@ impl Indexes {
                 proximity_individuals.at_mut(tile_).push(i.into());
             }
 
-            match individual.side {
-                Side::A => side_a_individuals.push(IndividualIndex::from(i)),
-                Side::B => side_b_individuals.push(IndividualIndex::from(i)),
-            }
+            side_individuals[individual.side].push(IndividualIndex::from(i));
 
             regions_individuals.at_mut(region).push(i.into());
 
@@ -138,8 +133,7 @@ impl Indexes {
             regions_individuals,
             regions_projectiles,
             individuals_squad,
-            side_a_individuals,
-            side_b_individuals,
+            side_individuals,
         }
     }
 
@@ -299,12 +293,8 @@ impl Indexes {
         }
     }
 
-    pub fn side_a_individuals(&self) -> &[IndividualIndex] {
-        &self.side_a_individuals
-    }
-
-    pub fn side_b_individuals(&self) -> &[IndividualIndex] {
-        &self.side_b_individuals
+    pub fn side_individuals(&self, side: Side) -> &[IndividualIndex] {
+        &self.side_individuals[side]
     }
 }
 

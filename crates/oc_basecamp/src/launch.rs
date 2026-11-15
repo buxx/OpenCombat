@@ -79,14 +79,14 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
         };
 
         let deployment = write_battle_deployment(&dir, side, &slots)?;
-        places.extend(squad_places(&deployment, side_places(scenario, side)));
+        places.extend(squad_places(&deployment, &scenario.side(side).places));
     }
 
     let state = dir.join(WORLD_STATE_FILE);
     let (spawns_a, spawns_b) = battle_spawn_zones(
         &state,
-        scenario.a_start_spawn_zones(),
-        scenario.b_start_spawn_zones(),
+        &scenario.side(Side::A).start_spawn_zones,
+        &scenario.side(Side::B).start_spawn_zones,
     )?;
     let spawns = |zones: &[SpawnZoneName]| {
         zones
@@ -131,10 +131,10 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
         .arg(dir.join(battle_deployment_file(Side::B)))
         .args(["--spawns-a", &spawns(&spawns_a)])
         .args(["--spawns-b", &spawns(&spawns_b)])
-        .args(supports("a", scenario.a_supports()))
-        .args(supports("b", scenario.b_supports()))
-        .args(order("a", scenario.a_order()))
-        .args(order("b", scenario.b_order()))
+        .args(supports("a", &scenario.side(Side::A).supports))
+        .args(supports("b", &scenario.side(Side::B).supports))
+        .args(order("a", scenario.side(Side::A).order))
+        .args(order("b", scenario.side(Side::B).order))
         .args(
             places
                 .iter()
@@ -164,7 +164,7 @@ fn battle_spawn_zones(
 
     let state =
         State::load(state).map_err(|e| format!("Load world state '{}': {e}", state.display()))?;
-    Ok((state.side_a_spawns, state.side_b_spawns))
+    Ok((state.spawns.a, state.spawns.b))
 }
 
 /// Battle gui binary: next to current executable, elsewhere from PATH
@@ -200,17 +200,8 @@ fn battle_gui_bin() -> PathBuf {
 }
 
 fn side_defaults(scenario: &Scenario, side: Side) -> (usize, &[String]) {
-    match side {
-        Side::A => (scenario.a_squad_count(), scenario.a_default()),
-        Side::B => (scenario.b_squad_count(), scenario.b_default()),
-    }
-}
-
-fn side_places(scenario: &Scenario, side: Side) -> &[SquadPlace] {
-    match side {
-        Side::A => scenario.a_places(),
-        Side::B => scenario.b_places(),
-    }
+    let side = scenario.side(side);
+    (side.squad_count, &side.default)
 }
 
 fn squad_places(deployment: &Deployment, places: &[SquadPlace]) -> Vec<(Uuid, String)> {
@@ -318,6 +309,7 @@ fn write_battle_deployment(
 
 #[cfg(test)]
 mod tests {
+    use oc_root::side::BySide;
     use oc_world::flag::Flags;
 
     use super::*;
@@ -380,8 +372,7 @@ mod tests {
             vec![],
             vec![],
             vec![],
-            names(&["A1", "B1"]),
-            names(&["B2"]),
+            BySide::new(names(&["A1", "B1"]), names(&["B2"])),
             vec![],
             Flags::default(),
         )

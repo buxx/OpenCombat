@@ -4,7 +4,7 @@ use std::{marker::PhantomData, path::PathBuf};
 use oc_individual::{Individual, squad::Squad};
 use oc_mod::Mod;
 use oc_projectile::Projectile;
-use oc_root::{WorldConfig, battle::BattlePhase};
+use oc_root::{WorldConfig, battle::BattlePhase, side::BySide};
 use oc_world::{
     snapshot::Snapshot,
     spawn::SpawnZoneName,
@@ -82,8 +82,6 @@ where
         let projectiles = self.projectiles.projectiles(&w, &tiles);
         let phase = self.phase;
         let duration = w.fight_duration();
-        let side_a_spawns = self.side_a_spawns.clone();
-        let side_b_spawns = self.side_b_spawns.clone();
         let altered_tiles = self
             .altered_tiles
             .clone()
@@ -106,8 +104,7 @@ where
             phase,
             duration,
             start: None,
-            side_a_spawns,
-            side_b_spawns,
+            spawns: BySide::new(self.side_a_spawns.clone(), self.side_b_spawns.clone()),
             supports: self.supports.clone(),
             pending_supports: vec![],
             support_realized: vec![],

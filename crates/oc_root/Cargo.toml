@@ -29,3 +29,6 @@ uuid.workspace = true
 clap = { workspace = true, optional = true }
 getset.workspace = true
 directories.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

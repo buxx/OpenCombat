@@ -1,6 +1,9 @@
 use oc_individual::Status;
 use oc_individual::squad::{Squad, SquadIndex};
-use oc_root::{battle::BattlePhase, side::Side};
+use oc_root::{
+    battle::BattlePhase,
+    side::{BySide, Side},
+};
 
 use crate::{World, spawn::SpawnZoneName, support::SupportType};
 
@@ -8,8 +11,8 @@ use crate::{World, spawn::SpawnZoneName, support::SupportType};
 #[derive(Debug, Clone)]
 pub struct WorldResume {
     pub squads: Vec<(SquadIndex, Squad)>,
-    pub side_a_spawns: Vec<SpawnZoneName>,
-    pub side_b_spawns: Vec<SpawnZoneName>,
+    #[serde(flatten)]
+    pub spawns: BySide<Vec<SpawnZoneName>>,
     pub phase: BattlePhase,
     pub support: Vec<(SupportType, u8)>,
 }

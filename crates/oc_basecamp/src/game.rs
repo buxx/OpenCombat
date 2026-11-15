@@ -37,10 +37,8 @@ pub fn create(
 
     let generator = Generator::new();
     let mut deployments = vec![];
-    for (side, profile) in [
-        (Side::A, scenario.deploy_a()),
-        (Side::B, scenario.deploy_b()),
-    ] {
+    for (side, scenario_side) in scenario.sides().iter() {
+        let profile = &scenario_side.deploy;
         let file = new_battle::deployment_file(side);
         let deployment = generator
             .generate(&loaded, profile)
@@ -62,8 +60,8 @@ pub fn create(
             app_dir,
             battle,
             mod_,
-            scenario.a_start_spawn_zones(),
-            scenario.b_start_spawn_zones(),
+            &scenario.side(Side::A).start_spawn_zones,
+            &scenario.side(Side::B).start_spawn_zones,
             &minimap_path(app_dir, &game),
         )
     });
@@ -90,10 +88,8 @@ pub fn open(ctx: &mut PageContext, scenario: &Scenario, game: Game) -> Result<()
     let side = battle_game.side;
     let deployment = launch::load_deployment(&game.dir(ctx.app_dir), side)?;
 
-    let (count, defaults) = match side {
-        Side::A => (scenario.a_squad_count(), scenario.a_default()),
-        Side::B => (scenario.b_squad_count(), scenario.b_default()),
-    };
+    let scenario_side = scenario.side(side);
+    let (count, defaults) = (scenario_side.squad_count, &scenario_side.default);
     *ctx.squad_slots = launch::default_slots(&deployment, defaults, count);
     *ctx.deployment = Some(deployment);
     *ctx.selected_side = Some(side);
@@ -118,8 +114,8 @@ pub fn after_battle(
         app_dir,
         battle,
         mod_,
-        &state.side_a_spawns,
-        &state.side_b_spawns,
+        &state.spawns.a,
+        &state.spawns.b,
         &minimap_path(app_dir, game),
     )?;
 

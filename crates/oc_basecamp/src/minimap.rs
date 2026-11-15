@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use image::{Rgba, RgbaImage, imageops::FilterType};
 use oc_game::folder_name;
-use oc_root::SPAWN_ZONE_NONE_OPACITY;
+use oc_root::{SPAWN_ZONE_NONE_OPACITY, side::Side};
 use oc_world::{
     reader::MapReader,
     spawn::{SpawnZone, SpawnZoneName},
@@ -63,8 +63,8 @@ fn generate(app_dir: &Path, battle: &Battle, mods: &[ModInfo]) -> Result<(), Str
         let image = zones.paint(
             &base,
             [
-                (scenario.a_start_spawn_zones(), mod_.a_color),
-                (scenario.b_start_spawn_zones(), mod_.b_color),
+                (&scenario.side(Side::A).start_spawn_zones, mod_.a_color),
+                (&scenario.side(Side::B).start_spawn_zones, mod_.b_color),
             ],
         );
         save(&image, &path)?;

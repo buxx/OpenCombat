@@ -80,7 +80,7 @@ impl<E: Client> super::State<E> {
             return false;
         }
 
-        world.supports.side_mut(side).consume(type_);
+        world.supports[side].consume(type_);
         // Keep in memory last realized instant (to respect delay between supports of same type)
         world.support_realized.insert((side, type_), Instant::now());
 

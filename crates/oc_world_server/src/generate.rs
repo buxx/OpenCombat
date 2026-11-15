@@ -3,11 +3,17 @@ use std::path::{Path, PathBuf};
 use anyhow::Context;
 use bon::Builder;
 use oc_deployment::deployment::{
-    Deployment, Deployments,
+    Deployments,
     place::{OrderPolicy, Placer},
 };
 use oc_mod::Mod;
-use oc_root::{WorldConfig, battle::BattlePhase, geo::WorldVec2, physics::Meters, side::Side};
+use oc_root::{
+    WorldConfig,
+    battle::BattlePhase,
+    geo::WorldVec2,
+    physics::Meters,
+    side::{BySide, Side},
+};
 use oc_world::{
     load::WorldPath, meta::Meta, reader::MapReader, snapshot::Snapshot, spawn::SpawnZone,
     support::Supports,
@@ -103,11 +109,8 @@ impl Generate {
             spawns(&self.spawns_b, Side::B)?,
         );
 
-        let deployments = Deployments {
-            side_a: Deployment::from_file(&self.deployment_a)?,
-            side_b: Deployment::from_file(&self.deployment_b)?,
-        }
-        .with_spawns(spawns_a, spawns_b);
+        let deployments = Deployments::from_files(&self.deployment_a, &self.deployment_b)?
+            .with_spawns(spawns_a, spawns_b);
 
         let map_ = map.build().context("Build map")?;
         let places = map_.places();
@@ -129,9 +132,10 @@ impl Generate {
             Some(player) if player != side => InitialOrder::Defend,
             _ => InitialOrder::Hide,
         };
-        let placer = placer
-            .with_a_order(self.order_a.unwrap_or_else(|| default(Side::A)).into())
-            .with_b_order(self.order_b.unwrap_or_else(|| default(Side::B)).into());
+        let orders = BySide::new(self.order_a, self.order_b);
+        let placer = placer.with_orders(BySide::from_fn(|side| {
+            orders[side].unwrap_or_else(|| default(side)).into()
+        }));
 
         let tiles = map.tiles(&w, &mod_).context("Read map tiles")?;
         let mut snapshot = Snapshot::empty(w.clone())
@@ -139,18 +143,9 @@ impl Generate {
             .with_decor(map.decor().context("Read map decor")?)
             .with_supports(self.supports.clone())
             .with_phase(BattlePhase::Deployment);
-        snapshot.side_a_spawns = deployments
-            .side_a
-            .spawns
-            .iter()
-            .map(|s| s.name.clone())
-            .collect();
-        snapshot.side_b_spawns = deployments
-            .side_b
-            .spawns
-            .iter()
-            .map(|s| s.name.clone())
-            .collect();
+        snapshot.spawns = deployments
+            .as_ref()
+            .map(|d| d.spawns.iter().map(|s| s.name.clone()).collect());
 
         deployments
             .mobilize(&w, &mod_, &mut snapshot, &placer, &tiles)

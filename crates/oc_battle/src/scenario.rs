@@ -2,6 +2,7 @@ use std::path::Path;
 
 use bon::Builder;
 use oc_deployment::{deployment::place::OrderPolicy, generator::profile::Profile};
+use oc_root::side::{BySide, Side};
 use oc_world::{
     spawn::SpawnZoneName,
     support::{Support, SupportType},
@@ -14,24 +15,21 @@ use crate::{Error, read_ron};
 pub struct Scenario {
     name: String,
     description: String,
-    deploy_a: Profile,
-    deploy_b: Profile,
-    a_start_spawn_zones: Vec<SpawnZoneName>,
-    b_start_spawn_zones: Vec<SpawnZoneName>,
-    a_squad_count: usize,
-    b_squad_count: usize,
-    a_default: Vec<String>,
-    b_default: Vec<String>,
+    sides: BySide<ScenarioSide>,
+}
+
+/// Scenario configuration of one side
+#[derive(Debug, Builder)]
+pub struct ScenarioSide {
+    pub deploy: Profile,
+    pub start_spawn_zones: Vec<SpawnZoneName>,
+    pub squad_count: usize,
+    pub default: Vec<String>,
     #[builder(default)]
-    a_supports: Support,
+    pub supports: Support,
     #[builder(default)]
-    b_supports: Support,
-    #[builder(default)]
-    a_places: Vec<SquadPlace>,
-    #[builder(default)]
-    b_places: Vec<SquadPlace>,
-    a_order: Option<OrderPolicy>,
-    b_order: Option<OrderPolicy>,
+    pub places: Vec<SquadPlace>,
+    pub order: Option<OrderPolicy>,
 }
 
 /// Squad (by its label, like `"Mg34"`) to place at a map place (by its name, like `"50"`)
@@ -89,60 +87,12 @@ impl Scenario {
         &self.description
     }
 
-    pub fn deploy_a(&self) -> &Profile {
-        &self.deploy_a
+    pub fn sides(&self) -> &BySide<ScenarioSide> {
+        &self.sides
     }
 
-    pub fn deploy_b(&self) -> &Profile {
-        &self.deploy_b
-    }
-
-    pub fn a_start_spawn_zones(&self) -> &[SpawnZoneName] {
-        &self.a_start_spawn_zones
-    }
-
-    pub fn b_start_spawn_zones(&self) -> &[SpawnZoneName] {
-        &self.b_start_spawn_zones
-    }
-
-    pub fn a_squad_count(&self) -> usize {
-        self.a_squad_count
-    }
-
-    pub fn b_squad_count(&self) -> usize {
-        self.b_squad_count
-    }
-
-    pub fn a_default(&self) -> &[String] {
-        &self.a_default
-    }
-
-    pub fn b_default(&self) -> &[String] {
-        &self.b_default
-    }
-
-    pub fn a_supports(&self) -> &Support {
-        &self.a_supports
-    }
-
-    pub fn b_supports(&self) -> &Support {
-        &self.b_supports
-    }
-
-    pub fn a_places(&self) -> &[SquadPlace] {
-        &self.a_places
-    }
-
-    pub fn b_places(&self) -> &[SquadPlace] {
-        &self.b_places
-    }
-
-    pub fn a_order(&self) -> Option<OrderPolicy> {
-        self.a_order
-    }
-
-    pub fn b_order(&self) -> Option<OrderPolicy> {
-        self.b_order
+    pub fn side(&self, side: Side) -> &ScenarioSide {
+        &self.sides[side]
     }
 
     pub fn from_ron_file(path: impl AsRef<Path>) -> Result<Self, Error> {
@@ -153,20 +103,26 @@ impl Scenario {
         Ok(Self {
             name: raw.name,
             description: raw.description,
-            deploy_a: read_ron(&dir.join(raw.deploy_a))?,
-            deploy_b: read_ron(&dir.join(raw.deploy_b))?,
-            a_start_spawn_zones: raw.a_start_spawn_zones,
-            b_start_spawn_zones: raw.b_start_spawn_zones,
-            a_squad_count: raw.a_squad_count,
-            b_squad_count: raw.b_squad_count,
-            a_default: raw.a_default,
-            b_default: raw.b_default,
-            a_supports: Support(raw.a_supports),
-            b_supports: Support(raw.b_supports),
-            a_places: raw.a_places,
-            b_places: raw.b_places,
-            a_order: raw.a_order,
-            b_order: raw.b_order,
+            sides: BySide::new(
+                ScenarioSide {
+                    deploy: read_ron(&dir.join(raw.deploy_a))?,
+                    start_spawn_zones: raw.a_start_spawn_zones,
+                    squad_count: raw.a_squad_count,
+                    default: raw.a_default,
+                    supports: Support(raw.a_supports),
+                    places: raw.a_places,
+                    order: raw.a_order,
+                },
+                ScenarioSide {
+                    deploy: read_ron(&dir.join(raw.deploy_b))?,
+                    start_spawn_zones: raw.b_start_spawn_zones,
+                    squad_count: raw.b_squad_count,
+                    default: raw.b_default,
+                    supports: Support(raw.b_supports),
+                    places: raw.b_places,
+                    order: raw.b_order,
+                },
+            ),
         })
     }
 }

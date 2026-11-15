@@ -1,7 +1,10 @@
-use derive_more::{Constructor, Deref};
+use derive_more::Deref;
 use std::time::{Duration, Instant};
 
-use oc_root::{geo::WorldVec2, side::Side};
+use oc_root::{
+    geo::WorldVec2,
+    side::{BySide, Side},
+};
 
 #[oc_derive::archivable(serde)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -35,12 +38,8 @@ impl SupportType {
 /// Count of available supports by type
 pub struct Support(pub Vec<(SupportType, u8)>);
 
-#[oc_derive::archivable(serde)]
-#[derive(Debug, Clone, Default, PartialEq, Constructor)]
-pub struct Supports {
-    pub side_a: Support,
-    pub side_b: Support,
-}
+/// Supports of each side
+pub type Supports = BySide<Support>;
 
 impl Support {
     pub fn count(&self, type_: SupportType) -> u8 {
@@ -54,22 +53,6 @@ impl Support {
     pub fn consume(&mut self, type_: SupportType) {
         if let Some((_, count)) = self.0.iter_mut().find(|(t, _)| *t == type_) {
             *count = count.saturating_sub(1);
-        }
-    }
-}
-
-impl Supports {
-    pub fn side_mut(&mut self, side: Side) -> &mut Support {
-        match side {
-            Side::A => &mut self.side_a,
-            Side::B => &mut self.side_b,
-        }
-    }
-
-    pub fn side(&self, side: Side) -> &Support {
-        match side {
-            Side::A => &self.side_a,
-            Side::B => &self.side_b,
         }
     }
 }

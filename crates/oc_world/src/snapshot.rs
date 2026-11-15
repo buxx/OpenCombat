@@ -8,7 +8,7 @@ use oc_projectile::Projectile;
 use oc_root::WorldConfig;
 use oc_root::battle::BattlePhase;
 use oc_root::geo::WorldVec2;
-use oc_root::side::Side;
+use oc_root::side::{BySide, Side};
 use oc_root::uuids::Uuids;
 use rkyv::with::{AsUnixTime, Map};
 use uuid::Uuid;
@@ -42,8 +42,7 @@ pub struct Snapshot {
     pub duration: Duration,
     #[rkyv(with = Map<AsUnixTime>)]
     pub start: Option<SystemTime>,
-    pub side_a_spawns: Vec<SpawnZoneName>,
-    pub side_b_spawns: Vec<SpawnZoneName>,
+    pub spawns: BySide<Vec<SpawnZoneName>>,
     pub supports: Supports,
     pub pending_supports: Vec<SnapshotPendingSupport>,
     pub support_realized: Vec<SnapshotSupportRealized>,
@@ -167,8 +166,7 @@ impl Snapshot {
             phase: BattlePhase::Deployment,
             duration: DEFAULT_FIGHT_DURATION,
             start: None,
-            side_a_spawns: vec![],
-            side_b_spawns: vec![],
+            spawns: BySide::default(),
             supports: Supports::default(),
             pending_supports: vec![],
             support_realized: vec![],
@@ -222,8 +220,7 @@ pub struct State {
     pub altered_tiles: Vec<Option<AlteredTile>>,
     pub decor: Vec<Option<Decor>>,
     pub craters: Vec<Crater>,
-    pub side_a_spawns: Vec<SpawnZoneName>,
-    pub side_b_spawns: Vec<SpawnZoneName>,
+    pub spawns: BySide<Vec<SpawnZoneName>>,
     pub individuals: Vec<IndividualState>,
     pub flags: Flags,
 }
@@ -252,8 +249,7 @@ impl From<&World> for State {
             altered_tiles: world.altered_tiles.clone(),
             decor: world.decor.clone(),
             craters: world.craters.clone(),
-            side_a_spawns: spawns(Side::A),
-            side_b_spawns: spawns(Side::B),
+            spawns: BySide::from_fn(spawns),
             individuals: individuals_states(world),
             flags: world.flags.clone(),
         }

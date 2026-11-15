@@ -13,7 +13,7 @@ pub enum CheckError {
     #[error("Scenario '{scenario}': {side} spawn zone '{zone}' does not exist in map")]
     UnknownSpawnZone {
         scenario: String,
-        side: &'static str,
+        side: char,
         zone: String,
     },
 }
@@ -28,7 +28,7 @@ pub fn check_battle(battle_path: &Path, map_path: &Path) -> Vec<CheckError> {
         Err(e) => return vec![CheckError::Map(e.to_string())],
     };
 
-    let unknown = |scenario: &str, side: &'static str, names: &[SpawnZoneName]| {
+    let unknown = |scenario: &str, side: char, names: &[SpawnZoneName]| {
         names
             .iter()
             .filter(|name| !spawn_zones.iter().any(|zone| zone.name == **name))
@@ -44,18 +44,17 @@ pub fn check_battle(battle_path: &Path, map_path: &Path) -> Vec<CheckError> {
         .scenarios()
         .iter()
         .flat_map(|scenario| {
-            let mut errors = vec![];
-            errors.extend(unknown(
-                scenario.name(),
-                "A",
-                scenario.a_start_spawn_zones(),
-            ));
-            errors.extend(unknown(
-                scenario.name(),
-                "B",
-                scenario.b_start_spawn_zones(),
-            ));
-            errors
+            scenario
+                .sides()
+                .iter()
+                .flat_map(|(side, scenario_side)| {
+                    unknown(
+                        scenario.name(),
+                        side.letter(),
+                        &scenario_side.start_spawn_zones,
+                    )
+                })
+                .collect::<Vec<_>>()
         })
         .collect()
 }

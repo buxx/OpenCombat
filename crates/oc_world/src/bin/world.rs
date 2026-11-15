@@ -5,7 +5,9 @@ use ::image::{ImageBuffer, Rgba};
 use anyhow::Context;
 use clap::Parser;
 use oc_mod::Mod;
-use oc_root::{DEFAULT_FIGHT_DURATION, HUD_MINIMAP_SIZE, WorldConfig, battle::BattlePhase};
+use oc_root::{
+    DEFAULT_FIGHT_DURATION, HUD_MINIMAP_SIZE, WorldConfig, battle::BattlePhase, side::BySide,
+};
 use oc_utils::image;
 use oc_world::{reader, snapshot::Snapshot, support::Supports, terrain::Terrain};
 use tracing::level_filters::LevelFilter;
@@ -248,8 +250,7 @@ fn snapshot_(
         BattlePhase::Deployment,
         DEFAULT_FIGHT_DURATION,
         None,
-        vec![],
-        vec![],
+        BySide::default(),
         Supports::default(),
         vec![],
         vec![],
