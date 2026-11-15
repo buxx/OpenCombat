@@ -112,6 +112,12 @@ pub fn area(
                     .collect();
                 let squads: Vec<SquadIndex> = squads.into_iter().collect();
 
+                // Area selection replaces previous selection. Don't rely on `unselect` observer: it is not
+                // triggered when press and release are not on the same entity (ex. release on a spawn zone).
+                for (_, _, mut selected) in &mut query {
+                    selected.0 = false;
+                }
+
                 // Set to "selected" the "Selected" component
                 for individual in &squad_members {
                     if let Some(entity) = mapping.get(individual)
