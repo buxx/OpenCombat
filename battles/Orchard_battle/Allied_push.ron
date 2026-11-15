@@ -42,4 +42,14 @@
   ],
   a_order: Defend,
   b_order: Defend,
+  b_places: [
+    ("Riffle", "83"),
+    ("Riffle", "67"),
+    ("Riffle", "300"),
+    ("Mg34", "102"),
+    ("Mg34", "225"),
+  ],
+  a_supports: [
+    (Artillery, 1),
+  ],
 )

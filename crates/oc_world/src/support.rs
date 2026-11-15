@@ -10,12 +10,14 @@ use oc_root::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SupportType {
     NavalBombard,
+    Artillery,
 }
 
 impl SupportType {
     pub fn name(&self) -> &'static str {
         match self {
             SupportType::NavalBombard => "Naval bombard",
+            SupportType::Artillery => "Artillery",
         }
     }
 
@@ -23,11 +25,12 @@ impl SupportType {
     pub fn arg_name(&self) -> &'static str {
         match self {
             SupportType::NavalBombard => "naval-bombard",
+            SupportType::Artillery => "artillery",
         }
     }
 
     pub fn from_arg_name(value: &str) -> Option<Self> {
-        [SupportType::NavalBombard]
+        [SupportType::NavalBombard, SupportType::Artillery]
             .into_iter()
             .find(|type_| type_.arg_name() == value)
     }
@@ -102,6 +105,7 @@ impl PendingSupport {
     pub fn is_ready(&self, support: &oc_mod::support::Support, speed: f32) -> bool {
         let prepare = match self.type_ {
             SupportType::NavalBombard => support.naval_bombard_prepare().div_f32(speed),
+            SupportType::Artillery => support.artillery_prepare().div_f32(speed),
         };
         self.start
             .map(|s| s.elapsed() >= prepare)

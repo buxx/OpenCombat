@@ -252,6 +252,7 @@ impl<'a, E: Client> Dealer<'a, E> {
         // the request is accepted but its preparation is delayed by the rest of the wait
         let wait = match type_ {
             SupportType::NavalBombard => world.mod_.support.naval_bombard_between_wait(),
+            SupportType::Artillery => world.mod_.support.artillery_between_wait(),
         }
         .div_f32(world.w.speed());
 

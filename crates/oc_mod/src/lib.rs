@@ -201,6 +201,14 @@ impl Mod {
             naval_bombard_serie_interval_ms: raw.naval_bombard_serie_interval_ms,
             naval_bombard_shell_interval_ms: raw.naval_bombard_shell_interval_ms,
             naval_bombard_between_wait_s: raw.naval_bombard_between_wait_s,
+            artillery_shell: self.shell_from_name(&raw.artillery_shell)?.index(),
+            artillery_series: raw.artillery_series,
+            artillery_shells_by_serie: raw.artillery_shells_by_serie,
+            artillery_radius: raw.artillery_radius,
+            artillery_prepare_seconds: raw.artillery_prepare_seconds,
+            artillery_serie_interval_ms: raw.artillery_serie_interval_ms,
+            artillery_shell_interval_ms: raw.artillery_shell_interval_ms,
+            artillery_between_wait_s: raw.artillery_between_wait_s,
         })
     }
 

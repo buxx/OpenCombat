@@ -7,4 +7,12 @@
   naval_bombard_serie_interval_ms: 0,
   naval_bombard_shell_interval_ms: 0,
   naval_bombard_between_wait_s: 0,
+  artillery_shell: "5/38 shell",
+  artillery_series: 1,
+  artillery_shells_by_serie: 1,
+  artillery_radius: Meters(1.0),
+  artillery_prepare_seconds: 1,
+  artillery_serie_interval_ms: 0,
+  artillery_shell_interval_ms: 0,
+  artillery_between_wait_s: 0,
 )

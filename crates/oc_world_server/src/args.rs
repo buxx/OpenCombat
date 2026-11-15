@@ -201,7 +201,7 @@ fn parse_support(value: &str) -> Result<(SupportType, u8), String> {
         .split_once('=')
         .ok_or_else(|| format!("Expected `<type>=<count>`, got '{value}'"))?;
     let type_ = SupportType::from_arg_name(type_)
-        .ok_or_else(|| format!("Unknown support type '{type_}' (expected: naval-bombard)"))?;
+        .ok_or_else(|| format!("Unknown support type '{type_}' (expected: naval-bombard, artillery)"))?;
     let count = count
         .parse()
         .map_err(|e| format!("Invalid support count '{count}': {e}"))?;
