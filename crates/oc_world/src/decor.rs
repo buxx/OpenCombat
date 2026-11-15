@@ -3,11 +3,10 @@ use std::path::Path;
 use derive_more::Constructor;
 use glam::Vec2;
 use oc_geo::tile::WorldTileIndex;
-use rkyv::{Archive, Deserialize, Serialize};
 
 /// "On the top" decor (vegetation, ...) displayed on a tile
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq, Constructor)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq, Constructor)]
 pub struct Decor {
     pub i: WorldTileIndex,
     /// Id of the sprite in the decor tileset

@@ -1,21 +1,6 @@
-use rkyv::{Archive, Deserialize, Serialize};
-
 /// Percentage between 0 and 100 (stored in one byte)
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Default,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Archive,
-    Deserialize,
-    Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Percent(pub u8);
 
 impl Percent {

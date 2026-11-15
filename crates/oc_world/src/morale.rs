@@ -1,5 +1,5 @@
-#[derive(Debug, Clone, Copy, PartialEq, rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Morale {
     pub a: f32,
     pub b: f32,

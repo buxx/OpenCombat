@@ -3,12 +3,11 @@ use oc_root::{
     geo::{WorldVec2, WorldVec3},
 };
 use oc_utils::{d2::Xy, true_};
-use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::region::RegionXy;
 
-#[derive(Debug, Clone, Copy, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TileXy(pub Xy);
 
 impl TileXy {
@@ -115,20 +114,8 @@ impl WcfgFrom<TileXy> for [f32; 3] {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-    Eq,
-    Hash,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct WorldTileIndex(pub u64);
 
 impl WorldTileIndex {

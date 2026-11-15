@@ -6,26 +6,14 @@ use crate::{
     sound::SoundIndex,
 };
 use oc_root::{explosion::Explosion, physics::Meters};
-use rkyv::Archive;
 use thiserror::Error;
 
 pub const GRENADES_RON: &str = "grenades.ron";
 
 index_type!(GrenadeIndex(u16));
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    Eq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GrenadeNature {
     Frag,
     Smoke,
@@ -33,17 +21,8 @@ pub enum GrenadeNature {
 
 pub type IndexedGrenade = Indexed<GrenadeIndex, Grenade>;
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Grenade<S: ArchivedDebug = Vec<SoundIndex>> {
     pub name: String,
     pub blast_rayon: Meters,

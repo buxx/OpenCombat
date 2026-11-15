@@ -1,25 +1,24 @@
 use oc_mod::sound::SoundIndex;
 use oc_root::geo::{WorldVec2, WorldVec3};
 use oc_root::physics::Meters;
-use rkyv::{Archive, Deserialize, Serialize};
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Clone)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Fx {
     Audio(Audio),
     Visual(Visual),
 }
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Clone)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Audio {
     PlayWithGeo(SoundIndex, WorldVec3, SoundBus),
     Play(SoundIndex),
 }
 
 /// Mixing group of a sound: the gui applies one volume per bus
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Clone, Copy, Eq, Hash)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
 pub enum SoundBus {
     Fire,
     Effects,
@@ -36,8 +35,8 @@ impl SoundBus {
     ];
 }
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Clone)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Visual {
     Explosion(WorldVec2, Meters),
     /// Light flash at explosion center, sized by the largest explosion rayon
@@ -50,8 +49,8 @@ pub enum Visual {
 }
 
 #[cfg(feature = "debug")]
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Clone)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ExplosionDebug {
     pub position: WorldVec2,
     pub kill_rayon: Meters,

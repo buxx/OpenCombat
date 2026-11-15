@@ -1,11 +1,10 @@
 use oc_root::{WcfgFrom, WcfgInto, WorldConfig};
 use oc_utils::d2::Xy;
-use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::tile::{TileXy, WorldTileIndex};
 
-#[derive(Debug, Clone, Copy, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RegionXy(pub Xy);
 
 impl From<RegionXy> for (u64, u64) {
@@ -14,21 +13,8 @@ impl From<RegionXy> for (u64, u64) {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Archive,
-    Deserialize,
-    serde::Deserialize,
-    Serialize,
-    Hash,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize)]
 pub struct WorldRegionIndex(pub u64);
 
 impl WorldRegionIndex {

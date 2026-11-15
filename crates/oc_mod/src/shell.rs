@@ -7,7 +7,6 @@ use crate::{
     indexed::{ArchivedDebug, Indexed, index_all, read_ron},
     sound::SoundIndex,
 };
-use rkyv::Archive;
 use thiserror::Error;
 
 pub const SHELLS_RON: &str = "shells.ron";
@@ -16,17 +15,8 @@ index_type!(ShellIndex(u16));
 
 pub type IndexedShell = Indexed<ShellIndex, Shell>;
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Shell<S: ArchivedDebug = Vec<SoundIndex>> {
     pub name: String,
     pub kill_rayon: Meters,

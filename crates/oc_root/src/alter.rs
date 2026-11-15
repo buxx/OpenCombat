@@ -1,26 +1,11 @@
 use std::str::FromStr;
 
-use rkyv::Archive;
 use strum::EnumCount;
 use strum_macros::{EnumCount, EnumIter};
 
 /// Visual alteration of a tile (like debris on the ground)
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    Eq,
-    Hash,
-    EnumCount,
-    EnumIter,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 pub enum Alter {
     BrickDebris,
     MixedDebris,

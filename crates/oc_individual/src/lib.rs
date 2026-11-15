@@ -38,7 +38,6 @@ use oc_root::y::V;
 use oc_utils::collections::WithIds;
 use oc_utils::d2::Direction;
 use oc_utils::d2::Xy;
-use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::behavior::Behavior;
 use crate::behavior::Intent;
@@ -63,21 +62,8 @@ pub const INDIVIDUAL_PRONE_VOLUME_DEPTH: Meters = Meters(0.8);
 // Must stay under the navmesh agent radius (2.5px), or individuals cut corners and enter walls.
 pub const WANT_STOP_TOLERANCE: f32 = 1.0;
 
-#[derive(
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-    Constructor,
-    Hash,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Constructor, Hash)]
 pub struct IndividualIndex(pub u64);
 
 impl Display for IndividualIndex {
@@ -86,8 +72,8 @@ impl Display for IndividualIndex {
     }
 }
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Constructor, Clone, WithSetters)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Constructor, Clone, WithSetters)]
 #[allow(clippy::too_many_arguments)]
 pub struct Individual {
     pub side: Side,
@@ -114,8 +100,8 @@ pub struct Individual {
     pub magazines: Vec<MagazineIndex>,
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Update {
     SetPosition(WorldVec3),
     SetForces(Vec<Force>),
@@ -460,8 +446,8 @@ impl<'a> WithIds<IndividualIndex, &'a Individual> for &'a [Individual] {
     }
 }
 
-#[derive(Debug, Clone, Copy, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Status {
     Operational,
     // FIXME: will lost/not apply real status
@@ -497,8 +483,8 @@ impl Status {
     }
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Gesture {
     pub body: BodyGesture,
     pub hands: HandsGesture,
@@ -528,8 +514,8 @@ impl Gesture {
     }
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BodyGesture {
     StandUp(Direction),
     Walking(Direction),
@@ -560,8 +546,8 @@ impl BodyGesture {
     }
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq)]
 pub enum HandsGesture {
     Idle,
     Reloading(U8Progress),
@@ -604,8 +590,8 @@ impl Gesture {
     }
 }
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Constructor, Clone, Default)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Constructor, Clone, Default)]
 pub struct Weapons {
     pub primary: Option<Weapon>,
     pub grenades: Vec<GrenadeIndex>,
@@ -619,22 +605,22 @@ impl Weapons {
     }
 }
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Constructor, Clone)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Constructor, Clone)]
 pub struct Weapon {
     pub i: WeaponIndex,
     pub filled: Option<(MagazineIndex, AmmunitionIndex)>, // TODO: probably rethink arch for weapon without magazine
     pub filled_count: u16,
 }
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Clone)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Clone)]
 pub enum WeaponKind {
     Primary,
 }
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq, Clone)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Xp(pub u8);
 
 impl Xp {

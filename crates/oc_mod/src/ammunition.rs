@@ -1,7 +1,6 @@
 use std::path::Path;
 
 use crate::indexed::{Indexed, index_all, read_ron};
-use rkyv::Archive;
 use strum_macros::EnumIter;
 use thiserror::Error;
 
@@ -11,18 +10,8 @@ index_type!(AmmunitionIndex(u32));
 
 pub type IndexedAmmunition = Indexed<AmmunitionIndex, Ammunition>;
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    Eq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Ammunition {
     Cartridge(Cartridge),
 }
@@ -61,18 +50,8 @@ impl AmmunitionType {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    Eq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Cartridge {
     name: String,
     model: String,

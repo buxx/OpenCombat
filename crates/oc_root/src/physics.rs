@@ -1,23 +1,11 @@
 use std::ops::Deref;
 
 use derive_more::{Add, Deref, Div, Mul, Sub};
-use rkyv::Archive;
 
 use crate::WorldConfig;
 
-#[derive(
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Deserialize,
-    serde::Serialize,
-    Debug,
-    PartialEq,
-    Clone,
-    Copy,
-    Deref,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, PartialEq, Clone, Copy, Deref)]
 pub struct Seconds(pub f32);
 
 impl std::ops::Div<f32> for Seconds {
@@ -44,20 +32,8 @@ impl std::ops::Mul<f32> for Seconds {
     }
 }
 
-#[derive(
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Deserialize,
-    serde::Serialize,
-    Debug,
-    PartialEq,
-    PartialOrd,
-    Clone,
-    Copy,
-    Default,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy, Default)]
 pub struct Meters(pub f32);
 
 impl Meters {
@@ -74,23 +50,8 @@ impl std::ops::Mul<f32> for Meters {
     }
 }
 
-#[derive(
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Deserialize,
-    serde::Serialize,
-    Debug,
-    PartialEq,
-    Clone,
-    Copy,
-    PartialOrd,
-    Add,
-    Sub,
-    Mul,
-    Div,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, PartialEq, Clone, Copy, PartialOrd, Add, Sub, Mul, Div)]
 pub struct MetersSeconds(pub f32);
 
 impl Deref for MetersSeconds {

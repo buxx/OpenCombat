@@ -14,7 +14,6 @@ use oc_root::{
     files::{self, Roots},
     physics::Meters,
 };
-use rkyv::{Archive, Deserialize, Serialize};
 use tar::Builder;
 use thiserror::Error;
 
@@ -46,18 +45,8 @@ pub const MOD_RON: &str = "mod.ron";
 
 pub const DEFAULT_HUMAN_DEFAULT_STAND_UP_FIRE_METERS: Meters = Meters(1.5);
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    Deserialize,
-    Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-    Constructor,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq, Constructor)]
 #[allow(clippy::too_many_arguments)]
 pub struct Mod {
     name: String,

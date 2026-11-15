@@ -5,31 +5,12 @@ use oc_utils::polygon::Polygon;
 
 use crate::spawn::SpawnZone;
 
-#[derive(
-    Debug,
-    Constructor,
-    serde::Deserialize,
-    serde::Serialize,
-    Clone,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Constructor, Clone, PartialEq)]
 pub struct FlagName(pub String);
 
-#[derive(
-    Debug,
-    serde::Deserialize,
-    serde::Serialize,
-    Clone,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Flag {
     pub name: FlagName,
     pub start: WorldVec2,
@@ -80,17 +61,8 @@ impl Polygon for Flag {
     }
 }
 
-#[derive(
-    Debug,
-    serde::Deserialize,
-    serde::Serialize,
-    Clone,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Ownership {
     Nobody,
     A,
@@ -98,19 +70,8 @@ pub enum Ownership {
     Both,
 }
 
-#[derive(
-    Debug,
-    Constructor,
-    serde::Deserialize,
-    serde::Serialize,
-    Clone,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    Default,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Constructor, Clone, PartialEq, Default)]
 pub struct Flags(Vec<(Flag, Ownership)>);
 
 impl Flags {

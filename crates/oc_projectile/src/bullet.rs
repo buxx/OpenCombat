@@ -5,10 +5,9 @@ use oc_physics::Force;
 use oc_root::geo::WorldVec3;
 use oc_root::side::Side;
 use oc_root::{WcfgInto, WorldConfig};
-use rkyv::{Archive, Deserialize, Serialize};
 
-#[derive(Archive, Deserialize, Serialize, Clone, Debug, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Bullet {
     pub position: WorldVec3,
     pub origin: WorldVec3,

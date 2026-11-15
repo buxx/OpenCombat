@@ -1,17 +1,5 @@
-use rkyv::Archive;
-
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MaterialKind {
     Individual,
     Projectile,

@@ -9,7 +9,6 @@ use std::time::Duration;
 use bevy::prelude::*;
 
 use getset::{CopyGetters, Getters, WithSetters};
-use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::{
     behavior::{Stun, Suppress},
@@ -65,10 +64,8 @@ pub const DEFAULT_MOD: &str = "std1";
 pub const SPAWN_ZONE_NONE_OPACITY: f32 = 0.75;
 pub const SPAWN_ZONE_ENEMY_OPACITY: f32 = 0.95;
 
-#[derive(
-    Debug, Clone, Archive, Deserialize, Serialize, PartialEq, WithSetters, Getters, CopyGetters,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq, WithSetters, Getters, CopyGetters)]
 pub struct WorldConfig {
     #[getset(get_copy = "pub")]
     world_width: u64,

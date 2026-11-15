@@ -3,7 +3,6 @@ use oc_individual::IndividualIndex;
 #[cfg(feature = "debug")]
 use oc_root::geo::WorldVec3;
 use oc_root::opacity::CumulatedOpacity;
-use rkyv::{Archive, Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deref, DerefMut)]
 pub struct Visibilities {
@@ -11,8 +10,8 @@ pub struct Visibilities {
     values: Vec<Vec<Visibility>>,
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq, Constructor)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq, Constructor)]
 pub struct Visibility {
     pub visible: bool,
     pub opacity: CumulatedOpacity,

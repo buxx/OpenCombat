@@ -6,17 +6,8 @@ use oc_utils::polygon::Polygon;
 
 use crate::flag::{Flags, Ownership};
 
-#[derive(
-    Debug,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    serde::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    Clone,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 #[serde(transparent)]
 pub struct SpawnZoneName(pub String);
 

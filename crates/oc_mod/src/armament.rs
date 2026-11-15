@@ -1,5 +1,4 @@
 use oc_root::physics::Seconds;
-use rkyv::Archive;
 
 use crate::indexed::Indexed;
 use crate::{Mod, sound::SoundIndex};
@@ -8,17 +7,8 @@ index_type!(ShotModeIndex(u32));
 
 pub type IndexedShotMode = Indexed<ShotModeIndex, ShotMode>;
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ShotMode {
     Single {
         sounds: Vec<SoundIndex>,
@@ -33,17 +23,8 @@ pub enum ShotMode {
     },
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ShotModeRaw {
     Single {
         sounds: Vec<String>,

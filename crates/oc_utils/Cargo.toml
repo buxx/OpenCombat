@@ -12,6 +12,7 @@ tiled = ["dep:tiled"]
 debug = ["dep:backtrace"]
 
 [dependencies]
+oc_derive = { path = "../oc_derive" }
 oc_root = { path = "../oc_root" }
 image.workspace = true                                         # should be optional because used only by binoc_root = { path = "../oc_root" }
 rkyv.workspace = true

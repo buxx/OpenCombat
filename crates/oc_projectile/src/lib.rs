@@ -12,7 +12,6 @@ use oc_mod::{Mod, nature::Traversability};
 use oc_physics::{Force, IgnoreSide, Physic, UpdatePhysic, collision::Material, volume::Volume};
 use oc_root::{WorldConfig, geo::WorldVec3, ids::Ids, material::MaterialKind};
 use oc_utils::{collections::WithIds, d2::Direction};
-use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::bullet::Bullet;
 
@@ -24,20 +23,8 @@ pub mod bullet;
 pub mod network;
 pub mod spawn;
 
-#[derive(
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ProjectileId(pub u64);
 
 impl Display for ProjectileId {
@@ -52,8 +39,8 @@ impl From<&ProjectileId> for ProjectileId {
     }
 }
 
-#[derive(Archive, Deserialize, Serialize, Clone, Debug, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Projectile {
     Bullet(Bullet),
 }

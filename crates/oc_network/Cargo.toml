@@ -10,6 +10,7 @@ workspace = true
 debug = ["oc_projectile/debug"]
 
 [dependencies]
+oc_derive = { path = "../oc_derive" }
 oc_root = { path = "../oc_root" }
 oc_individual = { path = "../oc_individual" }
 oc_projectile = { path = "../oc_projectile" }

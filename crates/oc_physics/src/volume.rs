@@ -1,10 +1,9 @@
 use glam::{Quat, Vec3};
-use rkyv::{Archive, Deserialize, Serialize};
 
 // WARNING: this module has been AI generated
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Volume {
     Point {
         x: f32,

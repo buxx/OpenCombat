@@ -1,20 +1,6 @@
-use rkyv::Archive;
-
 /// Kind of crater left on the ground by an explosion, according to the ground hardness
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    Eq,
-    Hash,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CraterType {
     Mud,
     Concrete,

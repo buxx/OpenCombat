@@ -5,15 +5,14 @@ use oc_root::{
     physics::{Meters, MetersSeconds},
 };
 use oc_utils::d2::Direction;
-use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::IndividualIndex;
 
 /// Maximum distance a grenade or smoke can be thrown. Further, individual moves to be near enough.
 pub const THROW_MAX_DISTANCE: Meters = Meters(30.0);
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Intent {
     Idle(Direction),
     MoveTo(WorldVec2, MovePath),
@@ -27,8 +26,8 @@ pub enum Intent {
     Smoke(WorldVec2),
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Behavior {
     Idle(Direction),
     Walk(Direction),
@@ -76,8 +75,8 @@ impl Behavior {
     }
 }
 
-#[derive(Debug, Clone, Deref, DerefMut, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, Deref, DerefMut, PartialEq)]
 pub struct MovePath(pub Vec<WorldVec2>);
 
 #[cfg(feature = "polyanya")]

@@ -3,20 +3,8 @@ use std::time::{Duration, Instant};
 
 use oc_root::{geo::WorldVec2, side::Side};
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SupportType {
     NavalBombard,
 }
@@ -42,35 +30,13 @@ impl SupportType {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Default,
-    PartialEq,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    Deref,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Default, PartialEq, Deref)]
 /// Count of available supports by type
 pub struct Support(pub Vec<(SupportType, u8)>);
 
-#[derive(
-    Debug,
-    Clone,
-    Default,
-    PartialEq,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    Constructor,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Default, PartialEq, Constructor)]
 pub struct Supports {
     pub side_a: Support,
     pub side_b: Support,

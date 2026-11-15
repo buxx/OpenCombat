@@ -3,27 +3,16 @@ use enum_type_derive::EnumType;
 use glam::Vec2;
 use oc_root::geo::WorldVec2;
 use oc_utils::d2::Direction;
-use rkyv::Archive;
 
 use crate::IndividualIndex;
 
 /// Index of squad order in squad order, by starting end
-#[derive(Debug, Clone, Copy, Deref, Archive, rkyv::Deserialize, rkyv::Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, Copy, Deref, PartialEq)]
 pub struct OrderIndex(pub u32);
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-    EnumType,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq, EnumType)]
 pub enum Order {
     Idle,
     MoveTo(WorldVec2),

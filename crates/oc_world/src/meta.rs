@@ -1,21 +1,10 @@
 use std::path::PathBuf;
 
 use derive_more::Constructor;
-use rkyv::{Archive, Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(
-    Debug,
-    Constructor,
-    serde::Deserialize,
-    serde::Serialize,
-    Clone,
-    Archive,
-    Deserialize,
-    Serialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Constructor, Clone, PartialEq)]
 pub struct Meta {
     #[serde(skip, default)]
     pub name: String,

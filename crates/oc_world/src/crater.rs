@@ -1,9 +1,8 @@
 use oc_root::{craters::CraterType, geo::WorldVec2};
-use rkyv::{Archive, Deserialize, Serialize};
 
 /// Crater left on the ground by an explosion
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(derive(Debug))]
+#[oc_derive::archivable(no_compare)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Crater {
     /// Center of the crater
     pub position: WorldVec2,

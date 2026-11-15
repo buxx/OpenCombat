@@ -4,16 +4,8 @@ use oc_root::{battle::BattlePhase, side::Side};
 
 use crate::{World, spawn::SpawnZoneName, support::SupportType};
 
-#[derive(
-    Debug,
-    Clone,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-)]
-#[rkyv(derive(Debug))]
+#[oc_derive::archivable(serde, no_compare)]
+#[derive(Debug, Clone)]
 pub struct WorldResume {
     pub squads: Vec<(SquadIndex, Squad)>,
     pub side_a_spawns: Vec<SpawnZoneName>,
@@ -23,19 +15,8 @@ pub struct WorldResume {
 }
 
 /// Battle end summary of one side
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Default,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-)]
-#[rkyv(derive(Debug))]
+#[oc_derive::archivable(serde, no_compare)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct EndResume {
     /// Individuals engaged in the battle
     pub engaged: u32,

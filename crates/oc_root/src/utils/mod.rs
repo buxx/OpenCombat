@@ -1,7 +1,5 @@
 use std::time::Duration;
 
-use rkyv::Archive;
-
 pub fn remove_numeric_suffix(s: &str) -> &str {
     // Find last '_' followed by only digits until end of string
     if let Some(pos) = s.rfind('_')
@@ -13,18 +11,8 @@ pub fn remove_numeric_suffix(s: &str) -> &str {
     s
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct U8Progress(pub u8);
 
 impl U8Progress {
@@ -47,18 +35,8 @@ impl U8Progress {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Frequency {
     interval: Duration,
     hz: f32,

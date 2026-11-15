@@ -13,7 +13,6 @@ use oc_utils::{
     d2::{Direction, Xy},
     number::almost_equal,
 };
-use rkyv::Archive;
 use std::fmt::Debug;
 
 pub mod collision;
@@ -95,8 +94,8 @@ pub trait UpdatePhysic: Physic + Material {
 }
 
 // TODO: gravité
-#[derive(Archive, rkyv::Deserialize, rkyv::Serialize, Debug, PartialEq, Clone)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Force {
     Translation(WorldVec3, MetersSeconds),
 }

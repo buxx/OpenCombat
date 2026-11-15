@@ -4,10 +4,9 @@ use derive_more::Constructor;
 use oc_individual::IndividualIndex;
 use oc_mod::{ammunition::AmmunitionIndex, armament::ShotModeIndex, weapons::WeaponIndex};
 use oc_root::{geo::WorldVec3, side::Side};
-use rkyv::{Archive, Deserialize, Serialize};
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq, Constructor)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq, Constructor)]
 #[allow(clippy::too_many_arguments)]
 pub struct SpawnProjectiles {
     pub weapon: WeaponIndex,
@@ -21,8 +20,8 @@ pub struct SpawnProjectiles {
     pub shooter: Option<IndividualIndex>,
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq, Constructor)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq, Constructor)]
 pub struct SpawnProjectile {
     pub weapon: WeaponIndex,
     pub ammunition: AmmunitionIndex,

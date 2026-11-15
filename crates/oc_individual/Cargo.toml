@@ -11,6 +11,7 @@ bevy = ["dep:bevy"]
 polyanya = ["dep:polyanya"]
 
 [dependencies]
+oc_derive = { path = "../oc_derive" }
 oc_root = { path = "../oc_root" }
 oc_utils = { path = "../oc_utils" }
 oc_mod = { path = "../oc_mod" }

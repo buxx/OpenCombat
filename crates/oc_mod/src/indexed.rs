@@ -24,22 +24,8 @@ pub trait IndexType: Copy {
 /// Declare an index newtype (`pub struct NameIndex(pub u16)`) usable in [`Indexed`].
 macro_rules! index_type {
     ($name:ident($int:ty)) => {
-        #[derive(
-            Debug,
-            Clone,
-            Copy,
-            Default,
-            PartialEq,
-            Eq,
-            Hash,
-            rkyv::Archive,
-            rkyv::Deserialize,
-            rkyv::Serialize,
-            serde::Deserialize,
-            serde::Serialize,
-            derive_more::Deref,
-        )]
-        #[rkyv(compare(PartialEq), derive(Debug))]
+        #[oc_derive::archivable(serde)]
+        #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, derive_more::Deref)]
         pub struct $name(pub $int);
 
         impl $crate::indexed::IndexType for $name {
@@ -51,18 +37,8 @@ macro_rules! index_type {
 }
 
 /// A mod item with its index. Derefs to the item.
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Indexed<I: ArchivedDebug, T: ArchivedDebug>(pub I, pub T);
 
 impl<I: ArchivedDebug + Copy, T: ArchivedDebug> Indexed<I, T> {

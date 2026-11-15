@@ -4,42 +4,18 @@ use glam::Vec2;
 use oc_mod::illustration::IllustrationIndex;
 use oc_root::{WorldConfig, geo::WorldVec2, side::Side, y::V};
 use oc_utils::d2::Angle;
-use rkyv::Archive;
 
 use crate::{
     IndividualIndex,
     order::{Order, OrderIndex},
 };
 
-#[derive(
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-    Constructor,
-    Hash,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Constructor, Hash)]
 pub struct SquadIndex(pub u64);
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-    WithSetters,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq, WithSetters)]
 pub struct Squad {
     /// Side of the squad
     #[getset(set_with = "pub")]
@@ -94,18 +70,8 @@ impl Squad {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SquadStatus {
     Operational,
     Casualities,
@@ -113,8 +79,8 @@ pub enum SquadStatus {
     Destroyed,
 }
 
-#[derive(Debug, Clone, Archive, rkyv::Deserialize, rkyv::Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Update {
     SetOrders(Vec<Order>),
     SetOrderPosition(OrderIndex, WorldVec2),
@@ -125,18 +91,8 @@ pub enum Update {
     Accomplished,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SquadFormation {
     /// Formation make a line, squad leader at center
     Line,

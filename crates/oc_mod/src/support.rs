@@ -1,25 +1,14 @@
 use std::{path::Path, time::Duration};
 
 use oc_root::physics::Meters;
-use rkyv::Archive;
 use thiserror::Error;
 
 pub const SUPPORT_RON: &str = "support.ron";
 
 use crate::{indexed::ArchivedDebug, indexed::read_ron, shell::ShellIndex};
 
-#[derive(
-    Debug,
-    Clone,
-    Default,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Support<S: ArchivedDebug = ShellIndex> {
     pub naval_bombard_shell: S,
     pub naval_bombard_series: u32,

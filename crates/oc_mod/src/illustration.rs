@@ -6,27 +6,13 @@ use std::{
 use crate::indexed::{Indexed, index_all};
 use anyhow::Context;
 use derive_more::Constructor;
-use rkyv::Archive;
 use strum_macros::Display;
 use thiserror::Error;
 
 pub const ILLUSTRATION_RON: &str = "illustrations.ron";
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    Eq,
-    Hash,
-    serde::Deserialize,
-    serde::Serialize,
-    Display,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Display)]
 pub enum IllustrationKind {
     IngameSquad,
     IngameIndividual,
@@ -34,17 +20,8 @@ pub enum IllustrationKind {
 
 index_type!(IllustrationIndex(u32));
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SpriteSheet {
     pub start_x: u32,
     pub start_y: u32,
@@ -54,51 +31,22 @@ pub struct SpriteSheet {
     pub sprites: Vec<String>,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RawIllustrations {
     pub ingame_squads: SpriteSheet,
     pub ingame_individuals: SpriteSheet,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-    Default,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct IndexedIllustrations {
     pub ingame_squads: Vec<IndexedIllustration>,
     pub ingame_individuals: Vec<IndexedIllustration>,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-    Constructor,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq, Constructor)]
 pub struct Illustration {
     pub name: String,
     pub x: u32,

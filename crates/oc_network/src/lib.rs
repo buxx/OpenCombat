@@ -32,10 +32,9 @@ use oc_world::{
     tile::{AlteredTile, Tile},
     visibility::Visibility,
 };
-use rkyv::{Archive, Deserialize, Serialize};
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize)]
-#[rkyv(derive(Debug))]
+#[oc_derive::archivable(no_compare)]
+#[derive(Debug, Clone)]
 pub enum ToClient {
     GameConfig(Box<GameConfig>),
     WorldResume(WorldResume),
@@ -72,8 +71,8 @@ impl From<Projectile> for ToClient {
     }
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ToServer {
     RequestInit(Identity),
     ListenRegion(WorldRegionIndex),
@@ -96,8 +95,8 @@ pub enum ToServer {
     DebugOwnFlags(oc_root::side::Side),
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq, Constructor)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq, Constructor)]
 pub struct GameConfig {
     pub w: WorldConfig,
     pub mod_: Mod,
@@ -105,8 +104,8 @@ pub struct GameConfig {
     pub static_: StaticSource,
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SquadMessage {
     SetOrders(Vec<Order>),
     SetPositionOrderPosition(OrderIndex, WorldVec2),

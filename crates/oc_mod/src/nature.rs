@@ -5,7 +5,6 @@ use oc_root::{
     WorldConfig, alter::Alter, craters::CraterType, material::MaterialKind, opacity::Opacity,
     physics::Meters,
 };
-use rkyv::Archive;
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
@@ -15,17 +14,8 @@ index_type!(NatureIndex(u16));
 
 pub type IndexedNature = Indexed<NatureIndex, Nature>;
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Traversable {
     All,
     None,
@@ -37,18 +27,8 @@ impl Traversable {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MovementForce {
     None,
     Walk,
@@ -56,18 +36,8 @@ pub enum MovementForce {
     Sneak,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct IndividualMovement {
     #[serde(default = "default_movement_force")]
     pub force: MovementForce,
@@ -84,35 +54,15 @@ impl Default for IndividualMovement {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
-#[derive(Default)]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Movement {
     #[serde(default)]
     pub individual: IndividualMovement,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Interception {
     Never,
     Probability(f32),
@@ -127,17 +77,8 @@ impl Interception {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Intercept {
     #[serde(default = "default_interception")]
     pub projectile: Interception,
@@ -152,19 +93,8 @@ impl Default for Intercept {
 }
 
 /// Kind of bullet impact on a nature (select impact sounds)
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Default,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub enum ImpactKind {
     #[default]
     Ground,
@@ -172,17 +102,8 @@ pub enum ImpactKind {
     Metal,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NatureRaw {
     pub name: String,
     pub opacity: f32,
@@ -240,17 +161,8 @@ impl From<NatureRaw> for Nature {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Nature {
     pub name: String,
     pub opacity: f32,
@@ -272,17 +184,8 @@ pub struct Nature {
     pub crater: Option<CraterType>,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Traversability {
     pub individual: bool,
     pub projectile: bool,

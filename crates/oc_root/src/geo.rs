@@ -8,41 +8,15 @@ use glam::Vec3;
 
 use crate::{WcfgFrom, y::Y};
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    rkyv::Archive,
-    rkyv::Serialize,
-    rkyv::Deserialize,
-    serde::Serialize,
-    serde::Deserialize,
-    Constructor,
-    From,
-    Into,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq, Constructor, From, Into)]
 pub struct WorldVec2 {
     pub x: f32,
     pub y: f32,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    rkyv::Archive,
-    rkyv::Serialize,
-    rkyv::Deserialize,
-    serde::Serialize,
-    serde::Deserialize,
-    Constructor,
-    From,
-    Into,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq, Constructor, From, Into)]
 pub struct WorldVec3 {
     pub x: f32,
     pub y: f32,

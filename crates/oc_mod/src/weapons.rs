@@ -4,7 +4,6 @@ use oc_root::{
     WorldConfig,
     physics::{MetersSeconds, Seconds},
 };
-use rkyv::Archive;
 
 use strum_macros::EnumIter;
 use thiserror::Error;
@@ -26,17 +25,8 @@ index_type!(WeaponIndex(u32));
 pub type IndexedWeapon = Indexed<WeaponIndex, Weapon>;
 
 /// Kind of weapon, wrapping its data `G` (the same for each kind)
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum WeaponKind<G: ArchivedDebug> {
     Rifle(G),
     MachineGun(G),
@@ -138,17 +128,8 @@ impl WeaponType {
 
 /// Data of a weapon. Generic over references to other mod items: by name in the `.ron` file
 /// (`GunRaw`), resolved to indexed items once the mod is loaded (`Gun`).
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Gun<
     A: ArchivedDebug = Vec<IndexedAmmunition>,
     M: ArchivedDebug = Vec<IndexedMagazine>,

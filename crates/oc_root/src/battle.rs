@@ -1,17 +1,7 @@
 use crate::side::Side;
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    serde::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BattlePhase {
     Deployment,
     Fight,
@@ -28,52 +18,22 @@ impl BattlePhase {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    serde::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum End {
     Time(Result),
     Morale(Side, Result),
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    serde::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Result {
     pub a: SideResult,
     pub b: SideResult,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    rkyv::Archive,
-    rkyv::Deserialize,
-    serde::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SideResult {
     TotalVictory,
     Victory,

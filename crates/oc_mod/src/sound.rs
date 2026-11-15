@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 
 use crate::indexed::{Indexed, index_all};
 use derive_more::Constructor;
-use rkyv::Archive;
 use thiserror::Error;
 
 pub const SOUNDS_FOLDER: &str = "sounds";
@@ -10,35 +9,15 @@ pub const SOUNDS_FOLDER: &str = "sounds";
 index_type!(SoundIndex(u32));
 
 pub type IndexedSound = Indexed<SoundIndex, Sound>;
-#[derive(
-    Debug,
-    Clone,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-    Constructor,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, PartialEq, Constructor)]
 pub struct Sound {
     pub name: String,
 }
 
 /// Sounds groups as written in mod.ron (sounds file names)
-#[derive(
-    Debug,
-    Clone,
-    Default,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Default, PartialEq)]
 #[serde(default)]
 pub struct SoundGroupsNames {
     pub die: Vec<String>,
@@ -53,8 +32,8 @@ pub struct SoundGroupsNames {
 }
 
 /// Sounds groups resolved to sounds indexes
-#[derive(Debug, Clone, Default, Archive, rkyv::Deserialize, rkyv::Serialize, PartialEq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct SoundGroups {
     pub die: Vec<SoundIndex>,
     pub main_click: Option<SoundIndex>,

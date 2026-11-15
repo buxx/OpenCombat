@@ -1,8 +1,8 @@
 use derive_more::Constructor;
-use rkyv::{Archive, Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Default, PartialEq, Archive, Deserialize, Serialize, Constructor)]
+#[oc_derive::archivable(bare)]
+#[derive(Debug, Clone, Default, PartialEq, Constructor)]
 pub struct Uuids {
     pub individuals: Vec<Uuid>,
 }

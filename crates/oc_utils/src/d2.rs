@@ -7,12 +7,11 @@ use oc_root::{
     geo::{WorldVec2, WorldVec3},
     y::V,
 };
-use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::number::almost_equal;
 
-#[derive(Debug, Clone, Copy, Archive, Deserialize, Serialize, PartialEq, Eq)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Xy(pub u64, pub u64);
 
 impl From<Xy> for (u64, u64) {
@@ -72,18 +71,8 @@ impl Xy {
     }
 }
 
-#[derive(
-    Debug,
-    Copy,
-    Clone,
-    Archive,
-    rkyv::Serialize,
-    rkyv::Deserialize,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Angle(pub f32);
 
 impl Angle {
@@ -250,19 +239,8 @@ fn rotate_point(point_to_rotate: &Vec2, reference_point: &Vec2, sin: f32, cos: f
     Vec2::new(rotated.0, rotated.1)
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Archive,
-    rkyv::Deserialize,
-    rkyv::Serialize,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-    Constructor,
-)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable(serde)]
+#[derive(Debug, Clone, Copy, PartialEq, Constructor)]
 pub struct Direction {
     pub x: f32,
     pub y: f32,

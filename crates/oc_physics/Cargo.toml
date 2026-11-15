@@ -12,6 +12,7 @@ debug = []
 default = []
 
 [dependencies]
+oc_derive = { path = "../oc_derive" }
 oc_utils = { path = "../oc_utils", features = ["bevy"] }
 oc_root = { path = "../oc_root" }
 oc_geo = { path = "../oc_geo" }

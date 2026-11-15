@@ -12,12 +12,11 @@ use oc_utils::d2::Direction;
 
 use crate::{World, navmesh::Walls};
 use derive_more::Constructor;
-use rkyv::{Archive, Deserialize, Serialize};
 
 const DEPTH: f32 = 10_000.;
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq, Constructor)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq, Constructor)]
 pub struct Tile {
     pub i: WorldTileIndex, // Should not be necessary, but oc_physics::step must take a reference ...
     pub nature: NatureIndex,
@@ -166,8 +165,8 @@ impl Walls for Vec<Tile> {
     }
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, PartialEq, Constructor)]
-#[rkyv(compare(PartialEq), derive(Debug))]
+#[oc_derive::archivable]
+#[derive(Debug, Clone, PartialEq, Constructor)]
 pub struct AlteredTile {
     pub i: WorldTileIndex, // Should not be necessary, but oc_physics::step must take a reference ...
     pub nature: NatureIndex,

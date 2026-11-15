@@ -12,10 +12,7 @@ use oc_root::geo::WorldVec2;
 use oc_root::side::Side;
 use oc_root::uuids::Uuids;
 use rkyv::rancor::Error;
-use rkyv::{
-    Archive, Deserialize, Serialize,
-    with::{AsUnixTime, Map},
-};
+use rkyv::with::{AsUnixTime, Map};
 use uuid::Uuid;
 
 use crate::World;
@@ -29,7 +26,8 @@ use crate::tile::{AlteredTile, Tile};
 use oc_geo::tile::WorldTileIndex;
 use oc_root::DEFAULT_FIGHT_DURATION;
 
-#[derive(Debug, Archive, Deserialize, Serialize, Constructor)]
+#[oc_derive::archivable(bare)]
+#[derive(Debug, Constructor)]
 #[allow(clippy::too_many_arguments)]
 pub struct Snapshot {
     pub w: WorldConfig,
@@ -55,7 +53,8 @@ pub struct Snapshot {
 }
 
 /// Persistable form of a support request time (Instant can't be persisted)
-#[derive(Debug, Clone, Archive, Deserialize, Serialize)]
+#[oc_derive::archivable(bare)]
+#[derive(Debug, Clone)]
 pub struct SnapshotSupportRealized {
     pub side: Side,
     pub type_: SupportType,
@@ -75,7 +74,8 @@ impl SnapshotSupportRealized {
     }
 }
 
-#[derive(Debug, Clone, Archive, Deserialize, Serialize)]
+#[oc_derive::archivable(bare)]
+#[derive(Debug, Clone)]
 pub struct SnapshotSmokeCloud {
     #[rkyv(with = AsUnixTime)]
     pub start: SystemTime,
@@ -108,7 +108,8 @@ impl From<SnapshotSmokeCloud> for SmokeCloud {
 }
 
 /// Persistable form of PendingSupport (Instant can't be persisted)
-#[derive(Debug, Clone, Archive, Deserialize, Serialize)]
+#[oc_derive::archivable(bare)]
+#[derive(Debug, Clone)]
 pub struct SnapshotPendingSupport {
     pub type_: SupportType,
     pub side: Side,
@@ -237,7 +238,8 @@ impl Snapshot {
     }
 }
 
-#[derive(Debug, Archive, Deserialize, Serialize, Constructor)]
+#[oc_derive::archivable(bare)]
+#[derive(Debug, Constructor)]
 #[allow(clippy::too_many_arguments)]
 pub struct State {
     pub altered_tiles: Vec<Option<AlteredTile>>,
@@ -250,7 +252,8 @@ pub struct State {
 }
 
 /// Individual state kept between battles
-#[derive(Debug, Clone, Archive, Deserialize, Serialize, Constructor)]
+#[oc_derive::archivable(bare)]
+#[derive(Debug, Clone, Constructor)]
 pub struct IndividualState {
     pub uuid: Uuid,
     pub status: Status,

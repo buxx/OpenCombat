@@ -3787,7 +3787,7 @@ dependencies = [
 
 [[package]]
 name = "enum_type_derive"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "proc-macro2",
  "quote 1.0.47",
@@ -6584,7 +6584,7 @@ dependencies = [
 
 [[package]]
 name = "oc_basecamp"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "chrono",
  "eframe",
@@ -6607,7 +6607,7 @@ dependencies = [
 
 [[package]]
 name = "oc_battle"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "bon",
  "derive_more",
@@ -6623,7 +6623,7 @@ dependencies = [
 
 [[package]]
 name = "oc_battle_gui"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "bevy",
@@ -6672,7 +6672,7 @@ dependencies = [
 
 [[package]]
 name = "oc_deployment"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "clap",
@@ -6694,8 +6694,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "oc_derive"
+version = "0.1.3"
+dependencies = [
+ "proc-macro2",
+ "quote 1.0.47",
+ "syn 3.0.9",
+]
+
+[[package]]
 name = "oc_examples"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "bevy",
@@ -6727,7 +6736,7 @@ dependencies = [
 
 [[package]]
 name = "oc_game"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "chrono",
  "directories",
@@ -6742,10 +6751,11 @@ dependencies = [
 
 [[package]]
 name = "oc_geo"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "derive_more",
  "glam 0.33.12",
+ "oc_derive",
  "oc_root",
  "oc_utils",
  "rkyv",
@@ -6755,13 +6765,14 @@ dependencies = [
 
 [[package]]
 name = "oc_individual"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "bevy",
  "derive_more",
  "enum_type_derive",
  "getset",
  "glam 0.33.12",
+ "oc_derive",
  "oc_geo",
  "oc_mod",
  "oc_physics",
@@ -6776,7 +6787,7 @@ dependencies = [
 
 [[package]]
 name = "oc_lov"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "derive_more",
  "glam 0.33.12",
@@ -6796,13 +6807,14 @@ dependencies = [
 
 [[package]]
 name = "oc_mod"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "derive_more",
  "fastrand",
  "flate2",
  "gungraun",
+ "oc_derive",
  "oc_root",
  "oc_utils",
  "rkyv",
@@ -6818,9 +6830,10 @@ dependencies = [
 
 [[package]]
 name = "oc_network"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "derive_more",
+ "oc_derive",
  "oc_geo",
  "oc_individual",
  "oc_mod",
@@ -6834,7 +6847,7 @@ dependencies = [
 
 [[package]]
 name = "oc_physics"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "bevy",
  "derive_more",
@@ -6842,6 +6855,7 @@ dependencies = [
  "glam 0.33.12",
  "gungraun",
  "line_drawing",
+ "oc_derive",
  "oc_geo",
  "oc_mod",
  "oc_root",
@@ -6855,9 +6869,10 @@ dependencies = [
 
 [[package]]
 name = "oc_projectile"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "derive_more",
+ "oc_derive",
  "oc_geo",
  "oc_individual",
  "oc_mod",
@@ -6871,7 +6886,7 @@ dependencies = [
 
 [[package]]
 name = "oc_root"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "bevy",
  "clap",
@@ -6879,6 +6894,7 @@ dependencies = [
  "directories",
  "getset",
  "glam 0.33.12",
+ "oc_derive",
  "rkyv",
  "serde",
  "serde_derive",
@@ -6889,7 +6905,7 @@ dependencies = [
 
 [[package]]
 name = "oc_utils"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "backtrace",
@@ -6899,6 +6915,7 @@ dependencies = [
  "glam 0.33.12",
  "gungraun",
  "image 0.25.10",
+ "oc_derive",
  "oc_root",
  "rand 0.10.3",
  "rkyv",
@@ -6913,7 +6930,7 @@ dependencies = [
 
 [[package]]
 name = "oc_world"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "bevy",
@@ -6924,6 +6941,7 @@ dependencies = [
  "glam 0.33.12",
  "gungraun",
  "image 0.25.10",
+ "oc_derive",
  "oc_geo",
  "oc_individual",
  "oc_mod",
@@ -6951,7 +6969,7 @@ dependencies = [
 
 [[package]]
 name = "oc_world_generator"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "clap",
@@ -6970,7 +6988,7 @@ dependencies = [
 
 [[package]]
 name = "oc_world_server"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "axum",
@@ -9129,7 +9147,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "bon",
  "glam 0.33.12",
