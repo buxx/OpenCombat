@@ -3787,7 +3787,7 @@ dependencies = [
 
 [[package]]
 name = "enum_type_derive"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "proc-macro2",
  "quote 1.0.47",
@@ -6584,7 +6584,7 @@ dependencies = [
 
 [[package]]
 name = "oc_basecamp"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "chrono",
  "eframe",
@@ -6607,7 +6607,7 @@ dependencies = [
 
 [[package]]
 name = "oc_battle"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "bon",
  "derive_more",
@@ -6622,7 +6622,7 @@ dependencies = [
 
 [[package]]
 name = "oc_battle_gui"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "bevy",
@@ -6671,7 +6671,7 @@ dependencies = [
 
 [[package]]
 name = "oc_deployment"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "clap",
@@ -6694,7 +6694,7 @@ dependencies = [
 
 [[package]]
 name = "oc_derive"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "proc-macro2",
  "quote 1.0.47",
@@ -6703,7 +6703,7 @@ dependencies = [
 
 [[package]]
 name = "oc_examples"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "bevy",
@@ -6735,7 +6735,7 @@ dependencies = [
 
 [[package]]
 name = "oc_game"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "chrono",
  "directories",
@@ -6749,7 +6749,7 @@ dependencies = [
 
 [[package]]
 name = "oc_geo"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "derive_more",
  "glam 0.33.12",
@@ -6763,7 +6763,7 @@ dependencies = [
 
 [[package]]
 name = "oc_individual"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "bevy",
  "derive_more",
@@ -6785,7 +6785,7 @@ dependencies = [
 
 [[package]]
 name = "oc_lov"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "derive_more",
  "glam 0.33.12",
@@ -6805,7 +6805,7 @@ dependencies = [
 
 [[package]]
 name = "oc_mod"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "derive_more",
@@ -6827,7 +6827,7 @@ dependencies = [
 
 [[package]]
 name = "oc_network"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "derive_more",
  "oc_derive",
@@ -6844,7 +6844,7 @@ dependencies = [
 
 [[package]]
 name = "oc_physics"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "bevy",
  "derive_more",
@@ -6866,7 +6866,7 @@ dependencies = [
 
 [[package]]
 name = "oc_projectile"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "derive_more",
  "oc_derive",
@@ -6883,7 +6883,7 @@ dependencies = [
 
 [[package]]
 name = "oc_root"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "bevy",
  "clap",
@@ -6907,7 +6907,7 @@ dependencies = [
 
 [[package]]
 name = "oc_utils"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "backtrace",
@@ -6932,7 +6932,7 @@ dependencies = [
 
 [[package]]
 name = "oc_world"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "bevy",
@@ -6970,7 +6970,7 @@ dependencies = [
 
 [[package]]
 name = "oc_world_generator"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "clap",
@@ -6989,7 +6989,7 @@ dependencies = [
 
 [[package]]
 name = "oc_world_server"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "axum",
@@ -9148,7 +9148,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "bon",
  "glam 0.33.12",
