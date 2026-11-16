@@ -119,7 +119,13 @@ impl Processor<'_> {
                 updates.push(Update::StartPendingSupport(pending.clone()));
             }
 
-            if !pending.is_ready(&self.world.mod_.support, self.world.w.speed()) {
+            let Some(support) = self.world.mod_.support(pending.type_.name()) else {
+                tracing::warn!(name="world-support-unknown", pending=?pending);
+                updates.push(Update::RemovePendingSupport(pending.clone()));
+                continue;
+            };
+
+            if !pending.is_ready(support, self.world.w.speed()) {
                 tracing::trace!(name="world-support-not-ready", pending=?pending);
                 continue;
             }

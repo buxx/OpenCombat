@@ -7,32 +7,23 @@ use oc_root::{
 };
 
 #[oc_derive::archivable(serde)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum SupportType {
-    NavalBombard,
-    Artillery,
-}
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[serde(transparent)]
+pub struct SupportType(pub String);
 
 impl SupportType {
-    pub fn name(&self) -> &'static str {
-        match self {
-            SupportType::NavalBombard => "Naval bombard",
-            SupportType::Artillery => "Artillery",
-        }
+    pub fn new(value: impl Into<String>) -> Self {
+        Self(value.into())
     }
 
-    /// Command line argument name, like in `--support-a naval-bombard=3`
-    pub fn arg_name(&self) -> &'static str {
-        match self {
-            SupportType::NavalBombard => "naval-bombard",
-            SupportType::Artillery => "artillery",
-        }
+    pub fn name(&self) -> &str {
+        &self.0
     }
+}
 
-    pub fn from_arg_name(value: &str) -> Option<Self> {
-        [SupportType::NavalBombard, SupportType::Artillery]
-            .into_iter()
-            .find(|type_| type_.arg_name() == value)
+impl std::fmt::Display for SupportType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
     }
 }
 
@@ -45,16 +36,16 @@ pub struct Support(pub Vec<(SupportType, u8)>);
 pub type Supports = BySide<Support>;
 
 impl Support {
-    pub fn count(&self, type_: SupportType) -> u8 {
+    pub fn count(&self, type_: &SupportType) -> u8 {
         self.0
             .iter()
-            .find(|(t, _)| *t == type_)
+            .find(|(t, _)| t == type_)
             .map(|(_, count)| *count)
             .unwrap_or_default()
     }
 
-    pub fn consume(&mut self, type_: SupportType) {
-        if let Some((_, count)) = self.0.iter_mut().find(|(t, _)| *t == type_) {
+    pub fn consume(&mut self, type_: &SupportType) {
+        if let Some((_, count)) = self.0.iter_mut().find(|(t, _)| t == type_) {
             *count = count.saturating_sub(1);
         }
     }
@@ -85,8 +76,8 @@ impl PendingSupport {
         self.side == other.side && self.type_ == other.type_ && self.position == other.position
     }
 
-    pub fn type_(&self) -> SupportType {
-        self.type_
+    pub fn type_(&self) -> &SupportType {
+        &self.type_
     }
 
     pub fn side(&self) -> Side {
@@ -102,11 +93,9 @@ impl PendingSupport {
         self.start = Some(Instant::now() + self.delay);
     }
 
+    /// `support` is the mod declaration of this pending support type
     pub fn is_ready(&self, support: &oc_mod::support::Support, speed: f32) -> bool {
-        let prepare = match self.type_ {
-            SupportType::NavalBombard => support.naval_bombard_prepare().div_f32(speed),
-            SupportType::Artillery => support.artillery_prepare().div_f32(speed),
-        };
+        let prepare = support.prepare().div_f32(speed);
         self.start
             .map(|s| s.elapsed() >= prepare)
             .unwrap_or_default()

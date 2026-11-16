@@ -44,6 +44,9 @@ use tests::{
     weapons::{TestWeapon, TestWeapons},
 };
 
+/// Support declared by mods std1 and tests1
+const NAVAL_BOMBARD: &str = "Naval bombard";
+
 #[cfg(feature = "test")]
 static SUCCESS: AtomicBool = AtomicBool::new(false);
 /// Center of a BrickWall tile (tile 3,15 of meadow1)
@@ -202,7 +205,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         Case::Support => (
             BattlePhase::Deployment,
             Supports::new(
-                Support(vec![(SupportType::NavalBombard, 1)]),
+                Support(vec![(SupportType::new(NAVAL_BOMBARD), 1)]),
                 Support::default(),
             ),
             vec![],
@@ -478,7 +481,7 @@ fn request_support_and_fight(
         return;
     }
     commands.trigger(ToServerEvent(ToServer::RequestSupport(
-        SupportType::NavalBombard,
+        SupportType::new(NAVAL_BOMBARD),
         center.0,
     )));
     commands.trigger(ToServerEvent(ToServer::Fight));

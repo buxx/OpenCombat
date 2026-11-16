@@ -119,7 +119,7 @@ pub struct SnapshotPendingSupport {
 impl From<&PendingSupport> for SnapshotPendingSupport {
     fn from(value: &PendingSupport) -> Self {
         Self {
-            type_: value.type_,
+            type_: value.type_.clone(),
             side: value.side,
             position: value.position,
             delay: value.delay,

@@ -33,7 +33,7 @@ impl SupportButton {
     }
 }
 
-fn support_label(type_: SupportType, count: u8) -> String {
+fn support_label(type_: &SupportType, count: u8) -> String {
     format!("{} ({count})", type_.name())
 }
 
@@ -52,7 +52,7 @@ pub fn supports() -> impl Scene {
 
 fn support_button(support: (SupportType, u8)) -> impl Scene {
     let (type_, count) = support;
-    let label = support_label(type_, count);
+    let label = support_label(&type_, count);
     let (bg, text) = button_colors(count > 0);
 
     bsn! {
@@ -85,10 +85,10 @@ pub fn spawn_support_buttons(
 
     for (type_, count) in &world.supports {
         commands
-            .spawn_scene(support_button((*type_, *count)))
+            .spawn_scene(support_button((type_.clone(), *count)))
             .insert((
                 SupportButton {
-                    type_: *type_,
+                    type_: type_.clone(),
                     count: *count,
                 },
                 ChildOf(list),
@@ -116,14 +116,14 @@ fn on_click(mut e: On<PointerClick>, mut commands: Commands, buttons: Query<&Sup
     let_ok!(button = buttons.get(e.entity), return);
     e.propagate(false);
     true_!(button.available(), return);
-    commands.trigger(SetLeftClick(LeftClickMode::Support(button.type_)));
+    commands.trigger(SetLeftClick(LeftClickMode::Support(button.type_.clone())));
 }
 
 pub fn on_support_executed(
     event: On<SupportExecutedEvent>,
     mut requested: ResMut<RequestedSupports>,
 ) {
-    requested.remove(event.0);
+    requested.remove(&event.0);
 }
 
 pub fn on_set_support_count(
@@ -133,21 +133,22 @@ pub fn on_set_support_count(
     mut texts: Query<(&mut Text, &mut TextColor)>,
     mut requested: ResMut<RequestedSupports>,
 ) {
-    let SetSupportCountEvent(type_, count) = *event;
+    let SetSupportCountEvent(type_, count) = &*event;
+    let count = *count;
 
     if count == 0 {
         requested.remove(type_);
     }
 
     for (t, c) in world.supports.iter_mut() {
-        if *t == type_ {
+        if t == type_ {
             *c = count;
         }
     }
 
     let (bg_color, text_color) = button_colors(count > 0);
     for (mut button, mut bg, children) in &mut buttons {
-        if button.type_ != type_ {
+        if &button.type_ != type_ {
             continue;
         }
         button.count = count;

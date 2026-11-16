@@ -6,24 +6,11 @@ use crate::utils::d2::random_position_around;
 use oc_network::ToClient;
 use oc_root::Client;
 use oc_root::geo::WorldVec2;
-use oc_mod::shell::ShellIndex;
-use oc_mod::support::Support as ModSupport;
-use oc_root::physics::Meters;
-use oc_world::support::{PendingSupport, SupportType};
-
-/// Parameters of a shell bombard support (naval bombard, artillery, ...)
-struct Bombard {
-    shell: ShellIndex,
-    series: u32,
-    shells_by_serie: u32,
-    radius: Meters,
-    shell_interval: Duration,
-    serie_interval: Duration,
-}
+use oc_world::support::PendingSupport;
 
 impl<E: Client> super::State<E> {
     pub fn add_pending_support(&self, pending: PendingSupport) -> Vec<(Listening, Vec<ToClient>)> {
-        let (side, type_) = (pending.side, pending.type_);
+        let (side, type_) = (pending.side, pending.type_.clone());
         let mut world = self.world_mut();
         let existing = world
             .pending_supports
@@ -40,7 +27,7 @@ impl<E: Client> super::State<E> {
         }
 
         // Count takine into account the pending support just added
-        let available = world.available_support(side, type_);
+        let available = world.available_support(side, &type_);
 
         vec![(
             Listening::Side(side),
@@ -72,32 +59,14 @@ impl<E: Client> super::State<E> {
         }
 
         tracing::debug!(name="runner-update-realize-support", side=?pending.side, type_=?pending.type_);
-
-        match pending.type_ {
-            SupportType::NavalBombard => self.realize_bombard(pending.position, |s| Bombard {
-                shell: s.naval_bombard_shell,
-                series: s.naval_bombard_series,
-                shells_by_serie: s.naval_bombard_shells_by_serie,
-                radius: s.naval_bombard_radius,
-                shell_interval: s.naval_bombard_shell_interval(),
-                serie_interval: s.naval_bombard_serie_interval(),
-            }),
-            SupportType::Artillery => self.realize_bombard(pending.position, |s| Bombard {
-                shell: s.artillery_shell,
-                series: s.artillery_series,
-                shells_by_serie: s.artillery_shells_by_serie,
-                radius: s.artillery_radius,
-                shell_interval: s.artillery_shell_interval(),
-                serie_interval: s.artillery_serie_interval(),
-            }),
-        }
+        self.realize_bombard(&pending);
 
         vec![]
     }
 
     /// Reduce the counter of the pending support type. Returns false if there is no.
     fn consume_support(&self, pending: &PendingSupport) -> bool {
-        let (side, type_) = (pending.side, pending.type_);
+        let (side, type_) = (pending.side, &pending.type_);
         let mut world = self.world_mut();
 
         if !world
@@ -110,15 +79,21 @@ impl<E: Client> super::State<E> {
 
         world.supports[side].consume(type_);
         // Keep in memory last realized instant (to respect delay between supports of same type)
-        world.support_realized.insert((side, type_), Instant::now());
+        world
+            .support_realized
+            .insert((side, type_.clone()), Instant::now());
 
         true
     }
 
-    fn realize_bombard(&self, target: WorldVec2, params: impl Fn(&ModSupport) -> Bombard) {
+    fn realize_bombard(&self, pending: &PendingSupport) {
         let world = self.world();
         let mod_ = world.mod_();
-        let bombard = params(&mod_.support);
+        let Some(bombard) = mod_.support(pending.type_.name()) else {
+            tracing::error!(name="runner-update-realize-support-unknown", type_=%pending.type_);
+            return;
+        };
+        let target = pending.position;
         let shell = mod_.shell(bombard.shell);
         let speed = world.w.speed();
 
@@ -135,7 +110,7 @@ impl<E: Client> super::State<E> {
             for position in serie {
                 let instant = Instant::now() + decal;
                 let explosion = shell.inner().clone().into();
-                decal += bombard.shell_interval.div_f32(speed);
+                decal += bombard.shell_interval().div_f32(speed);
                 tracing::debug!(name="runner-update-realize-support-bombard-spawn-explosion", explosion=?explosion, position=?position, decal=?decal);
                 self.schedule(
                     instant,
@@ -146,7 +121,7 @@ impl<E: Client> super::State<E> {
                     ),
                 );
             }
-            decal += bombard.serie_interval.div_f32(speed);
+            decal += bombard.serie_interval().div_f32(speed);
         }
     }
 

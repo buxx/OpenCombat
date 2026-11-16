@@ -27,6 +27,9 @@ use oc_world::{
 };
 use uuid::Uuid;
 
+/// Support declared by mods std1 and tests1
+const NAVAL_BOMBARD: &str = "Naval bombard";
+
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -90,7 +93,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             Case::Empty => Supports::default(),
             Case::EnagedBattleMiddle => Supports::default(),
             Case::DeploySouthBeach => Supports::new(
-                Support(vec![(SupportType::NavalBombard, 3)]),
+                Support(vec![(SupportType::new(NAVAL_BOMBARD), 3)]),
                 Support::default(),
             ),
         });

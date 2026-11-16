@@ -260,11 +260,11 @@ impl World {
     }
 
     /// Supports the side can still request: counter minus already pending ones
-    pub fn available_support(&self, side: Side, type_: SupportType) -> u8 {
+    pub fn available_support(&self, side: Side, type_: &SupportType) -> u8 {
         let pending = self
             .pending_supports
             .iter()
-            .filter(|p| p.side == side && p.type_ == type_)
+            .filter(|p| p.side == side && &p.type_ == type_)
             .count();
         self.supports[side]
             .count(type_)
@@ -289,7 +289,7 @@ impl World {
         let support = self.supports[identity.side]
             .0
             .iter()
-            .map(|(t, _)| (*t, self.available_support(identity.side, *t)))
+            .map(|(t, _)| (t.clone(), self.available_support(identity.side, t)))
             .collect();
         let spawns = self
             .side_spawn_zones

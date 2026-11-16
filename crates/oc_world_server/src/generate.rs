@@ -137,6 +137,19 @@ impl Generate {
             orders[side].unwrap_or_else(|| default(side)).into()
         }));
 
+        for (type_, _) in [Side::A, Side::B]
+            .into_iter()
+            .flat_map(|side| self.supports[side].iter())
+        {
+            if mod_.support(type_.name()).is_none() {
+                let known = mod_.supports.iter().map(|s| s.name.as_str());
+                anyhow::bail!(
+                    "Support '{type_}' not declared in mod (known: {})",
+                    known.collect::<Vec<_>>().join(", ")
+                );
+            }
+        }
+
         let tiles = map.tiles(&w, &mod_).context("Read map tiles")?;
         let mut snapshot = Snapshot::empty(w.clone())
             .with_tiles(tiles.clone())

@@ -1,4 +1,4 @@
-use std::{path::Path, time::Duration};
+use std::{collections::HashSet, path::Path, time::Duration};
 
 use oc_root::physics::Meters;
 use thiserror::Error;
@@ -10,67 +10,52 @@ use crate::{indexed::ArchivedDebug, indexed::read_ron, shell::ShellIndex};
 #[oc_derive::archivable(serde)]
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Support<S: ArchivedDebug = ShellIndex> {
-    pub naval_bombard_shell: S,
-    pub naval_bombard_series: u32,
-    pub naval_bombard_shells_by_serie: u32,
-    pub naval_bombard_radius: Meters,
-    pub naval_bombard_prepare_seconds: u64,
-    pub naval_bombard_serie_interval_ms: u64,
-    pub naval_bombard_shell_interval_ms: u64,
-    pub naval_bombard_between_wait_s: u64,
-    pub artillery_shell: S,
-    pub artillery_series: u32,
-    pub artillery_shells_by_serie: u32,
-    pub artillery_radius: Meters,
-    pub artillery_prepare_seconds: u64,
-    pub artillery_serie_interval_ms: u64,
-    pub artillery_shell_interval_ms: u64,
-    pub artillery_between_wait_s: u64,
+    pub name: String,
+    pub shell: S,
+    pub series: u32,
+    pub shells_by_serie: u32,
+    pub radius: Meters,
+    pub prepare_seconds: u64,
+    pub serie_interval_ms: u64,
+    pub shell_interval_ms: u64,
+    pub between_wait_s: u64,
 }
 
-/// Support as written in support.ron (shell referenced by name)
 pub type SupportRaw = Support<String>;
 
 impl Support {
-    pub fn naval_bombard_prepare(&self) -> Duration {
-        Duration::from_secs(self.naval_bombard_prepare_seconds)
+    pub fn prepare(&self) -> Duration {
+        Duration::from_secs(self.prepare_seconds)
     }
 
-    pub fn naval_bombard_serie_interval(&self) -> Duration {
-        Duration::from_millis(self.naval_bombard_serie_interval_ms)
+    pub fn serie_interval(&self) -> Duration {
+        Duration::from_millis(self.serie_interval_ms)
     }
 
-    pub fn naval_bombard_between_wait(&self) -> Duration {
-        Duration::from_secs(self.naval_bombard_between_wait_s)
+    pub fn between_wait(&self) -> Duration {
+        Duration::from_secs(self.between_wait_s)
     }
 
-    pub fn naval_bombard_shell_interval(&self) -> Duration {
-        Duration::from_millis(self.naval_bombard_shell_interval_ms)
-    }
-
-    pub fn artillery_prepare(&self) -> Duration {
-        Duration::from_secs(self.artillery_prepare_seconds)
-    }
-
-    pub fn artillery_serie_interval(&self) -> Duration {
-        Duration::from_millis(self.artillery_serie_interval_ms)
-    }
-
-    pub fn artillery_between_wait(&self) -> Duration {
-        Duration::from_secs(self.artillery_between_wait_s)
-    }
-
-    pub fn artillery_shell_interval(&self) -> Duration {
-        Duration::from_millis(self.artillery_shell_interval_ms)
+    pub fn shell_interval(&self) -> Duration {
+        Duration::from_millis(self.shell_interval_ms)
     }
 }
 
-pub fn load(path: &Path) -> Result<SupportRaw, Error> {
-    read_ron::<_, Error>(path, SUPPORT_RON)
+pub fn load(path: &Path) -> Result<Vec<SupportRaw>, Error> {
+    let supports: Vec<SupportRaw> = read_ron::<_, Error>(path, SUPPORT_RON)?;
+
+    let mut names = HashSet::new();
+    if let Some(support) = supports.iter().find(|s| !names.insert(s.name.as_str())) {
+        return Err(Error::DuplicateName(support.name.clone()));
+    }
+
+    Ok(supports)
 }
 
 #[derive(Debug, Error)]
 pub enum Error {
     #[error(transparent)]
     File(#[from] oc_root::format::FileError),
+    #[error("Duplicate support name: {0}")]
+    DuplicateName(String),
 }

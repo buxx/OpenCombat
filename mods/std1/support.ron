@@ -1,18 +1,27 @@
-(
-  naval_bombard_shell: "5/38 shell",
-  naval_bombard_series: 3,
-  naval_bombard_shells_by_serie: 5,
-  naval_bombard_radius: Meters(30.0),
-  naval_bombard_prepare_seconds: 1,
-  naval_bombard_serie_interval_ms: 5000,
-  naval_bombard_shell_interval_ms: 500,
-  naval_bombard_between_wait_s: 60,
-  artillery_shell: "Artillery shell",
-  artillery_series: 2,
-  artillery_shells_by_serie: 6,
-  artillery_radius: Meters(45.0),
-  artillery_prepare_seconds: 1,
-  artillery_serie_interval_ms: 10000,
-  artillery_shell_interval_ms: 650,
-  artillery_between_wait_s: 60,
-)
+// Support types available in this mod. Each one is identified by its `name` (used in scenarios,
+// like `a_supports: [("Naval bombard", 3)]`, and on command line, like
+// `--support-a "Naval bombard=3"`).
+[
+  (
+    name: "Naval bombard",
+    shell: "5/38 shell",
+    series: 3,
+    shells_by_serie: 5,
+    radius: Meters(30.0),
+    prepare_seconds: 1,
+    serie_interval_ms: 5000,
+    shell_interval_ms: 500,
+    between_wait_s: 60,
+  ),
+  (
+    name: "Artillery",
+    shell: "Artillery shell",
+    series: 2,
+    shells_by_serie: 6,
+    radius: Meters(45.0),
+    prepare_seconds: 1,
+    serie_interval_ms: 10000,
+    shell_interval_ms: 650,
+    between_wait_s: 60,
+  ),
+]

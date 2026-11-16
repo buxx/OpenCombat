@@ -164,9 +164,9 @@ pub fn on_to_client(
         ToClient::Flags(flags) => commands.trigger(UpdateFlags(flags.clone())),
         ToClient::Morale(morale) => commands.trigger(UpdateMorale(*morale)),
         ToClient::SetSupportCount(type_, count) => {
-            commands.trigger(SetSupportCountEvent(*type_, *count))
+            commands.trigger(SetSupportCountEvent(type_.clone(), *count))
         }
-        ToClient::SupportExecuted(type_) => commands.trigger(SupportExecutedEvent(*type_)),
+        ToClient::SupportExecuted(type_) => commands.trigger(SupportExecutedEvent(type_.clone())),
         ToClient::Collision(position, lag) => commands.trigger(CollisionEvent(*position, *lag)),
     }
 }

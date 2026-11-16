@@ -50,6 +50,6 @@
     ("Mg34", "225"),
   ],
   a_supports: [
-    (Artillery, 1),
+    ("Artillery", 1),
   ],
 )

@@ -250,22 +250,22 @@ impl<'a, E: Client> Dealer<'a, E> {
 
         // Wait is between following supports of same type (counted from the last realized one):
         // the request is accepted but its preparation is delayed by the rest of the wait
-        let wait = match type_ {
-            SupportType::NavalBombard => world.mod_.support.naval_bombard_between_wait(),
-            SupportType::Artillery => world.mod_.support.artillery_between_wait(),
-        }
-        .div_f32(world.w.speed());
+        let Some(support) = world.mod_.support(type_.name()) else {
+            tracing::warn!(name="runner-input-request-support-unknown", type_=%type_);
+            return vec![];
+        };
+        let wait = support.between_wait().div_f32(world.w.speed());
 
         // Minimum delay to wait to be able to start new support (this simulate the preparation time of
         // support to be able to fire again)
         let delay = world
             .support_realized
-            .get(&(identity.side, type_))
+            .get(&(identity.side, type_.clone()))
             .map(|last| wait.saturating_sub(last.elapsed()))
             .unwrap_or_default();
 
         // Prepare a fresh object
-        let pending = PendingSupport::fresh(identity.side, type_, position, delay);
+        let pending = PendingSupport::fresh(identity.side, type_.clone(), position, delay);
 
         // Test if same support already pending
         let already = world
@@ -273,7 +273,7 @@ impl<'a, E: Client> Dealer<'a, E> {
             .iter()
             .any(|p| p.side == identity.side && p.type_ == type_);
         // If its a new support request and there is no more available, interupt the request
-        if !already && world.available_support(identity.side, type_) == 0 {
+        if !already && world.available_support(identity.side, &type_) == 0 {
             return vec![];
         }
 

@@ -101,7 +101,7 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
             .flat_map(|(type_, count)| {
                 [
                     format!("--support-{side}"),
-                    format!("{}={count}", type_.arg_name()),
+                    format!("{}={count}", type_.name()),
                 ]
             })
             .collect::<Vec<_>>()

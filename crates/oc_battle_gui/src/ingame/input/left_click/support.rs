@@ -18,12 +18,12 @@ pub struct RequestedSupports(pub Vec<(SupportType, WorldVec2)>);
 
 impl RequestedSupports {
     pub fn set(&mut self, type_: SupportType, position: WorldVec2) {
-        self.0.retain(|(t, _)| *t != type_);
+        self.0.retain(|(t, _)| t != &type_);
         self.0.push((type_, position));
     }
 
-    pub fn remove(&mut self, type_: SupportType) {
-        self.0.retain(|(t, _)| *t != type_);
+    pub fn remove(&mut self, type_: &SupportType) {
+        self.0.retain(|(t, _)| t != type_);
     }
 }
 
@@ -79,8 +79,9 @@ pub fn on_click(
             let point = click.pointer.position;
             let point = cursor_to!(point, camera, &g.w, WorldVec2);
             tracing::trace!(name="ingame-input-left-click-support-request", type_=?type_, point=?point);
-            requested.set(*type_, point);
-            commands.trigger(ToServerEvent(ToServer::RequestSupport(*type_, point)));
+            requested.set(type_.clone(), point);
+            let support = ToServer::RequestSupport(type_.clone(), point);
+            commands.trigger(ToServerEvent(support));
             commands.trigger(SetLeftClick(LeftClickMode::Select));
         }
         PointerButton::Secondary => {

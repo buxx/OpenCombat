@@ -31,7 +31,7 @@
     "Mg34",
   ],
   a_supports: [
-    (NavalBombard, 3),
+    ("Naval bombard", 3),
   ],
   b_places: [
     ("Mg34", "50"),

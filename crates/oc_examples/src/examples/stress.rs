@@ -22,9 +22,10 @@ use tests::{
     squad::TestSquad,
     weapons::{TestWeapon, TestWeapons},
 };
-
 // WARNING: AI generated module
 
+/// Support declared by mods std1 and tests1
+const NAVAL_BOMBARD: &str = "Naval bombard";
 const MOD: &str = "mods/std1";
 const MAP: &str = "maps/world1";
 const INDIVIDUALS_BY_SQUAD: usize = 5;
@@ -191,14 +192,15 @@ struct Bombard {
 
 impl Bombard {
     fn new(w: &WorldConfig, mod_: &Mod) -> Self {
-        let support = &mod_.support;
-        let shells = support.naval_bombard_shells_by_serie;
-        let serie = support.naval_bombard_shell_interval() * shells
-            + support.naval_bombard_serie_interval();
+        let support = mod_
+            .support(NAVAL_BOMBARD)
+            .expect("Mod must declare naval bombard support");
+        let shells = support.shells_by_serie;
+        let serie = support.shell_interval() * shells + support.serie_interval();
         // Last explosion of the last shell of the last serie
-        let last = support.naval_bombard_prepare()
-            + serie * support.naval_bombard_series.saturating_sub(1)
-            + support.naval_bombard_shell_interval() * shells.saturating_sub(1);
+        let last = support.prepare()
+            + serie * support.series.saturating_sub(1)
+            + support.shell_interval() * shells.saturating_sub(1);
 
         Self {
             width: w.world_width_pixels() as f32,
@@ -251,12 +253,12 @@ fn request_bombards(mut bombard: ResMut<Bombard>, time: Res<Time<Real>>, mut com
         #[cfg(feature = "debug")]
         commands.trigger(ToServerEvent(ToServer::DebugRequestSupport(
             side,
-            SupportType::NavalBombard,
+            SupportType::new(NAVAL_BOMBARD),
             position,
         )));
         #[cfg(not(feature = "debug"))]
         commands.trigger(ToServerEvent(ToServer::RequestSupport(
-            SupportType::NavalBombard,
+            SupportType::new(NAVAL_BOMBARD),
             position,
         )));
     }

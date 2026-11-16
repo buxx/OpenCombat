@@ -81,10 +81,12 @@ pub struct SnapshotArgs {
     /// Place a squad at a map place: `<squad uuid>=<place name>` (repeatable).
     #[clap(long = "place", value_parser = parse_place, conflicts_with = "snapshot")]
     pub places: Vec<(Uuid, String)>,
-    /// Side A available support: `<type>=<count>`, like `naval-bombard=3` (repeatable)
+    /// Side A available support: `<type>=<count>`, like `"Naval bombard=3"` (repeatable). Type is
+    /// a support name declared in mod `support.ron`.
     #[clap(long = "support-a", value_parser = parse_support, conflicts_with = "snapshot")]
     pub supports_a: Vec<(SupportType, u8)>,
-    /// Side B available support: `<type>=<count>`, like `naval-bombard=3` (repeatable)
+    /// Side B available support: `<type>=<count>`, like `"Naval bombard=3"` (repeatable). Type is
+    /// a support name declared in mod `support.ron`.
     #[clap(long = "support-b", value_parser = parse_support, conflicts_with = "snapshot")]
     pub supports_b: Vec<(SupportType, u8)>,
     /// Initial order of side A squads (default: hide, or defend if client plays side B)
@@ -198,10 +200,12 @@ fn parse_place(value: &str) -> Result<(Uuid, String), String> {
 
 fn parse_support(value: &str) -> Result<(SupportType, u8), String> {
     let (type_, count) = value
-        .split_once('=')
+        .rsplit_once('=')
         .ok_or_else(|| format!("Expected `<type>=<count>`, got '{value}'"))?;
-    let type_ = SupportType::from_arg_name(type_)
-        .ok_or_else(|| format!("Unknown support type '{type_}' (expected: naval-bombard, artillery)"))?;
+    if type_.is_empty() {
+        return Err(format!("Empty support type in '{value}'"));
+    }
+    let type_ = SupportType::new(type_);
     let count = count
         .parse()
         .map_err(|e| format!("Invalid support count '{count}': {e}"))?;

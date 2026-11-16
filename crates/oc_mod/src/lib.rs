@@ -79,8 +79,9 @@ pub struct Mod {
     pub shells: Vec<shell::IndexedShell>,
     #[serde(skip, default)]
     pub grenades: Vec<grenade::IndexedGrenade>,
+    /// Support types declared by the mod
     #[serde(skip, default)]
-    pub support: support::Support,
+    pub supports: Vec<support::Support>,
     // Below game specs
     #[serde(default = "default_human_default_stand_up_fire_meters")]
     pub human_default_stand_up_fire_meters: f32,
@@ -100,7 +101,10 @@ impl Mod {
         mod_.illustrations = illustration::load(path)?;
         mod_.shells = shell::load(path, &mod_)?;
         mod_.grenades = grenade::load(path, &mod_)?;
-        mod_.support = mod_.resolve_support(support::load(path)?)?;
+        mod_.supports = support::load(path)?
+            .into_iter()
+            .map(|raw| mod_.resolve_support(raw))
+            .collect::<Result<_, _>>()?;
 
         // TODO: centralize caching at server startup
         if let Some(cache_) = cache_ {
@@ -193,23 +197,20 @@ impl Mod {
 
     fn resolve_support(&self, raw: support::SupportRaw) -> Result<support::Support, Error> {
         Ok(support::Support {
-            naval_bombard_shell: self.shell_from_name(&raw.naval_bombard_shell)?.index(),
-            naval_bombard_series: raw.naval_bombard_series,
-            naval_bombard_shells_by_serie: raw.naval_bombard_shells_by_serie,
-            naval_bombard_radius: raw.naval_bombard_radius,
-            naval_bombard_prepare_seconds: raw.naval_bombard_prepare_seconds,
-            naval_bombard_serie_interval_ms: raw.naval_bombard_serie_interval_ms,
-            naval_bombard_shell_interval_ms: raw.naval_bombard_shell_interval_ms,
-            naval_bombard_between_wait_s: raw.naval_bombard_between_wait_s,
-            artillery_shell: self.shell_from_name(&raw.artillery_shell)?.index(),
-            artillery_series: raw.artillery_series,
-            artillery_shells_by_serie: raw.artillery_shells_by_serie,
-            artillery_radius: raw.artillery_radius,
-            artillery_prepare_seconds: raw.artillery_prepare_seconds,
-            artillery_serie_interval_ms: raw.artillery_serie_interval_ms,
-            artillery_shell_interval_ms: raw.artillery_shell_interval_ms,
-            artillery_between_wait_s: raw.artillery_between_wait_s,
+            shell: self.shell_from_name(&raw.shell)?.index(),
+            name: raw.name,
+            series: raw.series,
+            shells_by_serie: raw.shells_by_serie,
+            radius: raw.radius,
+            prepare_seconds: raw.prepare_seconds,
+            serie_interval_ms: raw.serie_interval_ms,
+            shell_interval_ms: raw.shell_interval_ms,
+            between_wait_s: raw.between_wait_s,
         })
+    }
+
+    pub fn support(&self, name: &str) -> Option<&support::Support> {
+        self.supports.iter().find(|s| s.name == name)
     }
 
     pub fn weapon_from_name(&self, name: &str) -> Result<&IndexedWeapon, Error> {
@@ -492,5 +493,19 @@ mod tests {
             assert!(mod_.pick_impact_sound(kind).is_some());
         }
         assert!(mod_.weapons.iter().all(|w| w.reload_sound().is_some()));
+    }
+
+    #[test]
+    fn user_defined_supports() {
+        for name in ["std1", "tests1"] {
+            let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../mods")
+                .join(name);
+            let mod_ = Mod::load(&path, None).unwrap();
+
+            assert!(mod_.support("Naval bombard").is_some());
+            assert!(mod_.support("Artillery").is_some());
+            assert!(mod_.support("Unknown").is_none());
+        }
     }
 }

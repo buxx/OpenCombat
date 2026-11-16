@@ -58,10 +58,10 @@ struct ScenarioRaw {
     b_squad_count: usize,
     a_default: Vec<String>,
     b_default: Vec<String>,
-    /// Side A available supports, like `[(NavalBombard, 3)]`
+    /// Side A available supports (names declared in mod support.ron), like `[("Naval bombard", 3)]`
     #[serde(default)]
     a_supports: Vec<(SupportType, u8)>,
-    /// Side B available supports, like `[(NavalBombard, 3)]`
+    /// Side B available supports (names declared in mod support.ron), like `[("Naval bombard", 3)]`
     #[serde(default)]
     b_supports: Vec<(SupportType, u8)>,
     /// Side A squads to place at map places, like `[("Riffle", "63")]`
@@ -136,7 +136,11 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("oc_battle_scenario_{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("orders.ron");
-        std::fs::write(&path, "#![enable(implicit_some)]\n(a_order: Hide, b_order: Some(Defend))").unwrap();
+        std::fs::write(
+            &path,
+            "#![enable(implicit_some)]\n(a_order: Hide, b_order: Some(Defend))",
+        )
+        .unwrap();
 
         #[derive(Deserialize)]
         struct Orders {
@@ -148,5 +152,18 @@ mod tests {
 
         assert_eq!(orders.a_order, Some(OrderPolicy::Hide));
         assert_eq!(orders.b_order, Some(OrderPolicy::Defend));
+    }
+
+    #[test]
+    fn scenarios_supports_by_name() {
+        let battles = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../battles");
+        let landing = Scenario::from_ron_file(battles.join("Mini_D_day/Landing.ron")).unwrap();
+        let orchard =
+            Scenario::from_ron_file(battles.join("Orchard_battle/Allied_push.ron")).unwrap();
+
+        let naval = SupportType::new("Naval bombard");
+        let artillery = SupportType::new("Artillery");
+        assert_eq!(landing.side(Side::A).supports.count(&naval), 3);
+        assert_eq!(orchard.side(Side::A).supports.count(&artillery), 1);
     }
 }
