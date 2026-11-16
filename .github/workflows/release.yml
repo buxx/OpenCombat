@@ -29,7 +29,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build all binaries
-        run: cargo build --release --workspace --bins
+        run: cargo build --release --workspace --bins --no-default-features
 
       - name: Package
         shell: bash

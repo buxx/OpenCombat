@@ -360,7 +360,7 @@ test-world-smoke-grenade:
 
 # Basecamp starts the battle gui found next to its executable (target/release)
 build-for-basecamp:
-    cargo build --release -p oc_basecamp -p oc_battle_gui
+    cargo build --release -p oc_basecamp -p oc_battle_gui --no-default-features
 
 # Debug basecamp starts the debug battle gui (target/debug)
 build-for-basecamp-debug:

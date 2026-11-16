@@ -9,6 +9,8 @@ version = "0.1.5"
 opt-level = 1
 # Prevent enormous (1.7Go) bin which kill CPU by IO wait
 debug = "line-tables-only"
+# Keep debug info in object files instead of copying it into each (big) binary at link time
+split-debuginfo = "unpacked"
 
 [profile.dev.package."*"]
 opt-level = 3

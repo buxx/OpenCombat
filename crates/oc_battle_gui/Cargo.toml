@@ -7,6 +7,10 @@ edition = "2024"
 workspace = true
 
 [features]
+# Bevy as a shared lib in dev: avoid writing ~380Mo binaries at each link (and make a lot of IO wait).
+# Release builds MUST use `--no-default-features` (packaging only ships executables).
+default = ["dev"] # WARNING: can disturb build
+dev = ["bevy/dynamic_linking"]
 debug = ["bevy/bevy_dev_tools", "bevy/render_dev_tools", "oc_network/debug", "oc_physics/debug", "oc_world_server/debug"]
 
 [dependencies]

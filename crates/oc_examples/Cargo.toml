@@ -7,6 +7,8 @@ edition = "2024"
 workspace = true
 
 [features]
+default = ["dev"] # See oc_battle_gui `dev` feature WARNING: can disturb build
+dev = ["oc_battle_gui/dev"]
 debug = ["oc_network/debug", "oc_world_server/debug", "oc_world/debug", "oc_battle_gui/debug", "oc_root/debug"]
 perfs = ["oc_world_server/perfs"]
 debug_locks = ["oc_utils/debug"]
