@@ -6,6 +6,7 @@ use getset::WithSetters;
 use oc_geo::Geo;
 use oc_geo::UpdateGeo;
 use oc_geo::region::Region;
+use oc_geo::region::RegionXy;
 use oc_geo::region::WorldRegionIndex;
 use oc_geo::tile::TileXy;
 use oc_geo::tile::WorldTileIndex;
@@ -20,8 +21,10 @@ use oc_physics::IgnoreSide;
 use oc_physics::Physic;
 use oc_physics::UpdatePhysic;
 use oc_physics::collision::Material;
+use oc_physics::effect::Effect;
 use oc_physics::volume::Volume;
 use oc_root::WcfgFrom;
+use oc_root::WcfgInto;
 use oc_root::WorldConfig;
 use oc_root::behavior::{Stun, Suppress};
 use oc_root::geo::WorldVec2;
@@ -125,10 +128,10 @@ impl From<i32> for IndividualIndex {
 }
 
 impl Individual {
-    /// Apply an update (as emitted by server) on this individual
-    pub fn apply(&mut self, update: &Update) {
+    /// Apply an update (as emitted by server) on this individual.
+    pub fn apply(&mut self, w: &WorldConfig, update: &Update) -> Vec<Effect> {
         match update {
-            Update::SetPosition(position) => self.position = *position,
+            Update::SetPosition(position) => return self.reposition(w, *position),
             Update::SetBehavior(behavior) => self.behavior = behavior.clone(),
             Update::SetOrders(orders) => self.orders = orders.clone(),
             Update::SetForces(forces) => self.forces = forces.clone(),
@@ -143,6 +146,34 @@ impl Individual {
             Update::SetSuppress(suppress) => self.suppress = *suppress,
             Update::SetMagazines(magazines) => self.magazines = magazines.clone(),
         }
+
+        vec![]
+    }
+
+    /// Set position, tile and region according to new `position`. Returns effects of this move.
+    fn reposition(&mut self, w: &WorldConfig, position: WorldVec3) -> Vec<Effect> {
+        let tile: TileXy = position.into_(w);
+        let region: RegionXy = tile.into_(w);
+        let tile: WorldTileIndex = tile.into_(w);
+        let region: WorldRegionIndex = region.into_(w);
+
+        let (before, region_before) = (self.position, self.region);
+        self.position = position;
+        self.set_tile(tile);
+        self.set_region(region);
+
+        let mut effects = vec![Effect::Position {
+            before,
+            after: position,
+        }];
+        if region_before != region {
+            effects.push(Effect::Region {
+                before: region_before,
+                after: region,
+            });
+        }
+
+        effects
     }
 
     pub fn fresh(w: &WorldConfig, side: Side, position: WorldVec3) -> Self {

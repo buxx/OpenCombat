@@ -5,10 +5,7 @@ use oc_geo::region::Region;
 use oc_geo::tile::TileXy;
 use oc_geo::{region::WorldRegionIndex, tile::WorldTileIndex};
 use oc_individual::squad::SquadIndex;
-use oc_individual::{
-    INDIVIDUAL_INDEXATION_SHAPE, INDIVIDUAL_STAND_UP_VOLUME_HEIGHT,
-    INDIVIDUAL_STAND_UP_VOLUME_WIDTH, IndividualIndex,
-};
+use oc_individual::{INDIVIDUAL_INDEXATION_SHAPE, IndividualIndex};
 use oc_projectile::Projectile;
 use oc_projectile::ProjectileId;
 use oc_root::side::{BySide, Side};
@@ -162,8 +159,8 @@ impl Indexes {
         // List tiles covered by individual shape before move
         for before in shape_cover_tiles(
             before,
-            INDIVIDUAL_STAND_UP_VOLUME_WIDTH.pixels(w),
-            INDIVIDUAL_STAND_UP_VOLUME_HEIGHT.pixels(w),
+            INDIVIDUAL_INDEXATION_SHAPE.pixels(w),
+            INDIVIDUAL_INDEXATION_SHAPE.pixels(w),
             w.geo_pixels_per_tile() as f32,
             w.geo_pixels_per_tile() as f32,
         ) {
@@ -178,8 +175,8 @@ impl Indexes {
         // List tiles covered by "proximity" rule after move
         for now in shape_cover_tiles(
             now,
-            INDIVIDUAL_STAND_UP_VOLUME_WIDTH.pixels(w),
-            INDIVIDUAL_STAND_UP_VOLUME_HEIGHT.pixels(w),
+            INDIVIDUAL_INDEXATION_SHAPE.pixels(w),
+            INDIVIDUAL_INDEXATION_SHAPE.pixels(w),
             w.geo_pixels_per_tile() as f32,
             w.geo_pixels_per_tile() as f32,
         ) {

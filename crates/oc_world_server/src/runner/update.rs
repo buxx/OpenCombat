@@ -103,6 +103,7 @@ pub fn update_all<E: Client>(ctx: &Context<E>, updates: Vec<Update>) {
 
 /// Apply individuals and squads updates under one world write lock, then broadcast the results
 fn write_world<E: Client>(ctx: &Context<E>, run: Vec<Update>) {
+    let mut effects = vec![];
     let outputs = {
         let mut world = ctx.state.world_mut();
         run.into_iter()
@@ -110,7 +111,10 @@ fn write_world<E: Client>(ctx: &Context<E>, run: Vec<Update>) {
                 Update::UpdateIndividual(i, update) => {
                     #[cfg(feature = "tracker")]
                     ctx.tracker.take().individuals.push((i, update.clone()));
-                    crate::individual::update::write(&mut world, update, i)
+                    let (outputs, effects_) =
+                        crate::individual::update::write(&mut world, update, i);
+                    effects.extend(effects_);
+                    outputs
                 }
                 Update::UpdateSquad(i, update) => {
                     super::State::<E>::write_squad(&mut world, i, update)
@@ -119,6 +123,7 @@ fn write_world<E: Client>(ctx: &Context<E>, run: Vec<Update>) {
             })
             .collect::<Vec<_>>()
     };
+    ctx.state.react_indexes(effects);
 
     // World lock is released before broadcast
     for (filter, messages) in outputs {
@@ -273,8 +278,23 @@ impl<E: Client> super::State<E> {
         i: IndividualIndex,
         update: oc_individual::Update,
     ) -> Vec<(Listening, Vec<ToClient>)> {
-        let mut world = self.world_mut();
-        crate::individual::update::write(&mut world, update, i)
+        let (outputs, effects) = {
+            let mut world = self.world_mut();
+            crate::individual::update::write(&mut world, update, i)
+        };
+        self.react_indexes(effects);
+        outputs
+    }
+
+    /// Apply effects on indexes (world lock must not be held)
+    pub fn react_indexes(&self, effects: Vec<crate::index::Effect>) {
+        if effects.is_empty() {
+            return;
+        }
+        let mut indexes = self.indexes_mut();
+        for effect in effects {
+            indexes.react(effect, &self.w);
+        }
     }
 
     fn update_visibilities(
