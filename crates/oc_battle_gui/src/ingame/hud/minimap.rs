@@ -70,6 +70,7 @@ pub fn update_squad_markers(
     world: Res<crate::world::World>,
     g: Res<GameConfig>,
     network: Res<network::state::State>,
+    config: Res<crate::config::Config>,
 ) {
     every!(timer, time, MARKER_REFRESH);
     let_some!(g = &g.0, return);
@@ -83,8 +84,9 @@ pub fn update_squad_markers(
         commands.entity(marker).despawn();
     }
 
+    let all = config.see_all_enemies;
     points.extend(owned_squad_points(&world, identity.side));
-    points.extend(opposite_squad_points(world, identity.side.opposite()));
+    points.extend(opposite_squad_points(world, identity.side.opposite(), all));
 
     for (position, color) in points {
         let x = (position.x / world_width).clamp(0., 1.) * MINIMAP_SIZE;
@@ -113,6 +115,7 @@ fn marker(x: f32, y: f32, color: Color) -> impl Scene {
 fn opposite_squad_points(
     world: Res<'_, crate::world::World>,
     side: oc_root::side::Side,
+    see_all: bool,
 ) -> Vec<(WorldVec2, Color)> {
     let mut points = vec![];
 
@@ -120,7 +123,7 @@ fn opposite_squad_points(
         let visible = squad
             .members
             .iter()
-            .any(|i| world.operational(*i) && world.visible(*i));
+            .any(|i| world.operational(*i) && (see_all || world.visible(*i)));
         if visible {
             let_some!(leader = world.individual(squad.leader()), continue);
             points.push((leader.position.into(), SQUAD_MARKER_COLOR_OPPOSITE));

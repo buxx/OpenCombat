@@ -11,12 +11,12 @@ use oc_deployment::deployment::{Deployment, individual::Status, weapon::Weapons}
 use oc_game::Game;
 use oc_mod::Mod;
 use oc_root::side::Side;
+use oc_root::uuids::SquadUuid;
 use oc_world::{
     flag::Ownership,
     snapshot::{IndividualState, State},
     spawn::SpawnZoneName,
 };
-use uuid::Uuid;
 
 use crate::{
     battle::{MAPS_FOLDER, Scenario},
@@ -111,10 +111,12 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
             .map(|order| vec![format!("--order-{side}"), order.arg_name().to_string()])
             .unwrap_or_default()
     };
-    let side = match player {
+    let letter = |side: Side| match side {
         Side::A => "a",
         Side::B => "b",
     };
+    let side = letter(player);
+    let ai = letter(player.opposite());
     let cwd = std::env::current_dir().map_err(|e| format!("Current folder: {e}"))?;
     let cache = oc_game::cache_dir(ctx.app_dir).join(SERVER_CACHE_FOLDER);
 
@@ -142,6 +144,8 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
         )
         .arg("--cache")
         .arg(cache)
+        .args(["--ai", ai])
+        .args(["--ai-kind", scenario.side(player.opposite()).ai.arg_name()])
         .arg(format!("--end=save-map-persist-to:{}", state.display()))
         // Gui assets are in the `assets` folder of current folder (like mods, maps, etc.)
         .env("BEVY_ASSET_ROOT", cwd);
@@ -204,7 +208,7 @@ fn side_defaults(scenario: &Scenario, side: Side) -> (usize, &[String]) {
     (side.squad_count, &side.default)
 }
 
-fn squad_places(deployment: &Deployment, places: &[SquadPlace]) -> Vec<(Uuid, String)> {
+fn squad_places(deployment: &Deployment, places: &[SquadPlace]) -> Vec<(SquadUuid, String)> {
     let mut taken = vec![false; deployment.squads.len()];
 
     places
@@ -320,7 +324,7 @@ mod tests {
 
     fn squad(label: &str) -> oc_deployment::deployment::squad::Squad {
         oc_deployment::deployment::squad::Squad {
-            uuid: Uuid::new_v4(),
+            uuid: SquadUuid::new_v4(),
             label: label.to_string(),
             ..Default::default()
         }

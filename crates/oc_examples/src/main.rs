@@ -15,6 +15,7 @@ struct Cli {
 
 #[derive(ValueEnum, Debug, Clone, Copy)]
 enum Example {
+    AiFight,
     Demo2,
     Engaging,
     Height,
@@ -57,6 +58,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     oc_examples::set_args(args);
 
     match example {
+        Example::AiFight => e::ai_fight::main(),
         Example::Demo2 => e::demo2::main(),
         Example::Engaging => e::engaging::main().map_err(Into::into),
         Example::Height => e::height::main(),

@@ -1,17 +1,19 @@
 use std::{
     path::PathBuf,
     sync::{Arc, Mutex, mpsc::channel},
+    time::Duration,
 };
 
 use anyhow::Context;
 use bevy::app::AppExit;
 use bon::Builder;
+use oc_network::ToServer;
 use oc_root::side::Side;
 use oc_root::{files::Roots, static_::StaticSource};
 use oc_world::{load::WorldPath, meta::Meta};
 #[cfg(feature = "test")]
 use oc_world_server::tracker::Tracker;
-use oc_world_server::{config::ServerConfig, end::EndPolicy};
+use oc_world_server::{ai::AiConfig, config::ServerConfig, end::EndPolicy};
 
 use crate::bridge;
 
@@ -39,6 +41,11 @@ pub struct Example {
     region_height: Option<u64>,
     #[builder(default = Side::A)]
     side: Side,
+    #[builder(default)]
+    ais: Vec<AiConfig>,
+    #[builder(default)]
+    see_all_enemies: bool,
+    auto_fight: Option<Duration>,
 }
 
 impl Example {
@@ -96,6 +103,7 @@ impl Example {
             let tracker = tracker.clone();
             #[cfg(feature = "debug")]
             let side = self.side;
+            let ais = self.ais.clone();
             std::thread::spawn(move || {
                 oc_world_server::runner::Runner::new(
                     config,
@@ -107,6 +115,7 @@ impl Example {
                     Some(((), side)),
                     EndPolicy::None,
                 )
+                .with_ais(ais)
                 .run(to_server_rx, ready_tx, stop_rx);
             });
         }
@@ -115,6 +124,9 @@ impl Example {
         let _ = ready_rx.recv().context("Wait server ready")?;
 
         let (client_tx2, server_rx2) = bridge::bridge(to_client_rx, to_server_tx);
+        if let Some(delay) = self.auto_fight {
+            auto_fight(client_tx2.clone(), delay);
+        }
 
         tracing::info!("Start gui");
         let server_rx2 = Arc::new(Mutex::new(server_rx2));
@@ -123,7 +135,8 @@ impl Example {
             .roots(roots)
             .auto_connect((connect, self.side))
             .regions_width(self.regions_width)
-            .regions_height(self.regions_height);
+            .regions_height(self.regions_height)
+            .see_all_enemies(self.see_all_enemies);
         let config = config.build();
 
         let app_exit = oc_battle_gui::run::run()
@@ -149,4 +162,13 @@ impl Example {
             Ok(())
         }
     }
+}
+
+/// Send fight request to server after `delay` (like the gui fight button)
+fn auto_fight(server_tx: std::sync::mpsc::Sender<ToServer>, delay: Duration) {
+    std::thread::spawn(move || {
+        std::thread::sleep(delay);
+        tracing::info!("Auto fight");
+        let _ = server_tx.send(ToServer::Fight);
+    });
 }

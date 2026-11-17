@@ -298,7 +298,7 @@ impl MapReader {
         Ok(spawn_zones)
     }
 
-    fn places(&self) -> Result<Vec<Place>, MapReaderError> {
+    pub fn places(&self) -> Result<Vec<Place>, MapReaderError> {
         let mut places = vec![];
 
         for object in self.places_layer()?.objects() {

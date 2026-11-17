@@ -7,6 +7,7 @@ use oc_deployment::deployment::{
     place::{OrderPolicy, Placer},
 };
 use oc_mod::Mod;
+use oc_root::uuids::SquadUuid;
 use oc_root::{
     WorldConfig,
     battle::BattlePhase,
@@ -18,7 +19,6 @@ use oc_world::{
     load::WorldPath, meta::Meta, reader::MapReader, snapshot::Snapshot, spawn::SpawnZone,
     support::Supports,
 };
-use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub enum SnapshotSource {
@@ -58,7 +58,7 @@ pub struct Generate {
     spawns_b: Vec<String>,
     /// Squad (by deployment uuid) to place at map place (by name).
     #[builder(default)]
-    places: Vec<(Uuid, String)>,
+    places: Vec<(SquadUuid, String)>,
     #[builder(default)]
     supports: Supports,
     /// Initial order of side A squads (default: see [`Generate::snapshot`])

@@ -52,4 +52,6 @@
   a_supports: [
     ("Artillery", 1),
   ],
+  a_ai: Offensive,
+  b_ai: Defensive,
 )

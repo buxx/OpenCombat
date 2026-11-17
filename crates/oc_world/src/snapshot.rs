@@ -9,9 +9,8 @@ use oc_root::WorldConfig;
 use oc_root::battle::BattlePhase;
 use oc_root::geo::WorldVec2;
 use oc_root::side::{BySide, Side};
-use oc_root::uuids::Uuids;
+use oc_root::uuids::{IndividualUuid, Uuids};
 use rkyv::with::{AsUnixTime, Map};
-use uuid::Uuid;
 
 use crate::World;
 use crate::crater::Crater;
@@ -229,7 +228,7 @@ pub struct State {
 #[oc_derive::archivable(bare)]
 #[derive(Debug, Clone, Constructor)]
 pub struct IndividualState {
-    pub uuid: Uuid,
+    pub uuid: IndividualUuid,
     pub status: Status,
     pub weapons: Weapons,
 }

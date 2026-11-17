@@ -59,6 +59,7 @@ fn main() -> anyhow::Result<()> {
     let (ready, _) = channel();
     let (stop_tx, stop_rx) = channel();
     let end = args.server.end.clone();
+    let ai = args.server.ai();
     std::thread::spawn(move || {
         Runner::new(
             config,
@@ -70,6 +71,7 @@ fn main() -> anyhow::Result<()> {
             None,
             end,
         )
+        .with_ais(ai)
         .run(input, ready, stop_rx);
     });
 

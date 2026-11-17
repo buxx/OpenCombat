@@ -26,6 +26,8 @@ pub struct Config_ {
     /// Where files are (embedded: server's ones, network: local download directory)
     #[builder(default)]
     pub roots: Roots,
+    #[builder(default)]
+    pub see_all_enemies: bool,
 }
 
 #[derive(Debug, Clone)]

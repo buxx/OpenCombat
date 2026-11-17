@@ -65,6 +65,9 @@ pub const DEFAULT_MOD: &str = "std1";
 pub const SPAWN_ZONE_NONE_OPACITY: f32 = 0.75;
 pub const SPAWN_ZONE_ENEMY_OPACITY: f32 = 0.95;
 
+pub const WEAPON_Z_STANDUP: Meters = Meters(1.5);
+pub const WEAPON_Z_PRONE: Meters = Meters(0.70);
+
 #[oc_derive::archivable]
 #[derive(Debug, Clone, PartialEq, WithSetters, Getters, CopyGetters)]
 pub struct WorldConfig {

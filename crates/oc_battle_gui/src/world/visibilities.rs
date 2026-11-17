@@ -3,6 +3,7 @@ use oc_utils::let_some;
 
 use crate::{
     entity::individual::{IndividualIndex, Side},
+    ingame::individual,
     world::{UpdateVisibilities, VisibilitiesUpdated},
 };
 
@@ -55,6 +56,7 @@ pub fn on_visibilities_updated(
     mut query: Query<(&IndividualIndex, &mut Visibility, &Side)>,
     world: Res<crate::world::World>,
     network: Res<crate::network::state::State>,
+    config: Res<crate::config::Config>,
 ) {
     let_some!(identity = &network.identity, return);
 
@@ -62,7 +64,8 @@ pub fn on_visibilities_updated(
         // Change visibility only on other side individuals
         if side.0 != identity.side {
             let_some!(individual = world.individual(i.0), continue);
-            *visibility = crate::ingame::individual::visibility(identity, i.0, individual, &world);
+            let all = config.see_all_enemies;
+            *visibility = individual::visibility(identity, i.0, individual, &world, all);
         }
     }
 }

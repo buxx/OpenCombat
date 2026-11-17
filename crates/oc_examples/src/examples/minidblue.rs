@@ -11,6 +11,7 @@ use oc_deployment::deployment::{
     place::{OrderPolicy, Placer},
 };
 use oc_mod::Mod;
+use oc_root::uuids::SquadUuid;
 use oc_root::{
     WorldConfig,
     battle::BattlePhase,
@@ -25,7 +26,6 @@ use oc_world::{
     snapshot::Snapshot,
     support::{Support, SupportType, Supports},
 };
-use uuid::Uuid;
 
 /// Support declared by mods std1 and tests1
 const NAVAL_BOMBARD: &str = "Naval bombard";
@@ -150,20 +150,28 @@ fn deploy_engaged_battle_middle(
             // places names are from examples/minidblue
             // A
             (
-                Uuid::parse_str("f9dbffe2-64ba-4a88-920b-ae883751493e").unwrap(),
+                "f9dbffe2-64ba-4a88-920b-ae883751493e"
+                    .parse::<SquadUuid>()
+                    .unwrap(),
                 *places.get(&"63".into()).unwrap(),
             ),
             (
-                Uuid::parse_str("ca3db430-f7fa-4232-b2a1-2abb85499ae5").unwrap(),
+                "ca3db430-f7fa-4232-b2a1-2abb85499ae5"
+                    .parse::<SquadUuid>()
+                    .unwrap(),
                 *places.get(&"50".into()).unwrap(),
             ),
             // B
             (
-                Uuid::parse_str("e1b6ec3d-7119-41d1-9f89-a6faf7da5bbb").unwrap(),
+                "e1b6ec3d-7119-41d1-9f89-a6faf7da5bbb"
+                    .parse::<SquadUuid>()
+                    .unwrap(),
                 *places.get(&"70".into()).unwrap(),
             ),
             (
-                Uuid::parse_str("9dbf54c7-3723-4fe3-a42b-44f3866c09aa").unwrap(),
+                "9dbf54c7-3723-4fe3-a42b-44f3866c09aa"
+                    .parse::<SquadUuid>()
+                    .unwrap(),
                 *places.get(&"53".into()).unwrap(),
             ),
         ])
@@ -199,22 +207,30 @@ fn deploy_south_beach(
             // B
             (
                 // Mg34
-                Uuid::parse_str("53f27839-4f3f-486e-bb47-420f382be19c").unwrap(),
+                "53f27839-4f3f-486e-bb47-420f382be19c"
+                    .parse::<SquadUuid>()
+                    .unwrap(),
                 *places.get(&"50".into()).unwrap(),
             ),
             (
                 // Mg34
-                Uuid::parse_str("03f99100-deff-4bd6-9b24-d3a4e1b3bbf6").unwrap(),
+                "03f99100-deff-4bd6-9b24-d3a4e1b3bbf6"
+                    .parse::<SquadUuid>()
+                    .unwrap(),
                 *places.get(&"56".into()).unwrap(),
             ),
             (
                 // Rifle
-                Uuid::parse_str("04f4eec9-fc48-4bf9-a2cd-4d072656e4a7").unwrap(),
+                "04f4eec9-fc48-4bf9-a2cd-4d072656e4a7"
+                    .parse::<SquadUuid>()
+                    .unwrap(),
                 *places.get(&"42".into()).unwrap(),
             ),
             (
                 // Rifle
-                Uuid::parse_str("578150d7-4cd9-448f-82cb-44c70e1da22b").unwrap(),
+                "578150d7-4cd9-448f-82cb-44c70e1da22b"
+                    .parse::<SquadUuid>()
+                    .unwrap(),
                 *places.get(&"49".into()).unwrap(),
             ),
         ],

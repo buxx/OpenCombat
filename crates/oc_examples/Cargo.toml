@@ -39,6 +39,8 @@ oc_utils = { path = "../oc_utils" }
 oc_mod = { path = "../oc_mod" }
 oc_battle_gui = { path = "../oc_battle_gui" }
 oc_deployment = { path = "../oc_deployment" }
+oc_battle = { path = "../oc_battle" }
+oc_ai = { path = "../oc_ai", features = ["clap"] }
 tests = { path = "../tests" }
 tracing.workspace = true
 tracing-subscriber.workspace = true

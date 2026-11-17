@@ -94,6 +94,7 @@ pub struct World {
     pub squads: Vec<Squad>,
     pub projectiles: FxHashMap<ProjectileId, Projectile>,
     pub interiors: Vec<Interior>,
+    pub places: Vec<crate::place::Place>,
     pub uuids: Uuids,
 }
 
@@ -389,6 +390,7 @@ mod tests {
             vec![],
             HashMap::default(),
             vec![],
+            vec![],
             Uuids::default(),
         );
 
@@ -449,6 +451,7 @@ mod tests {
             vec![],
             vec![],
             HashMap::default(),
+            vec![],
             vec![],
             Uuids::default(),
         );

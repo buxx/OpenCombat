@@ -24,6 +24,7 @@ oc_mod = { path = "../oc_mod" }
 oc_individual = { path = "../oc_individual", features = ["polyanya"] }
 oc_projectile = { path = "../oc_projectile" }
 oc_physics = { path = "../oc_physics" }
+oc_ai = { path = "../oc_ai", features = ["clap"] }
 derive_more = { workspace = true, features = ["constructor"] }
 thiserror.workspace = true
 rayon.workspace = true

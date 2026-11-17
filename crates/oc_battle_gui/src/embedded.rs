@@ -36,13 +36,11 @@ impl Embedded {
         let (to_server_tx, to_server_rx) = channel();
 
         tracing::info!("Start embedded server");
-        let (side, end) = (self.side, self.args.end.clone());
+        let (side, end, ai) = (self.side, self.args.end.clone(), self.args.ai());
         std::thread::spawn(move || {
-            Runner::embedded(config, state, to_client_tx, side, end).run(
-                to_server_rx,
-                ready_tx,
-                stop_rx,
-            );
+            Runner::embedded(config, state, to_client_tx, side, end)
+                .with_ais(ai)
+                .run(to_server_rx, ready_tx, stop_rx);
         });
 
         tracing::info!("Waiting embedded server ...");

@@ -17,6 +17,8 @@ pub struct Args {
     /// Side to play when connect auto
     #[clap(long, value_enum, default_value = "a", global = true)]
     pub side: Side,
+    #[clap(long, global = true)]
+    pub see_all_enemies: bool,
     #[cfg(feature = "debug")]
     #[clap(long, global = true)]
     pub debug_auto_end: bool,
@@ -66,6 +68,7 @@ impl Args {
         Ok(Config_::builder()
             .maybe_auto_connect(connect.map(|c| (c, self.side)))
             .roots(roots)
+            .see_all_enemies(self.see_all_enemies)
             .build())
     }
 }

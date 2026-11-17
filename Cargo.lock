@@ -827,6 +827,7 @@ version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78a6c6136c38a50f3d20069adb99064636afcb109cbdf27a00a8c1742f5d630c"
 dependencies = [
+ "bevy_dylib",
  "bevy_internal",
 ]
 
@@ -1239,6 +1240,15 @@ dependencies = [
  "log",
  "serde",
  "sysinfo",
+]
+
+[[package]]
+name = "bevy_dylib"
+version = "0.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f3a45f45f8196c87013bf694a4603f70e894e2acfaa5b0c737c3dda7eeef3df"
+dependencies = [
+ "bevy_internal",
 ]
 
 [[package]]
@@ -6583,6 +6593,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "oc_ai"
+version = "0.1.5"
+dependencies = [
+ "clap",
+ "glam 0.33.12",
+ "oc_individual",
+ "oc_root",
+ "oc_utils",
+ "oc_world",
+ "serde",
+ "tracing",
+]
+
+[[package]]
 name = "oc_basecamp"
 version = "0.1.5"
 dependencies = [
@@ -6612,6 +6636,7 @@ dependencies = [
  "bon",
  "derive_more",
  "getset",
+ "oc_ai",
  "oc_deployment",
  "oc_root",
  "oc_world",
@@ -6710,6 +6735,8 @@ dependencies = [
  "bon",
  "clap",
  "derive_more",
+ "oc_ai",
+ "oc_battle",
  "oc_battle_gui",
  "oc_deployment",
  "oc_geo",
@@ -7004,6 +7031,7 @@ dependencies = [
  "line_drawing",
  "message-io",
  "num_cpus",
+ "oc_ai",
  "oc_deployment",
  "oc_geo",
  "oc_individual",

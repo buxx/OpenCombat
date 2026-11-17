@@ -8,6 +8,7 @@ use oc_geo::{
     tile::{TileXy, WorldTileIndex},
 };
 use oc_individual::IndividualIndex;
+pub use oc_physics::effect::Effect;
 use oc_physics::{Event, Force, Physic, TickProgress, UpdatePhysic, update::Update};
 use oc_projectile::ProjectileId;
 use oc_root::{Client, WcfgInto, WorldConfig, geo::WorldVec3};
@@ -478,22 +479,6 @@ where
     };
 
     (region, effect)
-}
-
-#[derive(Debug, Clone)]
-pub enum Effect {
-    Position {
-        before: WorldVec3,
-        after: WorldVec3,
-    },
-    Tile {
-        _before: WorldTileIndex,
-        _after: WorldTileIndex,
-    },
-    Region {
-        before: WorldRegionIndex,
-        after: WorldRegionIndex,
-    },
 }
 
 impl IntoIndexEffect<Effect> for IndividualIndex {

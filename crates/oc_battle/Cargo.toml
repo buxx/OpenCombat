@@ -12,6 +12,7 @@ workspace = true
 oc_root = { path = "../oc_root" }
 oc_deployment = { path = "../oc_deployment" }
 oc_world = { path = "../oc_world" }
+oc_ai = { path = "../oc_ai" }
 derive_more = { workspace = true, features = ["constructor"] }
 serde = { workspace = true, features = ["derive"] }
 bon.workspace = true

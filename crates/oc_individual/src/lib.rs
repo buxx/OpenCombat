@@ -23,6 +23,8 @@ use oc_physics::UpdatePhysic;
 use oc_physics::collision::Material;
 use oc_physics::effect::Effect;
 use oc_physics::volume::Volume;
+use oc_root::WEAPON_Z_PRONE;
+use oc_root::WEAPON_Z_STANDUP;
 use oc_root::WcfgFrom;
 use oc_root::WcfgInto;
 use oc_root::WorldConfig;
@@ -551,9 +553,9 @@ impl BodyGesture {
     pub fn weapon_z(&self) -> Meters {
         match self {
             BodyGesture::StandUp(_) | BodyGesture::Walking(_) | BodyGesture::Running(_) => {
-                Meters(1.5)
+                WEAPON_Z_STANDUP
             }
-            BodyGesture::Crawling(_) | BodyGesture::Prone(_) => Meters(0.35),
+            BodyGesture::Crawling(_) | BodyGesture::Prone(_) => WEAPON_Z_PRONE,
         }
     }
 
@@ -575,24 +577,6 @@ pub enum HandsGesture {
     Reloading(U8Progress),
     Aiming(U8Progress),
 }
-
-// impl HandsGesture {
-//     pub fn reloading(&self) -> Option<u8> {
-//         match self {
-//             HandsGesture::Idle => None,
-//             HandsGesture::Reloading(progress) => Some(*progress),
-//             HandsGesture::Aiming(_) => None,
-//         }
-//     }
-
-//     pub fn aiming(&self) -> Option<u8> {
-//         match self {
-//             HandsGesture::Idle => None,
-//             HandsGesture::Reloading(_) => None,
-//             HandsGesture::Aiming(progress) => Some(*progress),
-//         }
-//     }
-// }
 
 impl Gesture {
     #[cfg(feature = "bevy")]

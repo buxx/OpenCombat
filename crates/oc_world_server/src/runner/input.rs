@@ -11,6 +11,7 @@ use oc_projectile::spawn::SpawnProjectiles;
 use oc_root::battle::BattlePhase;
 use oc_root::identity::Identity;
 use oc_root::{Client, WcfgFrom, geo::WorldVec2};
+use oc_utils::d2::Angle;
 use oc_utils::error::OkOrLogError;
 use oc_utils::polygon::Polygon;
 use oc_world::{
@@ -245,66 +246,82 @@ impl<'a, E: Client> Dealer<'a, E> {
             return vec![];
         };
 
-        let world = self.state.world();
-        tracing::debug!(name="runner-input-request-support", type_=?type_, side=?identity.side, position=?position);
-
-        // Wait is between following supports of same type (counted from the last realized one):
-        // the request is accepted but its preparation is delayed by the rest of the wait
-        let Some(support) = world.mod_.support(type_.name()) else {
-            tracing::warn!(name="runner-input-request-support-unknown", type_=%type_);
-            return vec![];
-        };
-        let wait = support.between_wait().div_f32(world.w.speed());
-
-        // Minimum delay to wait to be able to start new support (this simulate the preparation time of
-        // support to be able to fire again)
-        let delay = world
-            .support_realized
-            .get(&(identity.side, type_.clone()))
-            .map(|last| wait.saturating_sub(last.elapsed()))
-            .unwrap_or_default();
-
-        // Prepare a fresh object
-        let pending = PendingSupport::fresh(identity.side, type_.clone(), position, delay);
-
-        // Test if same support already pending
-        let already = world
-            .pending_supports
-            .iter()
-            .any(|p| p.side == identity.side && p.type_ == type_);
-        // If its a new support request and there is no more available, interupt the request
-        if !already && world.available_support(identity.side, &type_) == 0 {
-            return vec![];
-        }
-
-        vec![Update::AddPendingSupport(pending)]
+        request_support(&self.state.world(), identity.side, type_, position)
     }
 
     fn set_leader_position(&self, squad: SquadIndex, position: WorldVec2) -> Vec<Update> {
-        let world = self.state.world();
-        let squad_ = world.squad(squad);
-        let tiles = &world.tiles;
-        let count = squad_.members.len();
-        // Leader and all members must stay in zones owned by the squad side
-        let zones = world.spawn_zones(squad_.side);
-        let places =
-            Deployment::members_positions(&world.w, &world.mod_, tiles, zones, position, count);
-        let inside = |p: WorldVec2| zones.iter().any(|z| z.contains(p));
-        if !inside(position) || !places.iter().all(|p| inside(*p)) {
-            tracing::debug!(name="runner-input-set-leader-position-outside-spawn", squad=?squad, position=?position);
-            return vec![];
-        }
-
-        // Update squad position first to let GUI use squad position when orders refresh
-        let set_position = oc_individual::squad::Update::SetPosition(position);
-        let mut updates = vec![Update::UpdateSquad(squad, set_position)];
-
-        for (member, place) in squad_.members.iter().zip(places) {
-            let tile_i = WorldTileIndex::from_(place, &world.w);
-            let z = world.tile_z(&world.w, tile_i);
-            let set_position = oc_individual::Update::SetPosition(place.extend(z));
-            updates.push(Update::UpdateIndividual(*member, set_position));
-        }
-        updates
+        set_leader_position(&self.state.world(), squad, position, Angle::zero())
     }
+}
+
+pub fn request_support(
+    world: &oc_world::World,
+    side: oc_root::side::Side,
+    type_: SupportType,
+    position: WorldVec2,
+) -> Vec<Update> {
+    tracing::debug!(name="runner-input-request-support", type_=?type_, side=?side, position=?position);
+
+    // Wait is between following supports of same type (counted from the last realized one):
+    // the request is accepted but its preparation is delayed by the rest of the wait
+    let Some(support) = world.mod_.support(type_.name()) else {
+        tracing::warn!(name="runner-input-request-support-unknown", type_=%type_);
+        return vec![];
+    };
+    let wait = support.between_wait().div_f32(world.w.speed());
+
+    // Minimum delay to wait to be able to start new support (this simulate the preparation time of
+    // support to be able to fire again)
+    let delay = world
+        .support_realized
+        .get(&(side, type_.clone()))
+        .map(|last| wait.saturating_sub(last.elapsed()))
+        .unwrap_or_default();
+
+    // Prepare a fresh object
+    let pending = PendingSupport::fresh(side, type_.clone(), position, delay);
+
+    // Test if same support already pending
+    let already = world
+        .pending_supports
+        .iter()
+        .any(|p| p.side == side && p.type_ == type_);
+    // If its a new support request and there is no more available, interupt the request
+    if !already && world.available_support(side, &type_) == 0 {
+        return vec![];
+    }
+
+    vec![Update::AddPendingSupport(pending)]
+}
+
+pub fn set_leader_position(
+    world: &oc_world::World,
+    squad: SquadIndex,
+    position: WorldVec2,
+    angle: Angle,
+) -> Vec<Update> {
+    let squad_ = world.squad(squad);
+    let tiles = &world.tiles;
+    let count = squad_.members.len();
+    // Leader and all members must stay in zones owned by the squad side
+    let zones = world.spawn_zones(squad_.side);
+    let places =
+        Deployment::members_positions(&world.w, &world.mod_, tiles, zones, position, angle, count);
+    let inside = |p: WorldVec2| zones.iter().any(|z| z.contains(p));
+    if !inside(position) || !places.iter().all(|p| inside(*p)) {
+        tracing::debug!(name="runner-input-set-leader-position-outside-spawn", squad=?squad, position=?position);
+        return vec![];
+    }
+
+    // Update squad position first to let GUI use squad position when orders refresh
+    let set_position = oc_individual::squad::Update::SetPosition(position);
+    let mut updates = vec![Update::UpdateSquad(squad, set_position)];
+
+    for (member, place) in squad_.members.iter().zip(places) {
+        let tile_i = WorldTileIndex::from_(place, &world.w);
+        let z = world.tile_z(&world.w, tile_i);
+        let set_position = oc_individual::Update::SetPosition(place.extend(z));
+        updates.push(Update::UpdateIndividual(*member, set_position));
+    }
+    updates
 }

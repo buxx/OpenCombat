@@ -221,8 +221,13 @@ pub fn visibility(
     i: oc_individual::IndividualIndex,
     individual: &oc_individual::Individual,
     world: &World,
+    all: bool,
 ) -> Visibility {
-    match identity.side == individual.side || individual.is_always_visible() || world.visible(i) {
+    match all
+        || identity.side == individual.side
+        || individual.is_always_visible()
+        || world.visible(i)
+    {
         true => Visibility::Visible,
         false => Visibility::Hidden,
     }
@@ -250,6 +255,7 @@ pub fn on_insert_individual(
     weapon_animations: Res<WeaponAnimations>,
     world: Res<crate::world::World>,
     network: Res<crate::network::state::State>,
+    config: Res<crate::config::Config>,
 ) {
     let_some!(g = &g.0, return);
     let_some!(identity = &network.identity, return);
@@ -263,7 +269,8 @@ pub fn on_insert_individual(
     let animation = animation.animation(&animations);
     let position = individual.1.position;
     let position_ = ScreenVec2::from_(position, &g.w);
-    let visibility = visibility(identity, individual.0, &individual.1, &world);
+    let all = config.see_all_enemies;
+    let visibility = visibility(identity, individual.0, &individual.1, &world, all);
     let volumes = individual
         .1
         .volumes(position, false, &g.w, &g.mod_)
@@ -436,6 +443,7 @@ fn on_refresh_render(
     animations: Res<SoldierAnimations>,
     world: Res<crate::world::World>,
     network: Res<crate::network::state::State>,
+    config: Res<crate::config::Config>,
 ) {
     let_some!(identity = &network.identity, return);
     let i = individual.0;
@@ -450,7 +458,7 @@ fn on_refresh_render(
     let animation_ = SoldierAnimationInfos::new(side.0, status.0, gesture.0.clone());
     let animation_ = animation_.animation(&animations);
     let rotation = gesture.rotation(V::Gui);
-    let visibility__ = visibility(identity, i, individual, &world);
+    let visibility__ = visibility(identity, i, individual, &world, config.see_all_enemies);
 
     tracing::trace!(name = "ingame-individual-on-refresh-render", i=?i, animation=?animation_, rotation=?rotation, visibility=?visibility__);
     // Only switch (and thus reset frame/repetition indices) if the target animation actually changed.

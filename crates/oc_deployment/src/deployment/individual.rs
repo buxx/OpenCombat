@@ -1,11 +1,11 @@
+use oc_root::uuids::IndividualUuid;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::deployment::{magazine::Magazine, weapon::Weapons};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Individual {
-    pub uuid: Uuid,
+    pub uuid: IndividualUuid,
     pub illustration: String,
     #[serde(default = "default_xp")]
     pub xp: u8,
@@ -43,7 +43,7 @@ impl Default for Individual {
 impl Individual {
     pub fn new() -> Self {
         Self {
-            uuid: Uuid::new_v4(),
+            uuid: IndividualUuid::new_v4(),
             illustration: "default".to_string(),
             xp: default_xp(),
             weapons: Weapons::empty(),

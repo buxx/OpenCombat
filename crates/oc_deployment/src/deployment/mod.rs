@@ -77,6 +77,7 @@ impl Deployments {
         snapshot.squads.clear();
         snapshot.individuals.clear();
         snapshot.uuids.individuals.clear();
+        snapshot.uuids.squads.clear();
         let mut i: u64 = 0;
 
         for (side, deployment) in self.iter() {
@@ -111,8 +112,15 @@ impl Deployments {
         let spawns = &self[side].spawns;
         let occupied: Vec<WorldVec2> = snapshot.squads.iter().map(|s| s.position).collect();
         let position = placer.place(spawns, squad.uuid, &occupied);
-        let places =
-            Self::members_positions(w, mod_, tiles, spawns, position, squad.individuals.len());
+        let places = Self::members_positions(
+            w,
+            mod_,
+            tiles,
+            spawns,
+            position,
+            Angle::zero(),
+            squad.individuals.len(),
+        );
 
         for (indiv, position_) in squad.individuals.iter().zip(places) {
             let individual = self.fill_individual(w, mod_, i, side, indiv, position_, tiles)?;
@@ -122,6 +130,7 @@ impl Deployments {
             *i += 1;
         }
 
+        snapshot.uuids.squads.push(squad.uuid);
         let squad = Squad::fresh(side, individuals.clone(), position).with_illustration(
             mod_.illustration_from_name(IllustrationKind::IngameSquad, &squad.illustration)
                 .context(format!(
@@ -135,17 +144,19 @@ impl Deployments {
         Ok(())
     }
 
-    /// Members are placed on the best opacity tile near their formation place
+    /// Members are placed on the best opacity tile near their formation place. Formation is a
+    /// line along `angle` (0.0 for horizontal), leader at `position`.
     pub fn members_positions(
         w: &WorldConfig,
         mod_: &Mod,
         tiles: &[Tile],
         spawns: &[SpawnZone],
         position: WorldVec2,
+        angle: Angle,
         count: usize,
     ) -> Vec<WorldVec2> {
         let reference = Vec2::new(position.x, position.y);
-        let places = SquadFormation::Line.positions(w, V::Server, reference, Angle::zero(), count);
+        let places = SquadFormation::Line.positions(w, V::Server, reference, angle, count);
         let mut taken: HashSet<WorldTileIndex> = HashSet::new();
 
         places

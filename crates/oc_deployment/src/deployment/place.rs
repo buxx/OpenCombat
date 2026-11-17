@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
 use getset::WithSetters;
+use oc_root::uuids::SquadUuid;
 use oc_root::{geo::WorldVec2, side::BySide};
 use oc_utils::{d2::Direction, polygon::Polygon};
 use oc_world::spawn::SpawnZone;
-use uuid::Uuid;
 
 #[derive(Debug, WithSetters)]
 pub struct Placer {
     places: Vec<WorldVec2>,
-    assigned: HashMap<Uuid, WorldVec2>,
+    assigned: HashMap<SquadUuid, WorldVec2>,
     #[getset(set_with = "pub")]
     orders: BySide<OrderPolicy>,
 }
@@ -23,12 +23,17 @@ impl Placer {
         }
     }
 
-    pub fn with_assigned(mut self, places: Vec<(Uuid, WorldVec2)>) -> Self {
+    pub fn with_assigned(mut self, places: Vec<(SquadUuid, WorldVec2)>) -> Self {
         self.assigned = places.into_iter().collect();
         self
     }
 
-    pub fn place(&self, spawns: &[SpawnZone], uuid: Uuid, occupied: &[WorldVec2]) -> WorldVec2 {
+    pub fn place(
+        &self,
+        spawns: &[SpawnZone],
+        uuid: SquadUuid,
+        occupied: &[WorldVec2],
+    ) -> WorldVec2 {
         // If placer already know a place for the squad, us it
         // (only if it is in an owned spawn zone)
         if let Some(place) = self.assigned.get(&uuid)

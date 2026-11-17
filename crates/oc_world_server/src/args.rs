@@ -2,6 +2,7 @@ use oc_root::format::RkyvFile;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use oc_root::uuids::SquadUuid;
 use oc_root::{files::Roots, side::Side, static_::StaticSource};
 use oc_world::{
     load::WorldPath,
@@ -9,7 +10,6 @@ use oc_world::{
     reader::MapReader,
     support::{Support, SupportType, Supports},
 };
-use uuid::Uuid;
 
 use crate::{
     config::ServerConfig,
@@ -40,6 +40,22 @@ pub struct ServerArgs {
     /// What to do when battle ends: `none` or `save-map-persist-to:<path>`
     #[clap(long, default_value = "none")]
     pub end: EndPolicy,
+    /// Side played by the computer (AI), like `b`
+    #[clap(long, value_enum)]
+    pub ai: Option<Side>,
+    /// Behavior of the AI (see `--ai`)
+    #[clap(long, value_enum, default_value_t)]
+    pub ai_kind: oc_ai::AiKind,
+}
+
+impl ServerArgs {
+    pub fn ai(&self) -> Option<crate::ai::AiConfig> {
+        self.ai.map(|side| crate::ai::AiConfig {
+            side,
+            kind: self.ai_kind,
+            placed: self.snapshot.places.iter().map(|(uuid, _)| *uuid).collect(),
+        })
+    }
 }
 
 #[derive(clap::Args, Debug, Clone)]
@@ -80,7 +96,7 @@ pub struct SnapshotArgs {
     pub spawns_b: Vec<String>,
     /// Place a squad at a map place: `<squad uuid>=<place name>` (repeatable).
     #[clap(long = "place", value_parser = parse_place, conflicts_with = "snapshot")]
-    pub places: Vec<(Uuid, String)>,
+    pub places: Vec<(SquadUuid, String)>,
     /// Side A available support: `<type>=<count>`, like `"Naval bombard=3"` (repeatable). Type is
     /// a support name declared in mod `support.ron`.
     #[clap(long = "support-a", value_parser = parse_support, conflicts_with = "snapshot")]
@@ -189,11 +205,13 @@ impl SnapshotArgs {
     }
 }
 
-fn parse_place(value: &str) -> Result<(Uuid, String), String> {
+fn parse_place(value: &str) -> Result<(SquadUuid, String), String> {
     let (uuid, name) = value
         .split_once('=')
         .ok_or_else(|| format!("Expected `<squad uuid>=<place name>`, got '{value}'"))?;
-    let uuid = Uuid::parse_str(uuid).map_err(|e| format!("Invalid squad uuid '{uuid}': {e}"))?;
+    let uuid = uuid
+        .parse::<SquadUuid>()
+        .map_err(|e| format!("Invalid squad uuid '{uuid}': {e}"))?;
 
     Ok((uuid, name.to_string()))
 }

@@ -105,6 +105,7 @@ impl WorldLoader {
 
         let flags = map.flags()?;
         let interiors = map.interiors()?;
+        let places = map.places()?;
         let spawn_zones = map.spawn_zones()?;
         let side_spawn_zones: BySide<Vec<SpawnZone>> = spawns.map(|names| {
             spawn_zones
@@ -141,6 +142,7 @@ impl WorldLoader {
             squads,
             projectiles,
             interiors,
+            places,
             uuids,
         ))
     }

@@ -17,6 +17,7 @@ use std::fmt::Debug;
 
 pub mod collision;
 pub mod corps;
+pub mod effect;
 pub mod fx;
 pub mod reactive;
 pub mod translation;
@@ -241,6 +242,8 @@ struct TileCache<'a, Z> {
     collisions: Vec<(Z, &'a dyn Physic)>,
     proximities: Vec<(Z, &'a dyn Physic)>,
     volumes: Vec<Option<PhysicVolumes>>,
+    /// For each collision object: interception already rolled on this tile (see [`Stepper::intercepted_by`])
+    intercept: Vec<bool>,
 }
 
 impl<'a, I, O, C, P, Z> Stepper<'a, '_, I, O, C, P, Z>
@@ -354,6 +357,7 @@ where
                 TileCache {
                     xy,
                     volumes: collisions.iter().map(|_| None).collect(),
+                    intercept: collisions.iter().map(|_| false).collect(),
                     collisions,
                     proximities: (self.proximity_at)(xy),
                 }
@@ -364,7 +368,14 @@ where
 
         let mut outcome = PixelOutcome::Pass;
         for (k, (o, other)) in cache.collisions.iter().enumerate() {
-            if self.collide_with(*o, *other, pixel, &volumes, &mut cache.volumes[k]) {
+            if self.collide_with(
+                *o,
+                *other,
+                pixel,
+                &volumes,
+                &mut cache.volumes[k],
+                &mut cache.intercept[k],
+            ) {
                 let progress = progress(self.progress_from, pixel, self.progress_total);
                 self.events
                     .push(Event::Collision(self.id, *o, TickProgress(progress)));
@@ -392,6 +403,7 @@ where
         pixel: WorldVec3,
         volumes: &PhysicVolumes,
         other_volumes: &mut Option<PhysicVolumes>,
+        intercept_rolled: &mut bool,
     ) -> bool {
         let (origin, i) = (self.origin, &self.i);
         tracing::trace!(name="physics-step-translation-collision-other", origin=origin, i=?i, o=?o);
@@ -427,7 +439,8 @@ where
             )
         });
 
-        self.intercepted_by(other, volumes2, pixel) || self.volumes_collide(volumes, volumes2, o)
+        self.intercepted_by(other, volumes2, pixel, intercept_rolled)
+            || self.volumes_collide(volumes, volumes2, o)
     }
 
     /// Is `pixel` close enough to the object origin to ignore collisions
@@ -445,7 +458,12 @@ where
         other: &dyn Physic,
         volumes2: &PhysicVolumes,
         pixel: WorldVec3,
+        rolled: &mut bool,
     ) -> bool {
+        if *rolled {
+            return false;
+        }
+
         let intercept = self
             .kind
             .map_or(0.0, |kind| other.intercept(kind, self.mod_));
@@ -457,6 +475,8 @@ where
         {
             return false;
         }
+
+        *rolled = true;
 
         if fastrand::f32() < intercept {
             tracing::trace!(name="physics-step-translation-intercept", origin=self.origin, i=?self.i, p=?pixel);
@@ -1075,6 +1095,33 @@ mod tests {
             |_| vec![(MyObjectId(1), &interceptor as &dyn Physic)],
             0,
         )
+    }
+
+    #[test]
+    fn test_intercept_rolled_once_per_tile() {
+        // Given: an interceptor of probability 0.5 on tile 0 only (crossed on several pixels)
+        let w = world(1000, 2.0);
+        assert!(w.geo_pixels_per_tile() > 1);
+        let interceptor = MyInterceptor(TileXy(Xy(0, 0)), 0.5, f32::MAX);
+        let object = moving_object([0.0, 0.0, 0.0], translation([1.0, 0.0, 0.0], 100.0));
+        let collision_at = |xy: Xy| match xy == Xy(0, 0) {
+            true => vec![(MyObjectId(1), &interceptor as &dyn Physic)],
+            false => vec![],
+        };
+        fastrand::seed(42);
+
+        // When
+        let runs = 2000;
+        let intercepted = (0..runs)
+            .filter(|_| {
+                let (_, _, events) = run_step(&w, &object, collision_at, 0);
+                !events.is_empty()
+            })
+            .count();
+
+        // Then: about half of objects are intercepted (not 1 - 0.5^pixels)
+        let ratio = intercepted as f32 / runs as f32;
+        assert!((0.45..0.55).contains(&ratio), "ratio {ratio}");
     }
 
     #[test]
