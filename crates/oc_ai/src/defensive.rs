@@ -5,7 +5,9 @@
 //! the flag.
 //!
 //! Fight phase: at fight start, the nearest squad of each owned flag becomes its defender.
-//! Defenders engage enemies they see nearby from their position, else defend facing the enemy
+//! Defenders losing members under fire fall back to a cover farther from the enemy. Defenders
+//! under fire from far enemies (see [`HIDE_DISTANCE`]) or from enemies they don't see hide, else
+//! engage enemies they see nearby from their position, else defend facing the enemy
 //! (they never leave their flag, to take cover or help other squads). Other squads attack like
 //! [`crate::Offensive`] squads (and defend when no flag is left to capture). Supports are
 //! requested on groups of known enemies (see [`crate::support`]).
@@ -13,12 +15,14 @@ use glam::Vec2;
 use oc_individual::{order::Order, squad::SquadIndex};
 use oc_root::{battle::BattlePhase, geo::WorldVec2};
 use oc_utils::d2::Direction;
+use rustc_hash::FxHashMap;
 
 use crate::{
     Commander,
     combat::{self, Engagement},
     command::Command,
     offensive,
+    pace::Pace,
     perception::{Candidate, CandidateKind, Perception, SquadView},
     support,
 };
@@ -27,6 +31,11 @@ use crate::{
 pub const PROTECT_DISTANCE: f32 = 60.0;
 /// Minimal distance (meters) between two deployed squads
 pub const SPACING: f32 = 20.0;
+/// Distance (meters) beyond which defenders under fire hide instead of returning fire: a long
+/// range duel kills exposed defenders for nothing, they fire when the enemy comes closer
+pub const HIDE_DISTANCE: f32 = 100.0;
+/// Cover value (see [`Candidate::cover`]) under which a defender position (not interior) is poor
+pub const POOR_POSITION_COVER: f32 = 0.5;
 
 const PROXIMITY_WEIGHT: f32 = 2.0;
 const INTERIOR_WEIGHT: f32 = 1.5;
@@ -41,6 +50,10 @@ pub struct Defensive {
     deployed: bool,
     /// Squads holding owned flags (chosen at first fight tick)
     defenders: Option<Vec<SquadIndex>>,
+    /// Pace of attacking squads
+    pace: Pace,
+    /// Active members of defenders when they took their current position (see [`fall_back`])
+    actives: FxHashMap<SquadIndex, u8>,
 }
 
 impl Commander for Defensive {
@@ -68,7 +81,8 @@ impl Defensive {
     /// Fight orders, choosing defenders at first call
     fn fight(&mut self, perception: &Perception) -> Vec<Command> {
         let defenders = self.defenders.get_or_insert_with(|| defenders(perception));
-        fight(perception, defenders)
+        let regroup = self.pace.regroup(perception);
+        fight(perception, defenders, &mut self.actives, regroup)
     }
 }
 
@@ -243,36 +257,118 @@ fn defenders(perception: &Perception) -> Vec<SquadIndex> {
 }
 
 /// Orders of all squads: defenders hold their flag, other squads attack
-fn fight(perception: &Perception, defenders: &[SquadIndex]) -> Vec<Command> {
+fn fight(
+    perception: &Perception,
+    defenders: &[SquadIndex],
+    actives: &mut FxHashMap<SquadIndex, u8>,
+    regroup: bool,
+) -> Vec<Command> {
     let squads: Vec<&SquadView> = perception.squads.iter().collect();
     let engagements = combat::engagements(perception, &squads);
     let (defending, attacking): (Vec<&SquadView>, Vec<&SquadView>) = squads
         .into_iter()
         .partition(|s| defenders.contains(&s.index));
 
-    defenders_orders(perception, &defending, &engagements)
+    defenders_orders(perception, &defending, &engagements, actives)
         .into_iter()
-        .chain(attackers_orders(perception, &attacking, &engagements))
+        .chain(attackers_orders(
+            perception,
+            &attacking,
+            &engagements,
+            regroup,
+        ))
         .filter_map(|(squad, orders)| Command::set_orders_if_changed(squad, orders?))
         .chain(support::requests(perception))
         .collect()
 }
 
-/// Defenders engage enemies they see nearby from their position (they were deployed in cover),
-/// else defend their position. None to keep current order.
+/// Defenders losing members under fire fall back (see [`fall_back`]), defenders under fire from
+/// far enemies hide (see [`HIDE_DISTANCE`]), else engage enemies they see nearby from their
+/// position (they were deployed in cover), else defend their position. None to keep current
+/// order. `actives` holds active members of defenders when they took their position.
 fn defenders_orders<'a>(
     perception: &Perception,
     squads: &[&'a SquadView],
     engagements: &[Engagement],
+    actives: &mut FxHashMap<SquadIndex, u8>,
 ) -> Vec<(&'a SquadView, Option<Vec<Order>>)> {
     squads
         .iter()
         .map(|squad| {
-            let orders = combat::engage_in_place(squad, engagements)
-                .or_else(|| defend(perception, squad).map(|order| vec![order]));
+            let orders = fall_back(perception, squad, actives)
+                .map(|o| ("fall_back", o))
+                .or_else(|| hide(perception, squad, engagements).map(|o| ("hide", o)))
+                .or_else(|| combat::engage_in_place(squad, engagements).map(|o| ("engage", o)))
+                .or_else(|| defend(perception, squad).map(|order| ("defend", vec![order])));
+            let orders = orders.map(|(_reason, orders)| {
+                crate::instrument(perception, squad, _reason);
+                orders
+            });
             (*squad, orders)
         })
         .collect()
+}
+
+/// Orders of a defender under fire which lost members at its position, or which is in a poor
+/// position (see [`poor_position`]): move to a cover farther from the threat (see
+/// [`combat::withdraw_cover`]) and defend there. A defender moving to its
+/// fall back position keeps its orders. None if defender holds its position.
+fn fall_back(
+    perception: &Perception,
+    squad: &SquadView,
+    actives: &mut FxHashMap<SquadIndex, u8>,
+) -> Option<Vec<Order>> {
+    if matches!(squad.orders.first(), Some(Order::MoveFastTo(_))) {
+        return Some(squad.orders.clone());
+    }
+    let initial = *actives.entry(squad.index).or_insert(squad.actives);
+    if !squad.under_fire || (squad.actives >= initial && !poor_position(perception, squad)) {
+        return None;
+    }
+    let threat = perception.threat(squad.position)?;
+    let cover = combat::withdraw_cover(perception, squad, threat)?;
+    actives.insert(squad.index, squad.actives);
+    Some(vec![
+        Order::MoveFastTo(cover.position),
+        Order::Defend(Direction::from_points2d(
+            cover.position.into(),
+            threat.into(),
+        )),
+    ])
+}
+
+/// True if squad is not near an interior or an opaque cover position (see
+/// [`POOR_POSITION_COVER`])
+fn poor_position(perception: &Perception, squad: &SquadView) -> bool {
+    !perception.covers_of(squad.index).any(|c| {
+        perception.meters(c.position, squad.position) <= combat::IN_COVER_DISTANCE
+            && (c.kind == CandidateKind::Interior || c.cover >= POOR_POSITION_COVER)
+    })
+}
+
+/// Hide order (facing the threat) of a defender under fire when the threat is beyond
+/// [`HIDE_DISTANCE`], or when it sees no enemy to fire back at (staying exposed to unseen
+/// shooters kills it for nothing). Current hide is kept. None if defender must not hide.
+fn hide(
+    perception: &Perception,
+    squad: &SquadView,
+    engagements: &[Engagement],
+) -> Option<Vec<Order>> {
+    if !squad.under_fire {
+        return None;
+    }
+    let threat = perception.threat(squad.position)?;
+    let engaged = engagements.iter().any(|e| e.squad == squad.index);
+    if engaged && perception.meters(squad.position, threat) <= HIDE_DISTANCE {
+        return None;
+    }
+    if matches!(squad.orders.first(), Some(Order::Hide(_))) {
+        return Some(squad.orders.clone());
+    }
+    Some(vec![Order::Hide(Direction::from_points2d(
+        squad.position.into(),
+        threat.into(),
+    ))])
 }
 
 /// Attackers act like offensive squads, and defend when no flag is left to capture. None to keep
@@ -281,8 +377,9 @@ fn attackers_orders<'a>(
     perception: &Perception,
     squads: &[&'a SquadView],
     engagements: &[Engagement],
+    regroup: bool,
 ) -> Vec<(&'a SquadView, Option<Vec<Order>>)> {
-    offensive::decide(perception, squads, engagements)
+    offensive::decide(perception, squads, engagements, regroup)
         .into_iter()
         .map(|(squad, orders)| {
             let orders = orders.or_else(|| defend(perception, squad).map(|order| vec![order]));
@@ -300,12 +397,10 @@ fn defend(perception: &Perception, squad: &SquadView) -> Option<Order> {
     defend_direction(perception, squad).map(Order::Defend)
 }
 
-/// True if squad already defends (or hides) in a direction
+/// True if squad already defends in a direction (a hiding squad must defend again when hide
+/// conditions end, see [`hide`])
 fn is_defending(squad: &SquadView) -> bool {
-    matches!(
-        squad.orders.first(),
-        Some(Order::Defend(_) | Order::Hide(_))
-    )
+    matches!(squad.orders.first(), Some(Order::Defend(_)))
 }
 
 /// Direction from squad to nearest seen enemy, else to enemy front
@@ -340,6 +435,7 @@ mod tests {
             orders: vec![],
             placed: false,
             under_fire: false,
+            smokes: 0,
         }
     }
 
@@ -501,7 +597,7 @@ mod tests {
     #[test]
     fn fight_keeps_defending_and_engages_near_enemy() {
         let mut perception = perception(BattlePhase::Fight);
-        perception.squads[0].orders = vec![Order::Hide(Direction::from_points2d(
+        perception.squads[0].orders = vec![Order::Defend(Direction::from_points2d(
             Vec2::ZERO,
             Vec2::new(0.0, -1.0),
         ))];
@@ -519,5 +615,109 @@ mod tests {
                 vec![Order::Engage(IndividualIndex(9))]
             )]
         );
+    }
+
+    #[test]
+    fn defender_hides_under_unseen_near_fire_and_engages_seen_enemy() {
+        let mut perception = perception(BattlePhase::Fight);
+        perception.squads[0].under_fire = true;
+        let y = -(HIDE_DISTANCE - 50.0);
+        perception.enemies = vec![EnemyView {
+            index: IndividualIndex(9),
+            position: WorldVec2::new(0.0, y),
+            seen_by: vec![],
+        }];
+        // Near shooter, not seen: hide facing it
+        let hide = Order::Hide(Direction::from_points2d(Vec2::ZERO, Vec2::new(0.0, y)));
+        assert_eq!(
+            Defensive::default().tick(&perception),
+            vec![Command::SetOrders(SquadIndex(0), vec![hide])]
+        );
+        // Seen: fire back
+        perception.enemies[0].seen_by = vec![SquadIndex(0)];
+        assert_eq!(
+            Defensive::default().tick(&perception),
+            vec![Command::SetOrders(
+                SquadIndex(0),
+                vec![Order::Engage(IndividualIndex(9))]
+            )]
+        );
+    }
+
+    #[test]
+    fn defender_hides_under_far_fire_then_defends_again() {
+        let mut perception = perception(BattlePhase::Fight);
+        perception.squads[0].under_fire = true;
+        let enemy = |y: f32| EnemyView {
+            index: IndividualIndex(9),
+            position: WorldVec2::new(0.0, y),
+            seen_by: vec![],
+        };
+        // Far enemy: hide facing it
+        perception.enemies = vec![enemy(-(HIDE_DISTANCE + 50.0))];
+        let hide = Order::Hide(Direction::from_points2d(
+            Vec2::ZERO,
+            Vec2::new(0.0, -(HIDE_DISTANCE + 50.0)),
+        ));
+        let mut defensive = Defensive::default();
+        assert_eq!(
+            defensive.tick(&perception),
+            vec![Command::SetOrders(SquadIndex(0), vec![hide.clone()])]
+        );
+        // Fire stops: defend again
+        perception.squads[0].orders = vec![hide];
+        perception.squads[0].under_fire = false;
+        assert!(matches!(
+            defensive.tick(&perception).as_slice(),
+            [Command::SetOrders(SquadIndex(0), orders)] if matches!(orders.as_slice(), [Order::Defend(_)])
+        ));
+    }
+
+    #[test]
+    fn defender_falls_back_from_poor_position_under_fire() {
+        let mut perception = perception(BattlePhase::Fight);
+        perception.squads[0].under_fire = true;
+        perception.squads[0].orders = vec![Order::Defend(Direction::from_points2d(
+            Vec2::ZERO,
+            Vec2::new(0.0, -1.0),
+        ))];
+        // Near enemy (no hide), squad in the open
+        perception.enemies = vec![EnemyView {
+            index: IndividualIndex(9),
+            position: WorldVec2::new(0.0, -80.0),
+            seen_by: vec![],
+        }];
+        perception.covers = vec![
+            // Current position: poor cover
+            (SquadIndex(0), candidate(0.0, 0.0, CandidateKind::Open, 0.1)),
+            // Nearer to the enemy: not a fall back position
+            (
+                SquadIndex(0),
+                candidate(5.0, -20.0, CandidateKind::Interior, 1.0),
+            ),
+            // Farther from enemy: fall back there
+            (
+                SquadIndex(0),
+                candidate(10.0, 25.0, CandidateKind::Interior, 0.8),
+            ),
+        ];
+        let defend = Order::Defend(Direction::from_points2d(
+            Vec2::new(10.0, 25.0),
+            Vec2::new(0.0, -80.0),
+        ));
+        assert_eq!(
+            Defensive::default().tick(&perception),
+            vec![Command::SetOrders(
+                SquadIndex(0),
+                vec![Order::MoveFastTo(WorldVec2::new(10.0, 25.0)), defend]
+            )]
+        );
+
+        // Good position: holds it
+        perception.covers[0].1.kind = CandidateKind::Interior;
+        assert!(!matches!(
+            Defensive::default().tick(&perception).as_slice(),
+            [Command::SetOrders(_, orders)] if matches!(orders.first(), Some(Order::MoveFastTo(_)))
+        ));
     }
 }

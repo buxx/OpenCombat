@@ -6599,9 +6599,11 @@ dependencies = [
  "clap",
  "glam 0.33.12",
  "oc_individual",
+ "oc_mod",
  "oc_root",
  "oc_utils",
  "oc_world",
+ "rustc-hash 2.1.3",
  "serde",
  "tracing",
 ]

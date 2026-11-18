@@ -2,7 +2,7 @@
 #![allow(clippy::redundant_field_names)]
 
 #[cfg(feature = "debug")]
-use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::Duration;
 
 #[cfg(feature = "bevy")]

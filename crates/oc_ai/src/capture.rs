@@ -1,10 +1,14 @@
 //! Choose flags to capture: squads are spread over flags not controlled by the side (neutral,
 //! enemy or contested ones) instead of all going to the nearest one. For a contested flag, squads
-//! go to the nearest enemy inside it (AI cheats: these enemies may not be seen).
+//! go to the nearest enemy inside it (AI cheats: these enemies may not be seen). Squads sent to the
+//! same flag are spread aside (see [`spread`]).
 use oc_individual::order::Order;
 use oc_root::geo::WorldVec2;
 
-use crate::perception::{FlagView, Perception, SquadView};
+use crate::{
+    combat::SQUAD_SPACING,
+    perception::{FlagView, Perception, SquadView},
+};
 
 /// Extra cost (meters) of a flag for each squad already sent to it
 pub const SPREAD_PENALTY: f32 = 150.0;
@@ -22,10 +26,32 @@ pub fn targets(perception: &Perception, squads: &[&SquadView]) -> Vec<Option<Wor
         .map(|squad| {
             let cost = |i: usize| cost(perception, &flags, squad, i, sent[i]);
             let best = (0..flags.len()).min_by(|a, b| cost(*a).total_cmp(&cost(*b)))?;
+            let rank = sent[best];
             sent[best] += 1;
-            Some(destination(perception, squad, flags[best]))
+            let destination = destination(perception, squad, flags[best]);
+            Some(spread(perception, squad, destination, rank))
         })
         .collect()
+}
+
+/// Destination of the `rank`-th squad sent to the same `destination`: shifted aside (alternately
+/// left and right of the approach) by [`SQUAD_SPACING`] for each previous squad, so squads don't
+/// converge on the same point
+fn spread(
+    perception: &Perception,
+    squad: &SquadView,
+    destination: WorldVec2,
+    rank: usize,
+) -> WorldVec2 {
+    if rank == 0 {
+        return destination;
+    }
+    let to = glam::Vec2::from(destination);
+    let approach = (to - glam::Vec2::from(squad.position)).normalize_or_zero();
+    let side = if rank % 2 == 1 { 1.0 } else { -1.0 };
+    let shift = rank.div_ceil(2) as f32 * SQUAD_SPACING * perception.pixels_per_meter * side;
+    let p = to + approach.perp() * shift;
+    WorldVec2::new(p.x, p.y)
 }
 
 /// Flags not controlled by the side

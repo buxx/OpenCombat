@@ -159,6 +159,7 @@ mod tests {
                 orders: vec![],
                 placed: false,
                 under_fire: false,
+                smokes: 0,
             }],
             enemies: vec![
                 enemy(1, 195.0, 0.0),

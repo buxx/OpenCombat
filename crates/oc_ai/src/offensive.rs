@@ -8,15 +8,24 @@
 //!   [`combat::advance_orders`])
 //! - else (all flags controlled): stay idle
 //!
+//! Squads advancing under threat near each other use bounding overwatch: one moves while the
+//! others suppress the threat (see [`combat::may_bound`]). Near the enemy, squads crawl to near
+//! covers instead of running. Attacks come in waves (see [`crate::pace`]): after a costly wave,
+//! squads hide a while (regroup), then attack again. Squads in contact disengage (unless the
+//! enemy is close), withdrawing to a cover farther from the enemy when exposed.
+//!
 //! Supports are requested on groups of known enemies (see [`crate::support`]).
 //!
 //! Orders are only given when they change, to let squads accomplish them.
 use oc_individual::order::Order;
+use oc_root::geo::WorldVec2;
+use oc_utils::d2::Direction;
 
 use crate::{
     Commander, capture,
     combat::{self, Engagement},
     command::Command,
+    pace::Pace,
     perception::{Perception, SquadView},
     support,
 };
@@ -25,9 +34,50 @@ use crate::{
 /// when followed enemy moves a little)
 pub const CAPTURE_MOVE_TOLERANCE: f32 = 10.0;
 
+/// Orders of a squad holding its position (regroup): hide facing the nearest known enemy (else
+/// enemy front), heads down, out of the firefight until the next wave (hiding individuals still
+/// fire on near enemies). A squad still moving to a cover finishes its move then hides there. A
+/// squad under fire out of cover first withdraws to a cover farther from the enemy (see
+/// [`combat::withdraw_cover`]).
+fn hold_orders(perception: &Perception, squad: &SquadView) -> Option<Vec<Order>> {
+    let enemies = perception.enemies.iter().map(|e| e.position);
+    let target = perception
+        .nearest(squad.position, enemies, |p| *p)
+        .or_else(|| perception.enemy_front())?;
+    let hide = |from: WorldVec2| Order::Hide(Direction::from_points2d(from.into(), target.into()));
+
+    let hiding = matches!(
+        squad.orders.as_slice(),
+        [Order::Hide(_), ..] | [Order::MoveFastTo(_) | Order::SneakTo(_), Order::Hide(_)]
+    );
+    if !hiding
+        && squad.under_fire
+        && !combat::in_cover(perception, squad)
+        && let Some(cover) = combat::withdraw_cover(perception, squad, target)
+    {
+        return Some(vec![
+            Order::MoveFastTo(cover.position),
+            hide(cover.position),
+        ]);
+    }
+
+    match squad.orders.as_slice() {
+        [Order::Hide(_), ..] => Some(squad.orders.clone()),
+        [Order::MoveFastTo(_) | Order::SneakTo(_), Order::Hide(_)] => Some(squad.orders.clone()),
+        [
+            move_ @ (Order::MoveFastTo(p) | Order::SneakTo(p)),
+            Order::Defend(_) | Order::Engage(_),
+            ..,
+        ] => Some(vec![move_.clone(), hide(*p)]),
+        _ => Some(vec![hide(squad.position)]),
+    }
+}
+
 /// Offensive AI (see module documentation)
 #[derive(Debug, Default)]
-pub struct Offensive;
+pub struct Offensive {
+    pace: Pace,
+}
 
 impl Commander for Offensive {
     /// Give orders to all squads, during fight phase only
@@ -38,8 +88,9 @@ impl Commander for Offensive {
 
         let squads: Vec<&SquadView> = perception.squads.iter().collect();
         let engagements = combat::engagements(perception, &squads);
+        let regroup = self.pace.regroup(perception);
 
-        decide(perception, &squads, &engagements)
+        decide(perception, &squads, &engagements, regroup)
             .into_iter()
             .filter_map(|(squad, orders)| {
                 Command::set_orders_if_changed(squad, orders.unwrap_or(vec![Order::Idle]))
@@ -49,38 +100,90 @@ impl Commander for Offensive {
     }
 }
 
-/// Orders for each given squad: combat orders (take cover and engage, help) else capture order.
-/// None when squad is not in combat and no flag is left to capture.
+/// Orders for each given squad: combat orders (take cover and engage, help) else capture order
+/// (hold order when `regroup`). None when squad is not in combat and no flag is left to capture.
 pub(crate) fn decide<'a>(
     perception: &Perception,
     squads: &[&'a SquadView],
     engagements: &[Engagement],
+    regroup: bool,
 ) -> Vec<(&'a SquadView, Option<Vec<Order>>)> {
+    // When regrouping, squads in contact disengage, except when the enemy is too close
+    let disengage = |squad: &SquadView| {
+        regroup
+            && perception
+                .known_threat(squad.position, combat::CLOSE_COMBAT_DISTANCE)
+                .is_none()
+    };
     let (fighting, free): (Vec<_>, Vec<_>) = squads
         .iter()
-        .map(|squad| (*squad, combat::orders(perception, squad, engagements)))
+        .map(|squad| match disengage(squad) {
+            true => (*squad, None),
+            false => (*squad, combat::orders(perception, squad, engagements)),
+        })
         .partition(|(_, order)| order.is_some());
     let free: Vec<&SquadView> = free.into_iter().map(|(squad, _)| squad).collect();
 
     fighting
         .into_iter()
-        .chain(capture_orders(perception, free))
+        .chain(capture_orders(perception, free, regroup))
         .collect()
 }
 
-/// Capture order for each given squad, spread over flags (None when all flags are controlled)
+/// Capture order for each given squad, spread over flags (None when all flags are controlled).
+/// When squads `regroup` (see [`crate::pace`]), they hold their position, defending facing the
+/// nearest known enemy.
 fn capture_orders<'a>(
     perception: &Perception,
     squads: Vec<&'a SquadView>,
+    regroup: bool,
 ) -> Vec<(&'a SquadView, Option<Vec<Order>>)> {
+    if regroup {
+        return squads
+            .into_iter()
+            .map(|squad| {
+                crate::instrument(perception, squad, "regroup");
+                (squad, hold_orders(perception, squad))
+            })
+            .collect();
+    }
+
     let targets = capture::targets(perception, &squads);
+    // Squads advancing under threat, with their remaining distance to their objective
+    let bounding: Vec<(&SquadView, f32)> = squads
+        .iter()
+        .zip(&targets)
+        .filter_map(|(squad, target)| {
+            let target = (*target)?;
+            let threat = combat::bounding_threat(perception, squad, target)?;
+            // Far threat: squads advance from cover to cover without waiting for each other
+            (perception.meters(squad.position, threat) <= combat::SUPPRESS_DISTANCE)
+                .then_some(())?;
+            Some((*squad, perception.meters(squad.position, target)))
+        })
+        .collect();
 
     squads
         .into_iter()
         .zip(targets)
         .map(|(squad, target)| {
             let orders = target.map(|target| {
-                combat::advance_orders(perception, squad, target, CAPTURE_MOVE_TOLERANCE)
+                let threat = combat::bounding_threat(perception, squad, target);
+                let remaining = perception.meters(squad.position, target);
+                match threat {
+                    Some(threat)
+                        if perception.meters(squad.position, threat)
+                            <= combat::SUPPRESS_DISTANCE
+                            && !combat::may_bound(perception, squad, remaining, &bounding) =>
+                    {
+                        crate::instrument(perception, squad, "overwatch");
+                        combat::overwatch_orders(perception, squad, threat)
+                    }
+                    _ => {
+                        crate::instrument(perception, squad, "advance");
+                        combat::advance_orders(perception, squad, target, CAPTURE_MOVE_TOLERANCE)
+                    }
+                }
             });
             (squad, orders)
         })
@@ -110,6 +213,7 @@ mod tests {
                 orders: vec![],
                 placed: false,
                 under_fire: false,
+                smokes: 0,
             }],
             enemies: vec![],
             flags: vec![
@@ -136,7 +240,7 @@ mod tests {
     #[test]
     fn nothing_during_deployment() {
         assert!(
-            Offensive
+            Offensive::default()
                 .tick(&perception(BattlePhase::Deployment))
                 .is_empty()
         );
@@ -144,7 +248,7 @@ mod tests {
 
     #[test]
     fn go_to_nearest_not_owned_flag() {
-        let commands = Offensive.tick(&perception(BattlePhase::Fight));
+        let commands = Offensive::default().tick(&perception(BattlePhase::Fight));
         assert_eq!(
             commands,
             vec![Command::SetOrders(
@@ -163,7 +267,7 @@ mod tests {
         second.index = SquadIndex(4);
         perception.squads.push(second);
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![
                 Command::SetOrders(
                     SquadIndex(3),
@@ -182,7 +286,7 @@ mod tests {
         let mut perception = perception(BattlePhase::Fight);
         perception.flags[0].ownership = Ownership::Nobody;
         perception.flags[1].ownership = Ownership::Both;
-        let commands = Offensive.tick(&perception);
+        let commands = Offensive::default().tick(&perception);
         assert_eq!(
             commands,
             vec![Command::SetOrders(
@@ -207,7 +311,7 @@ mod tests {
                 seen_by: vec![SquadIndex(3)],
             },
         ];
-        let commands = Offensive.tick(&perception);
+        let commands = Offensive::default().tick(&perception);
         assert_eq!(
             commands,
             vec![Command::SetOrders(
@@ -249,19 +353,21 @@ mod tests {
     #[test]
     fn take_cover_and_defend_facing_enemy() {
         let mut perception = contact();
+        // Enemy is not near: squad runs to its cover
+        perception.enemies[0].position = WorldVec2::new(120.0, 0.0);
         perception.covers = vec![
             // Too far from squad
             cover(-40.0, 0.0, CandidateKind::Interior, 1.0),
             // Too near enemy
-            cover(85.0, 0.0, CandidateKind::Interior, 1.0),
+            cover(105.0, 0.0, CandidateKind::Interior, 1.0),
             // Best one: interior, a little toward enemy
             cover(15.0, 10.0, CandidateKind::Interior, 0.5),
             // Open, less opaque
             cover(-10.0, 5.0, CandidateKind::Open, 0.6),
         ];
-        let defend = defend((15.0, 10.0), (100.0, 0.0));
+        let defend = defend((15.0, 10.0), (120.0, 0.0));
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![
@@ -280,13 +386,13 @@ mod tests {
         perception
             .covers
             .push(cover(8.0, 15.0, CandidateKind::Interior, 1.0));
-        assert!(Offensive.tick(&perception).is_empty());
+        assert!(Offensive::default().tick(&perception).is_empty());
 
         // Cover reached (move accomplished): defend from it, even if enemy moves a little
         perception.squads[0].orders = vec![defend];
         perception.squads[0].position = WorldVec2::new(15.0, 10.0);
         perception.enemies[0].position = WorldVec2::new(100.0, 20.0);
-        assert!(Offensive.tick(&perception).is_empty());
+        assert!(Offensive::default().tick(&perception).is_empty());
     }
 
     #[test]
@@ -297,7 +403,7 @@ mod tests {
             cover(15.0, 10.0, CandidateKind::Interior, 1.0),
         ];
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![defend((0.0, 0.0), (100.0, 0.0))]
@@ -310,7 +416,7 @@ mod tests {
         let mut perception = contact();
         perception.squads[0].orders = vec![Order::Engage(IndividualIndex(7))];
         perception.covers = vec![cover(15.0, 10.0, CandidateKind::Interior, 1.0)];
-        assert!(Offensive.tick(&perception).is_empty());
+        assert!(Offensive::default().tick(&perception).is_empty());
     }
 
     #[test]
@@ -319,7 +425,7 @@ mod tests {
         let (_, other) = cover(15.0, 10.0, CandidateKind::Interior, 1.0);
         perception.covers = vec![(SquadIndex(4), other)];
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![Order::Engage(IndividualIndex(7))]
@@ -342,7 +448,7 @@ mod tests {
         perception.covers = vec![cover(-10.0, 5.0, CandidateKind::Open, 0.6)];
         let defend = defend((-10.0, 5.0), (100.0, 0.0));
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![
@@ -354,12 +460,12 @@ mod tests {
 
         // Defending: kept while under fire
         perception.squads[0].orders = vec![defend];
-        assert!(Offensive.tick(&perception).is_empty());
+        assert!(Offensive::default().tick(&perception).is_empty());
 
         // Fire stopped: advance again, crawling (enemy known in flag, no cover toward objective)
         perception.squads[0].under_fire = false;
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![Order::SneakTo(WorldVec2::new(15.0, 0.0))]
@@ -371,7 +477,7 @@ mod tests {
     fn under_fire_without_cover_defend_in_place() {
         let perception = under_fire();
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![defend((0.0, 0.0), (100.0, 0.0))]
@@ -384,7 +490,7 @@ mod tests {
         let mut perception = contact();
         perception.covers = vec![cover(90.0, 0.0, CandidateKind::Interior, 1.0)];
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![Order::Engage(IndividualIndex(7))]
@@ -420,18 +526,19 @@ mod tests {
             cover(25.0, 0.0, CandidateKind::Open, 0.5),
         ];
         let defend = defend((25.0, 0.0), (100.0, 20.0));
+        // Cover is near the enemy: squad crawls to it
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
-                vec![Order::MoveFastTo(WorldVec2::new(25.0, 0.0)), defend.clone()]
+                vec![Order::SneakTo(WorldVec2::new(25.0, 0.0)), defend.clone()]
             )]
         );
 
-        // Running to cover: orders are kept
-        perception.squads[0].orders = vec![Order::MoveFastTo(WorldVec2::new(25.0, 0.0)), defend];
+        // Crawling to cover: orders are kept
+        perception.squads[0].orders = vec![Order::SneakTo(WorldVec2::new(25.0, 0.0)), defend];
         perception.squads[0].position = WorldVec2::new(10.0, 0.0);
-        assert!(Offensive.tick(&perception).is_empty());
+        assert!(Offensive::default().tick(&perception).is_empty());
     }
 
     #[test]
@@ -439,14 +546,14 @@ mod tests {
         let mut perception = enemy_known();
         let crawl = Order::SneakTo(WorldVec2::new(15.0, 0.0));
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(SquadIndex(3), vec![crawl.clone()])]
         );
 
         // Crawling: order is kept
         perception.squads[0].orders = vec![crawl];
         perception.squads[0].position = WorldVec2::new(5.0, 0.0);
-        assert!(Offensive.tick(&perception).is_empty());
+        assert!(Offensive::default().tick(&perception).is_empty());
     }
 
     #[test]
@@ -457,7 +564,7 @@ mod tests {
             seen_by: vec![],
         }]);
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![Order::SneakTo(WorldVec2::new(15.0, 0.0))]
@@ -470,7 +577,7 @@ mod tests {
         let mut perception = enemy_known();
         perception.enemies[0].position = WorldVec2::new(250.0, 0.0);
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![Order::MoveTo(WorldVec2::new(1000.0, 0.0))]
@@ -485,7 +592,7 @@ mod tests {
         perception.flags[1].enemies = vec![WorldVec2::new(12.0, 5.0), WorldVec2::new(30.0, 0.0)];
         // Enemies are known inside the flag: crawl toward the nearest one (no cover found)
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![Order::SneakTo(WorldVec2::new(12.0, 5.0))]
@@ -509,7 +616,7 @@ mod tests {
         // Helping squad advances toward the enemy engaged by helped squad (crawls: enemy is
         // near and no cover is found)
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![
                 Command::SetOrders(
                     SquadIndex(3),
@@ -523,13 +630,13 @@ mod tests {
         perception.squads[0].orders = vec![Order::SneakTo(WorldVec2::new(15.0, 0.0))];
         perception.squads[1].orders = vec![Order::Engage(IndividualIndex(7))];
         perception.enemies[0].position = WorldVec2::new(145.0, 0.0);
-        assert!(Offensive.tick(&perception).is_empty());
+        assert!(Offensive::default().tick(&perception).is_empty());
 
         // Helping squad approached and sees the enemy: it engages
         perception.squads[0].position = WorldVec2::new(100.0, 0.0);
         perception.enemies[0].seen_by.push(SquadIndex(3));
         assert_eq!(
-            Offensive.tick(&perception),
+            Offensive::default().tick(&perception),
             vec![Command::SetOrders(
                 SquadIndex(3),
                 vec![Order::Engage(IndividualIndex(7))]
@@ -538,9 +645,142 @@ mod tests {
     }
 
     #[test]
+    fn hiding_squad_in_combat_defends_again() {
+        // Squad hid during a regroup, the attack resumed: it fires back from its position
+        let mut perception = contact();
+        let direction = Direction::from_points2d((0.0, 0.0).into(), (100.0, 0.0).into());
+        perception.squads[0].orders = vec![Order::Hide(direction)];
+        assert_eq!(
+            Offensive::default().tick(&perception),
+            vec![Command::SetOrders(
+                SquadIndex(3),
+                vec![Order::Defend(direction)]
+            )]
+        );
+    }
+
+    #[test]
     fn no_command_when_order_unchanged() {
         let mut perception = perception(BattlePhase::Fight);
         perception.squads[0].orders = vec![Order::MoveTo(WorldVec2::new(1000.0, 0.0))];
-        assert!(Offensive.tick(&perception).is_empty());
+        assert!(Offensive::default().tick(&perception).is_empty());
+    }
+
+    #[test]
+    fn crawl_to_near_cover_when_enemy_near() {
+        let mut perception = contact();
+        perception.covers = vec![
+            // Too far to crawl to it while enemy is near
+            cover(15.0, 10.0, CandidateKind::Interior, 1.0),
+            cover(8.0, 5.0, CandidateKind::Open, 0.6),
+        ];
+        assert_eq!(
+            Offensive::default().tick(&perception),
+            vec![Command::SetOrders(
+                SquadIndex(3),
+                vec![
+                    Order::SneakTo(WorldVec2::new(8.0, 5.0)),
+                    defend((8.0, 5.0), (100.0, 0.0))
+                ]
+            )]
+        );
+    }
+
+    #[test]
+    fn under_fire_by_far_seen_enemy_take_cover() {
+        let mut perception = perception(BattlePhase::Fight);
+        perception.squads[0].under_fire = true;
+        // Seen, but beyond engage distance
+        perception.enemies = vec![EnemyView {
+            index: IndividualIndex(7),
+            position: WorldVec2::new(180.0, 0.0),
+            seen_by: vec![SquadIndex(3)],
+        }];
+        assert_eq!(
+            Offensive::default().tick(&perception),
+            vec![Command::SetOrders(
+                SquadIndex(3),
+                vec![defend((0.0, 0.0), (180.0, 0.0))]
+            )]
+        );
+    }
+
+    /// Squads 3 (at (0, 0)) and 4 (at (0, 20)) attack flag at (1000, 0), enemy 7 at (100, 0) is
+    /// seen by another squad
+    fn two_squads_under_threat() -> Perception {
+        let mut perception = enemy_known();
+        perception.enemies[0].position = WorldVec2::new(100.0, 0.0);
+        let mut second = perception.squads[0].clone();
+        second.index = SquadIndex(4);
+        second.position = WorldVec2::new(0.0, 20.0);
+        perception.squads.push(second);
+        perception
+    }
+
+    #[test]
+    fn bounding_overwatch() {
+        let mut perception = two_squads_under_threat();
+        // Squad 4 is ahead: rear-most squad 3 moves (crawls, no cover) while 4 suppresses
+        perception.squads[1].position = WorldVec2::new(10.0, 20.0);
+        let crawl = Order::SneakTo(WorldVec2::new(15.0, 0.0));
+        let suppress = Order::Suppress(WorldVec2::new(100.0, 0.0));
+        assert_eq!(
+            Offensive::default().tick(&perception),
+            vec![
+                Command::SetOrders(SquadIndex(3), vec![crawl.clone()]),
+                Command::SetOrders(SquadIndex(4), vec![suppress.clone()]),
+            ]
+        );
+
+        // Squad 3 moved ahead and is now defending: squad 4 (rear-most) moves, 3 suppresses
+        perception.squads[0].orders = vec![defend((20.0, 0.0), (100.0, 0.0))];
+        perception.squads[0].position = WorldVec2::new(20.0, 0.0);
+        perception.squads[1].orders = vec![suppress];
+        let commands = Offensive::default().tick(&perception);
+        assert!(commands.contains(&Command::SetOrders(
+            SquadIndex(3),
+            vec![Order::Suppress(WorldVec2::new(100.0, 0.0))]
+        )));
+        assert!(commands.iter().any(|c| matches!(
+            c,
+            Command::SetOrders(SquadIndex(4), orders) if matches!(orders.first(), Some(Order::SneakTo(_)))
+        )));
+    }
+
+    #[test]
+    fn regroup_after_costly_wave() {
+        let mut offensive = Offensive::default();
+        let mut perception = enemy_known();
+        assert_eq!(
+            offensive.tick(&perception),
+            vec![Command::SetOrders(
+                SquadIndex(3),
+                vec![Order::SneakTo(WorldVec2::new(15.0, 0.0))]
+            )]
+        );
+
+        // Wave lost too much: squad hides at its position
+        perception.morale = 1.0 - crate::pace::WAVE_LOSSES - 0.01;
+        perception.progress = 0.2;
+        assert_eq!(
+            offensive.tick(&perception),
+            vec![Command::SetOrders(
+                SquadIndex(3),
+                vec![Order::Hide(Direction::from_points2d(
+                    (0.0, 0.0).into(),
+                    (100.0, 20.0).into()
+                ))]
+            )]
+        );
+
+        // Regroup ended: attack again
+        perception.progress = 0.2 + crate::pace::regroup_duration(1.0 - perception.morale);
+        assert_eq!(
+            offensive.tick(&perception),
+            vec![Command::SetOrders(
+                SquadIndex(3),
+                vec![Order::SneakTo(WorldVec2::new(15.0, 0.0))]
+            )]
+        );
     }
 }

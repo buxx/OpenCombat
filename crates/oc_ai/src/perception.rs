@@ -74,6 +74,8 @@ pub struct SquadView {
     pub placed: bool,
     /// Members recently shot at (near projectiles or losses), see [`Perception::with_under_fire`]
     pub under_fire: bool,
+    /// Smoke grenades owned by operational members
+    pub smokes: u8,
 }
 
 /// Enemy individual currently seen by the side
@@ -289,8 +291,22 @@ fn squads(world: &World, side: Side) -> Vec<SquadView> {
             orders: s.orders.clone(),
             placed: false,
             under_fire: false,
+            smokes: smokes(world, s),
         })
         .collect()
+}
+
+/// Smoke grenades owned by operational members of squad
+fn smokes(world: &World, squad: &oc_individual::squad::Squad) -> u8 {
+    squad
+        .members
+        .iter()
+        .map(|i| world.individual(*i))
+        .filter(|i| i.status.is_target())
+        .flat_map(|i| i.weapons.grenades.iter())
+        .filter(|g| world.mod_.grenade(**g).nature == oc_mod::grenade::GrenadeNature::Smoke)
+        .count()
+        .min(u8::MAX as usize) as u8
 }
 
 /// Individuals of `side` able to see, with their squad (grouped by squad)

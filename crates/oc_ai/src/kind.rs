@@ -22,7 +22,7 @@ impl AiKind {
     pub fn commander(self) -> Box<dyn Commander> {
         match self {
             AiKind::Defensive => Box::new(Defensive::default()),
-            AiKind::Offensive => Box::new(Offensive),
+            AiKind::Offensive => Box::new(Offensive::default()),
         }
     }
 
