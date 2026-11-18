@@ -46,3 +46,43 @@ pub fn direction_with_inaccuracy(original: Vec3, spread: f32) -> Vec3 {
 
     random_offset.normalize_or_zero()
 }
+
+/// Like [`direction_with_inaccuracy`], but the downward part of the deviation (pitch lower
+/// than `original` one) is multiplied by `down_factor` (0.0 = never below aim, 1.0 = same as
+/// [`direction_with_inaccuracy`]). Horizontal deviation is unchanged.
+pub fn direction_with_inaccuracy_down(original: Vec3, spread: f32, down_factor: f32) -> Vec3 {
+    let deviated = direction_with_inaccuracy(original, spread);
+    let original_ = original.normalize_or_zero();
+    let pitch = |d: Vec3| d.z.clamp(-1.0, 1.0).asin();
+    let (from, to) = (pitch(original_), pitch(deviated));
+    if to >= from {
+        return deviated;
+    }
+
+    let horizontal = glam::Vec2::new(deviated.x, deviated.y).normalize_or_zero();
+    if horizontal == glam::Vec2::ZERO {
+        return deviated;
+    }
+    let to = from + (to - from) * down_factor.clamp(0.0, 1.0);
+    Vec3::new(horizontal.x * to.cos(), horizontal.y * to.cos(), to.sin())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn down_deviation_reduced() {
+        let original = Vec3::new(1.0, 0.0, -0.01).normalize();
+        let pitch = original.z.asin();
+        let spread = 5.0_f32.to_radians();
+        for _ in 0..1000 {
+            let d = direction_with_inaccuracy_down(original, 5.0, 0.25);
+            assert!((d.length() - 1.0).abs() < 1e-4);
+            // Never more than a quarter of the spread below the aim
+            assert!(d.z.asin() >= pitch - spread * 0.25 - 1e-4);
+            // Up deviation unchanged
+            assert!(d.z.asin() <= pitch + spread + 1e-4);
+        }
+    }
+}

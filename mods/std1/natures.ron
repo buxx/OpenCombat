@@ -179,6 +179,8 @@
         opacity: 0.015,
         z: Meters(0.4),
         deny: [],
+        crawling_opacity_bonus: 0.25,
+        hiding_opacity_bonus: 0.40,
         movement: (individual: (force: Walk, factor: 0.7)),
         intercept: (projectile: Probability(0.15,)),
         crater: Mud,
@@ -187,7 +189,7 @@
     ),
     (
         name: "Hedge",
-        opacity: 0.25,
+        opacity: 0.65,
         z: Meters(2.0),
         deny: [],
         crawling_opacity_bonus: 0.30,

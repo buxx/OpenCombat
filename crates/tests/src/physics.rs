@@ -201,6 +201,11 @@ mod test {
         [120., 100., 0.],
         ([118., 100., 0.].into(), vec![], vec![Event::WantStop(ObjectsId::Object(ObjectId(0)), [118., 100., 0.].into())])
     )]
+    // Stop point near the way, but no line pixel near enough: stop on it (no overshoot)
+    #[case(
+        [130.5, 102.5, 0.],
+        ([129., 103., 0.].into(), vec![], vec![Event::WantStop(ObjectsId::Object(ObjectId(0)), [129., 103., 0.].into())])
+    )]
     // Stop point is not on the way: no stop, force kept
     #[case(
         [120., 200., 0.],

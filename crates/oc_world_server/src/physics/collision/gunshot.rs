@@ -7,6 +7,11 @@ use crate::{individual::death::die, physics::Processor, runner::update::Update};
 impl<'x, E: Client> Processor<'x, E> {
     pub fn gunshot(&self, projectile: ProjectileId, i: IndividualIndex) -> Vec<Update> {
         let mut updates = vec![];
+        #[cfg(feature = "battle_instrument")]
+        let Some(projectile_) = self.ctx.state.world().projectile(&projectile).cloned() else {
+            return updates;
+        };
+        #[cfg(not(feature = "battle_instrument"))]
         let Some(_) = self.ctx.state.world().projectile(&projectile) else {
             return updates;
         };
@@ -21,6 +26,15 @@ impl<'x, E: Client> Processor<'x, E> {
                     i,
                     oc_individual::Update::SetStatus(oc_individual::Status::Dead),
                 ));
+            }
+            #[cfg(feature = "battle_instrument")]
+            {
+                let oc_projectile::Projectile::Bullet(bullet) = &projectile_;
+                crate::battle_log::kill(
+                    &world,
+                    i,
+                    crate::battle_log::Cause::Gunshot(bullet.shooter, bullet.origin.into()),
+                );
             }
             updates.extend(die(&world, self.ctx.state._mod(), i));
             updates.push(Update::RemoveProjectile(projectile));

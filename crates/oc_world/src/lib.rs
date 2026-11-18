@@ -306,7 +306,8 @@ impl World {
     }
 
     pub fn elapsed(&self) -> Option<Duration> {
-        self.start.map(|start| start.elapsed())
+        self.start
+            .map(|start| start.elapsed().mul_f32(self.w.speed()))
     }
 
     pub fn set_phase(&mut self, value: BattlePhase) {

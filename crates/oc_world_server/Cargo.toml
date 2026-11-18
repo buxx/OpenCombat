@@ -11,6 +11,7 @@ debug = ["oc_network/debug", "oc_projectile/debug", "oc_world/debug", "oc_root/d
 debug_locks = ["oc_utils/debug"]
 perfs = []
 tracker = []
+battle_instrument = ["oc_ai/battle_instrument"]
 
 [dependencies]
 oc_root = { path = "../oc_root" }

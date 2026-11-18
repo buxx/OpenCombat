@@ -49,6 +49,9 @@ const COVER_MIN: f32 = 0.25;
 const UNDER_FIRE_TICKS: u64 = 8;
 /// AI ticks during which an enemy not seen anymore is remembered (at its last seen position)
 const ENEMY_MEMORY_TICKS: u64 = 30;
+/// Fight ticks between two battle logs of squads state (see `crate::battle_log`)
+#[cfg(feature = "battle_instrument")]
+const BATTLE_LOG_TICKS: u64 = 10;
 
 /// AI playing one side
 #[derive(Debug, Clone)]
@@ -124,6 +127,15 @@ impl Ai {
     fn fight_perceive(&mut self, world: &World, perception: Perception) -> Perception {
         let tick = self.fight_ticks;
         self.fight_ticks += 1;
+        #[cfg(feature = "battle_instrument")]
+        crate::battle_log::members(world, self.side);
+        #[cfg(feature = "battle_instrument")]
+        if tick.is_multiple_of(BATTLE_LOG_TICKS) {
+            crate::battle_log::squads(world, self.side);
+            if self.side == Side::A {
+                crate::battle_log::summary(world, "periodic");
+            }
+        }
         let under_fire = self.under_fire(world, &perception, tick);
         let remembered = self.remember(world, &perception, tick);
         let perception = perception

@@ -13,6 +13,7 @@ debug = ["oc_network/debug", "oc_world_server/debug", "oc_world/debug", "oc_batt
 perfs = ["oc_world_server/perfs"]
 debug_locks = ["oc_utils/debug"]
 test = ["debug", "oc_world_server/tracker"]
+battle_instrument = ["oc_world_server/battle_instrument"]
 
 # No tests in these targets: skip building them with the test harness (350Mo each)
 [lib]

@@ -12,7 +12,7 @@ use oc_root::{
     opacity::CumulatedOpacity,
     physics::Meters,
 };
-use oc_utils::{if_true, let_some, random::direction_with_inaccuracy};
+use oc_utils::{if_true, let_some, random::direction_with_inaccuracy_down};
 
 use super::Processor;
 use crate::runner;
@@ -200,7 +200,11 @@ impl Processor<'_> {
                 };
                 #[cfg(not(feature = "debug"))]
                 let spread = self.inaccuracy(individual, weapon, opacity);
-                let direction = direction_with_inaccuracy(direction, spread);
+                let direction = direction_with_inaccuracy_down(
+                    direction,
+                    spread,
+                    self.world.w.inaccuracy_down_factor(),
+                );
                 WorldVec3::new(direction.x, direction.y, direction.z)
             })
             .collect::<Vec<_>>();

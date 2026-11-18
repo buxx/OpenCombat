@@ -141,7 +141,9 @@ impl Individual {
             Update::SetGesture(gesture) => self.gesture = gesture.clone(),
             Update::SetIntent(intent) => self.intent = intent.clone(),
             Update::Accomplished => {
-                self.orders.pop();
+                if !self.orders.is_empty() {
+                    self.orders.remove(0);
+                }
             }
             Update::MoveStepAccomplished => self.intent.move_step_accomplished(),
             Update::SetWeapons(weapons) => self.weapons = weapons.clone(),

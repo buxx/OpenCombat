@@ -52,8 +52,12 @@ impl Processor<'_> {
             .filter(|member| **member != self.i)
             .map(|member| self.world.individual(*member))
             .any(|member| {
+                // Members may throw aside of the leader target (smoke screen): compare order kinds
                 member.status.is_target()
-                    && member.orders.contains(order)
+                    && member
+                        .orders
+                        .iter()
+                        .any(|o| std::mem::discriminant(o) == std::mem::discriminant(order))
                     && self.matching_grenade(member, order).is_some()
             })
     }

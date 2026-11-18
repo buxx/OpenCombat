@@ -104,7 +104,7 @@ impl Window {
                             ui.selectable_value(&mut speed, 10.0, "10.0");
                         });
 
-                    WorldConfig::set_speed((speed * 10.) as u8);
+                    WorldConfig::set_speed((speed * 10.) as u32);
 
                     ui.separator();
 

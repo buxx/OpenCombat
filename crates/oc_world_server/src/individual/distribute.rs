@@ -20,6 +20,15 @@ use crate::{
 // When defending/hiding/engaging/suppress, formation positions must permit to fire at least this distance (meters)
 // in the order direction.
 const FORMATION_MIN_FIRE: Meters = Meters(10.0);
+// When holding a position (defend/hide/engage/suppress), a member already holding near its
+// formation place (or already moving to a place near it) keeps doing it if position under this range.
+// Permit avoid constant moves when leader look direction change.
+const FORMATION_HOLD_TOLERANCE: Meters = Meters(4.0);
+// Members (in addition to the leader) throwing a smoke for a squad smoke order: a smoke screen,
+// not all squad smokes at once
+const SMOKE_THROWERS: usize = 2;
+// Distance between smokes of a squad smoke screen (perpendicular to the throw direction)
+const SMOKE_SCREEN_SPACING: Meters = Meters(10.0);
 
 impl Processor<'_> {
     /// Build updates to ensure each member of squad receive order according to situation.
@@ -104,16 +113,49 @@ impl Processor<'_> {
                     distribution.push((member, vec![order]));
                 }
             }
+            // Smoke screen: leader and first members throw smokes aside of the target, others
+            // defend facing it
+            Order::Smoke(target) => {
+                let reference: Vec2 = leader.position.into();
+                let to: Vec2 = (*target).into();
+                let direction = Direction::from_points2d(reference, to);
+                let aside = (to - reference).normalize_or_zero().perp()
+                    * SMOKE_SCREEN_SPACING.pixels(&self.world.w);
+                let members = squad
+                    .members
+                    .iter()
+                    .filter(|m| **m != squad.leader())
+                    .filter(|m| self.world.individual(**m).status.is_target());
+
+                for (rank, member) in members.enumerate() {
+                    let orders = match rank < SMOKE_THROWERS {
+                        true => {
+                            let side = if rank % 2 == 0 { 1.0 } else { -1.0 };
+                            let shift = aside * side * (rank / 2 + 1) as f32;
+                            let p = to + shift;
+                            vec![Order::Smoke(WorldVec2::new(p.x, p.y))]
+                        }
+                        false => vec![Order::Defend(direction)],
+                    };
+                    // Keep throwing order (it is removed once thrown)
+                    let member_ = self.world.individual(*member);
+                    if rank < SMOKE_THROWERS && member_.orders.is_empty() {
+                        continue;
+                    }
+                    distribution.push((*member, orders));
+                }
+            }
             // Members hold the same order as leader, after moving to their place if needed
             Order::Defend(_)
             | Order::Hide(_)
             | Order::Engage(_)
             | Order::Suppress(_)
-            | Order::Grenade(_)
-            | Order::Smoke(_) => {
+            | Order::Grenade(_) => {
                 let reference: Vec2 = leader.position.into();
                 let direction = order.direction(reference, individual_position);
                 let_some!(direction = direction, return updates);
+                // Formation faces the order direction instead leader gesture (turns a lot when firing)
+                let angle = direction.angle(V::Server);
                 let places = self.places(
                     squad_i,
                     squad,
@@ -123,12 +165,32 @@ impl Processor<'_> {
                     angle,
                     Some(direction),
                 );
+                let hold = FORMATION_HOLD_TOLERANCE.pixels(&self.world.w);
 
                 for (member, position) in places {
                     let member_ = self.world.individual(member);
+                    let near = |p: Vec2| p.distance(Vec2::from(position)) <= hold;
+                    // Holding a position (whatever the hold order is: squad may switch from hide to defend, etc.)
+                    let holding = member_.orders.first().is_some_and(Order::holds);
+                    let moving_near = match member_.orders.as_slice() {
+                        [Order::SneakTo(p) | Order::MoveFastTo(p), o] if o.holds() => {
+                            near((*p).into()).then_some(member_.orders[0].clone())
+                        }
+                        _ => None,
+                    };
+
                     let orders = match position.almost_equal(member_.position, POSITION_TOLERANCE) {
                         true => vec![order.clone()],
-                        // FIXME BS NOW NOW: how to choose move/moveFast/sneak ?
+                        // Already holding near its place: don't move for a small place change
+                        false if holding && near(member_.position.into()) => vec![order.clone()],
+                        // Already moving to a place near this one
+                        false if moving_near.is_some() => {
+                            vec![moving_near.expect("is some"), order.clone()]
+                        }
+                        // Under threat, soldiers crawl to their place instead of standing up
+                        false if self.threatened(member) => {
+                            vec![Order::SneakTo(position), order.clone()]
+                        }
                         false => vec![Order::MoveFastTo(position), order.clone()],
                     };
 
@@ -153,6 +215,24 @@ impl Processor<'_> {
         }
 
         updates
+    }
+
+    /// True if `member` is suppressed (projectiles flew near it) or sees an enemy: it must not
+    /// stand up to move to its formation place
+    fn threatened(&self, member: IndividualIndex) -> bool {
+        let individual = self.world.individual(member);
+        individual.suppress.0 > 0
+            || self
+                .world
+                .visibilities
+                .for_(member)
+                .iter()
+                .enumerate()
+                .filter(|(_, v)| v.visible)
+                .any(|(i, _)| {
+                    let target = self.world.individual(IndividualIndex(i as u64));
+                    target.side != individual.side && target.status.is_target()
+                })
     }
 
     /// Find places according to formation and position. When `fire_direction` is given, places

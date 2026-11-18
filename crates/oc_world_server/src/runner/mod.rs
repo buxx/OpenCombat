@@ -167,6 +167,9 @@ impl<E: Client> Runner<E> {
         let world = self.state.world();
         let world: &oc_world::World = &world;
 
+        #[cfg(feature = "battle_instrument")]
+        crate::battle_log::summary(world, "end");
+
         // Persist before announcing the end: clients may exit as soon as they receive it
         match &self.end {
             EndPolicy::None => {}

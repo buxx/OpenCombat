@@ -23,6 +23,10 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: 8c320c64-6422-4d96-b0b3-244ae0bc77f0
     illustration: default
     xp: 186
@@ -33,6 +37,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
@@ -63,6 +71,10 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: f85987fa-86ff-4a10-8354-db891250492d
     illustration: default
     xp: 85
@@ -73,6 +85,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
@@ -107,6 +123,10 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: a21f3a16-8261-478e-9ea8-35685e172ad0
     illustration: default
     xp: 187
@@ -117,6 +137,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
@@ -147,6 +171,10 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: 1e5f070e-b008-4600-afaa-905ae2e7de5f
     illustration: default
     xp: 120
@@ -157,6 +185,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
@@ -191,6 +223,10 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: c806c9b2-5eff-423e-88e0-f65ce510be1a
     illustration: default
     xp: 134
@@ -201,6 +237,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
@@ -231,6 +271,10 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: 94ce4b17-65d9-4cab-b42f-efcdc33d0234
     illustration: default
     xp: 144
@@ -241,6 +285,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
@@ -275,6 +323,10 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: 182cf37f-bb7a-41a3-b778-7dc85489ae39
     illustration: default
     xp: 122
@@ -285,6 +337,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
@@ -315,6 +371,10 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: de46d5e3-9701-4764-966a-d1eb8f80f72a
     illustration: default
     xp: 86
@@ -325,6 +385,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
@@ -359,6 +423,10 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: 3c8d0d6c-87cc-45e1-b5c9-544c37993aa0
     illustration: default
     xp: 153
@@ -369,6 +437,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
@@ -399,6 +471,10 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: 023ee10f-27a9-4e3c-acd4-686d3cc519e4
     illustration: default
     xp: 78
@@ -409,6 +485,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
@@ -445,6 +525,8 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: ef596d8c-d8d8-4228-84d6-89c8d1a8d97e
     illustration: default
     xp: 198
@@ -467,6 +549,8 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: f837a9b4-c94b-4a2c-b9d3-51c0a3dab150
     illustration: Mg34
     xp: 117
@@ -477,6 +561,8 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mg34_50x
+    - name: Mg34_50x
     - name: Mg34_50x
     - name: Mg34_50x
     - name: Mg34_50x
@@ -511,6 +597,8 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: 3b7196ff-18eb-4e76-9a75-ccd7f85f579d
     illustration: default
     xp: 196
@@ -533,6 +621,8 @@ squads:
     - name: Mauser5x
     - name: Mauser5x
     - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
   - uuid: e66d3b9e-4649-4ec5-a680-7972fefcd601
     illustration: Mg34
     xp: 141
@@ -543,6 +633,8 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: Mg34_50x
+    - name: Mg34_50x
     - name: Mg34_50x
     - name: Mg34_50x
     - name: Mg34_50x

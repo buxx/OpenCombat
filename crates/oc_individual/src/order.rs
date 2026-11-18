@@ -48,6 +48,18 @@ impl Order {
         }
     }
 
+    /// True if order is executed from a held position (no move)
+    pub fn holds(&self) -> bool {
+        matches!(
+            self,
+            Order::Defend(_)
+                | Order::Hide(_)
+                | Order::Engage(_)
+                | Order::Suppress(_)
+                | Order::Grenade(_)
+        )
+    }
+
     /// Return position if order own it (moves / suppress)
     pub fn position(&self) -> Option<WorldVec2> {
         match self {

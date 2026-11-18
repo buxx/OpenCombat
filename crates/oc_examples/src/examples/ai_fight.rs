@@ -52,6 +52,10 @@ struct Args {
     /// Start fight automatically after given seconds (let AIs deploy their squads first)
     #[arg(long, value_name = "SECONDS", num_args = 0..=1, default_missing_value = "5")]
     auto_fight: Option<u64>,
+
+    /// Fight duration (game time seconds), default is 15 minutes
+    #[arg(long, value_name = "SECONDS")]
+    duration: Option<u64>,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -123,9 +127,12 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let map = oc_world::reader::MapReader::new(&world)
         .context(format!("Read map {}", world.display()))?;
-    let snapshot = generate
+    let mut snapshot = generate
         .snapshot(&PathBuf::from(MOD), &world, &map, None)
         .context("Generate snapshot")?;
+    if let Some(duration) = args.duration {
+        snapshot.duration = Duration::from_secs(duration);
+    }
     let (_, snapshot_path) = tempfile::NamedTempFile::new()?.keep()?;
     snapshot
         .save(&snapshot_path)

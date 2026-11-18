@@ -3,6 +3,8 @@
 
 pub mod ai;
 pub mod args;
+#[cfg(feature = "battle_instrument")]
+pub mod battle_log;
 pub mod bridge;
 pub mod config;
 pub mod end;

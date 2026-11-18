@@ -23,6 +23,10 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: bf8cddc0-d2c4-4ecd-9c20-7573d1097a0b
     illustration: default
     xp: 105
@@ -33,6 +37,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -63,6 +71,10 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: 7d7b6a14-0a64-4f8d-a4cf-76b571b8075a
     illustration: default
     xp: 199
@@ -73,6 +85,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -107,6 +123,10 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: 7d4b1f48-eec6-4c42-9f5b-605afc2a1e2a
     illustration: default
     xp: 174
@@ -117,6 +137,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -147,6 +171,10 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: c2841dfc-0fe6-439f-89f2-054646353b40
     illustration: default
     xp: 89
@@ -157,6 +185,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -191,6 +223,10 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: 5eb34622-125a-4fb6-860b-15c6170e644a
     illustration: default
     xp: 92
@@ -201,6 +237,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -231,6 +271,10 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: bf0167a8-1a39-400f-93ea-2fc877b93e56
     illustration: default
     xp: 119
@@ -241,6 +285,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -275,6 +323,10 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: 50af9dd0-3ca8-440f-aa40-6ffd0e86a840
     illustration: default
     xp: 189
@@ -285,6 +337,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -315,6 +371,10 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: 9c4fb9fe-bab0-4a49-bdef-b109e28aeb12
     illustration: default
     xp: 120
@@ -325,6 +385,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -359,6 +423,10 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: 6a53bfac-27de-4a2b-bb55-1737300eda8f
     illustration: default
     xp: 193
@@ -369,6 +437,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -399,6 +471,10 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: b65e473e-46b1-424c-9298-0d32523b61cd
     illustration: default
     xp: 114
@@ -409,6 +485,10 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -445,6 +525,8 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: b5406acd-7074-43fc-a9ff-3be15d1bf40f
     illustration: default
     xp: 94
@@ -455,6 +537,8 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -489,6 +573,8 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: 129ba1e9-4dd3-4277-ab40-ca52dbb3ee7a
     illustration: BrenMark2
     xp: 170
@@ -499,6 +585,7 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: BrenMark2_30x
     - name: BrenMark2_30x
     - name: BrenMark2_30x
     - name: BrenMark2_30x
@@ -535,6 +622,8 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: 2a90c0df-49f8-4fc5-a407-b9bd602d2031
     illustration: default
     xp: 110
@@ -545,6 +634,8 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -579,6 +670,8 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: 928e161a-557c-41e6-b886-9ff2babea8eb
     illustration: BrenMark2
     xp: 192
@@ -589,6 +682,7 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: BrenMark2_30x
     - name: BrenMark2_30x
     - name: BrenMark2_30x
     - name: BrenMark2_30x
@@ -625,6 +719,8 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: d28483f0-06d6-4655-a3c5-6f7ff0e5dd94
     illustration: default
     xp: 118
@@ -635,6 +731,8 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -669,6 +767,8 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: aeed1b2c-d80c-4ce3-9ad3-217089ffba7a
     illustration: BrenMark2
     xp: 95
@@ -679,6 +779,7 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: BrenMark2_30x
     - name: BrenMark2_30x
     - name: BrenMark2_30x
     - name: BrenMark2_30x
@@ -715,6 +816,8 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: 17932bcf-a084-43c2-a197-3eddeac4c64f
     illustration: default
     xp: 192
@@ -725,6 +828,8 @@ squads:
       - Frag grenade
       - Smoke grenade
     magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
@@ -759,6 +864,8 @@ squads:
     - name: MosinNagant5x
     - name: MosinNagant5x
     - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
   - uuid: befacc48-f39d-4fcf-a354-c0f7a51bc2d2
     illustration: BrenMark2
     xp: 65
@@ -779,5 +886,5 @@ squads:
     - name: BrenMark2_30x
     - name: BrenMark2_30x
     - name: BrenMark2_30x
+    - name: BrenMark2_30x
 spawns: []
-

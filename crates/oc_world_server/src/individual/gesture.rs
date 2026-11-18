@@ -205,6 +205,8 @@ impl Processor<'_> {
                     return prone(HandsGesture::Aiming(progress));
                 }
 
+                #[cfg(feature = "battle_instrument")]
+                tracing::info!(name="battle-throw", i=self.i.0, side=?individual.side, nature=?nature);
                 let updates = self.throw(individual, position, grenade, target, lag, direction);
 
                 (

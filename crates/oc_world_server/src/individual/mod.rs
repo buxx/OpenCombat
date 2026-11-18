@@ -79,6 +79,8 @@ impl<'a> Processor<'a> {
         let behavior = self.act(situation, &intent);
         let (gesture, updates_) = self.gesture(individual, situation, &behavior);
         let forces = self.forces(individual, &behavior, &intent);
+        #[cfg(feature = "battle_instrument")]
+        self.instrument_reverse(individual, &intent, &behavior);
 
         tracing::trace!(
             name = "individual-step-with",

@@ -113,6 +113,8 @@ impl<E: Client> super::State<E> {
                     )
                 {
                     killed.insert(*i);
+                    #[cfg(feature = "battle_instrument")]
+                    crate::battle_log::kill(&world, *i, crate::battle_log::Cause::Explosion);
                     updates.extend(die(&world, mod_, *i));
                 }
             }
@@ -197,6 +199,8 @@ impl<E: Client> super::State<E> {
             let (shrapnel_killed, _shrapnel_lines) =
                 shrapnels(&world, mod_, &explosion, start, &candidates);
             for i in shrapnel_killed {
+                #[cfg(feature = "battle_instrument")]
+                crate::battle_log::kill(&world, i, crate::battle_log::Cause::Shrapnel);
                 updates.extend(die(&world, mod_, i));
             }
 

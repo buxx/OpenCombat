@@ -24,6 +24,10 @@ pub mod translation;
 pub mod update;
 pub mod volume;
 
+/// Stop point is considered on the way of a translation when it is at most this factor of its
+/// tolerance away from the translation line
+const WANT_STOP_LINE_TOLERANCE: f32 = 2.0;
+
 type PhysicVolumes = Vec<(Volume, Traversability, Direction)>;
 
 pub trait Physic: Material {
@@ -286,13 +290,23 @@ where
         speed: &MetersSeconds,
     ) -> Translation {
         let (origin, i) = (self.origin, self.i.clone());
-        let pixels = speed.0 * self.delta * self.w.geo_pixels_per_meters();
+        let mut pixels = speed.0 * self.delta * self.w.geo_pixels_per_meters();
         let [x, y, z] = position.into();
-        let (x_, y_, z_) = (
-            x + direction.x * pixels,
-            y + direction.y * pixels,
-            z + direction.z * pixels,
-        );
+
+        // Stop point on the way: translation ends exactly on it.
+        let stop = self.want_stop_on_way(position, direction, pixels);
+        if let Some(distance) = stop {
+            pixels = distance;
+        }
+
+        let (x_, y_, z_) = match (stop, self.want_stop) {
+            (Some(_), Some((p, _))) => (p.x, p.y, z + direction.z * pixels),
+            _ => (
+                x + direction.x * pixels,
+                y + direction.y * pixels,
+                z + direction.z * pixels,
+            ),
+        };
 
         tracing::trace!(
             name = "physics-step-translation-start", origin=origin, i=?i,
@@ -334,8 +348,40 @@ where
             position.z = z;
         }
 
+        if stop.is_some() {
+            tracing::trace!(name="physics-step-translation-want-stop-reached", origin=origin, i=?i, p=?position);
+            self.events.push(Event::WantStop(self.id, position));
+            return Translation::Dropped(position);
+        }
+
         tracing::trace!(name="physics-step-translation-updated", origin=origin, i=?i, p=?position);
         Translation::Kept(position)
+    }
+
+    // WARNING: AI generated (fix bug of soldier walking around its move step)
+    /// Distance (pixels) to the stop point when it is reached by a translation of `pixels` from
+    /// `position` in `direction` (stop point near the translation line, at most
+    /// [`WANT_STOP_LINE_TOLERANCE`] times its tolerance away)
+    fn want_stop_on_way(
+        &self,
+        position: WorldVec3,
+        direction: &WorldVec3,
+        pixels: f32,
+    ) -> Option<f32> {
+        let (stop, tolerance) = self.want_stop?;
+        let direction = glam::Vec2::new(direction.x, direction.y);
+        let length = direction.length();
+        if length <= f32::EPSILON {
+            return None;
+        }
+        let direction = direction / length;
+        let to = glam::Vec2::new(stop.x - position.x, stop.y - position.y);
+        let along = to.dot(direction);
+        let aside = (to - direction * along).length();
+        // Translation pixels are along the full (3d) direction
+        let distance = along / length;
+        (along >= 0.0 && distance <= pixels && aside <= tolerance * WANT_STOP_LINE_TOLERANCE)
+            .then_some(distance)
     }
 
     /// Test object at `pixel` (on tile `xy`): want stop, proximities and collisions.
