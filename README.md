@@ -6,7 +6,7 @@ Real-time tactics games themed around World War II.
 
 ## Developer guide
 
-See [developer guide](doc/developer/developer.md)
+See [developer guide](doc/developer/developer.md) and [examples](doc/developer/examples.md).
 
 In resume:
 
