@@ -1,0 +1,58 @@
+[package]
+name = "oc_examples"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+default = ["dev"] # See oc_battle_gui `dev` feature WARNING: can disturb build
+dev = ["oc_battle_gui/dev"]
+debug = ["oc_network/debug", "oc_world_server/debug", "oc_world/debug", "oc_battle_gui/debug", "oc_root/debug"]
+perfs = ["oc_world_server/perfs"]
+debug_locks = ["oc_utils/debug"]
+test = ["debug", "oc_world_server/tracker"]
+battle_instrument = ["oc_world_server/battle_instrument"]
+
+# No tests in these targets: skip building them with the test harness (350Mo each)
+[lib]
+test = false
+bench = false
+doctest = false
+
+[[bin]]
+name = "oc_example"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+oc_root = { path = "../oc_root", features = ["clap"] }
+oc_world_server = { path = "../oc_world_server" }
+oc_world = { path = "../oc_world" }
+oc_network = { path = "../oc_network" }
+oc_individual = { path = "../oc_individual" }
+oc_projectile = { path = "../oc_projectile" }
+oc_physics = { path = "../oc_physics" }
+oc_geo = { path = "../oc_geo" }
+oc_utils = { path = "../oc_utils" }
+oc_mod = { path = "../oc_mod" }
+oc_battle_gui = { path = "../oc_battle_gui" }
+oc_deployment = { path = "../oc_deployment" }
+oc_battle = { path = "../oc_battle" }
+oc_ai = { path = "../oc_ai", features = ["clap"] }
+tests = { path = "../tests" }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+bon.workspace = true
+tempfile.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+derive_more.workspace = true
+bevy.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+parking_lot.workspace = true
+uuid.workspace = true

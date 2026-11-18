@@ -1,0 +1,42 @@
+squads:
+- count: 5
+  label: Riffle
+  illustration: default
+  individuals:
+  - count: 4
+    illustration: default
+    xp: [159, 40]
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+    magazines:
+    - count: 10
+      name: Mauser5x
+- count: 2
+  label: Bren
+  illustration: Mg34Squad
+  individuals:
+  - count: 2
+    illustration: default
+    xp: [94, 40]
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+    magazines:
+    - count: 12
+      name: Mauser5x
+  - count: 1
+    illustration: Mg34
+    xp: [115, 40]
+    weapons:
+      main: Mg34
+      grenades:
+      - Frag grenade
+      - Frag grenade
+    magazines:
+    - count: 8
+      name: Mg34_50x

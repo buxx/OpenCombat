@@ -1,0 +1,24 @@
+[package]
+name = "oc_ai"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+clap = ["dep:clap"]
+# Battle instrumentation traces (attack waves and regroups)
+battle_instrument = []
+
+[dependencies]
+oc_root = { path = "../oc_root" }
+oc_utils = { path = "../oc_utils" }
+oc_world = { path = "../oc_world" }
+oc_mod = { path = "../oc_mod" }
+oc_individual = { path = "../oc_individual" }
+glam.workspace = true
+rustc-hash.workspace = true
+tracing.workspace = true
+serde.workspace = true
+clap = { workspace = true, optional = true }

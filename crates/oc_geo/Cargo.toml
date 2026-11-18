@@ -1,0 +1,21 @@
+[package]
+name = "oc_geo"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+
+[dependencies]
+oc_derive = { path = "../oc_derive" }
+oc_root = { path = "../oc_root" }
+oc_utils = { path = "../oc_utils" }
+derive_more = { workspace = true, features = ["constructor"] }
+rkyv.workspace = true
+serde = { workspace = true, features = ["derive"] }
+glam.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true

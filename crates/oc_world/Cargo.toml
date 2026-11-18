@@ -1,0 +1,52 @@
+[package]
+name = "oc_world"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+bevy = ["dep:bevy", "dep:geo"]
+tests = []
+debug = []
+
+[dependencies]
+oc_derive = { path = "../oc_derive" }
+oc_root = { path = "../oc_root" }
+oc_utils = { path = "../oc_utils", features = ["tiled"] }
+oc_geo = { path = "../oc_geo" }
+oc_mod = { path = "../oc_mod" }
+oc_individual = { path = "../oc_individual" }
+oc_projectile = { path = "../oc_projectile" }
+oc_physics = { path = "../oc_physics" }
+derive_more = { workspace = true, features = ["constructor"] }
+rkyv.workspace = true
+thiserror.workspace = true
+image.workspace = true
+uuid.workspace = true
+rayon.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+rustc-hash.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tiled.workspace = true
+glam.workspace = true
+tar.workspace = true
+flate2.workspace = true
+bevy = { workspace = true, optional = true }
+strum.workspace = true
+strum_macros.workspace = true
+polyanya.workspace = true
+geo = { workspace = true, optional = true }
+
+[dev-dependencies]
+rstest.workspace = true
+gungraun = "0.19"
+
+[[bench]]
+name = "navmesh"
+harness = false

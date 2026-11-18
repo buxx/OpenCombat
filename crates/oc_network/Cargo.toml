@@ -1,0 +1,23 @@
+[package]
+name = "oc_network"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+debug = ["oc_projectile/debug"]
+
+[dependencies]
+oc_derive = { path = "../oc_derive" }
+oc_root = { path = "../oc_root" }
+oc_individual = { path = "../oc_individual" }
+oc_projectile = { path = "../oc_projectile" }
+oc_physics = { path = "../oc_physics" }
+oc_geo = { path = "../oc_geo" }
+oc_utils = { path = "../oc_utils" }
+oc_world = { path = "../oc_world" }
+oc_mod = { path = "../oc_mod" }
+rkyv.workspace = true
+derive_more.workspace = true

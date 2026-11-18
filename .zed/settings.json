@@ -1,0 +1,15 @@
+{
+  "inlay_hints": {
+    "enabled": true,
+  },
+  "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        "cargo": {
+          // "features": ["debug", "bevy", "tiled", "test"],
+          "features": ["debug", "test"],
+        },
+      },
+    },
+  },
+}

@@ -1,0 +1,22 @@
+(
+  name: "Scenario 2",
+  description: "Side A with two squads",
+  deploy_a: "deploy_a_2.ron",
+  deploy_b: "deploy_b.ron",
+  a_squad_count: 2,
+  b_squad_count: 1,
+  a_start_spawn_zones: [
+    "SouthBeach",
+  ],
+  b_start_spawn_zones: [
+    "North",
+    "Middle",
+  ],
+  a_default: [
+    "Riffle",
+    "Assault",
+  ],
+  b_default: [
+    "Riffle",
+  ],
+)

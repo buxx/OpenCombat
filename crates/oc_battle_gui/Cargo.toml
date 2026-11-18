@@ -1,0 +1,61 @@
+[package]
+name = "oc_battle_gui"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+# Bevy as a shared lib in dev: avoid writing ~380Mo binaries at each link (and make a lot of IO wait).
+# Release builds MUST use `--no-default-features` (packaging only ships executables).
+default = ["dev"] # WARNING: can disturb build
+dev = ["bevy/dynamic_linking"]
+debug = ["bevy/bevy_dev_tools", "bevy/render_dev_tools", "oc_network/debug", "oc_physics/debug", "oc_world_server/debug"]
+
+[dependencies]
+oc_root = { path = "../oc_root", features = ["bevy", "clap"] }
+oc_network = { path = "../oc_network" }
+oc_world_server = { path = "../oc_world_server" }
+oc_utils = { path = "../oc_utils", features = ["bevy"] }
+oc_mod = { path = "../oc_mod" }
+oc_geo = { path = "../oc_geo" }
+geo.workspace = true
+oc_world = { path = "../oc_world", features = ["bevy"] }
+oc_physics = { path = "../oc_physics", features = ["bevy"] }
+oc_lov = { path = "../oc_lov" }
+oc_individual = { path = "../oc_individual", features = ["bevy"] }
+oc_projectile = { path = "../oc_projectile" }
+enum_type_derive = { path = "../enum_type_derive" }
+bevy_heightmap = { path = "../bevy_heightmap" }
+bevy.workspace = true
+bevy_spritesheet_animation.workspace = true
+bevy_hanabi.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+tracing-subscriber.workspace = true
+clap.workspace = true
+message-io.workspace = true
+rkyv.workspace = true
+rustc-hash.workspace = true
+reqwest = { workspace = true, features = ["blocking"] }
+bevy_egui.workspace = true
+egui_dock.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+derive_more = { workspace = true, features = ["constructor"] }
+flate2.workspace = true
+tar.workspace = true
+bon.workspace = true
+fs_extra.workspace = true
+tempfile.workspace = true
+image.workspace = true
+glam.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+polyanya.workspace = true
+derive_is_enum_variant.workspace = true
+
+[dev-dependencies]
+tests = { path = "../tests" }

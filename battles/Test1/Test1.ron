@@ -1,0 +1,6 @@
+(
+  name: "Test1",
+  description: "Hello world",
+  map: "minidblue",
+  scenarios: ["scenario_1.ron", "scenario_2.ron"],
+)

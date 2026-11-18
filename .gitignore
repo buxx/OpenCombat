@@ -1,0 +1,7 @@
+/target
+map.png
+.cache*
+crates/oc_battle_gui/assets/.cache
+CLAUDE.md
+/.release-local
+/oc-*

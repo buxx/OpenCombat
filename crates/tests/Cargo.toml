@@ -1,0 +1,30 @@
+[package]
+name = "tests"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+
+[dependencies]
+oc_root = { path = "../oc_root" }
+oc_network = { path = "../oc_network" }
+oc_utils = { path = "../oc_utils" }
+oc_mod = { path = "../oc_mod" }
+oc_geo = { path = "../oc_geo" }
+oc_world = { path = "../oc_world", features = ["tests"] }
+oc_physics = { path = "../oc_physics" }
+oc_individual = { path = "../oc_individual" }
+oc_projectile = { path = "../oc_projectile" }
+glam.workspace = true
+bon.workspace = true
+rustc-hash.workspace = true
+
+
+[dev-dependencies]
+rstest.workspace = true
+tracing-subscriber.workspace = true
+serde.workspace = true
+serde_derive.workspace = true

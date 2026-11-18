@@ -1,0 +1,34 @@
+[package]
+name = "oc_root"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+bevy = ["dep:bevy"]
+debug = []
+clap = ["dep:clap"]
+
+[dependencies]
+oc_derive = { path = "../oc_derive" }
+rkyv = { workspace = true, features = ["uuid-1"] }
+derive_more = { workspace = true, features = ["constructor", "deref", "from", "into", "add", "mul"] }
+serde = { workspace = true, features = ["serde_derive"] }
+serde_derive = { workspace = true }
+ron.workspace = true
+serde_yaml.workspace = true
+toml.workspace = true
+thiserror.workspace = true
+glam.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+bevy = { workspace = true, optional = true }
+uuid.workspace = true
+clap = { workspace = true, optional = true }
+getset.workspace = true
+directories.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

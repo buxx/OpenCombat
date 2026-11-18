@@ -1,0 +1,33 @@
+[package]
+name = "oc_mod"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+
+[dependencies]
+oc_derive = { path = "../oc_derive" }
+oc_root = { path = "../oc_root" }
+oc_utils = { path = "../oc_utils" }
+serde.workspace = true
+serde_derive.workspace = true
+thiserror.workspace = true
+tar.workspace = true
+flate2.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+rkyv.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+derive_more = { workspace = true, features = ["constructor"] }
+fastrand.workspace = true
+
+[dev-dependencies]
+gungraun = "0.19"
+
+[[bench]]
+name = "nature_opacity"
+harness = false

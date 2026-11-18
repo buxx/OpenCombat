@@ -1,0 +1,23 @@
+[package]
+name = "oc_projectile"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+debug = []
+
+[dependencies]
+oc_derive = { path = "../oc_derive" }
+oc_root = { path = "../oc_root" }
+oc_utils = { path = "../oc_utils" }
+oc_geo = { path = "../oc_geo" }
+oc_mod = { path = "../oc_mod" }
+oc_physics = { path = "../oc_physics" }
+oc_individual = { path = "../oc_individual" }
+derive_more = { workspace = true, features = ["constructor", "deref"] }
+rkyv.workspace = true
+serde.workspace = true
+serde_json.workspace = true

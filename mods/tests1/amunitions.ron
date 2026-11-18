@@ -1,0 +1,6 @@
+[
+    Cartridge((
+        name: "Ammo1",
+        model: "model1",
+    )),
+]

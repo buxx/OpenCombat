@@ -1,0 +1,47 @@
+[package]
+name = "oc_utils"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+bevy = ["dep:bevy"]
+tiled = ["dep:tiled"]
+debug = ["dep:backtrace"]
+
+[dependencies]
+oc_derive = { path = "../oc_derive" }
+oc_root = { path = "../oc_root" }
+image.workspace = true                                         # should be optional because used only by binoc_root = { path = "../oc_root" }
+rkyv.workspace = true
+tracing.workspace = true
+bevy = { workspace = true, optional = true }
+rustc-hash.workspace = true
+derive_more = { workspace = true, features = ["constructor"] }
+glam.workspace = true
+serde.workspace = true
+serde_derive.workspace = true
+geo.workspace = true
+tiled = { workspace = true, optional = true }
+anyhow.workspace = true
+backtrace = { workspace = true, optional = true }
+uuid.workspace = true
+rand.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true
+gungraun = "0.19"
+
+[[bench]]
+name = "shape_cover_tiles"
+harness = false
+
+[[bench]]
+name = "polygon_contains"
+harness = false
+
+[[bench]]
+name = "shape"
+harness = false

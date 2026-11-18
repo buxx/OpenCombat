@@ -1,0 +1,48 @@
+(
+  squads: [
+    (
+      count: 7,
+      label: "Riffle",
+      illustration: "default",
+      individuals: [
+        (
+          count: 4,
+          illustration: "default",
+          xp: (159, 40),
+          weapons: (
+            main: Some("Mauser G41"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 12, name: "Mauser5x")],
+        ),
+      ],
+    ),
+    (
+      count: 3,
+      label: "Mg34",
+      illustration: "Mg34Squad",
+      individuals: [
+        (
+          count: 2,
+          illustration: "default",
+          xp: (94, 40),
+          weapons: (
+            main: Some("Mauser G41"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 12, name: "Mauser5x")],
+        ),
+        (
+          count: 1,
+          illustration: "Mg34",
+          xp: (115, 40),
+          weapons: (
+            main: Some("Mg34"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 8, name: "Mg34_50x")],
+        ),
+      ],
+    ),
+  ],
+)

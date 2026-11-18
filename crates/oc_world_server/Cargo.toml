@@ -1,0 +1,62 @@
+[package]
+name = "oc_world_server"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+debug = ["oc_network/debug", "oc_projectile/debug", "oc_world/debug", "oc_root/debug", "oc_physics/debug"]
+debug_locks = ["oc_utils/debug"]
+perfs = []
+tracker = []
+battle_instrument = ["oc_ai/battle_instrument"]
+
+[dependencies]
+oc_root = { path = "../oc_root" }
+oc_utils = { path = "../oc_utils" }
+oc_geo = { path = "../oc_geo" }
+oc_world = { path = "../oc_world" }
+oc_deployment = { path = "../oc_deployment" }
+oc_lov = { path = "../oc_lov" }
+oc_network = { path = "../oc_network" }
+oc_mod = { path = "../oc_mod" }
+oc_individual = { path = "../oc_individual", features = ["polyanya"] }
+oc_projectile = { path = "../oc_projectile" }
+oc_physics = { path = "../oc_physics" }
+oc_ai = { path = "../oc_ai", features = ["clap"] }
+derive_more = { workspace = true, features = ["constructor"] }
+thiserror.workspace = true
+rayon.workspace = true
+rustc-hash.workspace = true
+rkyv.workspace = true
+num_cpus.workspace = true
+message-io.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+clap.workspace = true
+axum = { workspace = true, features = ["macros"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "fs"] }
+tokio-util = { workspace = true, features = ["io"] }
+uuid.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+glam.workspace = true
+line_drawing.workspace = true
+bon.workspace = true
+anyhow.workspace = true
+ctrlc.workspace = true
+polyanya.workspace = true
+image.workspace = true
+fastrand.workspace = true
+
+[dev-dependencies]
+tests = { path = "../tests" }
+oc_world = { path = "../oc_world", features = ["tests"] }
+rstest.workspace = true
+gungraun = "0.19"
+
+[[bench]]
+name = "server"
+harness = false

@@ -1,0 +1,154 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.5"
+
+[profile.dev]
+opt-level = 1
+# Prevent enormous (1.7Go) bin which kill CPU by IO wait
+debug = "line-tables-only"
+# Keep debug info in object files instead of copying it into each (big) binary at link time
+split-debuginfo = "unpacked"
+
+[profile.dev.package."*"]
+opt-level = 3
+# Prevent enormous (1.7Go) bin which kill CPU by IO wait
+debug = false
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+
+[profile.bench]
+# Prevent enormous (1.7Go) bin which kill CPU by IO wait
+debug = "line-tables-only"
+
+[profile.bench.package."*"]
+debug = false
+
+[workspace.dependencies]
+bevy = "0.20"
+bevy_spritesheet_animation = "8"
+bevy_hanabi = { version = "0.20", default-features = false, features = ["2d"] }
+derive_more = "2"
+thiserror = "2"
+anyhow = "1"
+rayon = "1"
+rustc-hash = "2"
+rkyv = "0.8"
+num_cpus = "1"
+message-io = "0.19"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive"] }
+line_drawing = "1"
+image = "0.25"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+toml = "1"
+serde = { version = "1.0", features = ["serde_derive"] }
+serde_json = "1.0"
+serde_derive = "1.0"
+axum = "0.8"
+tokio = "1"
+tokio-util = "0.7"
+reqwest = "0.13"
+bevy_egui = "0.43"
+egui_dock = "0.21"
+strum = "0.28"
+strum_macros = "0.28"
+ron = "0.12"
+tar = "0.4"
+flate2 = "1"
+glam = "0.33"  # version stucked by polyanya requirements
+fastrand = "2"
+bon = "3.9"
+fs_extra = "1"
+glob = "0.3"
+tempfile = "3"
+tiled = "0.16"
+geo = "0.33"
+ctrlc = "3"
+polyanya = { git = "https://github.com/buxx/polyanya.git", branch = "main" }  # Forked to solve glam version conflict
+parking_lot = { version = "0.13", features = ["deadlock_detection"] }
+backtrace = "0.3"
+derive_is_enum_variant = "0.1"
+rand = "0.10"
+serde_yaml = "0.9"
+getset = "0.1"
+directories = "6"
+
+# derive
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "3", features = ["full"] }
+
+# tests
+rstest = "0.28"
+
+# Lints copied from https://emschwartz.me/your-clippy-config-should-be-stricter/
+[workspace.lints.clippy]
+# # Don't Panic - prevent panics from unwraps and unsafe slicing or indexing
+# string_slice = "warn"
+# indexing_slicing = "warn"
+# unwrap_used = "warn"
+# panic = "warn"
+# todo = "warn"
+# unimplemented = "warn"
+# unreachable = "warn"
+# get_unwrap = "warn"
+# unwrap_in_result = "warn"
+# unchecked_time_subtraction = "warn"
+# panic_in_result_fn = "warn"
+# # Optional - see post for caveats
+# # expect_used = "warn"
+# # arithmetic_side_effects = "warn"
+
+# # Don't Fail Silently - prevent dropped futures and swallowed errors
+# let_underscore_future = "warn"
+# let_underscore_must_use = "warn"
+# unused_result_ok = "warn"
+# map_err_ignore = "warn"
+# assertions_on_result_states = "warn"
+
+# # Don't Do Bad Async Stuff - prevent deadlocks and concurrency bugs
+# await_holding_lock = "warn"
+# await_holding_refcell_ref = "warn"
+# if_let_mutex = "warn"  # only relevant on editions before 2024
+# large_futures = "warn"
+
+# # Don't Do Unsafe Things with Memory
+# mem_forget = "warn"
+# undocumented_unsafe_blocks = "warn"
+# multiple_unsafe_ops_per_block = "warn"
+# unnecessary_safety_doc = "warn"
+# unnecessary_safety_comment = "warn"
+
+# # Don't Do Potentially Incorrect Things with Numbers
+# float_cmp = "warn"
+# float_cmp_const = "warn"
+# lossy_float_literal = "warn"
+# cast_sign_loss = "warn"
+# invalid_upcast_comparisons = "warn"
+# # Optional - these effectively force you to document numeric invariants
+# # cast_possible_wrap = "warn"
+# # cast_precision_loss = "warn"
+# # cast_possible_truncation = "warn"
+
+# # Don't Do Bad Things That are Easy to Avoid
+# rc_mutex = "warn"
+# debug_assert_with_mut_call = "warn"
+# iter_not_returning_iterator = "warn"
+# expl_impl_clone_on_copy = "warn"
+# infallible_try_from = "warn"
+# dbg_macro = "warn"
+
+# # Don't `allow` Your Way Around These Lints - every suppression must be
+# # a deliberate #[expect(..., reason = "…")] rather than a silent #[allow]
+# allow_attributes = "warn"
+# allow_attributes_without_reason = "warn"
+
+# # Mine
+obfuscated_if_else = "allow"

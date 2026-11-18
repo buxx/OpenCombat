@@ -1,0 +1,37 @@
+[package]
+edition = "2024"
+name = "bevy_heightmap"
+version = "0.7.0"
+authors = ["Josiah Putman <joshikatsu@gmail.com>"]
+description = "Create meshes from heightmap PNGs in the Bevy game engine."
+documentation = "https://docs.rs/bevy_heightmap/latest/bevy_heightmap"
+license = "MIT OR Apache-2.0"
+homepage = "https://github.com/Katsutoshii/bevy_heightmap"
+repository = "https://github.com/Katsutoshii/bevy_heightmap"
+keywords = ["bevy"]
+readme = "README.md"
+
+[lints]
+workspace = true
+
+[dependencies]
+bevy = { workspace = true, features = [
+    "bevy_image",
+    "bevy_render",
+    "bevy_asset",
+    "bevy_log",
+    "bevy_state",
+] }
+
+bytemuck = { version = "1.23" }
+image = { version = "0.25" }
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+bevy = { workspace = true, features = ["file_watcher"] }
+bevy-inspector-egui = "0.38"
+bevy_egui = { workspace = true }
+# TODO: Uncomment when bevy_compute_readback is updated for Bevy 0.18
+# bevy_compute_readback = { version = "0.3" }

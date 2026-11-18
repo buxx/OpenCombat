@@ -1,0 +1,33 @@
+[package]
+name = "oc_basecamp"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+debug =  []  # Run debug compiled battle gui
+test =  []
+e2e =  ["debug"]  # Run end-to-end tests (needs a display and debug battle gui built)
+
+[dependencies]
+oc_root = { path = "../oc_root" }
+oc_mod = { path = "../oc_mod" }
+oc_individual = { path = "../oc_individual" }
+oc_world = { path = "../oc_world" }
+oc_battle = { path = "../oc_battle" }
+oc_game = { path = "../oc_game" }
+oc_deployment = { path = "../oc_deployment" }
+eframe = "0.36"
+serde.workspace = true
+ron.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+serde_yaml.workspace = true
+image.workspace = true
+egui_extras = { version = "0.36", features = ["image", "file"] }
+
+[dev-dependencies]
+egui_kittest = { version = "0.36", features = ["eframe"] }
+tempfile.workspace = true

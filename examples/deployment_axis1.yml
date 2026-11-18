@@ -1,0 +1,646 @@
+squads:
+- uuid: 58eb3ac8-5fbe-43f7-a52a-02c2d36619a1
+  label: Riffle
+  illustration: default
+  individuals:
+  - uuid: 497b0a39-6b20-4140-a7e0-68fb4a48143f
+    illustration: default
+    xp: 130
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: 8c320c64-6422-4d96-b0b3-244ae0bc77f0
+    illustration: default
+    xp: 186
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: bfbb4cc1-cc66-4b09-b561-fb8e8949b089
+    illustration: default
+    xp: 191
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: f85987fa-86ff-4a10-8354-db891250492d
+    illustration: default
+    xp: 85
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+- uuid: 37b76cef-dd4f-47d6-976d-cfd0eac86580
+  label: Riffle
+  illustration: default
+  individuals:
+  - uuid: 5ddceba3-a183-4ab1-9361-1fd6d8d7d286
+    illustration: default
+    xp: 144
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: a21f3a16-8261-478e-9ea8-35685e172ad0
+    illustration: default
+    xp: 187
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: d8ac9cb3-2ec2-4951-a307-8b1182ae486c
+    illustration: default
+    xp: 195
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: 1e5f070e-b008-4600-afaa-905ae2e7de5f
+    illustration: default
+    xp: 120
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+- uuid: 681eb81d-c988-4a90-a024-4ccbd40040db
+  label: Riffle
+  illustration: default
+  individuals:
+  - uuid: ea29dbbd-29b5-4bf6-a561-3d649680e1f4
+    illustration: default
+    xp: 139
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: c806c9b2-5eff-423e-88e0-f65ce510be1a
+    illustration: default
+    xp: 134
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: 0c6726f5-2922-4703-adea-fa4d450a7b3b
+    illustration: default
+    xp: 129
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: 94ce4b17-65d9-4cab-b42f-efcdc33d0234
+    illustration: default
+    xp: 144
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+- uuid: 578150d7-4cd9-448f-82cb-44c70e1da22b
+  label: Riffle
+  illustration: default
+  individuals:
+  - uuid: 77ac5d3f-346e-48cc-89f9-29ac4c5f075e
+    illustration: default
+    xp: 191
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: 182cf37f-bb7a-41a3-b778-7dc85489ae39
+    illustration: default
+    xp: 122
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: afd27b21-8cde-420b-aee4-5b5bf28e44fd
+    illustration: default
+    xp: 110
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: de46d5e3-9701-4764-966a-d1eb8f80f72a
+    illustration: default
+    xp: 86
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+- uuid: 04f4eec9-fc48-4bf9-a2cd-4d072656e4a7
+  label: Riffle
+  illustration: default
+  individuals:
+  - uuid: 54acec0a-6e06-4867-9e9f-d7ebdfff6f58
+    illustration: default
+    xp: 68
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: 3c8d0d6c-87cc-45e1-b5c9-544c37993aa0
+    illustration: default
+    xp: 153
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: 0f28983a-9a14-496d-96f7-d2779407666a
+    illustration: default
+    xp: 88
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: 023ee10f-27a9-4e3c-acd4-686d3cc519e4
+    illustration: default
+    xp: 78
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+- uuid: 53f27839-4f3f-486e-bb47-420f382be19c
+  label: Mg34
+  illustration: Mg34Squad
+  individuals:
+  - uuid: a2e499cc-b89c-4aa8-ba5e-d945afbfbaf1
+    illustration: default
+    xp: 128
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: ef596d8c-d8d8-4228-84d6-89c8d1a8d97e
+    illustration: default
+    xp: 198
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: f837a9b4-c94b-4a2c-b9d3-51c0a3dab150
+    illustration: Mg34
+    xp: 117
+    weapons:
+      main: Mg34
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+- uuid: 03f99100-deff-4bd6-9b24-d3a4e1b3bbf6
+  label: Mg34
+  illustration: Mg34Squad
+  individuals:
+  - uuid: 3635f2a8-a62f-4d6b-91a6-6ab59f157a60
+    illustration: default
+    xp: 84
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: 3b7196ff-18eb-4e76-9a75-ccd7f85f579d
+    illustration: default
+    xp: 196
+    weapons:
+      main: Mauser G41
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+    - name: Mauser5x
+  - uuid: e66d3b9e-4649-4ec5-a680-7972fefcd601
+    illustration: Mg34
+    xp: 141
+    weapons:
+      main: Mg34
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+    - name: Mg34_50x
+spawns: []

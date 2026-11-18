@@ -1,0 +1,18 @@
+(
+    ingame_squads: (
+        start_x: 0,
+        start_y: 300,
+        columns: 3,
+        sprite_width: 50,
+        sprite_height: 50,
+        sprites: ["default"],
+    ),
+    ingame_individuals: (
+        start_x: 0,
+        start_y: 0,
+        columns: 3,
+        sprite_width: 20,
+        sprite_height: 20,
+        sprites: ["default"],
+    ),
+)

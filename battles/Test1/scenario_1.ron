@@ -1,0 +1,21 @@
+(
+  name: "Scenario 1",
+  description: "Hello world",
+  deploy_a: "deploy_a.ron",
+  deploy_b: "deploy_b.ron",
+  a_squad_count: 1,
+  b_squad_count: 1,
+  a_start_spawn_zones: [
+    "SouthBeach",
+  ],
+  b_start_spawn_zones: [
+    "North",
+    "Middle",
+  ],
+  a_default: [
+    "Riffle",
+  ],
+  b_default: [
+    "Riffle",
+  ],
+)

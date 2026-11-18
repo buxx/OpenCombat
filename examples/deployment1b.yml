@@ -1,0 +1,129 @@
+squads:
+- uuid: e1b6ec3d-7119-41d1-9f89-a6faf7da5bbb
+  label: MySquad1
+  illustration: default
+  individuals:
+  - uuid: b27d02b6-de3d-496a-931e-2d7ac65a927c
+    illustration: default
+    xp: 86
+    weapons:
+      main: Mosin Nagant M1924
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+  - uuid: 9ac9948d-2a30-4445-91a1-19d8b8a059ba
+    illustration: default
+    xp: 113
+    weapons:
+      main: Mosin Nagant M1924
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+  - uuid: d942fe18-7660-43dd-8caa-3172e83863d5
+    illustration: default
+    xp: 166
+    weapons:
+      main: Mosin Nagant M1924
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+- uuid: 9dbf54c7-3723-4fe3-a42b-44f3866c09aa
+  label: MySquad1
+  illustration: default
+  individuals:
+  - uuid: 6a89a62c-931e-4e05-a406-a6016445377e
+    illustration: default
+    xp: 76
+    weapons:
+      main: Mosin Nagant M1924
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+  - uuid: 66b16e69-8b0d-4f35-a79f-3c9cf1892c95
+    illustration: default
+    xp: 120
+    weapons:
+      main: Mosin Nagant M1924
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+  - uuid: 006c3705-ea3b-4d5a-b304-4298ed682a00
+    illustration: default
+    xp: 173
+    weapons:
+      main: Mosin Nagant M1924
+      grenades:
+      - Frag grenade
+      - Frag grenade
+      - Smoke grenade
+    magazines:
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x
+    - name: MosinNagant5x

@@ -1,0 +1,21 @@
+(
+  squads: [
+    (
+      count: 1,
+      label: "Riffle",
+      illustration: "default",
+      individuals: [
+        (
+          count: 1,
+          illustration: "default",
+          xp: (149, 40),
+          weapons: (
+            main: Some("Weapon1"),
+            grenades: [],
+          ),
+          magazines: [(count: 1, name: "Magazine1")],
+        ),
+      ],
+    ),
+  ],
+)

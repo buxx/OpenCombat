@@ -1,0 +1,38 @@
+#![enable(implicit_some)]
+(
+  name: "Take the town",
+  description: "The Allies have secured the beach. Now they must take the village.",
+  deploy_a: "Take_the_town_deploy_a.ron",
+  deploy_b: "Take_the_town_deploy_b.ron",
+  a_squad_count: 8,
+  b_squad_count: 5,
+  a_start_spawn_zones: [
+    "SouthBeach",
+    "MiddleBeach",
+    "BeachEnds",
+  ],
+  b_start_spawn_zones: [
+    "North",
+  ],
+  a_default: [
+    "Riffle",
+    "Riffle",
+    "Riffle",
+    "Riffle",
+    "Riffle",
+    "Bren",
+    "Bren",
+    "Bren",
+  ],
+  b_default: [
+    "Riffle",
+    "Riffle",
+    "Riffle",
+    "Mg34",
+    "Mg34",
+  ],
+  a_order: Defend,
+  b_order: Defend,
+  a_ai: Offensive,
+  b_ai: Defensive,
+)

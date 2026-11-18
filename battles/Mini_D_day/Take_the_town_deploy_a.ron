@@ -1,0 +1,48 @@
+(
+  squads: [
+    (
+      count: 15,
+      label: "Riffle",
+      illustration: "default",
+      individuals: [
+        (
+          count: 4,
+          illustration: "default",
+          xp: (149, 40),
+          weapons: (
+            main: Some("Mosin Nagant M1924"),
+            grenades: ["Frag grenade", "Frag grenade", "Smoke grenade"],
+          ),
+          magazines: [(count: 10, name: "MosinNagant5x")],
+        ),
+      ],
+    ),
+    (
+      count: 5,
+      label: "Bren",
+      illustration: "BrenMark2Squad",
+      individuals: [
+        (
+          count: 3,
+          illustration: "default",
+          xp: (121, 30),
+          weapons: (
+            main: Some("Mosin Nagant M1924"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 12, name: "MosinNagant5x")],
+        ),
+        (
+          count: 1,
+          illustration: "BrenMark2",
+          xp: (169, 20),
+          weapons: (
+            main: Some("Bren Mark2"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 10, name: "BrenMark2_30x")],
+        ),
+      ],
+    ),
+  ],
+)

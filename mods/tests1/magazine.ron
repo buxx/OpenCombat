@@ -1,0 +1,13 @@
+[
+    Cartridge((
+        name: "Magazine1",
+        capacity: 5,
+        accept: ["model1"]
+    )),
+    // Not used by any weapon: tests incompatible magazines
+    Cartridge((
+        name: "Magazine2",
+        capacity: 3,
+        accept: ["model1"]
+    )),
+]

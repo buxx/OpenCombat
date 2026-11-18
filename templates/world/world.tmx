@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<map
+    version="1.10"
+    tiledversion="1.10.0"
+    orientation="orthogonal"
+    renderorder="right-down"
+    width="{{width}}"
+    height="{{height}}"
+    tilewidth="{{tile_width}}"
+    tileheight="{{tile_height}}"
+    infinite="0"
+    nextlayerid="6"
+    nextobjectid="20"
+>
+ <tileset firstgid="1" source="terrain.tsx" />
+ <tileset firstgid="2001" source="decor.tsx" />
+ <tileset firstgid="2021" source="height.tsx" />
+ <layer
+        id="1"
+        name="terrain"
+        width="{{terrain_width}}"
+        height="{{terrain_height}}"
+    >
+  <data encoding="csv">{{terrain}}</data>
+ </layer>
+ <layer
+        id="6"
+        name="height"
+        width="{{height_width}}"
+        height="{{height_height}}"
+        visible="0"
+    >
+  <data encoding="csv">{{height_}}</data>
+ </layer>
+ <objectgroup id="5" name="flags" />
+ <imagelayer id="2" name="background_image">
+  <image
+            source="background.png"
+            width="{{background_width}}"
+            height="{{background_height}}"
+        />
+ </imagelayer>
+ <imagelayer id="3" name="interiors_image" visible="0" opacity="0.27">
+  <image
+            source="interiors.png"
+            width="{{interiors_width}}"
+            height="{{interiors_height}}"
+        />
+ </imagelayer>
+ <objectgroup id="3" name="spawn_zones" />
+ <objectgroup id="4" name="interiors_zones" visible="0" />
+ <layer id="2" name="decor" width="{{decor_width}}" height="{{decor_height}}">
+  <data encoding="csv">{{decor}}</data>
+ </layer>
+</map>

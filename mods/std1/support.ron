@@ -1,0 +1,27 @@
+// Support types available in this mod. Each one is identified by its `name` (used in scenarios,
+// like `a_supports: [("Naval bombard", 3)]`, and on command line, like
+// `--support-a "Naval bombard=3"`).
+[
+  (
+    name: "Naval bombard",
+    shell: "5/38 shell",
+    series: 3,
+    shells_by_serie: 5,
+    radius: Meters(30.0),
+    prepare_seconds: 1,
+    serie_interval_ms: 5000,
+    shell_interval_ms: 500,
+    between_wait_s: 60,
+  ),
+  (
+    name: "Artillery",
+    shell: "Artillery shell",
+    series: 2,
+    shells_by_serie: 6,
+    radius: Meters(45.0),
+    prepare_seconds: 1,
+    serie_interval_ms: 10000,
+    shell_interval_ms: 650,
+    between_wait_s: 60,
+  ),
+]

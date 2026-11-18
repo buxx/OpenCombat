@@ -1,0 +1,36 @@
+[package]
+name = "oc_physics"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+bevy = ["dep:bevy"]
+debug = []
+default = []
+
+[dependencies]
+oc_derive = { path = "../oc_derive" }
+oc_utils = { path = "../oc_utils", features = ["bevy"] }
+oc_root = { path = "../oc_root" }
+oc_geo = { path = "../oc_geo" }
+oc_mod = { path = "../oc_mod" }
+derive_more = { workspace = true, features = ["constructor"] }
+rkyv.workspace = true
+line_drawing.workspace = true
+tracing.workspace = true
+fastrand.workspace = true
+bevy = { workspace = true, optional = true }
+serde.workspace = true
+serde_json.workspace = true
+tracing-subscriber.workspace = true
+glam.workspace = true
+
+[dev-dependencies]
+gungraun = "0.19"
+
+[[bench]]
+name = "volume_collide"
+harness = false

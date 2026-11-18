@@ -1,0 +1,22 @@
+[
+    Cartridge((
+        name: "MosinNagant5x",
+        capacity: 5,
+        accept: ["7,62x54"]
+    )),
+    Cartridge((
+        name: "Mauser5x",
+        capacity: 5,
+        accept: ["7,92x57"]
+    )),
+    Cartridge((
+        name: "BrenMark2_30x",
+        capacity: 30,
+        accept: ["7,7x56"]
+    )),
+    Cartridge((
+        name: "Mg34_50x",
+        capacity: 50,
+        accept: ["7,92x57"]
+    )),
+]

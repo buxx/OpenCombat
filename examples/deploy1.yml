@@ -1,0 +1,16 @@
+squads:
+- count: 2
+  label: MySquad1
+  illustration: default
+  individuals:
+  - count: 3
+    illustration: default
+    xp: [133, 30]
+    weapons:
+      main: Mosin Nagant M1924
+      grenades:
+      - Frag grenade
+      - Frag grenade
+    magazines:
+    - count: 10
+      name: MosinNagant5x

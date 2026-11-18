@@ -1,0 +1,14 @@
+[
+    Cartridge((
+        name: "762x54R",
+        model: "7,62x54",
+    )),
+    Cartridge((
+        name: "792x57",
+        model: "7,92x57",
+    )),
+    Cartridge((
+        name: "303British",
+        model: "7,7x56",
+    )),
+]

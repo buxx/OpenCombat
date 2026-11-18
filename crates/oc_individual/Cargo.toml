@@ -1,0 +1,31 @@
+[package]
+name = "oc_individual"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+bevy = ["dep:bevy"]
+polyanya = ["dep:polyanya"]
+
+[dependencies]
+oc_derive = { path = "../oc_derive" }
+oc_root = { path = "../oc_root" }
+oc_utils = { path = "../oc_utils" }
+oc_mod = { path = "../oc_mod" }
+oc_geo = { path = "../oc_geo" }
+oc_physics = { path = "../oc_physics" }
+enum_type_derive = { path = "../enum_type_derive" }
+derive_more = { workspace = true, features = ["constructor"] }
+rkyv.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+glam.workspace = true
+bevy = { workspace = true, optional = true }
+polyanya = { workspace = true, optional = true }
+getset.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true

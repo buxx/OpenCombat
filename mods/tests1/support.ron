@@ -1,0 +1,24 @@
+[
+  (
+    name: "Naval bombard",
+    shell: "5/38 shell",
+    series: 1,
+    shells_by_serie: 1,
+    radius: Meters(1.0),
+    prepare_seconds: 1,
+    serie_interval_ms: 0,
+    shell_interval_ms: 0,
+    between_wait_s: 0,
+  ),
+  (
+    name: "Artillery",
+    shell: "5/38 shell",
+    series: 1,
+    shells_by_serie: 1,
+    radius: Meters(1.0),
+    prepare_seconds: 1,
+    serie_interval_ms: 0,
+    shell_interval_ms: 0,
+    between_wait_s: 0,
+  ),
+]

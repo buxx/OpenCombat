@@ -1,0 +1,25 @@
+[package]
+name = "oc_world_generator"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+oc_root = { path = "../oc_root" }
+
+derive_more = { workspace = true, features = ["constructor"] }
+thiserror.workspace = true
+anyhow.workspace = true
+rayon.workspace = true
+rustc-hash.workspace = true
+num_cpus.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+clap.workspace = true
+noise = "0.8"                                                  # For Perlin noise generation
+image = "0.24"                                                 # For saving the map as an image
+
+[dev-dependencies]
+rstest.workspace = true

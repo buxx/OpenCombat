@@ -1,0 +1,478 @@
+#![cfg_attr(not(feature = "test"), allow(dead_code, unused_imports))]
+#![allow(clippy::unwrap_used)]
+
+use std::time::Duration;
+use std::{
+    path::PathBuf,
+    sync::atomic::{AtomicBool, Ordering},
+};
+#[cfg(feature = "test")]
+use std::{sync::Mutex, time::Instant};
+
+use bevy::prelude::*;
+
+use crate::{logging, run, snapshot::SnapshotBuilder};
+use anyhow::Context as ContextExt;
+use clap::{Parser, ValueEnum};
+#[cfg(feature = "test")]
+use oc_battle_gui::{
+    entity::individual::IndividualIndex,
+    ingame::individual::{Gesture, SetGestureEvent},
+    states::{Game, GameConfig},
+};
+use oc_individual::order::Order;
+#[allow(unused_imports)]
+use oc_mod::shell::ShellIndex;
+#[cfg(feature = "test")]
+use oc_root::Wcfg;
+use oc_root::{
+    WorldConfig,
+    battle::BattlePhase,
+    geo::{WorldVec2, WorldVec3},
+    physics::Meters,
+    side,
+    utils::Frequency,
+};
+#[cfg(any(feature = "test", feature = "debug"))]
+use oc_utils::let_some;
+use oc_world::{meta::Meta, tile::Tile};
+use tests::{individual::TestIndividual, squad::TestSquad};
+
+#[cfg(feature = "test")]
+/// Minimal time to let bevy make "network" exchange with server, whatever the speed. Success is
+/// detected as soon as it happens: a large value does not slow down tests, and let time to (maybe
+/// slow) rendering
+const MIN_TIMEOUT: Duration = Duration::from_secs(30);
+const MIN_EXPLOSION_DELAY: Duration = Duration::from_secs(1);
+const AFTER_SUCCESS_WAIT: Duration = Duration::from_secs(1);
+const MOD: &str = "mods/tests1";
+
+#[derive(Parser, Debug, Clone)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg()]
+    case: TestCase,
+
+    #[arg(long, action)]
+    test: bool,
+}
+
+#[cfg(feature = "test")]
+impl Args {
+    fn timeout(&self) -> Duration {
+        match self.case {
+            TestCase::Direct | TestCase::Through | TestCase::NotVisible | TestCase::Hidden => {
+                Duration::from_secs(10)
+            }
+            TestCase::Discover | TestCase::AlteredWall => Duration::from_secs(20),
+            TestCase::MoveThenEnemyVisible => Duration::from_secs(40),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum TestCase {
+    Direct,
+    Through,
+    NotVisible,
+    Discover,
+    MoveThenEnemyVisible,
+    // FIXME BS NOW: implement hiding bonuses:
+    //   - visibility when immobile
+    //   - visibility when crawling ?
+    // FIXME BS NOW 2: when fire on
+    // FIXME BS NOW 3: tile nature should sometime (brick wall 90%, trunk 70%, etc) "block" projectile
+    Hidden,
+    /// Individual hidden behind walls becomes visible once an explosion destroyed them
+    AlteredWall,
+}
+
+#[allow(unused)]
+const DESTRUCTION_SHELL: ShellIndex = ShellIndex(3); // "Destruction Only (10 meters)"
+#[allow(unused)]
+const ALTERED_WALL_EXPLOSION_POSITION: [f32; 2] = [60., 78.];
+
+pub fn main() -> Result<(), anyhow::Error> {
+    logging::setup_logging()?;
+
+    let args = Args::parse_from(crate::args());
+    if args.test {
+        #[cfg(not(feature = "test"))]
+        {
+            panic!("To enable test, feature `test` must be enabled too")
+        }
+    }
+
+    let mod_ = PathBuf::from(MOD);
+    let mod__ = oc_mod::Mod::load(&mod_, None)?;
+    let map = PathBuf::from("maps/meadow1");
+    let meta = Meta::from_file(&map.join("meta.toml"))?;
+    let map_ = oc_world::reader::MapReader::new(&map);
+    let map_ = map_.context(format!("Read map_ {}", map.display()))?;
+    let w = WorldConfig::new(map_.width().unwrap() as u64, map_.height().unwrap() as u64)
+        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z))
+        .with_visibilities_tick(Frequency::each(std::time::Duration::from_millis(100)));
+    let tiles = map_.tiles(&w, &mod__).unwrap();
+
+    let individuals = individuals(&w, &tiles, &args);
+    let squads = squads(&w, &tiles, &individuals, &args);
+    let snapshot = SnapshotBuilder::new(
+        map_,
+        individuals,
+        squads,
+        vec![],
+        BattlePhase::Fight,
+        vec![],
+        vec![],
+    )
+    .build(w, &mod__)?;
+
+    let example = run::Example::builder()
+        .world(map)
+        .mod_(mod_)
+        .install(Box::new(install))
+        .snapshot(snapshot)
+        .test_app_exit_code(args.test);
+
+    example.build().run()?;
+
+    if args.test {
+        if !SUCCESS.load(Ordering::Relaxed) {
+            anyhow::bail!("❌ Test failed")
+        }
+        println!("✅ Test success !");
+    }
+
+    Ok(())
+}
+
+fn individuals(w: &WorldConfig, _tiles: &Vec<Tile>, args: &Args) -> Vec<oc_individual::Individual> {
+    match args.case {
+        TestCase::Direct => vec![
+            TestIndividual::builder()
+                .side(side::Side::A)
+                .position(WorldVec3::new(250., 250., 0.))
+                .build()
+                .make(w),
+            TestIndividual::builder()
+                .side(side::Side::B)
+                .position(WorldVec3::new(250., 150., 0.))
+                .build()
+                .make(w),
+        ],
+        TestCase::Through => vec![
+            TestIndividual::builder()
+                .side(side::Side::A)
+                .position(WorldVec3::new(250., 250., 0.))
+                .build()
+                .make(w),
+            TestIndividual::builder()
+                .side(side::Side::B)
+                .position(WorldVec3::new(450., 250., 0.))
+                .build()
+                .make(w),
+        ],
+        TestCase::NotVisible => vec![
+            TestIndividual::builder()
+                .side(side::Side::A)
+                .position(WorldVec3::new(250., 250., 0.))
+                .build()
+                .make(w),
+            TestIndividual::builder()
+                .side(side::Side::B)
+                .position(WorldVec3::new(450., 150., 0.))
+                .build()
+                .make(w),
+        ],
+        TestCase::Discover => vec![
+            TestIndividual::builder()
+                .side(side::Side::A)
+                .position(WorldVec3::new(250., 225., 0.))
+                .build()
+                .make(w),
+            TestIndividual::builder()
+                .side(side::Side::B)
+                .position(WorldVec3::new(450., 140., 0.))
+                .build()
+                .make(w),
+        ],
+        TestCase::MoveThenEnemyVisible => vec![
+            TestIndividual::builder()
+                .side(side::Side::A)
+                .position(WorldVec3::new(250., 225., 0.))
+                .build()
+                .make(w),
+            TestIndividual::builder()
+                .side(side::Side::B)
+                .position(WorldVec3::new(450., 140., 0.))
+                .build()
+                .make(w),
+        ],
+        TestCase::Hidden => vec![
+            TestIndividual::builder()
+                .side(side::Side::A)
+                .position(WorldVec3::new(25., 224., 0.))
+                .build()
+                .make(w),
+            TestIndividual::builder()
+                .side(side::Side::B)
+                .position(WorldVec3::new(387., 198., 0.))
+                .build()
+                .make(w),
+        ],
+        TestCase::AlteredWall => vec![
+            TestIndividual::builder()
+                .side(side::Side::A)
+                .position(WorldVec3::new(130., 75., 0.))
+                .build()
+                .make(w),
+            TestIndividual::builder()
+                .side(side::Side::B)
+                .position(WorldVec3::new(33., 78., 0.))
+                .build()
+                .make(w),
+        ],
+    }
+}
+
+fn squads(
+    _w: &WorldConfig,
+    _tiles: &Vec<Tile>,
+    individuals: &[oc_individual::Individual],
+    args: &Args,
+) -> Vec<oc_individual::squad::Squad> {
+    match args.case {
+        TestCase::Direct
+        | TestCase::Through
+        | TestCase::NotVisible
+        | TestCase::Hidden
+        | TestCase::AlteredWall => vec![
+            TestSquad::builder()
+                .position(individuals.first().unwrap().position.into())
+                .members(vec![oc_individual::IndividualIndex(0)])
+                .orders(vec![])
+                .build()
+                .make(),
+            TestSquad::builder()
+                .position(individuals.get(1).unwrap().position.into())
+                .members(vec![oc_individual::IndividualIndex(1)])
+                .orders(vec![])
+                .build()
+                .make(),
+        ],
+        TestCase::Discover => vec![
+            TestSquad::builder()
+                .position(individuals.first().unwrap().position.into())
+                .members(vec![oc_individual::IndividualIndex(0)])
+                .orders(vec![Order::MoveFastTo(WorldVec2::new(250., 110.))])
+                .build()
+                .make(),
+            TestSquad::builder()
+                .position(individuals.get(1).unwrap().position.into())
+                .members(vec![oc_individual::IndividualIndex(1)])
+                .orders(vec![])
+                .build()
+                .make(),
+        ],
+        TestCase::MoveThenEnemyVisible => vec![
+            TestSquad::builder()
+                .position(individuals.first().unwrap().position.into())
+                .members(vec![oc_individual::IndividualIndex(0)])
+                .orders(vec![Order::MoveTo(WorldVec2::new(250., 100.))])
+                .build()
+                .make(),
+            TestSquad::builder()
+                .position(individuals.get(1).unwrap().position.into())
+                .members(vec![oc_individual::IndividualIndex(1)])
+                .orders(vec![])
+                .build()
+                .make(),
+        ],
+    }
+}
+
+static SUCCESS: AtomicBool = AtomicBool::new(false);
+#[allow(unused)]
+static EXPLOSION_FIRED: AtomicBool = AtomicBool::new(false);
+
+#[cfg(feature = "test")]
+#[derive(Debug, Resource, Default)]
+struct State {
+    success: Option<Instant>,
+    gestures: Vec<(oc_individual::IndividualIndex, oc_individual::Gesture)>,
+}
+
+#[allow(unused)]
+fn install(app: &mut bevy::app::App) {
+    let args = Args::parse_from(crate::args());
+
+    #[cfg(feature = "test")]
+    if args.test {
+        app.add_systems(Update, test_tracker);
+    }
+
+    #[cfg(feature = "test")]
+    app.init_resource::<State>();
+
+    match args.case {
+        TestCase::Direct
+        | TestCase::Through
+        | TestCase::NotVisible
+        | TestCase::Discover
+        | TestCase::MoveThenEnemyVisible
+        | TestCase::Hidden => {
+            #[cfg(feature = "test")]
+            app.add_systems(Update, tracking)
+                .add_observer(on_set_gesture);
+        }
+        TestCase::AlteredWall => {
+            #[cfg(feature = "test")]
+            app.add_systems(Update, tracking)
+                .add_observer(on_set_gesture);
+            #[cfg(feature = "debug")]
+            app.add_systems(Update, fire_explosion);
+        }
+    }
+}
+
+fn explosion_delay(speed: f32) -> Duration {
+    Duration::from_secs(2)
+        .div_f32(speed)
+        .max(MIN_EXPLOSION_DELAY)
+}
+
+/// Destroy the walls
+#[cfg(feature = "debug")]
+fn fire_explosion(
+    mut commands: Commands,
+    mut fired: Local<Option<std::time::Instant>>,
+    individuals: Query<&oc_battle_gui::entity::individual::IndividualIndex>,
+    g: Res<oc_battle_gui::states::GameConfig>,
+) {
+    use oc_battle_gui::network::output::ToServerEvent;
+    use oc_network::ToServer;
+
+    let_some!(g = &g.0, return);
+    if individuals.iter().count() < 2 {
+        return;
+    }
+
+    // Let some time to observe the initial (hidden) state
+    let first = *fired.get_or_insert_with(std::time::Instant::now);
+    if first.elapsed() < explosion_delay(g.w.speed())
+        || EXPLOSION_FIRED.swap(true, Ordering::Relaxed)
+    {
+        return;
+    }
+
+    commands.trigger(ToServerEvent(ToServer::DebugExplosion(
+        DESTRUCTION_SHELL,
+        WorldVec2::from(ALTERED_WALL_EXPLOSION_POSITION),
+    )));
+}
+
+#[cfg(feature = "test")]
+fn on_set_gesture(event: On<SetGestureEvent>, mut state: ResMut<State>) {
+    state.gestures.push((event.0, event.1.clone()));
+}
+
+#[cfg(feature = "test")]
+fn test_tracker(mut commands: Commands, game: Res<Game>, state: ResMut<State>, w: Res<Wcfg>) {
+    let_some!(w = &w.0, return);
+    let args = Args::parse_from(crate::args());
+    let speed = w.speed();
+    // Ensure a minimal timeout to let time to bevy to make "network" exchange with server
+    let mut timeout = args.timeout().div_f32(speed).max(MIN_TIMEOUT);
+    if matches!(args.case, TestCase::AlteredWall) {
+        // Let time to see the effect of the explosion
+        timeout = timeout.max(explosion_delay(speed) + Duration::from_secs(2));
+    }
+    if game.started.elapsed() > timeout
+        || state
+            .success
+            .map(|success| success.elapsed() >= AFTER_SUCCESS_WAIT.div_f32(speed))
+            .unwrap_or_default()
+    {
+        commands.write_message(bevy::app::AppExit::from_code(0));
+    }
+}
+
+#[cfg(feature = "test")]
+fn tracking(
+    mut state: ResMut<State>,
+    query: Query<(&IndividualIndex, &Visibility, &Gesture)>,
+    g: Res<GameConfig>,
+) {
+    let_some!(g = &g.0, return);
+    let args = Args::parse_from(crate::args());
+
+    static I2_INVISIBLE_SINCE: Mutex<Option<Instant>> = Mutex::new(None);
+    static I2_HIDDEN_BEFORE_EXPLOSION: AtomicBool = AtomicBool::new(false);
+
+    let i1_visible = query
+        .iter()
+        .any(|(i, v, _)| i.0 == oc_individual::IndividualIndex(0) && v == Visibility::Visible);
+    let i1_gesture = query
+        .iter()
+        .filter_map(|(i, _, g)| (i.0 == oc_individual::IndividualIndex(0)).then_some(&g.0.body))
+        .next();
+    let i2_visible = query
+        .iter()
+        .any(|(i, v, _)| i.0 == oc_individual::IndividualIndex(1) && v == Visibility::Visible);
+    let i2_gesture = query
+        .iter()
+        .filter_map(|(i, _, g)| (i.0 == oc_individual::IndividualIndex(1)).then_some(&g.0.body))
+        .next();
+
+    if !i2_visible && I2_INVISIBLE_SINCE.lock().unwrap().is_none() {
+        *I2_INVISIBLE_SINCE.lock().unwrap() = Some(Instant::now());
+    }
+
+    if !i2_visible && !EXPLOSION_FIRED.load(Ordering::Relaxed) {
+        I2_HIDDEN_BEFORE_EXPLOSION.store(true, Ordering::Relaxed);
+    }
+
+    if match args.case {
+        TestCase::Direct | TestCase::Through => {
+            i1_visible
+                && i2_visible
+                && matches!(i1_gesture, Some(&oc_individual::BodyGesture::Prone(_)))
+                && matches!(i2_gesture, Some(&oc_individual::BodyGesture::Prone(_)))
+        }
+        TestCase::NotVisible => {
+            i1_visible
+                && !i2_visible
+                && matches!(i1_gesture, Some(&oc_individual::BodyGesture::StandUp(_)))
+                && matches!(i2_gesture, Some(&oc_individual::BodyGesture::StandUp(_)))
+        }
+        TestCase::Discover => {
+            i1_visible
+                && i2_visible
+                && matches!(i1_gesture, Some(&oc_individual::BodyGesture::Prone(_)))
+                && matches!(i2_gesture, Some(&oc_individual::BodyGesture::Prone(_)))
+        }
+        TestCase::MoveThenEnemyVisible => state.gestures.iter().any(|(i, gesture)| {
+            *i == oc_individual::IndividualIndex(0)
+                && matches!(gesture.body, oc_individual::BodyGesture::Prone(_))
+        }),
+        TestCase::AlteredWall => {
+            i1_visible
+                && i2_visible
+                && I2_HIDDEN_BEFORE_EXPLOSION.load(Ordering::Relaxed)
+                && EXPLOSION_FIRED.load(Ordering::Relaxed)
+        }
+        TestCase::Hidden => {
+            i1_visible
+                && !i2_visible
+                // FIXME BS NOW: add never been seen (must modify source code to begin in correct gesture)
+                && I2_INVISIBLE_SINCE
+                    .lock()
+                    .unwrap()
+                    .is_some_and(|s| s.elapsed().as_secs_f32() >= 1. / g.w.speed())
+        }
+    } {
+        // FIXME: must test individuals behavior/gesture too (hide)
+        state.success = Some(Instant::now());
+        SUCCESS.store(true, Ordering::Relaxed);
+    }
+}

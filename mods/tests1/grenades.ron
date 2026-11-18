@@ -1,0 +1,20 @@
+[
+  (
+    name: "Frag grenade",
+    blast_rayon: Meters(5.0),
+    shrapnel_rayon: Meters(15.0),
+    suppress_rayon: Meters(20.0),
+    shrapnel_quantity: 30,
+    nature: Frag,
+  ),
+  (
+    name: "Smoke grenade",
+    blast_rayon: Meters(6.0),
+    shrapnel_rayon: Meters(0.0),
+    suppress_rayon: Meters(0.0),
+    shrapnel_quantity: 0,
+    nature: Smoke,
+    smoke_duration: 5.0,
+    smoke_fade_duration: 1.0,
+  ),
+]

@@ -1,0 +1,31 @@
+[package]
+name = "oc_lov"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[features]
+
+[dependencies]
+oc_root = { path = "../oc_root" }
+oc_utils = { path = "../oc_utils" }
+oc_geo = { path = "../oc_geo" }
+oc_mod = { path = "../oc_mod" }
+oc_physics = { path = "../oc_physics" }
+oc_world = { path = "../oc_world" }
+derive_more = { workspace = true, features = ["constructor"] }
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+glam.workspace = true
+line_drawing.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true
+gungraun = "0.19"
+
+[[bench]]
+name = "path_build"
+harness = false
