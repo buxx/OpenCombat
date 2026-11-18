@@ -38,7 +38,7 @@ oc_physics = { path = "../oc_physics" }
 oc_geo = { path = "../oc_geo" }
 oc_utils = { path = "../oc_utils" }
 oc_mod = { path = "../oc_mod" }
-oc_battle_gui = { path = "../oc_battle_gui" }
+oc_battle_gui = { path = "../oc_battle_gui", default-features = false }
 oc_deployment = { path = "../oc_deployment" }
 oc_battle = { path = "../oc_battle" }
 oc_ai = { path = "../oc_ai", features = ["clap"] }
