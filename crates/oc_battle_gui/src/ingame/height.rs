@@ -410,6 +410,8 @@ pub fn setup_camera3d(commands: &mut Commands, center: &Vec2) {
     transform.translation.y = center.y;
 
     commands.spawn((
+        // Camera2d is despawned: egui windows must be displayed by this camera (see `spawn_camera2d`)
+        bevy_egui::PrimaryEguiContext,
         Camera3d::default(),
         Projection::Orthographic(OrthographicProjection {
             scale: 1.0,
