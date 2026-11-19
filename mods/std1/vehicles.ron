@@ -1,0 +1,8 @@
+[
+  (
+    name: "Tank1",
+    row: 0,
+    crew: [Commander, Gunner, Driver],
+    size: (Meters(4.0), Meters(10.0)),
+  ),
+]

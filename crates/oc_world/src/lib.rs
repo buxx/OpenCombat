@@ -358,6 +358,7 @@ mod tests {
             vec![],
             vec![],
             Default::default(),
+            vec![],
             1.5,
         );
         let meta = Meta::new("MyWorld".to_string(), 0, w.geo_meters_per_z().0, None);

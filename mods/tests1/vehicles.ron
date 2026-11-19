@@ -1,0 +1,9 @@
+// Vehicles available in this mod. `row` is the row of the vehicle in `sprites/vehicles.png`.
+[
+  (
+    name: "Tank1",
+    row: 0,
+    crew: [Commander, Gunner, Driver, Operator],
+    size: (Meters(2.2), Meters(4.5)),
+  ),
+]

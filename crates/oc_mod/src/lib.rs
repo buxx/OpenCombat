@@ -27,6 +27,7 @@ use crate::{
     nature::{Nature, NatureIndex},
     shell::{IndexedShell, ShellIndex},
     sound::{IndexedSound, SoundIndex},
+    vehicle::{IndexedVehicle, VehicleIndex},
     weapons::{IndexedWeapon, WeaponIndex},
 };
 
@@ -40,6 +41,7 @@ pub mod nature;
 pub mod shell;
 pub mod sound;
 pub mod support;
+pub mod vehicle;
 pub mod weapons;
 
 pub const MOD_RON: &str = "mod.ron";
@@ -79,9 +81,10 @@ pub struct Mod {
     pub shells: Vec<shell::IndexedShell>,
     #[serde(skip, default)]
     pub grenades: Vec<grenade::IndexedGrenade>,
-    /// Support types declared by the mod
     #[serde(skip, default)]
     pub supports: Vec<support::Support>,
+    #[serde(skip, default)]
+    pub vehicles: Vec<vehicle::IndexedVehicle>,
     // Below game specs
     #[serde(default = "default_human_default_stand_up_fire_meters")]
     pub human_default_stand_up_fire_meters: f32,
@@ -105,6 +108,7 @@ impl Mod {
             .into_iter()
             .map(|raw| mod_.resolve_support(raw))
             .collect::<Result<_, _>>()?;
+        mod_.vehicles = vehicle::load(path)?;
 
         // TODO: centralize caching at server startup
         if let Some(cache_) = cache_ {
@@ -193,6 +197,17 @@ impl Mod {
 
     pub fn grenade(&self, index: GrenadeIndex) -> &IndexedGrenade {
         self.grenades.at(index)
+    }
+
+    pub fn vehicle_from_name(&self, name: &str) -> Result<&IndexedVehicle, Error> {
+        self.vehicles
+            .iter()
+            .find(|v| v.name == name)
+            .ok_or(Error::UnknownVehicleName(name.to_string()))
+    }
+
+    pub fn vehicle(&self, index: VehicleIndex) -> &IndexedVehicle {
+        self.vehicles.at(index)
     }
 
     pub fn shell(&self, index: ShellIndex) -> &IndexedShell {
@@ -444,6 +459,10 @@ pub enum Error {
     Shells(#[from] shell::Error),
     #[error("Support: {0}")]
     Support(#[from] support::Error),
+    #[error("Unknown vehicle name: {0}")]
+    UnknownVehicleName(String),
+    #[error("Vehicles: {0}")]
+    Vehicles(#[from] vehicle::Error),
     #[error("Unknown illustration name: {0}")]
     UnknownIllustrationName(String),
     #[error("Illustrations: {0}")]
@@ -510,6 +529,23 @@ mod tests {
             assert!(mod_.support("Naval bombard").is_some());
             assert!(mod_.support("Artillery").is_some());
             assert!(mod_.support("Unknown").is_none());
+        }
+    }
+
+    #[test]
+    fn vehicles() {
+        for name in ["std1", "tests1"] {
+            let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../mods")
+                .join(name);
+            let mod_ = Mod::load(&path, None).unwrap();
+
+            let tank = mod_.vehicle_from_name("Tank1").unwrap();
+            assert_eq!(tank.row, 0);
+            assert_eq!(tank.size, (Meters(2.2), Meters(4.5)));
+            assert_eq!(mod_.vehicle(tank.index()), tank);
+            assert!(tank.crew.contains(&vehicle::CrewRole::Commander));
+            assert!(mod_.vehicle_from_name("Unknown").is_err());
         }
     }
 }
