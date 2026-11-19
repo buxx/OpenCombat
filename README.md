@@ -166,7 +166,7 @@ On your computer:
 - [ ] Cease fire (both sides agree to end battle)
 - [x] Battle scenarios (description, deployment profiles, squads count, spawn zones)
 - [ ] Reinforcements during battle
-- [ ] Replays
+- [x] Replays
 - [ ] Persistent soldiers for "continue" battle/campaign (casualties, experience, fatigue carried over battles)
 - [ ] Strategic map / Campaign (move battle groups, assign supports, resolve battles on tactical maps)
 
