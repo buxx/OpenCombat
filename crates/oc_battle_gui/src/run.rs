@@ -13,6 +13,7 @@ use crate::config::{Config, Config_};
 #[cfg(feature = "debug")]
 use crate::debug;
 use crate::ingame::{BattlePhase, InGameState};
+use crate::replay::ReplayPlugin;
 use crate::sprites::Animations;
 use crate::states::{Game, GameConfig, GuiFiles, PointerIn};
 use crate::{
@@ -81,6 +82,7 @@ pub fn run(
         .add_plugins(bevy_hanabi::HanabiPlugin)
         .add_plugins(ErrorPlugin)
         .add_plugins(NetworkPlugin)
+        .add_plugins(ReplayPlugin)
         .add_plugins(FxPlugin)
         .add_plugins(HomePlugin)
         .add_plugins(DownloadingPlugin)

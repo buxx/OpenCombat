@@ -68,6 +68,8 @@ pub fn show(ui: &mut egui::Ui, ctx: &mut PageContext) -> Option<Page> {
                 .add_enabled(ready, button)
                 .on_disabled_hover_text("Choose at least one squad");
             start = response.clicked();
+            ui.checkbox(ctx.record, "⟳ Replay")
+                .on_hover_text("Replay it later from the Replays page");
         });
     });
 

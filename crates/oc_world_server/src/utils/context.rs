@@ -65,21 +65,30 @@ impl<E: Client> Context<E> {
         T: Clone + Into<ToClient>,
     {
         #[cfg(feature = "debug")]
-        {
+        let direct = {
             // In cases like e2e tests, we want ensure gui receive all event. So, send all events
-            if let Some((direct, side)) = &self.direct {
-                if filter.match_side(*side) {
-                    for message in &messages {
-                        let message = message.clone().into();
-                        self.output.send((direct.clone(), message)).unwrap() // TODO
-                    }
+            if let Some((direct, side)) = &self.direct
+                && filter.match_side(*side)
+            {
+                for message in &messages {
+                    let message = message.clone().into();
+                    self.output.send((direct.clone(), message)).unwrap() // TODO
                 }
-                return;
             }
-        }
+            self.direct.as_ref().map(|(direct, _)| direct)
+        };
+
+        #[cfg(not(feature = "debug"))]
+        let direct: Option<&E> = None;
 
         let listeners = self.state.listeners();
-        for listener in listeners.find(filter) {
+
+        // Direct endpoint already received messages, others (like a recorder) use their filters
+        for listener in listeners
+            .find(filter)
+            .into_iter()
+            .filter(|l| Some(l) != direct)
+        {
             for message in &messages {
                 let pkg = (listener.clone(), message.clone().into());
                 self.output.send(pkg).unwrap() // TODO

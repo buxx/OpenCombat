@@ -4,7 +4,10 @@ use bevy::prelude::*;
 use oc_network::ToClient;
 use oc_utils::let_some;
 
-use crate::network::connect::{Connected, Disconnected, FailedToConnect};
+use crate::{
+    network::connect::{Connected, Disconnected, FailedToConnect},
+    replay::ReplayReset,
+};
 
 #[derive(Debug, Event)]
 pub struct NetWorkMessageEvent(pub NetworkMessage);
@@ -21,6 +24,7 @@ pub enum NetworkMessage {
     FailToConnect,
     Disconnected,
     Message(Box<ToClient>),
+    ReplayReset,
 }
 
 pub fn network_message_router(mut commands: Commands, messages: Res<NetworkMessageReceiver>) {
@@ -46,6 +50,9 @@ pub fn on_network_message(message: On<NetWorkMessageEvent>, mut commands: Comman
         }
         NetworkMessage::Message(message) => {
             commands.trigger(ToClientEvent((**message).clone()));
+        }
+        NetworkMessage::ReplayReset => {
+            commands.trigger(ReplayReset);
         }
     }
 }

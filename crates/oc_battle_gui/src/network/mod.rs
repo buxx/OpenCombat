@@ -29,6 +29,7 @@ use crate::network::{input::network_message_router, output::on_to_server};
 pub mod connect;
 pub mod input;
 pub mod output;
+pub mod replay;
 pub mod state;
 
 #[derive(Default)]

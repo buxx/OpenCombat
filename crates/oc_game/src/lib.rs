@@ -13,6 +13,7 @@ use uuid::Uuid;
 const GAMES_PARENT_FOLDER: &str = "Games";
 const APP_FOLDER: &str = "Open Combat";
 const GAMES_FOLDER: &str = "Games";
+const RECORDS_FOLDER: &str = "Records";
 const CACHE_FOLDER: &str = "Cache";
 const GAME_FILE: &str = "game.ron";
 const BATTLE_FOLDER: &str = "Battle";
@@ -115,6 +116,11 @@ pub fn app_dir() -> Result<PathBuf, Error> {
 /// Folder where games are saved. Eg. `/home/username/Games/Open Combat/Games`
 pub fn games_dir(app_dir: &Path) -> PathBuf {
     app_dir.join(GAMES_FOLDER)
+}
+
+/// Folder where battle records (to replay) are saved. Eg. `/home/username/Games/Open Combat/Records`
+pub fn records_dir(app_dir: &Path) -> PathBuf {
+    app_dir.join(RECORDS_FOLDER)
 }
 
 /// Folder where generated files (like minimaps) are cached. Safe to delete.

@@ -15,6 +15,7 @@ pub mod home;
 pub mod multiplayer;
 pub mod new_battle;
 pub mod prepare_battle;
+pub mod replays;
 pub mod solo;
 
 use crate::{
@@ -22,6 +23,7 @@ use crate::{
     map::Map,
     mods::ModInfo,
     page::Page,
+    replays::Record,
 };
 
 pub struct PageContext<'a> {
@@ -42,6 +44,9 @@ pub struct PageContext<'a> {
     pub squad_slots: &'a mut Vec<Option<usize>>,
     pub battle_process: &'a mut Option<Child>,
     pub battle_args: &'a [String],
+    pub record: &'a mut bool,
+    pub records: &'a mut Option<Vec<Record>>,
+    pub replay_processes: &'a mut Vec<Child>,
 }
 
 impl<'a> PageContext<'a> {

@@ -1,5 +1,6 @@
 use std::{
     net::SocketAddr,
+    path::PathBuf,
     sync::{
         Arc, Mutex,
         mpsc::{Receiver, Sender},
@@ -8,6 +9,7 @@ use std::{
 
 use bevy::prelude::*;
 use bon::Builder;
+use derive_more::Constructor;
 use oc_network::ToServer;
 use oc_root::{
     files::{Connection, Roots},
@@ -34,6 +36,13 @@ pub struct Config_ {
 pub enum Connect {
     Network(SocketAddr),
     Embedded(Sender<ToServer>, Arc<Mutex<Receiver<NetworkMessage>>>),
+    Replay(Replay),
+}
+
+#[derive(Debug, Clone, Constructor)]
+pub struct Replay {
+    pub file: PathBuf,
+    pub source: oc_replay::Source,
 }
 
 impl From<Connect> for Connection {
@@ -41,6 +50,10 @@ impl From<Connect> for Connection {
         match value {
             Connect::Network(addr) => Connection::Network(addr),
             Connect::Embedded(_, _) => Connection::Embedded,
+            Connect::Replay(replay) => match replay.source {
+                oc_replay::Source::Server(address) => Connection::Network(address),
+                oc_replay::Source::Local(_) => Connection::Embedded,
+            },
         }
     }
 }

@@ -19,6 +19,7 @@ pub mod menu;
 pub mod network;
 #[cfg(feature = "debug")]
 pub mod projectile;
+pub mod replay;
 pub mod run;
 pub mod setup;
 pub mod sprites;

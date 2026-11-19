@@ -6622,6 +6622,7 @@ dependencies = [
  "oc_game",
  "oc_individual",
  "oc_mod",
+ "oc_replay",
  "oc_root",
  "oc_world",
  "ron",
@@ -6676,6 +6677,7 @@ dependencies = [
  "oc_network",
  "oc_physics",
  "oc_projectile",
+ "oc_replay",
  "oc_root",
  "oc_utils",
  "oc_world",
@@ -6908,6 +6910,24 @@ dependencies = [
  "rkyv",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "oc_replay"
+version = "0.4.1"
+dependencies = [
+ "anyhow",
+ "clap",
+ "ctrlc",
+ "message-io",
+ "oc_geo",
+ "oc_network",
+ "oc_root",
+ "oc_utils",
+ "thiserror 2.0.21",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

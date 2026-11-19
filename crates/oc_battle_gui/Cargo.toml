@@ -16,6 +16,7 @@ debug = ["bevy/bevy_dev_tools", "bevy/render_dev_tools", "oc_network/debug", "oc
 [dependencies]
 oc_root = { path = "../oc_root", features = ["bevy", "clap"] }
 oc_network = { path = "../oc_network" }
+oc_replay = { path = "../oc_replay" }
 oc_world_server = { path = "../oc_world_server" }
 oc_utils = { path = "../oc_utils", features = ["bevy"] }
 oc_mod = { path = "../oc_mod" }

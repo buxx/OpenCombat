@@ -22,6 +22,7 @@ use crate::{
     battle::{MAPS_FOLDER, Scenario},
     mods::MODS_FOLDER,
     pages::{PageContext, new_battle},
+    replays,
 };
 
 /// Open Combat World State: world state saved by battle at its end
@@ -119,6 +120,9 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
     let ai = letter(player.opposite());
     let cwd = std::env::current_dir().map_err(|e| format!("Current folder: {e}"))?;
     let cache = oc_game::cache_dir(ctx.app_dir).join(SERVER_CACHE_FOLDER);
+    let record = (*ctx.record)
+        .then(|| replays::new_record_path(ctx.app_dir))
+        .transpose()?;
 
     let mut command = Command::new(battle_gui_bin());
     command
@@ -150,6 +154,10 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
         // Gui assets are in the `assets` folder of current folder (like mods, maps, etc.)
         .env("BEVY_ASSET_ROOT", cwd);
 
+    if let Some(record) = record {
+        command.arg("--record").arg(record);
+    }
+
     command
         .spawn()
         .map_err(|e| format!("Start {}: {e}", command.get_program().display()))
@@ -173,7 +181,7 @@ fn battle_spawn_zones(
 
 /// Battle gui binary: next to current executable, elsewhere from PATH
 #[cfg(not(feature = "debug"))]
-fn battle_gui_bin() -> PathBuf {
+pub fn battle_gui_bin() -> PathBuf {
     let name = format!("{BATTLE_GUI_BIN}{}", std::env::consts::EXE_SUFFIX);
     std::env::current_exe()
         .ok()
@@ -185,7 +193,7 @@ fn battle_gui_bin() -> PathBuf {
 /// Debug battle gui binary: searched in `target/debug` of current executable, current folder
 /// or sources ancestors
 #[cfg(feature = "debug")]
-fn battle_gui_bin() -> PathBuf {
+pub fn battle_gui_bin() -> PathBuf {
     let name = format!("{BATTLE_GUI_BIN}{}", std::env::consts::EXE_SUFFIX);
     let starts = [
         std::env::current_exe().ok(),

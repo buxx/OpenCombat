@@ -165,7 +165,7 @@ impl MapReader {
             LayerType::Objects(layer) => Ok(layer),
             _ => Result::Err(MapReaderError::InvalidLayer(format!(
                 "Layer '{}' in map is not an object layer",
-                SPAWN_ZONES_LAYER_NAME,
+                PLACES_LAYER_NAME,
             ))),
         }
     }
@@ -301,7 +301,14 @@ impl MapReader {
     pub fn places(&self) -> Result<Vec<Place>, MapReaderError> {
         let mut places = vec![];
 
-        for object in self.places_layer()?.objects() {
+        // Places layer is optional: maps without named places simply have none
+        let layer = match self.places_layer() {
+            Ok(layer) => layer,
+            Err(MapReaderError::LayerNotFound(_)) => return Ok(places),
+            Err(error) => return Err(error),
+        };
+
+        for object in layer.objects() {
             let name = PlaceName(if object.name.trim().is_empty() {
                 object.id().to_string()
             } else {

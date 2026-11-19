@@ -110,9 +110,11 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut w = WorldConfig::new(map.width().unwrap() as u64, map.height().unwrap() as u64)
         .with_geo_meters_per_z(Meters(meta.geo_meters_per_z));
     if matches!(args.case, Case::EndTime) {
-        // Real time duration, let enough time to individual to move before the end
-        let duration = Duration::from_secs(2).div_f32(w.speed());
-        w = w.with_fight_duration(duration.max(Duration::from_secs(1)));
+        // Fight duration is in game time (server compares it to real elapsed * speed). Ensure at
+        // least 1s of real time, so individual has time to move before the end even with a high
+        // speed (OC_SPEED) on a loaded machine (e2e tests run in parallel)
+        let real_min = Duration::from_secs(1).mul_f32(w.speed());
+        w = w.with_fight_duration(Duration::from_secs(2).max(real_min));
     }
     let speed = w.speed();
     let center = WorldVec2::new(
@@ -494,8 +496,6 @@ fn request_fight(_: On<GameConfigReceived>, mut commands: Commands) {
 #[cfg(feature = "test")]
 #[derive(Resource, Default)]
 struct EndWatch {
-    // Position when battle start
-    start: Option<WorldVec3>,
     /// Frames elapsed since BattlePhase::End is received
     ended_since_frames: Option<u32>,
     // Position (and time) a few frames after BattlePhase::End is received
@@ -564,11 +564,11 @@ fn watch_individual_after_end(
     )>,
     mut watch: ResMut<EndWatch>,
     g: Res<oc_battle_gui::states::GameConfig>,
+    center: Res<Center>,
     mut commands: Commands,
 ) {
     let_some!(g = &g.0, return);
     let_some!(position = individual_position(&individuals), return);
-    let start = *watch.start.get_or_insert(position);
     let_some!(ended_since_frames = watch.ended_since_frames, return);
     if watch.end.is_none() {
         if ended_since_frames < END_POSITION_FRAMES {
@@ -591,7 +591,9 @@ fn watch_individual_after_end(
                 .div_f32(g.w.speed())
                 .max(Duration::from_millis(500))
     {
-        if end_position.almost_equal(start, 0.001) {
+        // Compare with spawn position (individual is spawned at center): with high speed, individual
+        // can already have moved when first seen by gui
+        if WorldVec2::new(end_position.x, end_position.y).almost_equal(center.0, 0.001) {
             eprintln!("❌ Individual never moved before End");
         } else {
             SUCCESS.store(true, Ordering::Relaxed);

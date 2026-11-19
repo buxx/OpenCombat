@@ -1,0 +1,25 @@
+[package]
+name = "oc_replay"
+version.workspace = true
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+oc_root = { path = "../oc_root", features = ["clap"] }
+oc_network = { path = "../oc_network" }
+oc_geo = { path = "../oc_geo" }
+oc_utils = { path = "../oc_utils" }
+thiserror.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+message-io.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+ctrlc.workspace = true
+
+[[bin]]
+name = "oc_record"
+path = "src/bin/oc_record.rs"

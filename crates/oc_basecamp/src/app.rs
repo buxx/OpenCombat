@@ -14,6 +14,7 @@ use crate::{
     mods::{self, ModInfo},
     page::Page,
     pages::PageContext,
+    replays::Record,
 };
 
 pub struct App {
@@ -35,8 +36,10 @@ pub struct App {
     deployment: Option<Deployment>,
     squad_slots: Vec<Option<usize>>,
     battle_process: Option<Child>,
-    /// Extra arguments given to battle gui (like debug ones)
     battle_args: Vec<String>,
+    record: bool,
+    records: Option<Vec<Record>>,
+    replay_processes: Vec<Child>,
     errors: Vec<String>,
     show_errors: bool,
 }
@@ -72,6 +75,9 @@ impl App {
             squad_slots: vec![],
             battle_process: None,
             battle_args: vec![],
+            record: false,
+            records: None,
+            replay_processes: vec![],
             loading: true,
             errors,
             show_errors: false,
@@ -150,6 +156,9 @@ impl App {
                 ui.label(">");
             } else {
                 if ui.link(page.title()).clicked() {
+                    if *page == Page::Replays {
+                        self.records = None;
+                    }
                     self.page = *page;
                 }
                 ui.label(">");
@@ -212,6 +221,9 @@ impl App {
                 squad_slots: &mut self.squad_slots,
                 battle_process: &mut self.battle_process,
                 battle_args: &self.battle_args,
+                record: &mut self.record,
+                records: &mut self.records,
+                replay_processes: &mut self.replay_processes,
                 mods: &self.mods,
                 selected_mod: &self.selected_mod,
             };
@@ -219,6 +231,10 @@ impl App {
                 // New page must be drawn now, not at next user input (like a redirection)
                 if next != self.page {
                     ui.ctx().request_repaint();
+                    // Reload records when entering replays page (new battles can be recorded)
+                    if next == Page::Replays {
+                        self.records = None;
+                    }
                 }
                 self.page = next;
             }
@@ -229,6 +245,9 @@ impl App {
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         egui::Panel::top("menu_bar").show(ui, |ui| self.menu_bar(ui));
+        // Forget ended replays (and release their process)
+        self.replay_processes
+            .retain_mut(|child| matches!(child.try_wait(), Ok(None)));
 
         if self.loading {
             self.loading(ui);

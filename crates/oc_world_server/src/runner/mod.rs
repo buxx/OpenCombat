@@ -66,11 +66,12 @@ pub struct Runner<E: Client> {
     signal: (Sender<Signal>, Receiver<Signal>),
 }
 
-impl Runner<()> {
+impl<E: Client> Runner<E> {
     pub fn embedded(
         config: ServerConfig,
-        state: Arc<State<()>>,
-        output: Sender<((), ToClient)>,
+        state: Arc<State<E>>,
+        output: Sender<(E, ToClient)>,
+        #[cfg_attr(not(feature = "debug"), allow(unused_variables))] gui: E,
         #[cfg_attr(not(feature = "debug"), allow(unused_variables))] side: Side,
         end: EndPolicy,
     ) -> Self {
@@ -81,13 +82,11 @@ impl Runner<()> {
             #[cfg(feature = "tracker")]
             Tracker::default(),
             #[cfg(feature = "debug")]
-            Some(((), side)),
+            Some((gui, side)),
             end,
         )
     }
-}
 
-impl<E: Client> Runner<E> {
     pub fn new(
         config: ServerConfig,
         state: Arc<State<E>>,

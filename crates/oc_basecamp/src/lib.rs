@@ -10,6 +10,7 @@ mod minimap;
 mod mods;
 pub mod page;
 mod pages;
+mod replays;
 
 pub const UI_ZOOM: f32 = 1.25;
 

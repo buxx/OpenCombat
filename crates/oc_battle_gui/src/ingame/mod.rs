@@ -28,6 +28,7 @@ use crate::{
         },
     },
     network::{self, output::ToServerEvent},
+    replay::Replay,
     setup::spawn_camera2d,
     states::{AppState, GameConfig},
     world::WorldPlugin,
@@ -354,6 +355,7 @@ fn on_set_battle_phase(
     mut phase: ResMut<NextState<BattlePhase>>,
     mut window: ResMut<crate::states::Window>,
     g: Res<GameConfig>,
+    replay: Res<Replay>,
 ) {
     *phase = NextState::Pending(event.0);
 
@@ -368,8 +370,10 @@ fn on_set_battle_phase(
         BattlePhase::End => {
             // Keep end window state if battle summary was already received
             if !matches!(window.0, Some(crate::window::Window::BattleEnd(_))) {
+                // If its is a replay, no need to wait battle save
+                let resumed = replay.0.is_some();
                 window.0 = Some(crate::window::Window::BattleEnd(
-                    crate::window::battle::end::Window::default(),
+                    crate::window::battle::end::Window { resumed },
                 ));
             }
         }

@@ -27,6 +27,17 @@ serve-world1:
 gui *args:
     cargo run --bin oc_battle_gui {{ args }} -- network 127.0.0.1:6589
 
+# Record battle of local server into given file (stop with Ctrl+C or at battle end)
+record file *args:
+    cargo run --bin oc_record -- 127.0.0.1:6589 {{ file }} {{ args }}
+
+# Run embedded game (args like example: mod, world, deployments...) and record it
+record-embedded file *args:
+    cargo run --bin oc_battle_gui -- embedded {{ args }} --record {{ file }}
+
+replay file *args:
+    cargo run --bin oc_battle_gui -- replay {{ file }} {{ args }}
+
 example-world1 *args:
     cargo run --bin oc_example --features debug -- world1 {{ args }}
 
@@ -361,6 +372,8 @@ test-world-smoke-grenade:
 # Basecamp starts the battle gui found next to its executable (target/release)
 build-for-basecamp:
     cargo build --release -p oc_basecamp -p oc_battle_gui --no-default-features
+build-for-basecamp-dev:
+    cargo build -p oc_basecamp -p oc_battle_gui --no-default-features
 
 # Debug basecamp starts the debug battle gui (target/debug)
 build-for-basecamp-debug:

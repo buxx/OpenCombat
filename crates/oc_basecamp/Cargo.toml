@@ -19,6 +19,7 @@ oc_world = { path = "../oc_world" }
 oc_battle = { path = "../oc_battle" }
 oc_game = { path = "../oc_game" }
 oc_deployment = { path = "../oc_deployment" }
+oc_replay = { path = "../oc_replay" }
 eframe = "0.36"
 serde.workspace = true
 ron.workspace = true

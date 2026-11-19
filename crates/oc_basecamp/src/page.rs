@@ -12,6 +12,7 @@ pub enum Page {
     ChooseSquads,
     BattleInProgress,
     BattleFinished,
+    Replays,
 }
 
 impl Page {
@@ -27,13 +28,14 @@ impl Page {
             Page::ChooseSquads => "Choose Squads",
             Page::BattleInProgress => "Battle in progress",
             Page::BattleFinished => "Battle finished",
+            Page::Replays => "Replays",
         }
     }
 
     pub fn path(&self) -> Vec<Page> {
         match self {
             Page::Home => vec![Page::Home],
-            Page::Solo | Page::Multiplayer => vec![Page::Home, *self],
+            Page::Solo | Page::Multiplayer | Page::Replays => vec![Page::Home, *self],
             Page::Campaign | Page::Battle => vec![Page::Home, Page::Solo, *self],
             Page::NewBattle => vec![Page::Home, Page::Solo, Page::Battle, *self],
             Page::PrepareBattle => {
@@ -72,6 +74,7 @@ impl Page {
             Page::ChooseSquads => pages::choose_squads::show(ui, ctx),
             Page::BattleInProgress => pages::battle_in_progress::show(ui, ctx),
             Page::BattleFinished => pages::battle_finished::show(ui, ctx),
+            Page::Replays => pages::replays::show(ui, ctx),
         }
     }
 }

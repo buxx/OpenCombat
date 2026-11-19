@@ -118,6 +118,10 @@ impl Mod {
         &self.name
     }
 
+    pub fn version(&self) -> u32 {
+        self.version
+    }
+
     pub fn a_name(&self) -> &str {
         &self.a_name
     }
