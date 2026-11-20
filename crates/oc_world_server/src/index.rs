@@ -8,13 +8,16 @@ use oc_individual::squad::SquadIndex;
 use oc_individual::{INDIVIDUAL_INDEXATION_SHAPE, IndividualIndex};
 use oc_projectile::Projectile;
 use oc_projectile::ProjectileId;
+use oc_root::geo::WorldVec2;
+use oc_root::physics::Meters;
 use oc_root::side::{BySide, Side};
 use oc_root::{WcfgFrom, WcfgInto, WorldConfig};
-use oc_utils::d2::{Xy, shape_cover_tiles};
+use oc_utils::d2::{Direction, Xy, shape_cover_tiles};
+use oc_vehicle::VehicleIndex;
 use oc_world::World;
 
 use crate::physics;
-use crate::utils::d2::shape_from_tile;
+use crate::utils::d2::{oriented_rectangle_covered_tiles, shape_from_tile};
 
 pub struct SizedIndex<T>(Vec<Vec<T>>);
 
@@ -45,6 +48,9 @@ pub struct Indexes {
     proximity_individuals: SizedIndex<IndividualIndex>,
     regions_individuals: SizedIndex<IndividualIndex>,
     regions_projectiles: SizedIndex<ProjectileId>,
+    /// Vehicle presence on tiles (considering chassis size and orientation)
+    tiles_vehicles: SizedIndex<VehicleIndex>,
+    regions_vehicles: SizedIndex<VehicleIndex>,
     regions_craters: SizedIndex<usize>,
     individuals_squad: Vec<SquadIndex>,
     side_individuals: BySide<Vec<IndividualIndex>>,
@@ -58,6 +64,8 @@ impl Indexes {
         let mut proximity_individuals = SizedIndex::new(world.w.tiles_count() as usize);
         let mut regions_individuals = SizedIndex::new(world.w.regions_count() as usize);
         let mut regions_projectiles = SizedIndex::new(world.w.regions_count() as usize);
+        let mut tiles_vehicles = SizedIndex::new(world.w.tiles_count() as usize);
+        let mut regions_vehicles = SizedIndex::new(world.w.regions_count() as usize);
         let mut regions_craters = SizedIndex::new(world.w.regions_count() as usize);
         let mut individuals_squad = Vec::with_capacity(world.individuals.len());
         let mut side_individuals = BySide::from_fn(|side| {
@@ -117,6 +125,17 @@ impl Indexes {
             regions_projectiles.at_mut(region).push(*id);
         }
 
+        for (i, vehicle) in world.vehicles().iter().enumerate() {
+            let size = world.mod_.vehicle(vehicle.type_).size;
+            let position = WorldVec2::from(vehicle.position);
+            for tile in chassis_tiles(size, position, vehicle.chassis_orientation, w) {
+                tiles_vehicles.at_mut(tile).push(i.into());
+            }
+            regions_vehicles
+                .at_mut(vehicle_region(position, w))
+                .push(i.into());
+        }
+
         for (i, crater) in world.craters.iter().enumerate() {
             let tile = WorldTileIndex::from_(TileXy::from_(crater.position, w), w);
             let region: WorldRegionIndex = tile.into_(&world.w);
@@ -129,6 +148,8 @@ impl Indexes {
             proximity_individuals,
             regions_individuals,
             regions_projectiles,
+            tiles_vehicles,
+            regions_vehicles,
             individuals_squad,
             side_individuals,
         }
@@ -206,6 +227,29 @@ impl Indexes {
         }
     }
 
+    /// Update vehicle tiles (considering chassis `size` and orientation) and region indexes
+    pub fn update_vehicle_position(
+        &mut self,
+        i: VehicleIndex,
+        size: (Meters, Meters),
+        now: (WorldVec2, Direction),
+        before: (WorldVec2, Direction),
+        w: &WorldConfig,
+    ) {
+        for tile in chassis_tiles(size, before.0, before.1, w) {
+            self.tiles_vehicles.at_mut(tile).retain(|i_| *i_ != i);
+        }
+        for tile in chassis_tiles(size, now.0, now.1, w) {
+            self.tiles_vehicles.at_mut(tile).push(i);
+        }
+
+        let (before, now) = (vehicle_region(before.0, w), vehicle_region(now.0, w));
+        if before != now {
+            self.regions_vehicles.at_mut(before).retain(|i_| *i_ != i);
+            self.regions_vehicles.at_mut(now).push(i);
+        }
+    }
+
     fn update_individual_region(
         &mut self,
         i: IndividualIndex,
@@ -236,6 +280,14 @@ impl Indexes {
 
     pub fn proximity_individuals(&self, tile: WorldTileIndex) -> &Vec<IndividualIndex> {
         self.proximity_individuals.at(tile)
+    }
+
+    pub fn tile_vehicles(&self, tile: WorldTileIndex) -> &Vec<VehicleIndex> {
+        self.tiles_vehicles.at(tile)
+    }
+
+    pub fn region_vehicles(&self, region: WorldRegionIndex) -> &Vec<VehicleIndex> {
+        self.regions_vehicles.at(region)
     }
 
     pub fn region_individuals(&self, region: WorldRegionIndex) -> &Vec<IndividualIndex> {
@@ -295,6 +347,28 @@ impl Indexes {
     }
 }
 
+/// Tiles covered by a vehicle chassis (considering chassis orientation)
+fn chassis_tiles(
+    size: (Meters, Meters),
+    position: WorldVec2,
+    orientation: Direction,
+    w: &WorldConfig,
+) -> Vec<WorldTileIndex> {
+    let (width, length) = size;
+    oriented_rectangle_covered_tiles(
+        [position.x, position.y],
+        width.pixels(w),
+        length.pixels(w),
+        orientation,
+        w,
+    )
+}
+
+fn vehicle_region(position: WorldVec2, w: &WorldConfig) -> WorldRegionIndex {
+    let tile = WorldTileIndex::from_(TileXy::from_(position, w), w);
+    tile.into_(w)
+}
+
 pub enum Effect {
     Individual(IndividualIndex, IndividualEffect),
     Projectile(ProjectileId, ProjectileEffect),
@@ -345,6 +419,113 @@ mod tests {
         assert_eq!(x1y0, &vec![IndividualIndex(0)]);
         assert_eq!(x0y1, &vec![IndividualIndex(0)]);
         assert_eq!(x1y1, &vec![IndividualIndex(0)]);
+    }
+
+    fn tests1_mod() -> oc_mod::Mod {
+        oc_mod::Mod::load(&::tests::utils::workspace_path("mods/tests1"), None).unwrap()
+    }
+
+    /// "Tank1" of mods/tests1 (chassis 2.2m x 4.5m)
+    fn vehicle(
+        mod_: &oc_mod::Mod,
+        position: WorldVec3,
+        orientation: Direction,
+    ) -> oc_vehicle::Vehicle {
+        oc_vehicle::Vehicle::new(
+            Side::A,
+            mod_.vehicle_from_name("Tank1").unwrap().index(),
+            oc_mod::illustration::IllustrationIndex(0),
+            position,
+            vec![],
+            orientation,
+            None,
+        )
+    }
+
+    /// 1 pixel per meter and per tile: mods/tests1 "Tank1" chassis (2.2m x 4.5m) covers 3x5 tiles when
+    /// facing north, 5x3 when facing est
+    fn vehicle_world_config() -> WorldConfig {
+        WorldConfig::new(10, 10)
+            .with_geo_pixels_per_tile(1)
+            .with_geo_pixels_per_meters(1.)
+    }
+
+    fn tiles_with_vehicle(indexes: &Indexes, w: &WorldConfig) -> Vec<WorldTileIndex> {
+        (0..w.tiles_count())
+            .map(WorldTileIndex)
+            .filter(|i| !indexes.tile_vehicles(*i).is_empty())
+            .collect()
+    }
+
+    fn tiles_rect(
+        w: &WorldConfig,
+        xs: std::ops::RangeInclusive<u64>,
+        ys: std::ops::RangeInclusive<u64>,
+    ) -> Vec<WorldTileIndex> {
+        ys.flat_map(|y| xs.clone().map(move |x| (x, y)))
+            .map(|(x, y)| WorldTileIndex::from_(TileXy(Xy(x, y)), w))
+            .collect()
+    }
+
+    #[test]
+    fn test_indexes_tile_vehicles() {
+        // Given
+        let w = vehicle_world_config();
+        let mod_ = tests1_mod();
+        let vehicle = vehicle(&mod_, WorldVec3::new(5., 5., 0.), Direction::NORTH);
+        let world = TestWorld::builder()
+            .mod_(mod_)
+            .vehicles(vec![vehicle])
+            .build()
+            .make(&w);
+
+        // When
+        let indexes = Indexes::new(&world, &w);
+
+        // Then
+        assert_eq!(
+            tiles_with_vehicle(&indexes, &w),
+            tiles_rect(&w, 3..=6, 2..=7)
+        );
+        assert_eq!(
+            indexes.region_vehicles(WorldRegionIndex(0)),
+            &vec![VehicleIndex(0)]
+        );
+    }
+
+    #[test]
+    fn test_indexes_update_vehicle_position() {
+        // Given
+        let w = vehicle_world_config();
+        let mod_ = tests1_mod();
+        let before = vehicle(&mod_, WorldVec3::new(5., 5., 0.), Direction::NORTH);
+        let world = TestWorld::builder()
+            .mod_(mod_)
+            .vehicles(vec![before.clone()])
+            .build()
+            .make(&w);
+        let mut indexes = Indexes::new(&world, &w);
+        let size = world.mod_.vehicle(before.type_).size;
+
+        // When: rotate to est
+        indexes.update_vehicle_position(
+            VehicleIndex(0),
+            size,
+            (WorldVec2::new(5., 5.), Direction::EST),
+            (WorldVec2::new(5., 5.), Direction::NORTH),
+            &w,
+        );
+
+        // Then
+        assert_eq!(
+            tiles_with_vehicle(&indexes, &w),
+            tiles_rect(&w, 2..=7, 3..=6)
+        );
+        assert!(
+            tiles_rect(&w, 0..=9, 0..=9)
+                .into_iter()
+                .all(|i| indexes.tile_vehicles(i).len() <= 1)
+        );
     }
 
     #[test]

@@ -10,6 +10,7 @@ use oc_root::battle::BattlePhase;
 use oc_root::geo::WorldVec2;
 use oc_root::side::{BySide, Side};
 use oc_root::uuids::{IndividualUuid, Uuids};
+use oc_vehicle::Vehicle;
 use rkyv::with::{AsUnixTime, Map};
 
 use crate::World;
@@ -36,6 +37,7 @@ pub struct Snapshot {
     pub smoke_clouds: Vec<SnapshotSmokeCloud>,
     pub individuals: Vec<Individual>,
     pub squads: Vec<Squad>,
+    pub vehicles: Vec<Vehicle>,
     pub projectiles: Vec<Projectile>,
     pub phase: BattlePhase,
     pub duration: Duration,
@@ -161,6 +163,7 @@ impl Snapshot {
             smoke_clouds: vec![],
             individuals: vec![],
             squads: vec![],
+            vehicles: vec![],
             projectiles: vec![],
             phase: BattlePhase::Deployment,
             duration: DEFAULT_FIGHT_DURATION,
@@ -193,6 +196,11 @@ impl Snapshot {
 
     pub fn with_squads(mut self, squads: Vec<Squad>) -> Self {
         self.squads = squads;
+        self
+    }
+
+    pub fn with_vehicles(mut self, vehicles: Vec<Vehicle>) -> Self {
+        self.vehicles = vehicles;
         self
     }
 

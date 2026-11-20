@@ -3,6 +3,7 @@ use oc_individual::network::{Individual, Squad};
 use oc_network::ToClient;
 use oc_projectile::network::Projectile;
 use oc_root::{Wcfg, files, static_::StaticSource};
+use oc_vehicle::network::Vehicle;
 
 use crate::ingame::hud::supports::{SetSupportCountEvent, SupportExecutedEvent};
 use crate::{
@@ -17,6 +18,7 @@ use crate::{
                 UpdateProjectilePhysicsEvent, UpdateSquadEvent,
             },
             projectile::InsertProjectileEvent,
+            vehicle::{ForgotVehicleEvent, InsertVehicleEvent},
         },
         projectile::ForgotProjectile,
     },
@@ -107,6 +109,14 @@ pub fn on_to_client(
             }
             Individual::Forgot(i) => {
                 commands.trigger(ForgotIndividual(*i));
+            }
+        },
+        ToClient::Vehicle(message) => match message {
+            Vehicle::Insert(i, vehicle) => {
+                commands.trigger(InsertVehicleEvent(*i, vehicle.clone()));
+            }
+            Vehicle::Forgot(i) => {
+                commands.trigger(ForgotVehicleEvent(*i));
             }
         },
         ToClient::Projectile(message) => match message {

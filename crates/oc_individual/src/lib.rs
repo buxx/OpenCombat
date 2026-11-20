@@ -15,6 +15,7 @@ use oc_mod::ammunition::AmmunitionIndex;
 use oc_mod::illustration::IllustrationIndex;
 use oc_mod::magazine::MagazineIndex;
 use oc_mod::nature::Traversability;
+use oc_mod::vehicle::CrewRole;
 use oc_mod::{grenade::GrenadeIndex, weapons::WeaponIndex};
 use oc_physics::Force;
 use oc_physics::IgnoreSide;
@@ -40,6 +41,7 @@ use oc_root::y::V;
 use oc_utils::collections::WithIds;
 use oc_utils::d2::Direction;
 use oc_utils::d2::Xy;
+use oc_vehicle::VehicleIndex;
 
 use crate::behavior::Behavior;
 use crate::behavior::Intent;
@@ -94,6 +96,9 @@ pub struct Individual {
     pub suppress: Suppress,
     pub weapons: Weapons,
     pub magazines: Vec<MagazineIndex>,
+    /// Vehicle (and crew role in it) this individual is embarked in
+    #[getset(set_with = "pub")]
+    pub embarked: Option<(VehicleIndex, CrewRole)>,
 }
 
 #[oc_derive::archivable]
@@ -203,6 +208,7 @@ impl Individual {
             Suppress::zero(),
             Weapons::default(),
             vec![],
+            None,
         )
     }
 

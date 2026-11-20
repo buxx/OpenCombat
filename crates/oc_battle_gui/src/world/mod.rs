@@ -17,6 +17,7 @@ use oc_root::{
 };
 use oc_utils::let_some;
 use oc_utils::percent::Percent;
+use oc_vehicle::{Vehicle, VehicleIndex};
 use oc_world::{
     crater::Crater,
     decor::Decor,
@@ -37,6 +38,7 @@ use crate::{
 pub mod individual;
 pub mod path;
 pub mod tile;
+pub mod vehicle;
 pub mod visibilities;
 
 #[derive(Debug, Event)]
@@ -88,6 +90,9 @@ impl Plugin for WorldPlugin {
             .add_observer(individual::on_insert_individual)
             .add_observer(individual::on_update_individual_physics)
             .add_observer(individual::on_forgotten_region)
+            .add_observer(vehicle::on_insert_vehicle)
+            .add_observer(vehicle::on_forgot_vehicle)
+            .add_observer(vehicle::on_forgotten_region)
             .add_observer(visibilities::on_update_visibilities)
             .add_observer(visibilities::on_visibilities_updated);
     }
@@ -109,6 +114,8 @@ impl<K: std::fmt::Debug, V: std::fmt::Debug> Default for Index<K, V> {
 pub struct World {
     pub individuals: Index<WorldTileIndex, Vec<(IndividualIndex, Individual)>>,
     pub individuals_refs: FxHashMap<IndividualIndex, (WorldRegionIndex, WorldTileIndex)>, // TODO: remove pub and ensure x_ref
+    pub vehicles: Index<VehicleIndex, Vehicle>,
+    pub vehicles_refs: FxHashMap<VehicleIndex, WorldRegionIndex>,
     pub tiles: Index<WorldTileIndex, Tile>,
     pub altered_tiles: Index<WorldTileIndex, AlteredTile>,
     pub decor: Index<WorldTileIndex, Decor>,
@@ -259,6 +266,51 @@ impl World {
             individuals.retain(|(i_, _)| *i_ != i);
         }
         self.individuals_refs.remove(&i);
+    }
+
+    pub fn insert_vehicle(&mut self, w: &WorldConfig, i: VehicleIndex, vehicle: Vehicle) {
+        let tile_xy: TileXy = vehicle.position.into_(w);
+        let tile: WorldTileIndex = tile_xy.into_(w);
+        let region: WorldRegionIndex = tile.into_(w);
+
+        // Vehicle may have changed of region
+        self.remove_vehicle(i);
+        self.vehicles.entry(region).or_default().insert(i, vehicle);
+        self.vehicles_refs.insert(i, region);
+    }
+
+    pub fn remove_vehicle(&mut self, i: VehicleIndex) {
+        let_some!(region = self.vehicles_refs.remove(&i), return);
+        if let Some(vehicles) = self.vehicles.get_mut(&region) {
+            vehicles.remove(&i);
+        }
+    }
+
+    pub fn remove_vehicles(&mut self, region: WorldRegionIndex) {
+        if let Some(vehicles) = self.vehicles.remove(&region) {
+            for i in vehicles.keys() {
+                self.vehicles_refs.remove(i);
+            }
+        }
+    }
+
+    pub fn vehicle(&self, i: VehicleIndex) -> Option<&Vehicle> {
+        let region = self.vehicles_refs.get(&i)?;
+        self.vehicles
+            .get(region)
+            .and_then(|vehicles| vehicles.get(&i))
+    }
+
+    // TODO: if consume too much CPU: create an index
+    /// Known individuals embarked in vehicle `i`
+    pub fn vehicle_crew(&self, i: VehicleIndex) -> Vec<IndividualIndex> {
+        self.individuals
+            .values()
+            .flat_map(|tiles| tiles.values())
+            .flatten()
+            .filter(|(_, individual)| individual.embarked.is_some_and(|(i_, _)| i_ == i))
+            .map(|(i, _)| *i)
+            .collect()
     }
 
     pub fn remove_individuals(&mut self, region: WorldRegionIndex) {

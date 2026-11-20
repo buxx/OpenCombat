@@ -25,6 +25,7 @@ use oc_root::{
     uuids::Uuids,
 };
 use oc_utils::{d2::Xy, let_some};
+use oc_vehicle::{Vehicle, VehicleIndex};
 use rustc_hash::FxHashMap;
 
 use crate::{
@@ -92,6 +93,7 @@ pub struct World {
     pub visibilities: Visibilities,
     pub individuals: Vec<Individual>,
     pub squads: Vec<Squad>,
+    pub vehicles: Vec<Vehicle>,
     pub projectiles: FxHashMap<ProjectileId, Projectile>,
     pub interiors: Vec<Interior>,
     pub places: Vec<crate::place::Place>,
@@ -222,6 +224,18 @@ impl World {
 
     pub fn individual_mut(&mut self, i: IndividualIndex) -> &mut Individual {
         self.individuals.at_mut(i)
+    }
+
+    pub fn vehicles(&self) -> &[Vehicle] {
+        &self.vehicles
+    }
+
+    pub fn vehicle(&self, i: VehicleIndex) -> &Vehicle {
+        self.vehicles.at(i)
+    }
+
+    pub fn vehicle_mut(&mut self, i: VehicleIndex) -> &mut Vehicle {
+        self.vehicles.at_mut(i)
     }
 
     pub fn squads(&self) -> &[Squad] {
@@ -390,6 +404,7 @@ mod tests {
             Visibilities::empty(0),
             vec![],
             vec![],
+            vec![],
             HashMap::default(),
             vec![],
             vec![],
@@ -450,6 +465,7 @@ mod tests {
             vec![],
             navmesh,
             Visibilities::empty(0),
+            vec![],
             vec![],
             vec![],
             HashMap::default(),

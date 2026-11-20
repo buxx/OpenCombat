@@ -6680,6 +6680,7 @@ dependencies = [
  "oc_replay",
  "oc_root",
  "oc_utils",
+ "oc_vehicle",
  "oc_world",
  "oc_world_server",
  "polyanya",
@@ -6713,11 +6714,13 @@ dependencies = [
  "oc_mod",
  "oc_root",
  "oc_utils",
+ "oc_vehicle",
  "oc_world",
  "ron",
  "serde",
  "serde_derive",
  "serde_yaml",
+ "thiserror 2.0.21",
  "uuid",
 ]
 
@@ -6751,6 +6754,7 @@ dependencies = [
  "oc_projectile",
  "oc_root",
  "oc_utils",
+ "oc_vehicle",
  "oc_world",
  "oc_world_server",
  "parking_lot 0.13.0",
@@ -6807,6 +6811,7 @@ dependencies = [
  "oc_physics",
  "oc_root",
  "oc_utils",
+ "oc_vehicle",
  "polyanya",
  "rkyv",
  "rstest",
@@ -6869,6 +6874,7 @@ dependencies = [
  "oc_projectile",
  "oc_root",
  "oc_utils",
+ "oc_vehicle",
  "oc_world",
  "rkyv",
 ]
@@ -6980,6 +6986,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "oc_vehicle"
+version = "0.5.0"
+dependencies = [
+ "derive_more",
+ "oc_derive",
+ "oc_mod",
+ "oc_physics",
+ "oc_root",
+ "oc_utils",
+ "rkyv",
+ "serde",
+]
+
+[[package]]
 name = "oc_world"
 version = "0.5.0"
 dependencies = [
@@ -7000,6 +7020,7 @@ dependencies = [
  "oc_projectile",
  "oc_root",
  "oc_utils",
+ "oc_vehicle",
  "polyanya",
  "rayon",
  "rkyv",
@@ -7064,6 +7085,7 @@ dependencies = [
  "oc_projectile",
  "oc_root",
  "oc_utils",
+ "oc_vehicle",
  "oc_world",
  "polyanya",
  "rayon",
@@ -9210,6 +9232,7 @@ dependencies = [
  "oc_projectile",
  "oc_root",
  "oc_utils",
+ "oc_vehicle",
  "oc_world",
  "rstest",
  "rustc-hash 2.1.3",

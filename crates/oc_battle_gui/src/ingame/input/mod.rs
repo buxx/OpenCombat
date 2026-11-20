@@ -13,6 +13,7 @@ pub mod individual;
 pub mod keyboard;
 pub mod left_click;
 pub mod projectile;
+pub mod vehicle;
 
 #[derive(Debug, Resource, Default)]
 pub struct State {

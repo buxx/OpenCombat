@@ -11,6 +11,7 @@ pub mod regions;
 pub mod stress;
 pub mod stress_projectiles;
 pub mod stress_projectiles_server;
+pub mod vehicles;
 pub mod visibilities;
 pub mod weapons;
 pub mod world;

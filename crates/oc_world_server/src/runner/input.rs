@@ -146,10 +146,11 @@ impl<'a, E: Client> Dealer<'a, E> {
         tracing::trace!(name="dealer-refresh-region", endpoint=?self.endpoint, region=?region);
         // Lock order is world then indexes everywhere: don't hold indexes while sending subjects
         // (which locks world), or a queued writer makes a deadlock.
-        let (individuals, projectiles, craters) = {
+        let (individuals, vehicles, projectiles, craters) = {
             let indexes = self.state.indexes();
             (
                 indexes.region_individuals(region).clone(),
+                indexes.region_vehicles(region).clone(),
                 indexes.region_projectiles(region).clone(),
                 indexes.region_craters(region).clone(),
             )
@@ -157,6 +158,7 @@ impl<'a, E: Client> Dealer<'a, E> {
 
         self.send_tiles(region, &craters);
         self.send_subjects(&individuals);
+        self.send_subjects(&vehicles);
         self.send_subjects(&projectiles);
     }
 

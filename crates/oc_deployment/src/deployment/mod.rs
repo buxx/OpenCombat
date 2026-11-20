@@ -5,6 +5,7 @@ use std::path::Path;
 use anyhow::Context;
 use derive_more::{Deref, DerefMut};
 use glam::Vec2;
+use oc_geo::region::WorldRegionIndex;
 use oc_geo::tile::{TileXy, WorldTileIndex};
 use oc_individual::Xp;
 use oc_individual::{
@@ -32,6 +33,7 @@ pub mod individual;
 pub mod magazine;
 pub mod place;
 pub mod squad;
+pub mod vehicle;
 pub mod weapon;
 
 /// Deployment of each side
@@ -76,6 +78,7 @@ impl Deployments {
     ) -> Result<(), anyhow::Error> {
         snapshot.squads.clear();
         snapshot.individuals.clear();
+        snapshot.vehicles.clear();
         snapshot.uuids.individuals.clear();
         snapshot.uuids.squads.clear();
         let mut i: u64 = 0;
@@ -108,6 +111,12 @@ impl Deployments {
         squad: &squad::Squad,
         tiles: &[Tile],
     ) -> Result<(), anyhow::Error> {
+        if let Some(vehicle) = &squad.vehicle {
+            vehicle
+                .validate(mod_, squad)
+                .context(format!("Validate vehicle of squad {}", squad.uuid))?;
+        }
+
         let mut individuals = vec![];
         let spawns = &self[side].spawns;
         let occupied: Vec<WorldVec2> = snapshot.squads.iter().map(|s| s.position).collect();
@@ -131,15 +140,81 @@ impl Deployments {
         }
 
         snapshot.uuids.squads.push(squad.uuid);
-        let squad = Squad::fresh(side, individuals.clone(), position).with_illustration(
-            mod_.illustration_from_name(IllustrationKind::IngameSquad, &squad.illustration)
-                .context(format!(
-                    "Use squad ingame illustration '{}'",
-                    squad.illustration
-                ))?
-                .index(),
-        );
+        let illustration = mod_
+            .illustration_from_name(IllustrationKind::IngameSquad, &squad.illustration)
+            .context(format!(
+                "Use squad ingame illustration '{}'",
+                squad.illustration
+            ))?
+            .index();
+
+        if let Some(vehicle) = &squad.vehicle {
+            Self::fill_vehicle(
+                w,
+                mod_,
+                snapshot,
+                side,
+                squad,
+                vehicle,
+                &individuals,
+                position,
+                illustration,
+                tiles,
+            )?;
+        }
+
+        let squad = Squad::fresh(side, individuals.clone(), position);
+        let squad = squad.with_illustration(illustration);
         snapshot.squads.push(squad);
+
+        Ok(())
+    }
+
+    /// Place squad vehicle at squad `position` and embark its crew.
+    #[allow(clippy::too_many_arguments)]
+    fn fill_vehicle(
+        w: &WorldConfig,
+        mod_: &Mod,
+        snapshot: &mut Snapshot,
+        side: Side,
+        squad: &squad::Squad,
+        vehicle: &vehicle::Vehicle,
+        individuals: &[IndividualIndex],
+        position: WorldVec2,
+        illustration: oc_mod::illustration::IllustrationIndex,
+        tiles: &[Tile],
+    ) -> Result<(), anyhow::Error> {
+        let type_ = mod_
+            .vehicle_from_name(&vehicle.name)
+            .context(format!("Use vehicle '{}'", vehicle.name))?
+            .index();
+        let tile = WorldTileIndex::from_(position, w);
+        let position = position.extend(tiles.at(tile).z_pixels(w));
+        let vehicle_index = oc_vehicle::VehicleIndex(snapshot.vehicles.len() as u64);
+
+        for member in &vehicle.crew {
+            let i = squad
+                .individuals
+                .iter()
+                .position(|i| i.uuid == member.individual)
+                .and_then(|i| individuals.get(i))
+                .context(format!("Find crew individual {}", member.individual))?;
+            let individual = snapshot.individuals.at_mut(*i);
+            individual.embarked = Some((vehicle_index, member.role));
+            individual.position = position;
+            individual.tile = tile;
+            individual.region = WorldRegionIndex::from_(tile, w);
+        }
+
+        snapshot.vehicles.push(oc_vehicle::Vehicle::new(
+            side,
+            type_,
+            illustration,
+            position,
+            vec![],
+            oc_utils::d2::Direction::NORTH,
+            Some(oc_utils::d2::Direction::NORTH),
+        ));
 
         Ok(())
     }
@@ -332,5 +407,106 @@ impl Deployments {
         }
 
         Ok((None, 0))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use oc_mod::{nature::NatureIndex, vehicle::CrewRole};
+    use oc_root::geo::WorldVec3;
+
+    use super::*;
+    use crate::deployment::vehicle::{CrewMember, Vehicle};
+
+    fn mod_() -> Mod {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../mods/tests1");
+        Mod::load(&path, None).unwrap()
+    }
+
+    #[test]
+    fn fill_vehicle_embarks_crew() {
+        // Given
+        let mod_ = mod_();
+        let w = WorldConfig::new(10, 10);
+        let tiles: Vec<Tile> = (0..w.tiles_count())
+            .map(|i| {
+                let traversability = mod_.nature(NatureIndex(0)).traversability.clone();
+                Tile::new(WorldTileIndex(i), NatureIndex(0), 0, traversability)
+            })
+            .collect();
+        let mut squad = squad::Squad::new();
+        squad.individuals = (0..3).map(|_| individual::Individual::new()).collect();
+        let mut vehicle = Vehicle::new("Tank1".to_string());
+        vehicle.crew = vec![
+            CrewMember {
+                role: CrewRole::Driver,
+                individual: squad.individuals[2].uuid,
+            },
+            CrewMember {
+                role: CrewRole::Commander,
+                individual: squad.individuals[0].uuid,
+            },
+        ];
+        let mut snapshot = Snapshot::empty(w.clone());
+        // An individual of a previous squad, then squad members
+        let mut individuals = vec![];
+        for i in 0..4 {
+            let position = WorldVec3::new(i as f32, i as f32, 0.);
+            snapshot
+                .individuals
+                .push(Individual::fresh(&w, Side::A, position));
+            if i > 0 {
+                individuals.push(IndividualIndex(i));
+            }
+        }
+        let position = WorldVec2::new(22., 33.);
+
+        // When
+        Deployments::fill_vehicle(
+            &w,
+            &mod_,
+            &mut snapshot,
+            Side::A,
+            &squad,
+            &vehicle,
+            &individuals,
+            position,
+            oc_mod::illustration::IllustrationIndex(0),
+            &tiles,
+        )
+        .unwrap();
+
+        // Then
+        let index = oc_vehicle::VehicleIndex(0);
+        assert_eq!(snapshot.vehicles.len(), 1);
+        assert_eq!(
+            snapshot.vehicles[0].type_,
+            mod_.vehicle_from_name("Tank1").unwrap().index()
+        );
+        assert_eq!(snapshot.vehicles[0].position, WorldVec3::new(22., 33., 0.));
+        assert_eq!(snapshot.individuals[0].embarked, None);
+        assert_eq!(
+            snapshot.individuals[1].embarked,
+            Some((index, CrewRole::Commander))
+        );
+        assert_eq!(snapshot.individuals[2].embarked, None);
+        assert_eq!(
+            snapshot.individuals[3].embarked,
+            Some((index, CrewRole::Driver))
+        );
+        assert_eq!(
+            snapshot.individuals[1].position,
+            WorldVec3::new(22., 33., 0.)
+        );
+        assert_eq!(
+            snapshot.individuals[3].position,
+            WorldVec3::new(22., 33., 0.)
+        );
+        assert_eq!(
+            snapshot.individuals[3].tile,
+            WorldTileIndex::from_(WorldVec2::new(22., 33.), &w)
+        );
     }
 }

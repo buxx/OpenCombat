@@ -4,6 +4,6 @@
     name: "Tank1",
     row: 0,
     crew: [Commander, Gunner, Driver, Operator],
-    size: (Meters(2.2), Meters(4.5)),
+    size: (Meters(2.7), Meters(6.5)),
   ),
 ]

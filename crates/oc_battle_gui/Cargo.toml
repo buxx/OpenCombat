@@ -26,6 +26,7 @@ oc_world = { path = "../oc_world", features = ["bevy"] }
 oc_physics = { path = "../oc_physics", features = ["bevy"] }
 oc_lov = { path = "../oc_lov" }
 oc_individual = { path = "../oc_individual", features = ["bevy"] }
+oc_vehicle = { path = "../oc_vehicle" }
 oc_projectile = { path = "../oc_projectile" }
 enum_type_derive = { path = "../enum_type_derive" }
 bevy_heightmap = { path = "../bevy_heightmap" }

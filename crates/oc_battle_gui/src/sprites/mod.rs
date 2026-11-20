@@ -1,4 +1,4 @@
-use crate::states::GuiFiles;
+use crate::states::{GameConfig, GuiFiles};
 use bevy::prelude::*;
 use bevy_spritesheet_animation::prelude::*;
 use oc_root::files::File;
@@ -8,7 +8,7 @@ use crate::{
     ingame::GameConfigReceived,
     sprites::{
         altered::AlteredSprites, crater::CraterSprites, soldier::SoldierAnimations,
-        weapon::WeaponAnimations,
+        vehicle::VehicleSprites, weapon::WeaponAnimations,
     },
 };
 
@@ -18,6 +18,7 @@ pub mod decor;
 pub mod order;
 pub mod outline;
 pub mod soldier;
+pub mod vehicle;
 pub mod weapon;
 
 #[derive(Debug, Default)]
@@ -44,10 +45,12 @@ fn on_game_config_received(
     mut commands: Commands,
     assets: Res<AssetServer>,
     files: Res<GuiFiles>,
+    g: Res<GameConfig>,
     mut animations: ResMut<Assets<Animation>>,
     mut atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     let_some!(files = &files.0, return);
+    let_some!(g = &g.0, return);
 
     // FIXME: find solution to initialize that before (dowloading)
     // Sprites are needed as soon as individuals are received, before the download step
@@ -70,6 +73,23 @@ fn on_game_config_received(
     let altereds = AlteredSprites::init(&sprites, &assets, &mut atlas_layouts);
     let craters = CraterSprites::init(&sprites, &assets, &mut atlas_layouts);
 
+    let vehicle_rows = g.mod_.vehicles.iter().map(|v| v.row as u32 + 1).max();
+    let vehicles_png = files.mod_dir().join("sprites").join(vehicle::VEHICLES_PNG);
+    let vehicles = match VehicleSprites::init(
+        &sprites,
+        &vehicles_png,
+        vehicle_rows.unwrap_or(1),
+        &assets,
+        &mut atlas_layouts,
+    ) {
+        Ok(vehicles) => vehicles,
+        Err(e) => {
+            tracing::error!("Unable to init vehicle sprites: {e}");
+            return;
+        }
+    };
+
+    commands.insert_resource(vehicles);
     commands.insert_resource(craters);
     commands.insert_resource(altereds);
     commands.insert_resource(soldier);

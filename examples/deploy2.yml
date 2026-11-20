@@ -1,0 +1,30 @@
+squads:
+- count: 1
+  label: Riffle
+  illustration: default
+  individuals:
+  - count: 4
+    illustration: default
+    xp: [133, 30]
+    weapons:
+      main: Mosin Nagant M1924
+      grenades:
+      - Frag grenade
+      - Frag grenade
+    magazines:
+    - count: 10
+      name: MosinNagant5x
+# Vehicle crew roles (Commander, Gunner, Driver) are assigned to the first individuals
+- count: 1
+  label: Tank
+  illustration: default
+  vehicle: Tank1
+  individuals:
+  - count: 3
+    illustration: default
+    xp: [150, 20]
+    weapons:
+      main: Mosin Nagant M1924
+    magazines:
+    - count: 2
+      name: MosinNagant5x

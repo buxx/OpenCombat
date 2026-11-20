@@ -33,6 +33,7 @@ oc_world_server = { path = "../oc_world_server" }
 oc_world = { path = "../oc_world" }
 oc_network = { path = "../oc_network" }
 oc_individual = { path = "../oc_individual" }
+oc_vehicle = { path = "../oc_vehicle" }
 oc_projectile = { path = "../oc_projectile" }
 oc_physics = { path = "../oc_physics" }
 oc_geo = { path = "../oc_geo" }

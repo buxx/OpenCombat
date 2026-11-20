@@ -17,6 +17,7 @@ oc_geo = { path = "../oc_geo" }
 oc_world = { path = "../oc_world", features = ["tests"] }
 oc_physics = { path = "../oc_physics" }
 oc_individual = { path = "../oc_individual" }
+oc_vehicle = { path = "../oc_vehicle" }
 oc_projectile = { path = "../oc_projectile" }
 glam.workspace = true
 bon.workspace = true

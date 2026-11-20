@@ -21,6 +21,7 @@ pub enum CrewRole {
     Loader,
     Driver,
     Operator,
+    Passenger,
 }
 
 #[oc_derive::archivable(serde)]

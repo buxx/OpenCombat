@@ -7,6 +7,8 @@ pub struct Squad {
     pub label: String,
     pub illustration: String,
     pub individuals: Vec<super::individual::Individual>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vehicle: Option<super::vehicle::Vehicle>,
 }
 
 impl Default for Squad {
@@ -22,6 +24,7 @@ impl Squad {
             label: "default".to_string(),
             illustration: "".to_string(),
             individuals: vec![],
+            vehicle: None,
         }
     }
 }

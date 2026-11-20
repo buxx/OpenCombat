@@ -42,6 +42,8 @@ pub struct TestWorld {
     individuals: Vec<Individual>,
     squads: Option<Vec<Squad>>,
     #[builder(default)]
+    vehicles: Vec<oc_vehicle::Vehicle>,
+    #[builder(default)]
     projectiles: FxHashMap<ProjectileId, Projectile>,
     #[builder(default)]
     interiors: Vec<oc_world::interior::Interior>,
@@ -105,6 +107,7 @@ impl TestWorld {
             individuals: self.individuals,
             visibilities: Visibilities::empty(individuals_count),
             squads,
+            vehicles: self.vehicles,
             projectiles: self.projectiles,
             phase: self.phase,
             duration: self.duration,

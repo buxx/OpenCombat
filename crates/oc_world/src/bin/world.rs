@@ -247,6 +247,7 @@ fn snapshot_(
         vec![],
         vec![],
         vec![],
+        vec![],
         BattlePhase::Deployment,
         DEFAULT_FIGHT_DURATION,
         None,

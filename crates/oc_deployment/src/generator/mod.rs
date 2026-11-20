@@ -3,7 +3,12 @@ use oc_mod::Mod;
 
 use crate::{
     deployment::{
-        Deployment, individual::Individual, magazine::Magazine, squad::Squad, weapon::Weapons,
+        Deployment,
+        individual::Individual,
+        magazine::Magazine,
+        squad::Squad,
+        vehicle::{CrewMember, Vehicle},
+        weapon::Weapons,
     },
     generator::profile::Profile,
 };
@@ -52,6 +57,21 @@ impl Generator {
 
                         squad_.individuals.push(individual_);
                     }
+                }
+
+                if let Some(name) = &squad.vehicle {
+                    let vehicle = mod_.vehicle_from_name(name)?;
+                    let mut vehicle_ = Vehicle::new(name.clone());
+                    vehicle_.crew = vehicle
+                        .crew
+                        .iter()
+                        .zip(&squad_.individuals)
+                        .map(|(role, individual)| CrewMember {
+                            role: *role,
+                            individual: individual.uuid,
+                        })
+                        .collect();
+                    squad_.vehicle = Some(vehicle_);
                 }
 
                 deployment.squads.push(squad_);

@@ -223,6 +223,10 @@ pub fn visibility(
     world: &World,
     all: bool,
 ) -> Visibility {
+    if individual.embarked.is_some() {
+        return Visibility::Hidden;
+    }
+
     match all
         || identity.side == individual.side
         || individual.is_always_visible()

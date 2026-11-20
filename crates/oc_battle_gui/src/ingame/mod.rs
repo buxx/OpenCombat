@@ -22,6 +22,7 @@ use crate::{
         projectile::ProjectilePlugin,
         squad::SquadPlugin,
         tile::TilePlugin,
+        vehicle::VehiclePlugin,
         world::{
             on_adjust_minimap, on_despawn_world_map_background, on_spawn_minimap,
             on_spawn_visible_battle_square, on_spawn_world_map_background, on_update_battle_square,
@@ -58,6 +59,7 @@ pub mod spawn;
 pub mod squad;
 pub mod state;
 pub mod tile;
+pub mod vehicle;
 pub mod world;
 
 pub struct IngamePlugin;
@@ -163,6 +165,7 @@ impl Plugin for IngamePlugin {
             .add_plugins(SquadPlugin)
             .add_plugins(ProjectilePlugin)
             .add_plugins(CraterPlugin)
+            .add_plugins(VehiclePlugin)
             .add_plugins(DecorPlugin)
             .add_plugins(BehaviorPlugin)
             .add_plugins(LovPlugin)

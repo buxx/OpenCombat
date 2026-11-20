@@ -7,6 +7,7 @@ use message_io::node::{self};
 use oc_individual::IndividualIndex;
 use oc_network::{ToClient, ToServer};
 use oc_projectile::ProjectileId;
+use oc_vehicle::VehicleIndex;
 
 use crate::bridge::Event;
 
@@ -118,5 +119,17 @@ impl IntoNetworkForgot<IndividualIndex> for oc_individual::Individual {
 impl IntoNetworkForgot<ProjectileId> for oc_projectile::Projectile {
     fn to_network_forgot(&self, i: ProjectileId) -> impl Clone + Into<ToClient> {
         oc_projectile::network::Projectile::Forgot(i)
+    }
+}
+
+impl IntoNetworkInsert<VehicleIndex> for oc_vehicle::Vehicle {
+    fn to_network_insert(&self, i: VehicleIndex) -> impl Clone + Into<ToClient> {
+        oc_vehicle::network::Vehicle::Insert(i, self.clone())
+    }
+}
+
+impl IntoNetworkForgot<VehicleIndex> for oc_vehicle::Vehicle {
+    fn to_network_forgot(&self, i: VehicleIndex) -> impl Clone + Into<ToClient> {
+        oc_vehicle::network::Vehicle::Forgot(i)
     }
 }

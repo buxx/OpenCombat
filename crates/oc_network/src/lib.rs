@@ -41,6 +41,7 @@ pub enum ToClient {
     EndResume(EndResume),
     Individual(Individual),
     Squad(Squad),
+    Vehicle(oc_vehicle::network::Vehicle),
     Projectile(Projectile),
     Tiles(WorldRegionIndex, Vec<(WorldTileIndex, Tile)>),
     AlteredTiles(WorldRegionIndex, Vec<AlteredTile>),
@@ -62,6 +63,12 @@ pub enum ToClient {
 impl From<Individual> for ToClient {
     fn from(value: Individual) -> Self {
         ToClient::Individual(value)
+    }
+}
+
+impl From<oc_vehicle::network::Vehicle> for ToClient {
+    fn from(value: oc_vehicle::network::Vehicle) -> Self {
+        ToClient::Vehicle(value)
     }
 }
 

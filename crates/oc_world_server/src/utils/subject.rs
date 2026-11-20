@@ -1,5 +1,6 @@
 use oc_individual::{Individual, IndividualIndex};
 use oc_projectile::{Projectile, ProjectileId};
+use oc_vehicle::{Vehicle, VehicleIndex};
 use oc_world::World;
 
 pub trait IntoSubject<T> {
@@ -9,6 +10,12 @@ pub trait IntoSubject<T> {
 impl IntoSubject<Individual> for IndividualIndex {
     fn to_subject<'a>(&self, world: &'a World) -> Option<&'a Individual> {
         Some(world.individual(*self))
+    }
+}
+
+impl IntoSubject<Vehicle> for VehicleIndex {
+    fn to_subject<'a>(&self, world: &'a World) -> Option<&'a Vehicle> {
+        world.vehicles().get(self.0 as usize)
     }
 }
 

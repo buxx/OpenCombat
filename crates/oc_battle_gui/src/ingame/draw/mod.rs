@@ -9,6 +9,8 @@ pub const Z_TERRAIN_TILE: f32 = 0.1;
 pub const Z_CRATER: f32 = 0.2;
 pub const Z_ALTERED_TILE: f32 = 0.25;
 pub const Z_INDIVIDUAL: f32 = 2.0;
+/// Above individuals (`Z_INDIVIDUAL` + span)
+pub const Z_VEHICLE: f32 = 2.6;
 pub const Z_PROJECTILE: f32 = 3.0;
 pub const Z_DECOR: f32 = 3.5;
 pub const Z_EXPLOSION: f32 = 3.5;

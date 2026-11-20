@@ -18,6 +18,7 @@ oc_utils = { path = "../oc_utils", features = ["tiled"] }
 oc_geo = { path = "../oc_geo" }
 oc_mod = { path = "../oc_mod" }
 oc_individual = { path = "../oc_individual" }
+oc_vehicle = { path = "../oc_vehicle" }
 oc_projectile = { path = "../oc_projectile" }
 oc_physics = { path = "../oc_physics" }
 derive_more = { workspace = true, features = ["constructor"] }

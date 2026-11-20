@@ -16,6 +16,7 @@ oc_utils = { path = "../oc_utils" }
 oc_mod = { path = "../oc_mod" }
 oc_geo = { path = "../oc_geo" }
 oc_individual = { path = "../oc_individual" }
+oc_vehicle = { path = "../oc_vehicle" }
 clap = { version = "4", features = ["derive"] }
 oc_world = { path = "../oc_world" }
 ron.workspace = true
@@ -28,3 +29,4 @@ derive_more = { workspace = true, features = ["constructor", "deref", "deref_mut
 getset.workspace = true
 glam.workspace = true
 fastrand.workspace = true
+thiserror.workspace = true

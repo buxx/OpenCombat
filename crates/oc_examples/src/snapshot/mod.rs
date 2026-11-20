@@ -29,6 +29,7 @@ where
     individuals: I,
     squads: S,
     projectiles: P,
+    vehicles: Vec<oc_vehicle::Vehicle>,
     phase: BattlePhase,
     side_a_spawns: Vec<SpawnZoneName>,
     side_b_spawns: Vec<SpawnZoneName>,
@@ -56,6 +57,7 @@ where
             individuals,
             squads,
             projectiles,
+            vehicles: vec![],
             phase,
             side_a_spawns,
             side_b_spawns,
@@ -66,6 +68,11 @@ where
 
     pub fn with_supports(mut self, supports: Supports) -> Self {
         self.supports = supports;
+        self
+    }
+
+    pub fn with_vehicles(mut self, vehicles: Vec<oc_vehicle::Vehicle>) -> Self {
+        self.vehicles = vehicles;
         self
     }
 
@@ -100,6 +107,7 @@ where
             smoke_clouds: vec![],
             individuals,
             squads,
+            vehicles: self.vehicles.clone(),
             projectiles,
             phase,
             duration,

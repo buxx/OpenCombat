@@ -25,6 +25,7 @@ fn example() -> Profile {
                     name: "MosinNagant5x".to_string(),
                 }],
             }],
+            vehicle: None,
         }],
     }
 }

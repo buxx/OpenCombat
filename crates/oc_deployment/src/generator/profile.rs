@@ -12,6 +12,8 @@ pub struct Squad {
     pub label: String,
     pub illustration: String,
     pub individuals: Vec<Individual>,
+    #[serde(default)]
+    pub vehicle: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

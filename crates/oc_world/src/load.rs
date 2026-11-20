@@ -66,6 +66,7 @@ impl WorldLoader {
         let individuals = snapshot.individuals;
         let visibilities = Visibilities::empty(individuals.len());
         let squads = snapshot.squads;
+        let vehicles = snapshot.vehicles;
         let uuids = snapshot.uuids;
         tracing::debug!("Build projectile ids");
         let projectiles = snapshot
@@ -140,6 +141,7 @@ impl WorldLoader {
             visibilities,
             individuals,
             squads,
+            vehicles,
             projectiles,
             interiors,
             places,
