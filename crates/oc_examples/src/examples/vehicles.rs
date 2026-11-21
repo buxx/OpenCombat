@@ -23,6 +23,10 @@ const TANK: &str = "Tank1";
 const TMF_START: [f32; 2] = [150., 250.];
 const TMF_TARGET: [f32; 2] = [150., 150.];
 
+const TT_START: [f32; 2] = [150., 250.];
+const TT_TARGET: [f32; 2] = [150., 150.];
+const TT_TOLERANCE: f32 = 0.01;
+
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -37,6 +41,7 @@ struct Args {
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum TestCase {
     TankMove,
+    TankTarget,
     DrawTanks,
 }
 
@@ -149,6 +154,16 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
                 ])
                 .with_reload_progress(0.),
         ],
+        TestCase::TankTarget => vec![
+            TankSetup::new(Side::A, TT_START, Direction::EST, Some(Direction::EST)).with_crew(
+                vec![
+                    CrewRole::Commander,
+                    CrewRole::Driver,
+                    CrewRole::Gunner,
+                    CrewRole::Loader,
+                ],
+            ),
+        ],
         TestCase::DrawTanks => vec![
             // Turret aligned with chassis, full crew
             TankSetup::new(
@@ -190,7 +205,7 @@ fn individuals(
     args: &Args,
 ) -> Vec<oc_individual::Individual> {
     match args.case {
-        TestCase::TankMove | TestCase::DrawTanks => crews(w, tiles, tanks),
+        TestCase::TankMove | TestCase::TankTarget | TestCase::DrawTanks => crews(w, tiles, tanks),
     }
 }
 
@@ -221,6 +236,7 @@ fn squads(
 ) -> Vec<oc_individual::squad::Squad> {
     match args.case {
         TestCase::TankMove => crew_squads(individuals, vec![Order::MoveTo(TMF_TARGET.into())]),
+        TestCase::TankTarget => crew_squads(individuals, vec![Order::Suppress(TT_TARGET.into())]),
         TestCase::DrawTanks => crew_squads(individuals, vec![]),
     }
 }
@@ -286,10 +302,12 @@ mod test {
     use bevy::prelude::*;
     use oc_battle_gui::{states::Game, world::World};
     use oc_root::Wcfg;
+    use oc_root::geo::WorldVec2;
+    use oc_utils::d2::Direction;
     use oc_utils::let_some;
     use oc_vehicle::VehicleIndex;
 
-    use super::{Args, TMF_TARGET, TestCase};
+    use super::{Args, TMF_TARGET, TT_TARGET, TT_TOLERANCE, TestCase};
 
     #[derive(Debug, Resource)]
     pub struct Args_(pub Args);
@@ -309,6 +327,7 @@ mod test {
         let speed = w.speed();
         let timeout = match args.0.case {
             TestCase::TankMove => Duration::from_secs(60),
+            TestCase::TankTarget => Duration::from_secs(30),
             TestCase::DrawTanks => Duration::from_secs(5),
         };
         let timeout = timeout.div_f32(speed).max(Duration::from_secs(5));
@@ -322,6 +341,16 @@ mod test {
                         vehicle.position.y - TMF_TARGET[1],
                     );
                     (dx * dx + dy * dy).sqrt() <= oc_vehicle::DESTINATION_TOLERANCE
+                })
+                .unwrap_or_default(),
+            TestCase::TankTarget => world
+                .vehicle(VehicleIndex(0))
+                .and_then(|vehicle| {
+                    let from: Vec2 = WorldVec2::from(vehicle.position).into();
+                    let target = Direction::from_points2d(from, TT_TARGET.into());
+                    vehicle
+                        .turret_direction
+                        .map(|turret| turret.angle_to(&target).abs() <= TT_TOLERANCE)
                 })
                 .unwrap_or_default(),
             TestCase::DrawTanks => true,
