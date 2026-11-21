@@ -118,6 +118,12 @@ impl<'x, E: Client> Processor<'x, E> {
                 objects.push((ObjectId::Individual(*i), individual));
             }
 
+            // Vehicles covering this tile (chassis size and orientation)
+            for i in indexes.tile_vehicles(i) {
+                let vehicle: &dyn Physic = world.vehicle(*i);
+                objects.push((ObjectId::Vehicle(*i), vehicle));
+            }
+
             if let Some(tile_) = world.tile(tile.into_(&self.ctx.state.w)) {
                 let tile: &dyn Physic = tile_;
                 objects.push((ObjectId::Tile(tile_.i), tile));
@@ -287,9 +293,13 @@ impl<'x, E: Client> Processor<'x, E> {
                     | (ObjectId::Tile(_), ObjectId::Individual(_))
                     | (ObjectId::Tile(_), ObjectId::Projectile(_))
                     | (ObjectId::Tile(_), ObjectId::Tile(_))
-                    // TODO: projectile collision with vehicle
                     | (ObjectId::Vehicle(_), _)
-                    | (_, ObjectId::Vehicle(_)) => {}
+                    | (ObjectId::Individual(_), ObjectId::Vehicle(_))
+                    | (ObjectId::Tile(_), ObjectId::Vehicle(_)) => {}
+                    // TODO: projectile damages on vehicle (penetration, weak parts, crew)
+                    (ObjectId::Projectile(id), ObjectId::Vehicle(_)) => {
+                        updates.push(crate::runner::update::Update::RemoveProjectile(id));
+                    }
                     (ObjectId::Projectile(projectile_id), ObjectId::Individual(individual_i)) => {
                         let lag = self.lag(progress);
                         updates.extend(

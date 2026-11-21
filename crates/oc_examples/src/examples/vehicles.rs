@@ -5,15 +5,23 @@ use std::path::PathBuf;
 use crate::{logging, run, snapshot::SnapshotBuilder};
 use anyhow::Context as ContextExt;
 use clap::{Parser, ValueEnum};
+use oc_battle_gui::{ingame::FirstIngameEnter, network::output::ToServerEvent};
 use oc_geo::tile::WorldTileIndex;
 use oc_individual::{IndividualIndex, order::Order};
 use oc_mod::{Mod, vehicle::CrewRole};
+use oc_network::ToServer;
+use oc_projectile::spawn::SpawnProjectiles;
 use oc_root::{
-    WcfgFrom, WorldConfig, battle::BattlePhase, geo::WorldVec2, physics::Meters, side::Side,
+    WcfgFrom, WorldConfig,
+    battle::BattlePhase,
+    geo::{WorldVec2, WorldVec3},
+    physics::Meters,
+    side::Side,
 };
 use oc_utils::{d2::Direction, index::AtIndex};
 use oc_vehicle::{Vehicle, VehicleIndex};
 use oc_world::{meta::Meta, tile::Tile};
+use std::time::Duration;
 use tests::{individual::TestIndividual, squad::TestSquad};
 
 const MOD: &str = "mods/tests1";
@@ -26,6 +34,19 @@ const TMF_TARGET: [f32; 2] = [150., 150.];
 const TT_START: [f32; 2] = [150., 250.];
 const TT_TARGET: [f32; 2] = [150., 150.];
 const TT_TOLERANCE: f32 = 0.01;
+
+// Tank1 chassis (6.5m x 2.7m, height 2.5m, 5 pixels per meter) facing est at `TP_TANK` covers
+// x 133.75..166.25, y 243.25..256.75 and z ground..ground+12.5 (pixels).
+const TP_TANK: [f32; 2] = [150., 250.];
+// Projectiles start south of the tank (far enough to watch them move) and fly north.
+const TP_FROM_Y: f32 = 310.;
+const TP_DIRECTION: [f32; 3] = [0., -1., 0.];
+/// Pass just beside the chassis rear end (1.75 pixels, 0.35m): no collision
+const TP_NEAR: ([f32; 2], f32) = ([168., TP_FROM_Y], 6.);
+/// Cross the chassis center at mid height: collision
+const TP_HIT: ([f32; 2], f32) = ([150., TP_FROM_Y], 6.);
+/// Cross over the chassis center, above its height: no collision
+const TP_OVER: ([f32; 2], f32) = ([150., TP_FROM_Y], 15.);
 
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
@@ -42,6 +63,7 @@ struct Args {
 enum TestCase {
     TankMove,
     TankTarget,
+    TankProjectiles,
     DrawTanks,
 }
 
@@ -106,6 +128,7 @@ pub fn main() -> Result<(), anyhow::Error> {
     let individuals = individuals(&w, &tiles, &tanks, &args);
     let squads = squads(&w, &tiles, &individuals, &args);
     let vehicles = vehicles(&w, &tiles, &mod__, &tanks);
+    let projectiles = projectiles(&w, &tiles, &mod__, &args);
     let snapshot = SnapshotBuilder::new(
         map_,
         individuals,
@@ -124,17 +147,39 @@ pub fn main() -> Result<(), anyhow::Error> {
         .test_app_exit_code(args.test)
         .snapshot(snapshot);
 
-    #[cfg(feature = "test")]
     let example = example.install({
         let args = args.clone();
         Box::new(move |app: &mut bevy::app::App| {
+            if !projectiles.is_empty() {
+                let projectiles = projectiles.clone();
+                app.add_observer(
+                    move |_: bevy::prelude::On<FirstIngameEnter>,
+                          mut commands: bevy::prelude::Commands| {
+                        for spawn in projectiles.clone() {
+                            commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(spawn)));
+                        }
+                    },
+                );
+            }
+
+            #[cfg(feature = "test")]
             if args.test {
                 app.insert_resource(test::Args_(args.clone()))
                     .add_systems(bevy::app::Update, test::end_when_success_or_timeout);
             }
+            #[cfg(not(feature = "test"))]
+            let _ = &args;
         })
     });
 
+    #[cfg(feature = "test")]
+    {
+        let tracker = example.build().run()?;
+        if args.test {
+            test::check_tracker(&args, &tracker.take());
+        }
+    }
+    #[cfg(not(feature = "test"))]
     example.build().run()?;
 
     Ok(())
@@ -164,6 +209,12 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
                 ],
             ),
         ],
+        TestCase::TankProjectiles => vec![TankSetup::new(
+            Side::A,
+            TP_TANK,
+            Direction::EST,
+            Some(Direction::EST),
+        )],
         TestCase::DrawTanks => vec![
             // Turret aligned with chassis, full crew
             TankSetup::new(
@@ -205,7 +256,10 @@ fn individuals(
     args: &Args,
 ) -> Vec<oc_individual::Individual> {
     match args.case {
-        TestCase::TankMove | TestCase::TankTarget | TestCase::DrawTanks => crews(w, tiles, tanks),
+        TestCase::TankMove
+        | TestCase::TankTarget
+        | TestCase::TankProjectiles
+        | TestCase::DrawTanks => crews(w, tiles, tanks),
     }
 }
 
@@ -237,7 +291,7 @@ fn squads(
     match args.case {
         TestCase::TankMove => crew_squads(individuals, vec![Order::MoveTo(TMF_TARGET.into())]),
         TestCase::TankTarget => crew_squads(individuals, vec![Order::Suppress(TT_TARGET.into())]),
-        TestCase::DrawTanks => crew_squads(individuals, vec![]),
+        TestCase::TankProjectiles | TestCase::DrawTanks => crew_squads(individuals, vec![]),
     }
 }
 
@@ -292,6 +346,45 @@ fn vehicles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, tanks: &[TankSetup]) ->
         .collect()
 }
 
+/// Projectiles sent to the server at game start. Spawned in this order, so their ids are
+/// `ProjectileId(0)`, `ProjectileId(1)`, ...
+fn projectiles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, args: &Args) -> Vec<SpawnProjectiles> {
+    match args.case {
+        TestCase::TankProjectiles => {
+            let weapon = mod_.weapons.iter().find(|w| w.name() == "Weapon1").unwrap();
+            let ammunition = weapon
+                .ammunitions()
+                .iter()
+                .find(|a| a.name() == "Ammo1")
+                .unwrap();
+            let shot = weapon
+                .shots()
+                .iter()
+                .find(|s| s.name() == "Single")
+                .unwrap();
+
+            [TP_NEAR, TP_HIT, TP_OVER]
+                .into_iter()
+                .map(|(from, height)| {
+                    let from = WorldVec2::new(from[0], from[1]);
+                    SpawnProjectiles::new(
+                        weapon.index(),
+                        ammunition.index(),
+                        shot.index(),
+                        1,
+                        from.extend(z(w, tiles, from) + height),
+                        vec![WorldVec3::from(TP_DIRECTION)],
+                        Side::B,
+                        Duration::ZERO,
+                        None,
+                    )
+                })
+                .collect()
+        }
+        TestCase::TankMove | TestCase::TankTarget | TestCase::DrawTanks => vec![],
+    }
+}
+
 #[cfg(feature = "test")]
 mod test {
     use std::{
@@ -306,6 +399,9 @@ mod test {
     use oc_utils::d2::Direction;
     use oc_utils::let_some;
     use oc_vehicle::VehicleIndex;
+
+    use oc_projectile::ProjectileId;
+    use oc_world_server::{state::ObjectId, tracker::Tracker_};
 
     use super::{Args, TMF_TARGET, TT_TARGET, TT_TOLERANCE, TestCase};
 
@@ -328,6 +424,8 @@ mod test {
         let timeout = match args.0.case {
             TestCase::TankMove => Duration::from_secs(60),
             TestCase::TankTarget => Duration::from_secs(30),
+            // Let projectiles cross the tank (~3s at Weapon1 velocity)
+            TestCase::TankProjectiles => Duration::from_secs(6),
             TestCase::DrawTanks => Duration::from_secs(5),
         };
         let timeout = timeout.div_f32(speed).max(Duration::from_secs(5));
@@ -354,6 +452,8 @@ mod test {
                 })
                 .unwrap_or_default(),
             TestCase::DrawTanks => true,
+            // Checked after app exit, from server tracker (see `check_tracker`)
+            TestCase::TankProjectiles => false,
         };
 
         let mut since = SUCCESS_SINCE.lock().unwrap();
@@ -366,9 +466,56 @@ mod test {
         if since.is_some_and(|since| since.elapsed().as_secs_f32() > 1. / speed) {
             println!("✅ SUCCESS ! ({:?})", args.0.case);
             commands.write_message(bevy::app::AppExit::from_code(0));
+        } else if game.started.elapsed() > timeout
+            && let TestCase::TankProjectiles = args.0.case
+        {
+            commands.write_message(bevy::app::AppExit::from_code(0));
         } else if game.started.elapsed() > timeout {
             eprintln!("❌ FAILED ! Timeout reached ({:?})", args.0.case);
             commands.write_message(bevy::app::AppExit::from_code(1));
+        }
+    }
+
+    /// Check, after app exit, expectations based on server tracker. Panic if not satisfied.
+    pub fn check_tracker(args: &Args, tracker: &Tracker_) {
+        match args.case {
+            TestCase::TankProjectiles => {
+                let collided = |projectile: ProjectileId| {
+                    tracker.physics.iter().any(|event| match event {
+                        oc_physics::Event::Collision(a, b, _) => matches!(
+                            (a, b),
+                            (ObjectId::Projectile(p), ObjectId::Vehicle(VehicleIndex(0)))
+                            | (ObjectId::Vehicle(VehicleIndex(0)), ObjectId::Projectile(p))
+                            if *p == projectile
+                        ),
+                        _ => false,
+                    })
+                };
+
+                // Ids follow spawn order, see `super::projectiles`
+                let expectations = [
+                    ("near (beside chassis)", ProjectileId(0), false),
+                    ("hit (through chassis)", ProjectileId(1), true),
+                    ("over (above chassis)", ProjectileId(2), false),
+                ];
+                let mut success = true;
+                for (name, projectile, expected) in expectations {
+                    let collided = collided(projectile);
+                    let ok = collided == expected;
+                    success &= ok;
+                    println!(
+                        "{} projectile {name}: collided={collided}, expected={expected}",
+                        if ok { "✅" } else { "❌" }
+                    );
+                }
+
+                if !success {
+                    eprintln!("❌ FAILED ! ({:?})", args.case);
+                    std::process::exit(1);
+                }
+                println!("✅ SUCCESS ! ({:?})", args.case);
+            }
+            TestCase::TankMove | TestCase::TankTarget | TestCase::DrawTanks => {}
         }
     }
 }
