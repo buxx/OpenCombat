@@ -20,16 +20,23 @@ const MOD: &str = "mods/tests1";
 const MAP: &str = "maps/meadow1";
 const TANK: &str = "Tank1";
 
+const TMF_START: [f32; 2] = [150., 250.];
+const TMF_TARGET: [f32; 2] = [150., 150.];
+
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
 struct Args {
     #[arg()]
     case: TestCase,
+
+    /// Exit with success when the case expectation is reached, error on timeout
+    #[arg(long, action)]
+    test: bool,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum TestCase {
-    TankMoveForward,
+    TankMove,
     DrawTanks,
 }
 
@@ -74,6 +81,12 @@ pub fn main() -> Result<(), anyhow::Error> {
     logging::setup_logging()?;
 
     let args = Args::parse_from(crate::args());
+
+    #[cfg(not(feature = "test"))]
+    if args.test {
+        panic!("Execute with --test need `test` feature enabled")
+    }
+
     let mod_ = PathBuf::from(MOD);
     let mod__ = oc_mod::Mod::load(&mod_, None)?;
     let map = PathBuf::from(MAP);
@@ -103,7 +116,19 @@ pub fn main() -> Result<(), anyhow::Error> {
     let example = run::Example::builder()
         .world(map)
         .mod_(mod_)
+        .test_app_exit_code(args.test)
         .snapshot(snapshot);
+
+    #[cfg(feature = "test")]
+    let example = example.install({
+        let args = args.clone();
+        Box::new(move |app: &mut bevy::app::App| {
+            if args.test {
+                app.insert_resource(test::Args_(args.clone()))
+                    .add_systems(bevy::app::Update, test::end_when_success_or_timeout);
+            }
+        })
+    });
 
     example.build().run()?;
 
@@ -114,8 +139,8 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
     let diagonal = Direction::new(1., 1.);
     match args.case {
         // Tank facing est, ordered to move north: rotates its chassis then moves. Gun not loaded.
-        TestCase::TankMoveForward => vec![
-            TankSetup::new(Side::A, [150., 250.], Direction::EST, Some(Direction::EST))
+        TestCase::TankMove => vec![
+            TankSetup::new(Side::A, TMF_START, Direction::EST, Some(Direction::EST))
                 .with_crew(vec![
                     CrewRole::Commander,
                     CrewRole::Driver,
@@ -165,7 +190,7 @@ fn individuals(
     args: &Args,
 ) -> Vec<oc_individual::Individual> {
     match args.case {
-        TestCase::TankMoveForward | TestCase::DrawTanks => crews(w, tiles, tanks),
+        TestCase::TankMove | TestCase::DrawTanks => crews(w, tiles, tanks),
     }
 }
 
@@ -195,10 +220,7 @@ fn squads(
     args: &Args,
 ) -> Vec<oc_individual::squad::Squad> {
     match args.case {
-        TestCase::TankMoveForward => crew_squads(
-            individuals,
-            vec![Order::MoveTo(oc_root::geo::WorldVec2::new(150., 150.))],
-        ),
+        TestCase::TankMove => crew_squads(individuals, vec![Order::MoveTo(TMF_TARGET.into())]),
         TestCase::DrawTanks => crew_squads(individuals, vec![]),
     }
 }
@@ -252,4 +274,72 @@ fn vehicles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, tanks: &[TankSetup]) ->
             .with_reload_progress(tank.reload_progress)
         })
         .collect()
+}
+
+#[cfg(feature = "test")]
+mod test {
+    use std::{
+        sync::Mutex,
+        time::{Duration, Instant},
+    };
+
+    use bevy::prelude::*;
+    use oc_battle_gui::{states::Game, world::World};
+    use oc_root::Wcfg;
+    use oc_utils::let_some;
+    use oc_vehicle::VehicleIndex;
+
+    use super::{Args, TMF_TARGET, TestCase};
+
+    #[derive(Debug, Resource)]
+    pub struct Args_(pub Args);
+
+    /// Exit with success code when case expectation is reached (and kept during one
+    /// second), with error code when timeout is reached.
+    pub fn end_when_success_or_timeout(
+        mut commands: Commands,
+        game: Res<Game>,
+        args: Res<Args_>,
+        w: Res<Wcfg>,
+        world: Res<World>,
+    ) {
+        let_some!(w = &w.0, return);
+        static SUCCESS_SINCE: Mutex<Option<Instant>> = Mutex::new(None);
+
+        let speed = w.speed();
+        let timeout = match args.0.case {
+            TestCase::TankMove => Duration::from_secs(60),
+            TestCase::DrawTanks => Duration::from_secs(5),
+        };
+        let timeout = timeout.div_f32(speed).max(Duration::from_secs(5));
+
+        let success = match args.0.case {
+            TestCase::TankMove => world
+                .vehicle(VehicleIndex(0))
+                .map(|vehicle| {
+                    let (dx, dy) = (
+                        vehicle.position.x - TMF_TARGET[0],
+                        vehicle.position.y - TMF_TARGET[1],
+                    );
+                    (dx * dx + dy * dy).sqrt() <= oc_vehicle::DESTINATION_TOLERANCE
+                })
+                .unwrap_or_default(),
+            TestCase::DrawTanks => true,
+        };
+
+        let mut since = SUCCESS_SINCE.lock().unwrap();
+        *since = match (success, *since) {
+            (true, None) => Some(Instant::now()),
+            (true, Some(since)) => Some(since),
+            (false, _) => None,
+        };
+
+        if since.is_some_and(|since| since.elapsed().as_secs_f32() > 1. / speed) {
+            println!("✅ SUCCESS ! ({:?})", args.0.case);
+            commands.write_message(bevy::app::AppExit::from_code(0));
+        } else if game.started.elapsed() > timeout {
+            eprintln!("❌ FAILED ! Timeout reached ({:?})", args.0.case);
+            commands.write_message(bevy::app::AppExit::from_code(1));
+        }
+    }
 }
