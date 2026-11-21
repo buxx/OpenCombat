@@ -22,7 +22,7 @@ use crate::{
     ammunition::{Ammunition, AmmunitionIndex, IndexedAmmunition},
     grenade::{GrenadeIndex, IndexedGrenade},
     illustration::{IllustrationIndex, IllustrationKind, IndexedIllustration},
-    indexed::read_ron,
+    indexed::{index_all, read_ron},
     magazine::{IndexedMagazine, MagazineIndex},
     nature::{Nature, NatureIndex},
     shell::{IndexedShell, ShellIndex},
@@ -108,7 +108,12 @@ impl Mod {
             .into_iter()
             .map(|raw| mod_.resolve_support(raw))
             .collect::<Result<_, _>>()?;
-        mod_.vehicles = vehicle::load(path)?;
+        mod_.vehicles = index_all(
+            vehicle::load(path)?
+                .into_iter()
+                .map(|raw| mod_.resolve_vehicle(raw))
+                .collect::<Result<Vec<_>, _>>()?,
+        );
 
         // TODO: centralize caching at server startup
         if let Some(cache_) = cache_ {
@@ -225,6 +230,25 @@ impl Mod {
             serie_interval_ms: raw.serie_interval_ms,
             shell_interval_ms: raw.shell_interval_ms,
             between_wait_s: raw.between_wait_s,
+        })
+    }
+
+    fn resolve_vehicle(&self, raw: vehicle::VehicleRaw) -> Result<vehicle::Vehicle, Error> {
+        Ok(vehicle::Vehicle {
+            compatible_shell: raw
+                .compatible_shell
+                .iter()
+                .map(|name| Ok(self.shell_from_name(name)?.index()))
+                .collect::<Result<_, Error>>()?,
+            name: raw.name,
+            row: raw.row,
+            crew: raw.crew,
+            size: raw.size,
+            height: raw.height,
+            speed: raw.speed,
+            chassis_rotation_speed: raw.chassis_rotation_speed,
+            turret_rotation_speed: raw.turret_rotation_speed,
+            reload_duration: raw.reload_duration,
         })
     }
 
@@ -534,9 +558,19 @@ mod tests {
 
     #[test]
     fn vehicles() {
-        for (name, size, height) in [
-            ("std1", (Meters(4.0), Meters(10.0)), Meters(3.0)),
-            ("tests1", (Meters(2.7), Meters(6.5)), Meters(2.5)),
+        for (name, size, height, shells) in [
+            (
+                "std1",
+                (Meters(4.0), Meters(10.0)),
+                Meters(3.0),
+                vec!["Tank shell"],
+            ),
+            (
+                "tests1",
+                (Meters(2.7), Meters(6.5)),
+                Meters(2.5),
+                vec!["5/38 shell"],
+            ),
         ] {
             let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("../../mods")
@@ -549,6 +583,11 @@ mod tests {
             assert_eq!(tank.height, height);
             assert_eq!(mod_.vehicle(tank.index()), tank);
             assert!(tank.crew.contains(&vehicle::CrewRole::Commander));
+            let shells: Vec<ShellIndex> = shells
+                .into_iter()
+                .map(|n| mod_.shell_from_name(n).unwrap().index())
+                .collect();
+            assert_eq!(tank.compatible_shell, shells);
             assert!(mod_.vehicle_from_name("Unknown").is_err());
         }
     }

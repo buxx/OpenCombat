@@ -23,4 +23,16 @@
     penetration_force: 0.7,
     sounds: ["Ren1.ogg", "Ren2.ogg", "Ren3.ogg"],
   ),
+  (
+    name: "Tank shell",
+    kill_rayon: Meters(2.0),
+    stunned_rayon: Meters(10.0),
+    shrapnel_rayon: Meters(15.0),
+    suppress_rayon: Meters(25.0),
+    destruction_rayon: Meters(2.0),
+    destruction_force: 0.5,
+    shrapnel_quantity: 25,
+    penetration_force: 0.5,
+    sounds: ["Ren1.ogg", "Ren2.ogg", "Ren3.ogg"],
+  ),
 ]

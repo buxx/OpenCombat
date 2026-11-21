@@ -1,5 +1,5 @@
 use glam::Vec2;
-use oc_mod::{Mod, illustration::IllustrationIndex, nature::Traversability};
+use oc_mod::{Mod, illustration::IllustrationIndex, nature::Traversability, shell::ShellIndex};
 use oc_physics::{Force, IgnoreSide, Physic, collision::Material, volume::Volume};
 use oc_root::{
     WorldConfig,
@@ -36,6 +36,8 @@ pub struct Vehicle {
     pub destination: Option<WorldVec2>,
     // FIXME BS NOW: refactor U8Progress to be f32 Progress and use it.
     pub reload_progress: f32,
+    /// Shells stored in the vehicle: count by shell type
+    pub shells: Vec<(ShellIndex, u32)>,
 }
 
 #[oc_derive::archivable]
@@ -49,6 +51,7 @@ pub enum Update {
     SetTurretTarget(Option<Direction>),
     SetDestination(Option<WorldVec2>),
     SetReloadProgress(f32),
+    SetShells(Vec<(ShellIndex, u32)>),
 }
 
 impl Vehicle {
@@ -73,11 +76,17 @@ impl Vehicle {
             turret_target: None,
             destination: None,
             reload_progress: LOADED,
+            shells: vec![],
         }
     }
 
     pub fn with_reload_progress(mut self, value: f32) -> Self {
         self.reload_progress = value;
+        self
+    }
+
+    pub fn with_shells(mut self, value: Vec<(ShellIndex, u32)>) -> Self {
+        self.shells = value;
         self
     }
 
@@ -95,6 +104,7 @@ impl Vehicle {
             Update::SetTurretTarget(direction) => self.turret_target = *direction,
             Update::SetDestination(destination) => self.destination = *destination,
             Update::SetReloadProgress(progress) => self.reload_progress = *progress,
+            Update::SetShells(shells) => self.shells = shells.clone(),
         }
     }
 
@@ -242,6 +252,7 @@ mod tests {
             chassis_rotation_speed: DegreesPerSeconds(90.),
             turret_rotation_speed: DegreesPerSeconds(45.),
             reload_duration: Seconds(4.),
+            compatible_shell: vec![],
         }
     }
 

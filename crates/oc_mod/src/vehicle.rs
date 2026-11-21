@@ -3,7 +3,10 @@ use std::{collections::HashSet, path::Path};
 use oc_root::physics::{DegreesPerSeconds, Meters, MetersSeconds, Seconds};
 use thiserror::Error;
 
-use crate::indexed::{Indexed, index_all, read_ron};
+use crate::{
+    indexed::{ArchivedDebug, Indexed, read_ron},
+    shell::ShellIndex,
+};
 
 pub const VEHICLES_RON: &str = "vehicles.ron";
 
@@ -26,7 +29,10 @@ pub enum CrewRole {
 
 #[oc_derive::archivable(serde)]
 #[derive(Debug, Clone, PartialEq)]
-pub struct Vehicle {
+pub struct Vehicle<S: ArchivedDebug = ShellIndex>
+where
+    Vec<S>: ArchivedDebug,
+{
     pub name: String,
     /// Row of this vehicle in the mod `sprites/vehicles.png` spritesheet
     pub row: u8,
@@ -44,17 +50,21 @@ pub struct Vehicle {
     pub turret_rotation_speed: DegreesPerSeconds,
     /// Duration for the loader to load the gun
     pub reload_duration: Seconds,
+    /// Shells this vehicle gun can fire
+    pub compatible_shell: Vec<S>,
 }
 
-pub fn load(path: &Path) -> Result<Vec<IndexedVehicle>, Error> {
-    let vehicles: Vec<Vehicle> = read_ron::<_, Error>(path, VEHICLES_RON)?;
+pub type VehicleRaw = Vehicle<String>;
+
+pub fn load(path: &Path) -> Result<Vec<VehicleRaw>, Error> {
+    let vehicles: Vec<VehicleRaw> = read_ron::<_, Error>(path, VEHICLES_RON)?;
 
     let mut names = HashSet::new();
     if let Some(vehicle) = vehicles.iter().find(|v| !names.insert(v.name.as_str())) {
         return Err(Error::DuplicateName(vehicle.name.clone()));
     }
 
-    Ok(index_all(vehicles))
+    Ok(vehicles)
 }
 
 #[derive(Debug, Error)]
