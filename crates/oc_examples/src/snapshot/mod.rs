@@ -66,6 +66,11 @@ where
         }
     }
 
+    pub fn with_phase(mut self, phase: BattlePhase) -> Self {
+        self.phase = phase;
+        self
+    }
+
     pub fn with_supports(mut self, supports: Supports) -> Self {
         self.supports = supports;
         self
@@ -121,6 +126,26 @@ where
         snapshot.save(&snapshot_path)?;
 
         Ok(snapshot_path)
+    }
+}
+
+impl<T, I, S> SnapshotBuilder<T, I, S, Vec<Projectile>>
+where
+    T: tile::TilesGenerator,
+    I: individual::IndividualsGenerator,
+    S: squad::SquadsGenerator,
+{
+    /// Fight phase snapshot, without projectiles nor spawn zones
+    pub fn fight(tiles: T, individuals: I, squads: S) -> Self {
+        Self::new(
+            tiles,
+            individuals,
+            squads,
+            vec![],
+            BattlePhase::Fight,
+            vec![],
+            vec![],
+        )
     }
 }
 

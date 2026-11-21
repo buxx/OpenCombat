@@ -11,7 +11,6 @@ use clap::{Parser, ValueEnum};
 use oc_ai::AiKind;
 use oc_battle::scenario::Scenario;
 use oc_deployment::deployment::place::OrderPolicy;
-use oc_root::format::RkyvFile;
 use oc_root::side::{BySide, Side};
 use oc_world::support::Supports;
 use oc_world_server::{
@@ -19,7 +18,7 @@ use oc_world_server::{
     generate::{Generate, InitialOrder},
 };
 
-use crate::{logging, run};
+use crate::{logging, run, utils};
 
 const MOD: &str = "mods/std1";
 /// Deployment (squads) files of sides A and B
@@ -133,10 +132,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(duration) = args.duration {
         snapshot.duration = Duration::from_secs(duration);
     }
-    let (_, snapshot_path) = tempfile::NamedTempFile::new()?.keep()?;
-    snapshot
-        .save(&snapshot_path)
-        .context(format!("Save snapshot to {}", snapshot_path.display()))?;
+    let snapshot_path = utils::save_snapshot(&snapshot)?;
 
     run::Example::builder()
         .world(world)

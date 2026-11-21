@@ -1,25 +1,23 @@
-use oc_utils::index::AtIndex;
 use std::path::PathBuf;
 
-use anyhow::Context as ContextExt;
-use bevy::prelude::*;
 use bon::builder;
-use oc_geo::tile::{TileXy, WorldTileIndex};
 use oc_individual::{
     BodyGesture, Gesture, IndividualIndex, Weapons,
     order::Order,
     squad::{Squad, SquadFormation},
 };
 use oc_mod::{grenade::GrenadeIndex, illustration::IllustrationIndex};
-use oc_root::{
-    WcfgFrom, WorldConfig, battle::BattlePhase, behavior::Stun, physics::Meters, side::Side, y::V,
-};
-use oc_utils::d2::{Direction, Xy};
-use oc_world::{meta::Meta, tile::Tile};
+use oc_root::{WorldConfig, behavior::Stun, side::Side, y::V};
+use oc_utils::d2::Direction;
+use oc_world::tile::Tile;
 #[cfg(feature = "test")]
 use oc_world_server::tracker::Tracker;
 
-use crate::{run, snapshot::SnapshotBuilder};
+use crate::{
+    run,
+    snapshot::SnapshotBuilder,
+    utils::{Loaded, on_ground},
+};
 
 type Install = Box<dyn Fn(&mut bevy::app::App)>;
 #[cfg(feature = "test")]
@@ -45,16 +43,15 @@ pub fn run(
     test: bool,
 ) -> Result<(), anyhow::Error> {
     let mod_ = PathBuf::from("mods/tests1");
-    let mod__ = oc_mod::Mod::load(&mod_, None)?;
     let map = PathBuf::from("maps/meadow1");
-    let meta = Meta::from_file(&map.join("meta.toml"))?;
-    let map_ = oc_world::reader::MapReader::new(&map);
-    let map_ = map_.context(format!("Read map_ {}", map.display()))?;
-    let w = WorldConfig::new(map_.width().unwrap() as u64, map_.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z))
-        // Shorter stun than default, to keep examples fast
+    let loaded = Loaded::new(&mod_, &map)?;
+    let (mod__, map_) = (&loaded.mod_, loaded.map.clone());
+    // Shorter stun than default, to keep examples fast
+    let w = loaded
+        .w
+        .clone()
         .with_individual_tick_decrease_stunned(Stun(51));
-    let tiles = map_.tiles(&w, &mod__).unwrap();
+    let tiles = loaded.tiles(&w)?;
 
     let frag = mod__.grenade_from_name(FRAG_GRENADE)?.index();
     let grenades = vec![frag; grenade_count];
@@ -65,16 +62,7 @@ pub fn run(
         individuals.push(individual(&w, &tiles, Side::B, *position, &[]));
         squads.push(squad(Side::B, *position, orders, vec![i]));
     }
-    let snapshot = SnapshotBuilder::new(
-        map_,
-        individuals,
-        squads,
-        vec![],
-        BattlePhase::Fight,
-        vec![],
-        vec![],
-    )
-    .build(w, &mod__)?;
+    let snapshot = SnapshotBuilder::fight(map_, individuals, squads).build(w, mod__)?;
 
     let example = run::Example::builder()
         .world(map)
@@ -131,14 +119,7 @@ fn individual(
     position: [f32; 2],
     grenades: &[GrenadeIndex],
 ) -> oc_individual::Individual {
-    let tile_xy = TileXy(Xy(
-        position[0] as u64 / w.geo_pixels_per_tile(),
-        position[1] as u64 / w.geo_pixels_per_tile(),
-    ));
-    let tile_i = WorldTileIndex::from_(tile_xy, w);
-    let z = tiles.at(tile_i).z_pixels(w);
-
-    oc_individual::Individual::fresh(w, side, [position[0], position[1], z].into())
+    oc_individual::Individual::fresh(w, side, on_ground(w, tiles, position.into()))
         .with_gesture(Gesture::body(BodyGesture::StandUp(DIRECTION)))
         .with_weapons(Weapons {
             primary: None,

@@ -11,8 +11,11 @@ use std::{sync::Mutex, time::Instant};
 
 use bevy::prelude::*;
 
-use crate::{logging, run, snapshot::SnapshotBuilder};
-use anyhow::Context as ContextExt;
+use crate::{
+    logging, run,
+    snapshot::SnapshotBuilder,
+    utils::{self, Loaded},
+};
 use clap::{Parser, ValueEnum};
 #[cfg(feature = "test")]
 use oc_battle_gui::{
@@ -25,18 +28,9 @@ use oc_individual::order::Order;
 use oc_mod::shell::ShellIndex;
 #[cfg(feature = "test")]
 use oc_root::Wcfg;
-use oc_root::{
-    WorldConfig,
-    battle::BattlePhase,
-    geo::{WorldVec2, WorldVec3},
-    physics::Meters,
-    side,
-    utils::Frequency,
-};
+use oc_root::{WorldConfig, geo::WorldVec2, side::Side, utils::Frequency};
 #[cfg(any(feature = "test", feature = "debug"))]
 use oc_utils::let_some;
-use oc_world::{meta::Meta, tile::Tile};
-use tests::{individual::TestIndividual, squad::TestSquad};
 
 #[cfg(feature = "test")]
 /// Minimal time to let bevy make "network" exchange with server, whatever the speed. Success is
@@ -96,36 +90,19 @@ pub fn main() -> Result<(), anyhow::Error> {
     logging::setup_logging()?;
 
     let args = Args::parse_from(crate::args());
-    if args.test {
-        #[cfg(not(feature = "test"))]
-        {
-            panic!("To enable test, feature `test` must be enabled too")
-        }
-    }
+    utils::ensure_test_feature(args.test);
 
     let mod_ = PathBuf::from(MOD);
-    let mod__ = oc_mod::Mod::load(&mod_, None)?;
     let map = PathBuf::from("maps/meadow1");
-    let meta = Meta::from_file(&map.join("meta.toml"))?;
-    let map_ = oc_world::reader::MapReader::new(&map);
-    let map_ = map_.context(format!("Read map_ {}", map.display()))?;
-    let w = WorldConfig::new(map_.width().unwrap() as u64, map_.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z))
+    let loaded = Loaded::new(&mod_, &map)?;
+    let w = loaded
+        .w
         .with_visibilities_tick(Frequency::each(std::time::Duration::from_millis(100)));
-    let tiles = map_.tiles(&w, &mod__).unwrap();
 
-    let individuals = individuals(&w, &tiles, &args);
-    let squads = squads(&w, &tiles, &individuals, &args);
-    let snapshot = SnapshotBuilder::new(
-        map_,
-        individuals,
-        squads,
-        vec![],
-        BattlePhase::Fight,
-        vec![],
-        vec![],
-    )
-    .build(w, &mod__)?;
+    let individuals = individuals(&w, &args);
+    let squads = squads(&individuals, &args);
+    let snapshot =
+        SnapshotBuilder::fight(loaded.map, individuals, squads).build(w, &loaded.mod_)?;
 
     let example = run::Example::builder()
         .world(map)
@@ -137,158 +114,42 @@ pub fn main() -> Result<(), anyhow::Error> {
     example.build().run()?;
 
     if args.test {
-        if !SUCCESS.load(Ordering::Relaxed) {
-            anyhow::bail!("❌ Test failed")
-        }
-        println!("✅ Test success !");
+        utils::test_result(&SUCCESS)?;
     }
 
     Ok(())
 }
 
-fn individuals(w: &WorldConfig, _tiles: &Vec<Tile>, args: &Args) -> Vec<oc_individual::Individual> {
-    match args.case {
-        TestCase::Direct => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(250., 250., 0.))
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(250., 150., 0.))
-                .build()
-                .make(w),
-        ],
-        TestCase::Through => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(250., 250., 0.))
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(450., 250., 0.))
-                .build()
-                .make(w),
-        ],
-        TestCase::NotVisible => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(250., 250., 0.))
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(450., 150., 0.))
-                .build()
-                .make(w),
-        ],
-        TestCase::Discover => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(250., 225., 0.))
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(450., 140., 0.))
-                .build()
-                .make(w),
-        ],
-        TestCase::MoveThenEnemyVisible => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(250., 225., 0.))
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(450., 140., 0.))
-                .build()
-                .make(w),
-        ],
-        TestCase::Hidden => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(25., 224., 0.))
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(387., 198., 0.))
-                .build()
-                .make(w),
-        ],
-        TestCase::AlteredWall => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(130., 75., 0.))
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(33., 78., 0.))
-                .build()
-                .make(w),
-        ],
-    }
+/// One individual by side
+fn individuals(w: &WorldConfig, args: &Args) -> Vec<oc_individual::Individual> {
+    let (a, b) = match args.case {
+        TestCase::Direct => ([250., 250., 0.], [250., 150., 0.]),
+        TestCase::Through => ([250., 250., 0.], [450., 250., 0.]),
+        TestCase::NotVisible => ([250., 250., 0.], [450., 150., 0.]),
+        TestCase::Discover | TestCase::MoveThenEnemyVisible => ([250., 225., 0.], [450., 140., 0.]),
+        TestCase::Hidden => ([25., 224., 0.], [387., 198., 0.]),
+        TestCase::AlteredWall => ([130., 75., 0.], [33., 78., 0.]),
+    };
+    vec![utils::soldier(w, Side::A, a), utils::soldier(w, Side::B, b)]
 }
 
 fn squads(
-    _w: &WorldConfig,
-    _tiles: &Vec<Tile>,
     individuals: &[oc_individual::Individual],
     args: &Args,
 ) -> Vec<oc_individual::squad::Squad> {
-    match args.case {
+    let orders = match args.case {
         TestCase::Direct
         | TestCase::Through
         | TestCase::NotVisible
         | TestCase::Hidden
-        | TestCase::AlteredWall => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![])
-                .build()
-                .make(),
-            TestSquad::builder()
-                .position(individuals.get(1).unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(1)])
-                .orders(vec![])
-                .build()
-                .make(),
-        ],
-        TestCase::Discover => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![Order::MoveFastTo(WorldVec2::new(250., 110.))])
-                .build()
-                .make(),
-            TestSquad::builder()
-                .position(individuals.get(1).unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(1)])
-                .orders(vec![])
-                .build()
-                .make(),
-        ],
-        TestCase::MoveThenEnemyVisible => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![Order::MoveTo(WorldVec2::new(250., 100.))])
-                .build()
-                .make(),
-            TestSquad::builder()
-                .position(individuals.get(1).unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(1)])
-                .orders(vec![])
-                .build()
-                .make(),
-        ],
-    }
+        | TestCase::AlteredWall => vec![],
+        TestCase::Discover => vec![Order::MoveFastTo(WorldVec2::new(250., 110.))],
+        TestCase::MoveThenEnemyVisible => vec![Order::MoveTo(WorldVec2::new(250., 100.))],
+    };
+    vec![
+        utils::squad(individuals, &[0], orders),
+        utils::squad(individuals, &[1], vec![]),
+    ]
 }
 
 static SUCCESS: AtomicBool = AtomicBool::new(false);

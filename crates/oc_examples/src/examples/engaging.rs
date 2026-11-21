@@ -1,19 +1,19 @@
 #![allow(clippy::unwrap_used)]
 
-use std::{
-    path::PathBuf,
-    sync::atomic::{AtomicBool, Ordering},
-};
+use std::{path::PathBuf, sync::atomic::AtomicBool};
 #[cfg(feature = "test")]
 use std::{
-    sync::Mutex,
+    sync::{Mutex, atomic::Ordering},
     time::{Duration, Instant},
 };
 
 use bevy::prelude::*;
 
-use crate::{logging, run, snapshot::SnapshotBuilder};
-use anyhow::Context as ContextExt;
+use crate::{
+    logging, run,
+    snapshot::SnapshotBuilder,
+    utils::{self, Loaded, armed_soldier, soldier, squad},
+};
 use clap::{Parser, ValueEnum};
 #[cfg(feature = "test")]
 use oc_battle_gui::{
@@ -32,21 +32,14 @@ use oc_individual::order::Order;
 use oc_root::Wcfg;
 use oc_root::{
     WorldConfig,
-    battle::BattlePhase,
     geo::{WorldVec2, WorldVec3},
-    physics::Meters,
-    side,
+    side::Side,
     utils::Frequency,
 };
 use oc_utils::d2::Direction;
 #[cfg(feature = "test")]
 use oc_utils::{let_some, true_};
-use oc_world::{meta::Meta, tile::Tile};
-use tests::{
-    individual::TestIndividual,
-    squad::TestSquad,
-    weapons::{TestWeapon, TestWeapons},
-};
+use tests::individual::TestIndividual;
 
 const SUPPRESS_FIRE_MAGAZINES: usize = 2;
 
@@ -102,12 +95,7 @@ pub fn main() -> Result<(), anyhow::Error> {
     logging::setup_logging()?;
 
     let args = Args::parse_from(crate::args());
-    if args.test {
-        #[cfg(any(not(feature = "test"), not(feature = "debug")))]
-        {
-            panic!("To enable test, feature `test` and `debug` must be enabled too")
-        }
-    }
+    utils::ensure_test_debug_features(args.test);
 
     let mod_ = match args.case {
         TestCase::Direct
@@ -119,14 +107,14 @@ pub fn main() -> Result<(), anyhow::Error> {
         | TestCase::SuppressFire => PathBuf::from("mods/tests1"),
         TestCase::MoveToHiding | TestCase::MoveToHidingThenDiscover => PathBuf::from("mods/std1"),
     };
-    let mod__ = oc_mod::Mod::load(&mod_, None)?;
     let map = PathBuf::from("maps/meadow1");
-    let meta = Meta::from_file(&map.join("meta.toml"))?;
-    let map_ = oc_world::reader::MapReader::new(&map);
-    let map_ = map_.context(format!("Read map_ {}", map.display()))?;
-    let w = WorldConfig::new(map_.width().unwrap() as u64, map_.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z))
-        .with_visibilities_tick(Frequency::new(2.0)); // To ensure one shot and test it
+    let Loaded {
+        mod_: mod__,
+        map: map_,
+        w,
+        ..
+    } = Loaded::new(&mod_, &map)?;
+    let w = w.with_visibilities_tick(Frequency::new(2.0)); // To ensure one shot and test it
 
     // For som cases, apply perfect accuracy
     #[cfg(feature = "debug")]
@@ -167,20 +155,9 @@ pub fn main() -> Result<(), anyhow::Error> {
         }
     };
 
-    let tiles = map_.tiles(&w, &mod__).unwrap();
-
-    let individuals = individuals(&w, &mod__, &tiles, &args);
-    let squads = squads(&w, &tiles, &individuals, &args);
-    let snapshot = SnapshotBuilder::new(
-        map_,
-        individuals,
-        squads,
-        vec![],
-        BattlePhase::Fight,
-        vec![],
-        vec![],
-    )
-    .build(w, &mod__)?;
+    let individuals = individuals(&w, &mod__, &args);
+    let squads = squads(&individuals, &args);
+    let snapshot = SnapshotBuilder::fight(map_, individuals, squads).build(w, &mod__)?;
 
     let example = run::Example::builder()
         .world(map)
@@ -194,135 +171,33 @@ pub fn main() -> Result<(), anyhow::Error> {
     example.build().run()?;
 
     if args.test {
-        if !SUCCESS.load(Ordering::Relaxed) {
-            anyhow::bail!("❌ Test failed")
-        }
-        println!("✅ Test success !");
+        utils::test_result(&SUCCESS)?;
     }
 
     Ok(())
 }
 
-fn individuals(
-    w: &WorldConfig,
-    mod_: &oc_mod::Mod,
-    _tiles: &Vec<Tile>,
-    args: &Args,
-) -> Vec<oc_individual::Individual> {
+fn individuals(w: &WorldConfig, mod_: &oc_mod::Mod, args: &Args) -> Vec<oc_individual::Individual> {
+    let armed = |side, position: [f32; 3], weapon| armed_soldier(w, mod_, side, position, weapon);
+    const MOSIN: &str = "Mosin Nagant M1924";
+
     match args.case {
         TestCase::Direct => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(250., 250., 0.))
-                .weapons(
-                    TestWeapons::builder()
-                        .primary(TestWeapon::filled(mod_, "Weapon3").make())
-                        .build()
-                        .make(),
-                )
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(250., 150., 0.))
-                .build()
-                .make(w),
+            armed(Side::A, [250., 250., 0.], "Weapon3"),
+            soldier(w, Side::B, [250., 150., 0.]),
         ],
-        TestCase::Direct2 => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(250., 250., 0.))
-                .weapons(
-                    TestWeapons::builder()
-                        .primary(TestWeapon::filled(mod_, "Weapon3").make())
-                        .build()
-                        .make(),
-                )
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(250., 150., 0.))
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(260., 150., 0.))
-                .build()
-                .make(w),
-        ],
-        TestCase::EngageOneByOne => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(250., 250., 0.))
-                .weapons(
-                    TestWeapons::builder()
-                        .primary(TestWeapon::filled(mod_, "Weapon3").make())
-                        .build()
-                        .make(),
-                )
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(250., 150., 0.))
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(260., 150., 0.))
-                .build()
-                .make(w),
+        TestCase::Direct2 | TestCase::EngageOneByOne => vec![
+            armed(Side::A, [250., 250., 0.], "Weapon3"),
+            soldier(w, Side::B, [250., 150., 0.]),
+            soldier(w, Side::B, [260., 150., 0.]),
         ],
         TestCase::FarMachineGun => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(350., 450., 0.))
-                .weapons(
-                    TestWeapons::builder()
-                        .primary(TestWeapon::filled(mod_, "FullFast").make())
-                        .build()
-                        .make(),
-                )
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(50., 50., 0.))
-                .build()
-                .make(w),
+            armed(Side::A, [350., 450., 0.], "FullFast"),
+            soldier(w, Side::B, [50., 50., 0.]),
         ],
-        TestCase::Suppressed => [
-            vec![
-                TestIndividual::builder()
-                    .side(side::Side::A)
-                    .position(WorldVec3::new(104., 311., 0.))
-                    .weapons(
-                        TestWeapons::builder()
-                            .primary(TestWeapon::filled(mod_, "Weapon3").make())
-                            .build()
-                            .make(),
-                    )
-                    .build()
-                    .make(w),
-            ],
-            (0..10)
-                .map(|i| {
-                    TestIndividual::builder()
-                        .side(side::Side::B)
-                        .position(WorldVec3::new(387., 160. + i as f32 * 30., 0.))
-                        .weapons(
-                            TestWeapons::builder()
-                                .primary(TestWeapon::filled(mod_, "FullFast").make())
-                                .build()
-                                .make(),
-                        )
-                        .build()
-                        .make(w)
-                })
-                .collect::<Vec<_>>(),
-        ]
-        .concat(),
+        TestCase::Suppressed => std::iter::once(armed(Side::A, [104., 311., 0.], "Weapon3"))
+            .chain((0..10).map(|i| armed(Side::B, [387., 160. + i as f32 * 30., 0.], "FullFast")))
+            .collect(),
         TestCase::SuppressFire => {
             let magazine = mod_
                 .magazines
@@ -332,273 +207,75 @@ fn individuals(
                 .index();
             vec![
                 TestIndividual::builder()
-                    .side(side::Side::A)
+                    .side(Side::A)
                     .position(WorldVec3::new(104., 311., 0.))
-                    .weapons(
-                        TestWeapons::builder()
-                            .primary(TestWeapon::filled(mod_, "Weapon3").make())
-                            .build()
-                            .make(),
-                    )
+                    .weapons(utils::armed(mod_, "Weapon3"))
                     .magazines(vec![magazine; SUPPRESS_FIRE_MAGAZINES])
                     .build()
                     .make(w),
             ]
         }
-        TestCase::Hedge => {
-            vec![
-                TestIndividual::builder()
-                    .side(side::Side::A)
-                    .position(WorldVec3::new(104., 311., 0.))
-                    .build()
-                    .make(w),
-                TestIndividual::builder()
-                    .side(side::Side::B)
-                    .position(WorldVec3::new(387., 160., 0.))
-                    .weapons(
-                        TestWeapons::builder()
-                            .primary(TestWeapon::filled(mod_, "Weapon3").make())
-                            .build()
-                            .make(),
-                    )
-                    .build()
-                    .make(w),
-            ]
-        }
+        TestCase::Hedge => vec![
+            soldier(w, Side::A, [104., 311., 0.]),
+            armed(Side::B, [387., 160., 0.], "Weapon3"),
+        ],
         TestCase::MoveToHiding => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(119., 92., 0.))
-                .weapons(
-                    TestWeapons::builder()
-                        .primary(TestWeapon::filled(mod_, "Mosin Nagant M1924").make())
-                        .build()
-                        .make(),
-                )
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(119., 99., 0.))
-                .weapons(
-                    TestWeapons::builder()
-                        .primary(TestWeapon::filled(mod_, "Mosin Nagant M1924").make())
-                        .build()
-                        .make(),
-                )
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(389., 64., 0.))
-                .weapons(
-                    TestWeapons::builder()
-                        .primary(TestWeapon::filled(mod_, "Mosin Nagant M1924").make())
-                        .build()
-                        .make(),
-                )
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(389., 71., 0.))
-                .weapons(
-                    TestWeapons::builder()
-                        .primary(TestWeapon::filled(mod_, "Mosin Nagant M1924").make())
-                        .build()
-                        .make(),
-                )
-                .build()
-                .make(w),
+            armed(Side::A, [119., 92., 0.], MOSIN),
+            armed(Side::A, [119., 99., 0.], MOSIN),
+            armed(Side::B, [389., 64., 0.], MOSIN),
+            armed(Side::B, [389., 71., 0.], MOSIN),
         ],
         TestCase::MoveToHidingThenDiscover => vec![
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(119., 92., 0.))
-                .weapons(
-                    TestWeapons::builder()
-                        .primary(TestWeapon::filled(mod_, "Mosin Nagant M1924").make())
-                        .build()
-                        .make(),
-                )
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::A)
-                .position(WorldVec3::new(119., 99., 0.))
-                .weapons(
-                    TestWeapons::builder()
-                        .primary(TestWeapon::filled(mod_, "Mosin Nagant M1924").make())
-                        .build()
-                        .make(),
-                )
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(389., 64., 0.))
-                .build()
-                .make(w),
-            TestIndividual::builder()
-                .side(side::Side::B)
-                .position(WorldVec3::new(389., 71., 0.))
-                .build()
-                .make(w),
+            armed(Side::A, [119., 92., 0.], MOSIN),
+            armed(Side::A, [119., 99., 0.], MOSIN),
+            soldier(w, Side::B, [389., 64., 0.]),
+            soldier(w, Side::B, [389., 71., 0.]),
         ],
     }
 }
 
 fn squads(
-    _w: &WorldConfig,
-    _tiles: &Vec<Tile>,
     individuals: &[oc_individual::Individual],
     args: &Args,
 ) -> Vec<oc_individual::squad::Squad> {
     match args.case {
-        TestCase::Direct => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![])
-                .build()
-                .make(),
-            TestSquad::builder()
-                .position(individuals.get(1).unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(1)])
-                .orders(vec![])
-                .build()
-                .make(),
+        TestCase::Direct | TestCase::FarMachineGun | TestCase::Hedge => vec![
+            squad(individuals, &[0], vec![]),
+            squad(individuals, &[1], vec![]),
         ],
         TestCase::Direct2 => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![])
-                .build()
-                .make(),
-            TestSquad::builder()
-                .position(individuals.get(1).unwrap().position.into())
-                .members(vec![
-                    oc_individual::IndividualIndex(1),
-                    oc_individual::IndividualIndex(2),
-                ])
-                .orders(vec![])
-                .build()
-                .make(),
+            squad(individuals, &[0], vec![]),
+            squad(individuals, &[1, 2], vec![]),
         ],
         TestCase::EngageOneByOne => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![Order::Engage(oc_individual::IndividualIndex(1))])
-                .build()
-                .make(),
-            TestSquad::builder()
-                .position(individuals.get(1).unwrap().position.into())
-                .members(vec![
-                    oc_individual::IndividualIndex(1),
-                    oc_individual::IndividualIndex(2),
-                ])
-                .orders(vec![])
-                .build()
-                .make(),
+            squad(
+                individuals,
+                &[0],
+                vec![Order::Engage(oc_individual::IndividualIndex(1))],
+            ),
+            squad(individuals, &[1, 2], vec![]),
         ],
-        TestCase::FarMachineGun => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![])
-                .build()
-                .make(),
-            TestSquad::builder()
-                .position(individuals.get(1).unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(1)])
-                .orders(vec![])
-                .build()
-                .make(),
-        ],
-        TestCase::Suppressed => [
-            vec![
-                TestSquad::builder()
-                    .position(individuals.first().unwrap().position.into())
-                    .members(vec![oc_individual::IndividualIndex(0)])
-                    .orders(vec![])
-                    .build()
-                    .make(),
-            ],
-            (0..10)
-                .map(|i| {
-                    TestSquad::builder()
-                        .position(individuals.get(i + 1).unwrap().position.into())
-                        .members(vec![oc_individual::IndividualIndex(i as u64 + 1)])
-                        .orders(vec![])
-                        .build()
-                        .make()
-                })
-                .collect::<Vec<_>>(),
-        ]
-        .concat(),
-        TestCase::SuppressFire => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![Order::Suppress(WorldVec2::new(387., 160.))])
-                .build()
-                .make(),
-        ],
-        TestCase::Hedge => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![])
-                .build()
-                .make(),
-            TestSquad::builder()
-                .position(individuals.get(1).unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(1)])
-                .orders(vec![])
-                .build()
-                .make(),
-        ],
+        TestCase::Suppressed => (0..=10).map(|i| squad(individuals, &[i], vec![])).collect(),
+        TestCase::SuppressFire => vec![squad(
+            individuals,
+            &[0],
+            vec![Order::Suppress(WorldVec2::new(387., 160.))],
+        )],
         TestCase::MoveToHiding => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![
-                    oc_individual::IndividualIndex(0),
-                    oc_individual::IndividualIndex(1),
-                ])
-                .orders(vec![Order::MoveTo(WorldVec2::new(458., 70.))])
-                .build()
-                .make(),
-            TestSquad::builder()
-                .position(individuals.get(2).unwrap().position.into())
-                .members(vec![
-                    oc_individual::IndividualIndex(2),
-                    oc_individual::IndividualIndex(3),
-                ])
-                .orders(vec![Order::Hide(Direction::WEST)])
-                .build()
-                .make(),
+            squad(
+                individuals,
+                &[0, 1],
+                vec![Order::MoveTo(WorldVec2::new(458., 70.))],
+            ),
+            squad(individuals, &[2, 3], vec![Order::Hide(Direction::WEST)]),
         ],
         TestCase::MoveToHidingThenDiscover => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![
-                    oc_individual::IndividualIndex(0),
-                    oc_individual::IndividualIndex(1),
-                ])
-                .orders(vec![Order::MoveFastTo(WorldVec2::new(395., 68.))])
-                .build()
-                .make(),
-            TestSquad::builder()
-                .position(individuals.get(2).unwrap().position.into())
-                .members(vec![
-                    oc_individual::IndividualIndex(2),
-                    oc_individual::IndividualIndex(3),
-                ])
-                .orders(vec![Order::Hide(Direction::WEST)])
-                .build()
-                .make(),
+            squad(
+                individuals,
+                &[0, 1],
+                vec![Order::MoveFastTo(WorldVec2::new(395., 68.))],
+            ),
+            squad(individuals, &[2, 3], vec![Order::Hide(Direction::WEST)]),
         ],
     }
 }

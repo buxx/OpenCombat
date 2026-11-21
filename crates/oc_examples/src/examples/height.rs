@@ -10,8 +10,11 @@ use std::sync::atomic::Ordering;
 #[cfg(feature = "test")]
 use std::time::Instant;
 
-use crate::{logging, run, snapshot::SnapshotBuilder};
-use anyhow::Context as ContextExt;
+use crate::{
+    logging, run,
+    snapshot::SnapshotBuilder,
+    utils::{self, Loaded},
+};
 use bevy::prelude::*;
 use clap::{Parser, ValueEnum};
 #[cfg(feature = "test")]
@@ -22,15 +25,11 @@ use oc_battle_gui::world::InsertedTiles;
 use oc_individual::order::Order;
 #[cfg(feature = "test")]
 use oc_physics::update::bevy::Position;
-use oc_root::battle::BattlePhase;
 use oc_root::geo::{WorldVec2, WorldVec3};
-use oc_root::{Wcfg, side};
-use oc_root::{WorldConfig, physics::Meters};
+use oc_root::physics::Meters;
+use oc_root::{Wcfg, side::Side};
 #[cfg(feature = "test")]
 use oc_utils::d2::AlmostEqual;
-use oc_world::meta::Meta;
-use tests::individual::TestIndividual;
-use tests::squad::TestSquad;
 
 #[cfg(feature = "test")]
 static SUCCESS: AtomicBool = AtomicBool::new(false);
@@ -55,64 +54,42 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse_from(crate::args());
     logging::setup_logging()?;
 
-    #[cfg(not(feature = "test"))]
-    if args.test {
-        panic!("Execute with --test need `test` feature enabled")
-    }
+    utils::ensure_test_feature(args.test);
 
-    let mod_ = oc_mod::Mod::load(&PathBuf::from("mods/std1"), None)?;
-    let meta = Meta::from_file(&PathBuf::from("maps/height/meta.toml"))?;
-    let map_ = PathBuf::from("maps/height");
-    let map = oc_world::reader::MapReader::new(&map_);
-    let map = map.context(format!("Read map {}", map_.display()))?;
-    let w = WorldConfig::new(map.width().unwrap() as u64, map.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z));
+    let mod_ = PathBuf::from("mods/std1");
+    let map = PathBuf::from("maps/height");
+    let Loaded {
+        mod_: mod__,
+        map: map_,
+        w,
+        ..
+    } = Loaded::new(&mod_, &map)?;
 
     let (individuals, squads) = match args.case {
         Case::Visibilities => (vec![], vec![]),
-        Case::Climb => (
-            vec![
-                TestIndividual::builder()
-                    .side(side::Side::A)
-                    .position(WorldVec3::new(85., 50., 0.))
-                    .build()
-                    .make(&w),
-            ],
-            vec![
-                TestSquad::builder()
-                    .position(WorldVec2::new(85., 50.))
-                    .members(vec![oc_individual::IndividualIndex(0)])
-                    .orders(vec![Order::MoveFastTo(WorldVec2 { x: 10., y: 50. })])
-                    .build()
-                    .make(),
-            ],
-        ),
+        Case::Climb => {
+            let individuals = vec![utils::soldier(&w, Side::A, [85., 50., 0.])];
+            let squads = vec![utils::squad(
+                &individuals,
+                &[0],
+                vec![Order::MoveFastTo(WorldVec2 { x: 10., y: 50. })],
+            )];
+            (individuals, squads)
+        }
     };
 
-    let snapshot = SnapshotBuilder::new(
-        map,
-        individuals,
-        squads,
-        vec![],
-        BattlePhase::Fight,
-        vec![],
-        vec![],
-    )
-    .build(w, &mod_)?;
+    let snapshot = SnapshotBuilder::fight(map_, individuals, squads).build(w, &mod__)?;
 
     let example = run::Example::builder()
-        .world(PathBuf::from("maps/height"))
-        .mod_(PathBuf::from("mods/std1"))
+        .world(map)
+        .mod_(mod_)
         .install(Box::new(setup))
         .snapshot(snapshot);
 
     example.build().run()?;
 
     #[cfg(feature = "test")]
-    match SUCCESS.load(Ordering::Relaxed) {
-        true => println!("✅ SUCCESS !"),
-        false => return Err("❌ FAILED !".into()),
-    }
+    utils::test_result(&SUCCESS)?;
 
     Ok(())
 }

@@ -2,8 +2,11 @@
 
 use std::{path::PathBuf, time::Duration};
 
-use crate::{logging, run, snapshot::SnapshotBuilder};
-use anyhow::Context as ContextExt;
+use crate::{
+    logging, run,
+    snapshot::SnapshotBuilder,
+    utils::{self, Firing, Loaded, armed_soldier, direction, soldier},
+};
 use bevy::prelude::*;
 use clap::{Parser, ValueEnum};
 use oc_battle_gui::{
@@ -14,18 +17,11 @@ use oc_battle_gui::{
 use oc_individual::{Individual, IndividualIndex, order::Order, squad::Squad};
 use oc_mod::Mod;
 use oc_network::ToServer;
-use oc_root::{WorldConfig, battle::BattlePhase, geo::WorldVec3, physics::Meters, side::Side};
+use oc_root::{WorldConfig, side::Side};
 use oc_utils::let_some;
-use oc_world::{load::WorldPath, meta::Meta, reader};
-#[cfg(feature = "test")]
-use oc_world_server::state::ObjectId;
-use tests::{
-    individual::TestIndividual,
-    squad::TestSquad,
-    weapons::{TestWeapon, TestWeapons},
-};
+use tests::squad::TestSquad;
 
-use oc_projectile::spawn::SpawnProjectiles;
+const MOD: &str = "mods/tests1";
 
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
@@ -53,21 +49,16 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     logging::setup_logging()?;
 
     let args = Args::parse_from(crate::args());
-    if args.test {
-        #[cfg(not(feature = "test"))]
-        {
-            panic!("To enable test, feature `test` must be enabled too")
-        }
-    }
+    utils::ensure_test_feature(args.test);
 
-    let mod_ = Mod::load(&PathBuf::from("mods/tests1"), None)?;
-    let map_ = PathBuf::from("maps/height");
-    let map = reader::MapReader::new(&map_);
-    let map = map.context(format!("Read map {}", map_.display()))?;
-    let world = Meta::from_file(&map_.meta());
-    let world = world.context(format!("Read file {}", map_.meta().display()))?;
-    let w = WorldConfig::new(map.width().unwrap() as u64, map.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(world.geo_meters_per_z));
+    let mod_ = PathBuf::from(MOD);
+    let map = PathBuf::from("maps/height");
+    let Loaded {
+        mod_: mod__,
+        map: map_,
+        w,
+        ..
+    } = Loaded::new(&mod_, &map)?;
 
     #[cfg(feature = "debug")]
     if let TestCase::IndividualShotTraverseVolume | TestCase::IndividualShotBlockedByVolume =
@@ -77,21 +68,12 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         WorldConfig::set_inaccuracy_spread(0.0);
     }
 
-    let (individuals, squads) = individuals_and_squads(&args, &w, &mod_);
-    let snapshot = SnapshotBuilder::new(
-        map,
-        individuals,
-        squads,
-        vec![],
-        BattlePhase::Fight,
-        vec![],
-        vec![],
-    )
-    .build(w, &mod_)?;
+    let (individuals, squads) = individuals_and_squads(&args, &w, &mod__);
+    let snapshot = SnapshotBuilder::fight(map_, individuals, squads).build(w, &mod__)?;
 
     let example = run::Example::builder()
-        .world(map_)
-        .mod_(PathBuf::from("mods/tests1"))
+        .world(map)
+        .mod_(mod_)
         .install(Box::new(install))
         .snapshot(snapshot)
         .test_app_exit_code(args.test)
@@ -105,111 +87,32 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     if args.test {
         #[cfg(feature = "test")]
         {
+            use utils::tracked;
+
             let tracker = tracker.take();
+            let collisions = tracked::tile_collisions(&tracker);
 
             match args.case {
+                // We consider success if physics event own at least 10 projectiles collisions
                 TestCase::MultipleAgainstWall | TestCase::MultipleAgainstHill => {
-                    // We consider success if physics event own at leat 10 projectiles collisions
-                    let collisions = tracker
-                        .physics
-                        .iter()
-                        .filter(|e| {
-                            matches!(
-                                e,
-                                oc_physics::Event::Collision(
-                                    ObjectId::Projectile(_),
-                                    ObjectId::Tile(_),
-                                    _,
-                                )
-                            )
-                        })
-                        .count();
-
-                    assert!(collisions >= 10);
-                    println!("✅ Test success");
+                    assert!(collisions >= 10)
                 }
-                TestCase::OneAgainstWall | TestCase::OneAgainstHill => {
-                    // We consider success if physics event own at leat 10 projectiles collisions
-                    let collisions = tracker
-                        .physics
-                        .iter()
-                        .filter(|e| {
-                            matches!(
-                                e,
-                                oc_physics::Event::Collision(
-                                    ObjectId::Projectile(_),
-                                    ObjectId::Tile(_),
-                                    _,
-                                )
-                            )
-                        })
-                        .count();
-
-                    assert!(collisions == 1);
-                    println!("✅ Test success");
-                }
+                TestCase::OneAgainstWall | TestCase::OneAgainstHill => assert!(collisions == 1),
+                // Soldier B (index 1) must be killed
                 TestCase::IndividualShotTraverseVolume => {
-                    // Soldier B (index 1) must be killed
-                    let dead = tracker.individuals.iter().any(|event| {
-                        matches!(
-                            event,
-                            (
-                                IndividualIndex(1),
-                                oc_individual::Update::SetStatus(oc_individual::Status::Dead)
-                            )
-                        )
-                    });
-
-                    assert!(dead);
-                    println!("✅ Test success");
+                    assert!(tracked::dead(&tracker, IndividualIndex(1)))
                 }
                 TestCase::IndividualShotBlockedByVolume => {
                     // Soldier A (index 0) must still be operational
-                    let dead = tracker.individuals.iter().any(|event| {
-                        matches!(
-                            event,
-                            (
-                                IndividualIndex(0),
-                                oc_individual::Update::SetStatus(oc_individual::Status::Dead)
-                            )
-                        )
-                    });
+                    assert!(!tracked::dead(&tracker, IndividualIndex(0)));
                     // Ensure soldier B really shot (else test is meaningless)
-                    let blocked = tracker.physics.iter().any(|e| {
-                        matches!(
-                            e,
-                            oc_physics::Event::Collision(
-                                ObjectId::Projectile(_),
-                                ObjectId::Tile(_),
-                                _,
-                            )
-                        )
-                    });
-
-                    assert!(!dead);
-                    assert!(blocked);
-                    println!("✅ Test success");
+                    assert!(collisions > 0);
                 }
                 TestCase::OneTraverseVolumes | TestCase::OneStartInsideWall => {
-                    let collisions = tracker
-                        .physics
-                        .iter()
-                        .filter(|e| {
-                            matches!(
-                                e,
-                                oc_physics::Event::Collision(
-                                    ObjectId::Projectile(_),
-                                    ObjectId::Tile(_),
-                                    _,
-                                )
-                            )
-                        })
-                        .count();
-
-                    assert!(collisions == 0);
-                    println!("✅ Test success");
+                    assert!(collisions == 0)
                 }
             };
+            println!("✅ Test success");
         }
     }
 
@@ -224,22 +127,8 @@ fn individuals_and_squads(
     match args.case {
         TestCase::IndividualShotTraverseVolume => (
             vec![
-                TestIndividual::builder()
-                    .side(Side::A)
-                    .position(WorldVec3::new(123., 127., 0.))
-                    .weapons(
-                        TestWeapons::builder()
-                            .primary(TestWeapon::filled(mod_, "Weapon3").make())
-                            .build()
-                            .make(),
-                    )
-                    .build()
-                    .make(w),
-                TestIndividual::builder()
-                    .side(Side::B)
-                    .position(WorldVec3::new(180., 125., 0.))
-                    .build()
-                    .make(w),
+                armed_soldier(w, mod_, Side::A, [123., 127., 0.], "Weapon3"),
+                soldier(w, Side::B, [180., 125., 0.]),
             ],
             vec![
                 TestSquad::builder()
@@ -260,22 +149,8 @@ fn individuals_and_squads(
         ),
         TestCase::IndividualShotBlockedByVolume => (
             vec![
-                TestIndividual::builder()
-                    .side(Side::A)
-                    .position(WorldVec3::new(123., 127., 0.))
-                    .build()
-                    .make(w),
-                TestIndividual::builder()
-                    .side(Side::B)
-                    .position(WorldVec3::new(245., 125., 19.5))
-                    .weapons(
-                        TestWeapons::builder()
-                            .primary(TestWeapon::filled(mod_, "Weapon3").make())
-                            .build()
-                            .make(),
-                    )
-                    .build()
-                    .make(w),
+                soldier(w, Side::A, [123., 127., 0.]),
+                armed_soldier(w, mod_, Side::B, [245., 125., 19.5], "Weapon3"),
             ],
             vec![
                 TestSquad::builder()
@@ -325,202 +200,50 @@ fn install(app: &mut bevy::app::App) {
 
 fn on_first_ingame_enter(_: On<FirstIngameEnter>, mut commands: Commands) {
     let args = Args::parse_from(crate::args());
-    let mod_ = Mod::load(&PathBuf::from("mods/tests1"), None).unwrap();
+    let mod_ = Mod::load(&PathBuf::from(MOD), None).unwrap();
 
-    let weapon1 = mod_.weapons.iter().find(|w| w.name() == "Weapon1").unwrap();
-    let weapon2 = mod_.weapons.iter().find(|w| w.name() == "Weapon2").unwrap();
-    let weapon3 = mod_.weapons.iter().find(|w| w.name() == "Weapon3").unwrap();
-    let ammunition = weapon1
-        .ammunitions()
-        .iter()
-        .find(|a| a.name() == "Ammo1")
-        .unwrap();
-    let shot = weapon1
-        .shots()
-        .iter()
-        .find(|s| s.name() == "Single")
-        .unwrap();
-    let shot3 = weapon3
-        .shots()
-        .iter()
-        .find(|s| s.name() == "Burst3")
-        .unwrap();
+    // Weapon2 and Weapon3 fire Weapon1 ammunition (and shot, for Weapon2)
+    let weapon = |name| mod_.weapons.iter().find(|w| w.name() == name).unwrap();
+    let firing1 = Firing::weapon1(&mod_);
+    let firing2 = Firing {
+        weapon: weapon("Weapon2").index(),
+        ..firing1
+    };
+    let weapon3 = weapon("Weapon3");
+    let firing3 = Firing {
+        weapon: weapon3.index(),
+        shot: weapon3
+            .shots()
+            .iter()
+            .find(|s| s.name() == "Burst3")
+            .unwrap()
+            .index(),
+        ..firing1
+    };
 
-    match args.case {
-        TestCase::MultipleAgainstHill => {
-            for spawn in [
-                SpawnProjectiles::new(
-                    weapon1.index(),
-                    ammunition.index(),
-                    shot.index(),
-                    10,
-                    [70., 60., 8.5].into(),
-                    vec![
-                        (WorldVec3::new(100., 60., 8.5) - WorldVec3::new(70., 60., 8.5))
-                            .normalize_or_zero();
-                        10
-                    ],
-                    Side::A,
-                    Duration::ZERO,
-                    None,
-                ),
-                SpawnProjectiles::new(
-                    weapon2.index(),
-                    ammunition.index(),
-                    shot.index(),
-                    10,
-                    [70., 65., 8.5].into(),
-                    vec![
-                        (WorldVec3::new(100., 65., 8.5) - WorldVec3::new(70., 65., 8.5))
-                            .normalize_or_zero();
-                        10
-                    ],
-                    Side::A,
-                    Duration::ZERO,
-                    None,
-                ),
-                SpawnProjectiles::new(
-                    weapon3.index(),
-                    ammunition.index(),
-                    shot3.index(),
-                    10,
-                    [70., 70., 8.5].into(),
-                    vec![
-                        (WorldVec3::new(100., 70., 8.5) - WorldVec3::new(70., 70., 8.5))
-                            .normalize_or_zero();
-                        10
-                    ],
-                    Side::A,
-                    Duration::ZERO,
-                    None,
-                ),
-            ] {
-                commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(spawn)));
-            }
+    // Projectiles: firing, repeat, from and to (ten directions)
+    let projectiles = match args.case {
+        TestCase::MultipleAgainstHill => vec![
+            (firing1, 10, [70., 60., 8.5], [100., 60., 8.5]),
+            (firing2, 10, [70., 65., 8.5], [100., 65., 8.5]),
+            (firing3, 10, [70., 70., 8.5], [100., 70., 8.5]),
+        ],
+        TestCase::OneAgainstHill => vec![(firing1, 1, [70., 60., 8.5], [100., 60., 8.5])],
+        TestCase::MultipleAgainstWall => vec![
+            (firing1, 10, [5., 125., 8.5], [100., 125., 8.5]),
+            (firing2, 10, [5., 130., 8.5], [100., 130., 8.5]),
+            (firing3, 10, [5., 135., 8.5], [100., 135., 8.5]),
+        ],
+        TestCase::OneAgainstWall => vec![(firing1, 1, [5., 125., 8.5], [100., 125., 8.5])],
+        TestCase::OneTraverseVolumes => vec![(firing1, 1, [120., 145., 1.0], [120., 245., 1.0])],
+        TestCase::OneStartInsideWall => vec![(firing1, 1, [122., 136., 8.5], [122., 236., 8.5])],
+        TestCase::IndividualShotTraverseVolume | TestCase::IndividualShotBlockedByVolume => {
+            vec![]
         }
-        TestCase::OneAgainstHill => {
-            let spawn = SpawnProjectiles::new(
-                weapon1.index(),
-                ammunition.index(),
-                shot.index(),
-                1,
-                [70., 60., 8.5].into(),
-                vec![
-                    (WorldVec3::new(100., 60., 8.5) - WorldVec3::new(70., 60., 8.5))
-                        .normalize_or_zero();
-                    10
-                ],
-                Side::A,
-                Duration::ZERO,
-                None,
-            );
-            commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(spawn)));
-        }
-        TestCase::MultipleAgainstWall => {
-            for spawn in [
-                SpawnProjectiles::new(
-                    weapon1.index(),
-                    ammunition.index(),
-                    shot.index(),
-                    10,
-                    [5., 125., 8.5].into(),
-                    vec![
-                        (WorldVec3::new(100., 125., 8.5) - WorldVec3::new(5., 125., 8.5))
-                            .normalize_or_zero();
-                        10
-                    ],
-                    Side::A,
-                    Duration::ZERO,
-                    None,
-                ),
-                SpawnProjectiles::new(
-                    weapon2.index(),
-                    ammunition.index(),
-                    shot.index(),
-                    10,
-                    [5., 130., 8.5].into(),
-                    vec![
-                        (WorldVec3::new(100., 130., 8.5) - WorldVec3::new(5., 130., 8.5))
-                            .normalize_or_zero();
-                        10
-                    ],
-                    Side::A,
-                    Duration::ZERO,
-                    None,
-                ),
-                SpawnProjectiles::new(
-                    weapon3.index(),
-                    ammunition.index(),
-                    shot3.index(),
-                    10,
-                    [5., 135., 8.5].into(),
-                    vec![
-                        (WorldVec3::new(100., 135., 8.5) - WorldVec3::new(5., 135., 8.5))
-                            .normalize_or_zero();
-                        10
-                    ],
-                    Side::A,
-                    Duration::ZERO,
-                    None,
-                ),
-            ] {
-                commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(spawn)));
-            }
-        }
-        TestCase::OneAgainstWall => {
-            let spawn = SpawnProjectiles::new(
-                weapon1.index(),
-                ammunition.index(),
-                shot.index(),
-                1,
-                [5., 125., 8.5].into(),
-                vec![
-                    (WorldVec3::new(100., 125., 8.5) - WorldVec3::new(5., 125., 8.5))
-                        .normalize_or_zero();
-                    10
-                ],
-                Side::A,
-                Duration::ZERO,
-                None,
-            );
-            commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(spawn)));
-        }
-        TestCase::OneTraverseVolumes => {
-            let spawn = SpawnProjectiles::new(
-                weapon1.index(),
-                ammunition.index(),
-                shot.index(),
-                1,
-                [120., 145., 1.0].into(),
-                vec![
-                    (WorldVec3::new(120., 245., 1.0) - WorldVec3::new(120., 145., 1.0))
-                        .normalize_or_zero();
-                    10
-                ],
-                Side::A,
-                Duration::ZERO,
-                None,
-            );
-            commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(spawn)));
-        }
-        TestCase::IndividualShotTraverseVolume | TestCase::IndividualShotBlockedByVolume => {}
-        TestCase::OneStartInsideWall => {
-            let spawn = SpawnProjectiles::new(
-                weapon1.index(),
-                ammunition.index(),
-                shot.index(),
-                1,
-                [122., 136., 8.5].into(),
-                vec![
-                    (WorldVec3::new(122., 236., 8.5) - WorldVec3::new(122., 136., 8.5))
-                        .normalize_or_zero();
-                    10
-                ],
-                Side::A,
-                Duration::ZERO,
-                None,
-            );
-            commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(spawn)));
-        }
+    };
+
+    for (firing, repeat, from, to) in projectiles {
+        let spawn = firing.spawn(repeat, from, vec![direction(from, to); 10], Side::A);
+        commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(spawn)));
     }
 }

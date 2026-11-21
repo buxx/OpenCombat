@@ -1,31 +1,29 @@
 #![cfg_attr(not(feature = "test"), allow(dead_code, unused_imports))]
 #![allow(clippy::unwrap_used)]
 
-use oc_utils::index::AtIndex;
 #[cfg(feature = "test")]
 use std::time::Instant;
 use std::{path::PathBuf, time::Duration};
 
-use crate::{logging, run, snapshot::SnapshotBuilder};
-use anyhow::Context as ContextExt;
+use crate::{
+    logging, run,
+    snapshot::SnapshotBuilder,
+    utils::{self, Loaded},
+};
 use bevy::prelude::*;
 use clap::{Parser, ValueEnum};
 use oc_battle_gui::ingame::{GameConfigReceived, camera::move_::CenterCameraOn};
 #[cfg(any(feature = "test", feature = "debug"))]
 use oc_battle_gui::states::GameConfig;
-use oc_geo::tile::WorldTileIndex;
 use oc_individual::order::Order;
-use oc_mod::{Mod, shell::ShellIndex};
-use oc_root::{
-    WcfgInto, WorldConfig, battle::BattlePhase, geo::WorldVec2, physics::Meters, side::Side,
-    utils::Frequency,
-};
+use oc_mod::shell::ShellIndex;
+use oc_root::{WorldConfig, geo::WorldVec2, side::Side, utils::Frequency};
 #[cfg(any(feature = "test", feature = "debug"))]
 use oc_utils::let_some;
 #[cfg(feature = "test")]
 use oc_world::interior::Interior;
-use oc_world::{load::WorldPath, meta::Meta, tile::Tile};
-use tests::{individual::TestIndividual, squad::TestSquad};
+use oc_world::tile::Tile;
+use tests::squad::TestSquad;
 
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
@@ -154,44 +152,27 @@ const DESTRUCTION_SHELL: ShellIndex = ShellIndex(3);
 
 pub fn main() -> Result<(), anyhow::Error> {
     let args = Args::parse_from(crate::args());
-    if args.test {
-        #[cfg(any(not(feature = "test"), not(feature = "debug")))]
-        {
-            panic!("To enable test, feature `test` and `debug` must be enabled too")
-        }
-    }
+    utils::ensure_test_debug_features(args.test);
 
     logging::setup_logging()?;
 
-    let mod__ = args.mod_.clone();
-    let mod_ = Mod::load(&mod__, None)?;
-    let map_ = PathBuf::from("maps/minidblue");
-    let map = oc_world::reader::MapReader::new(&map_);
-    let map = map.context(format!("Read map {}", map_.display()))?;
-    let world = Meta::from_file(&map_.meta());
-    let world = world.context(format!("Read file {}", map_.meta().display()))?;
-    let w = WorldConfig::new(map.width().unwrap() as u64, map.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(world.geo_meters_per_z));
-    let speed = w.speed();
-    let w = w.with_interiors_tick(Frequency::each(Duration::from_secs(1).div_f32(speed)));
-    let tiles = map.tiles(&w, &mod_).unwrap();
+    let map = PathBuf::from("maps/minidblue");
+    let loaded = Loaded::new(&args.mod_, &map)?;
+    let speed = loaded.w.speed();
+    let w = loaded
+        .w
+        .clone()
+        .with_interiors_tick(Frequency::each(Duration::from_secs(1).div_f32(speed)));
+    let tiles = loaded.tiles(&w)?;
 
-    let individuals = individuals(&w, &mod_, &tiles, &args);
-    let squads = squads(&w, &tiles, &individuals, &args);
-    let snapshot = SnapshotBuilder::new(
-        map,
-        individuals,
-        squads,
-        vec![],
-        BattlePhase::Fight,
-        vec![],
-        vec![],
-    )
-    .build(w, &mod_)?;
+    let individuals = individuals(&w, &tiles, &args);
+    let squads = squads(&individuals, &args);
+    let snapshot =
+        SnapshotBuilder::fight(loaded.map, individuals, squads).build(w, &loaded.mod_)?;
 
     let example = run::Example::builder()
-        .world(map_)
-        .mod_(mod__)
+        .world(map)
+        .mod_(args.mod_.clone())
         .snapshot(snapshot)
         .test_app_exit_code(args.test);
 
@@ -202,86 +183,41 @@ pub fn main() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-fn individuals(
-    w: &WorldConfig,
-    _mod_: &oc_mod::Mod,
-    tiles: &[Tile],
-    args: &Args,
-) -> Vec<oc_individual::Individual> {
-    match args.case {
-        Case::Enter => {
-            let position = WorldVec2::new(915., 50.);
-            let tile: WorldTileIndex = position.into_(w);
-            let tile = tiles.at(tile);
-            let position = position.extend(tile.z_pixels(w));
-            vec![
-                TestIndividual::builder()
-                    .side(Side::A)
-                    .position(position)
-                    .build()
-                    .make(w),
-            ]
-        }
-        Case::Out => {
-            let position = WorldVec2::new(850., 70.);
-            let tile: WorldTileIndex = position.into_(w);
-            let tile = tiles.at(tile);
-            let position = position.extend(tile.z_pixels(w));
-            vec![
-                TestIndividual::builder()
-                    .side(Side::A)
-                    .position(position)
-                    .build()
-                    .make(w),
-            ]
-        }
+fn individuals(w: &WorldConfig, tiles: &[Tile], args: &Args) -> Vec<oc_individual::Individual> {
+    let positions = match args.case {
+        Case::Enter => vec![[915., 50.]],
+        Case::Out => vec![[850., 70.]],
         Case::OutsideExplosionProtected
         | Case::OnTheTopExplosionProtected
         | Case::OnTheTopExplosionNotProtected
         | Case::OnTheTopExplosionNotProtectedBecauseBroken
         | Case::OutsideExplosionNotProtected
-        | Case::NearExplosionProtectedInBunker => args
-            .case
-            .individual_positions()
-            .into_iter()
-            .map(|position| {
-                let position = WorldVec2::from(position);
-                let tile: WorldTileIndex = position.into_(w);
-                let tile = tiles.at(tile);
-                let position = position.extend(tile.z_pixels(w));
-                TestIndividual::builder()
-                    .side(Side::A)
-                    .position(position)
-                    .build()
-                    .make(w)
-            })
-            .collect(),
-    }
+        | Case::NearExplosionProtectedInBunker => args.case.individual_positions(),
+    };
+    positions
+        .into_iter()
+        .map(|position| {
+            let position = utils::on_ground(w, tiles, WorldVec2::from(position));
+            utils::soldier(w, Side::A, position)
+        })
+        .collect()
 }
 
 fn squads(
-    _w: &WorldConfig,
-    _tiles: &[Tile],
     individuals: &[oc_individual::Individual],
     args: &Args,
 ) -> Vec<oc_individual::squad::Squad> {
     match args.case {
-        Case::Enter => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![Order::MoveFastTo(WorldVec2::new(850., 70.))])
-                .build()
-                .make(),
-        ],
-        Case::Out => vec![
-            TestSquad::builder()
-                .position(individuals.first().unwrap().position.into())
-                .members(vec![oc_individual::IndividualIndex(0)])
-                .orders(vec![Order::MoveFastTo(WorldVec2::new(915., 50.))])
-                .build()
-                .make(),
-        ],
+        Case::Enter => vec![utils::squad(
+            individuals,
+            &[0],
+            vec![Order::MoveFastTo(WorldVec2::new(850., 70.))],
+        )],
+        Case::Out => vec![utils::squad(
+            individuals,
+            &[0],
+            vec![Order::MoveFastTo(WorldVec2::new(915., 50.))],
+        )],
         Case::OutsideExplosionProtected
         | Case::OnTheTopExplosionProtected
         | Case::OnTheTopExplosionNotProtected

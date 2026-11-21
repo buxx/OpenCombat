@@ -1,34 +1,24 @@
-#![allow(clippy::unwrap_used)]
-
-use oc_root::format::RkyvFile;
 use std::{collections::HashMap, path::PathBuf};
 
-use crate::{logging, run, utils::find_spawn};
+use crate::{
+    logging, run,
+    utils::{self, Loaded, find_spawn, squad_at},
+};
 use anyhow::Context;
 use clap::{Parser, ValueEnum};
 use oc_deployment::deployment::{
     self,
     place::{OrderPolicy, Placer},
 };
-use oc_mod::Mod;
-use oc_root::uuids::SquadUuid;
 use oc_root::{
-    WorldConfig,
     battle::BattlePhase,
     geo::WorldVec2,
-    physics::Meters,
     side::{BySide, Side},
 };
-use oc_world::{
-    load::WorldPath,
-    meta::Meta,
-    place::PlaceName,
-    snapshot::Snapshot,
-    support::{Support, SupportType, Supports},
-};
+use oc_world::{place::PlaceName, support::Supports};
 
-/// Support declared by mods std1 and tests1
-const NAVAL_BOMBARD: &str = "Naval bombard";
+const MOD: &str = "mods/std1";
+const MAP: &str = "maps/minidblue";
 
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
@@ -51,201 +41,94 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse_from(crate::args());
     logging::setup_logging()?;
 
-    let mod_ = Mod::load(&PathBuf::from("mods/std1"), None)?;
-    let map_ = PathBuf::from("maps/minidblue");
-    let map = oc_world::reader::MapReader::new(&map_);
-    let map = map.context(format!("Read map {}", map_.display()))?;
-    let world = Meta::from_file(&map_.meta());
-    let world = world.context(format!("Read file {}", map_.meta().display()))?;
-    let w = WorldConfig::new(map.width().unwrap() as u64, map.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(world.geo_meters_per_z));
-    let map__ = map.build().unwrap();
+    let loaded = Loaded::new(&PathBuf::from(MOD), &PathBuf::from(MAP))?;
+    let (w, map) = (&loaded.w, &loaded.map);
 
     let spawns = map.spawn_zones().context("Read map spawn zones")?;
     let deployments = match args.case {
         Case::Empty => deployment::Deployments::default(),
-
         Case::EnagedBattleMiddle => deployment::Deployments::from_files(
             &PathBuf::from("examples/deployment1a.yml"),
             &PathBuf::from("examples/deployment1b.yml"),
-        )
-        .unwrap(),
+        )?,
         Case::DeploySouthBeach => deployment::Deployments::from_files(
             &PathBuf::from("examples/deployment_allied1.yml"),
             &PathBuf::from("examples/deployment_axis1.yml"),
-        )
-        .unwrap()
+        )?
         .with_spawns(
             vec![find_spawn(&spawns, "SouthBeach")],
             vec![find_spawn(&spawns, "Middle"), find_spawn(&spawns, "North")],
         ),
     };
-    let tiles = map.tiles(&w, &mod_).context("Read map tiles")?;
-    let places: HashMap<PlaceName, WorldVec2> = map__
-        .places()
-        .iter()
-        .map(|p| (p.name.clone(), WorldVec2::new(p.x, p.y)))
-        .collect();
-    let mut snapshot = Snapshot::empty(w.clone())
-        .with_tiles(tiles.clone())
-        .with_decor(map.decor().context("Read map decor")?)
-        .with_supports(match args.case {
-            Case::Empty => Supports::default(),
-            Case::EnagedBattleMiddle => Supports::default(),
-            Case::DeploySouthBeach => Supports::new(
-                Support(vec![(SupportType::new(NAVAL_BOMBARD), 3)]),
-                Support::default(),
-            ),
-        });
+    let tiles = loaded.tiles(w)?;
+    let supports = match args.case {
+        Case::Empty | Case::EnagedBattleMiddle => Supports::default(),
+        Case::DeploySouthBeach => utils::naval_bombards(3),
+    };
+    let mut snapshot = utils::deployment_snapshot(w, map, tiles.clone(), supports, &deployments)?;
 
-    snapshot.spawns = deployments
-        .as_ref()
-        .map(|d| d.spawns.iter().map(|s| s.name.clone()).collect());
-
-    match args.case {
-        Case::Empty => {}
-        Case::EnagedBattleMiddle => {
-            deploy_engaged_battle_middle(mod_, w, deployments, tiles, places, &mut snapshot)?;
-        }
-        Case::DeploySouthBeach => {
-            deploy_south_beach(
-                mod_,
-                w,
-                args.side,
-                deployments,
-                tiles,
-                places,
-                &mut snapshot,
-            )?;
-        }
+    let placed = match args.case {
+        Case::Empty => None,
+        Case::EnagedBattleMiddle => Some((
+            engaged_battle_middle(&utils::places(map)?),
+            BattlePhase::Fight,
+        )),
+        Case::DeploySouthBeach => Some((
+            south_beach(&utils::places(map)?, args.side),
+            BattlePhase::Deployment,
+        )),
+    };
+    if let Some((placer, phase)) = placed {
+        deployments
+            // FIXME BS NOW: 1/ Début de partie ne doit pas impliquer mouvement de membres pour se place.
+            //                  Le placer doit placer les individus a leur place directement.
+            //               2/ Les soldats ne doivent pas tirer dès le début car hide. Là il y a des tirs.
+            //                  Maybe individual n'ont pas encore reçu order (placer doit donner order)
+            //                  Sinon c'est du tuning de behavior.
+            // Sinon, créer les mécanique de la phase "deployment"
+            .mobilize(w, &loaded.mod_, &mut snapshot, &placer, &tiles)
+            .context("Generate snapshot from deployment files")?;
+        snapshot.phase = phase;
     }
 
-    let (_, snapshot_path) = tempfile::NamedTempFile::new()?.keep()?;
-    snapshot
-        .save(&snapshot_path)
-        .context(format!("Save snapshot to {}", snapshot_path.display()))?;
-
-    let example = run::Example::builder()
-        .world(map_)
-        .mod_(PathBuf::from("mods/std1"))
-        .snapshot(snapshot_path)
-        .side(args.side);
-    example.build().run()?;
+    run::Example::builder()
+        .world(PathBuf::from(MAP))
+        .mod_(PathBuf::from(MOD))
+        .snapshot(utils::save_snapshot(&snapshot)?)
+        .side(args.side)
+        .build()
+        .run()?;
 
     Ok(())
 }
 
-fn deploy_engaged_battle_middle(
-    mod_: Mod,
-    w: WorldConfig,
-    deployments: deployment::Deployments,
-    tiles: Vec<oc_world::tile::Tile>,
-    places: HashMap<PlaceName, WorldVec2>,
-    snapshot: &mut Snapshot,
-) -> Result<(), Box<dyn std::error::Error + 'static>> {
-    // We use a hand made Placer to place squad manually for this case
-    let placer = Placer::new(vec![])
+/// Hand made placer, to place squads manually
+fn engaged_battle_middle(places: &HashMap<PlaceName, WorldVec2>) -> Placer {
+    Placer::new(vec![])
         .with_assigned(vec![
             // uuids are these from examples/deployment1a.yml & examples/deployment1b.yml
             // places names are from examples/minidblue
             // A
-            (
-                "f9dbffe2-64ba-4a88-920b-ae883751493e"
-                    .parse::<SquadUuid>()
-                    .unwrap(),
-                *places.get(&"63".into()).unwrap(),
-            ),
-            (
-                "ca3db430-f7fa-4232-b2a1-2abb85499ae5"
-                    .parse::<SquadUuid>()
-                    .unwrap(),
-                *places.get(&"50".into()).unwrap(),
-            ),
+            squad_at(places, "f9dbffe2-64ba-4a88-920b-ae883751493e", "63"),
+            squad_at(places, "ca3db430-f7fa-4232-b2a1-2abb85499ae5", "50"),
             // B
-            (
-                "e1b6ec3d-7119-41d1-9f89-a6faf7da5bbb"
-                    .parse::<SquadUuid>()
-                    .unwrap(),
-                *places.get(&"70".into()).unwrap(),
-            ),
-            (
-                "9dbf54c7-3723-4fe3-a42b-44f3866c09aa"
-                    .parse::<SquadUuid>()
-                    .unwrap(),
-                *places.get(&"53".into()).unwrap(),
-            ),
+            squad_at(places, "e1b6ec3d-7119-41d1-9f89-a6faf7da5bbb", "70"),
+            squad_at(places, "9dbf54c7-3723-4fe3-a42b-44f3866c09aa", "53"),
         ])
-        .with_orders(BySide::new(OrderPolicy::Hide, OrderPolicy::Defend));
-
-    deployments
-        // FIXME BS NOW: 1/ Début de partie ne doit pas impliquer mouvement de membres pour se place.
-        //                  Le placer doit placer les individus a leur place directement.
-        //               2/ Les soldats ne doivent pas tirer dès le début car hide. Là il y a des tirs.
-        //                  Maybe individual n'ont pas encore reçu order (placer doit donner order)
-        //                  Sinon c'est du tuning de behavior.
-        // Sinon, créer les mécanique de la phase "deployment"
-        .mobilize(&w, &mod_, snapshot, &placer, &tiles)
-        .context("Generate snapshot from deployment files".to_string())?;
-
-    snapshot.phase = BattlePhase::Fight;
-
-    Ok(())
+        .with_orders(BySide::new(OrderPolicy::Hide, OrderPolicy::Defend))
 }
 
-fn deploy_south_beach(
-    mod_: Mod,
-    w: WorldConfig,
-    side: Side,
-    deployments: deployment::Deployments,
-    tiles: Vec<oc_world::tile::Tile>,
-    places: HashMap<PlaceName, WorldVec2>,
-    snapshot: &mut Snapshot,
-) -> Result<(), Box<dyn std::error::Error + 'static>> {
-    let places_ = places.values().copied();
-    let placer = Placer::new(places_.collect()).with_assigned(match side {
-        Side::A => vec![
+fn south_beach(places: &HashMap<PlaceName, WorldVec2>, side: Side) -> Placer {
+    Placer::new(places.values().copied().collect())
+        .with_assigned(match side {
             // B
-            (
-                // Mg34
-                "53f27839-4f3f-486e-bb47-420f382be19c"
-                    .parse::<SquadUuid>()
-                    .unwrap(),
-                *places.get(&"50".into()).unwrap(),
-            ),
-            (
-                // Mg34
-                "03f99100-deff-4bd6-9b24-d3a4e1b3bbf6"
-                    .parse::<SquadUuid>()
-                    .unwrap(),
-                *places.get(&"56".into()).unwrap(),
-            ),
-            (
-                // Rifle
-                "04f4eec9-fc48-4bf9-a2cd-4d072656e4a7"
-                    .parse::<SquadUuid>()
-                    .unwrap(),
-                *places.get(&"42".into()).unwrap(),
-            ),
-            (
-                // Rifle
-                "578150d7-4cd9-448f-82cb-44c70e1da22b"
-                    .parse::<SquadUuid>()
-                    .unwrap(),
-                *places.get(&"49".into()).unwrap(),
-            ),
-        ],
-        Side::B => vec![],
-    });
-    let placer = match side {
-        Side::A => placer.with_orders(BySide::new(OrderPolicy::Hide, OrderPolicy::Defend)),
-        Side::B => placer.with_orders(BySide::new(OrderPolicy::Defend, OrderPolicy::Hide)),
-    };
-
-    deployments
-        .mobilize(&w, &mod_, snapshot, &placer, &tiles)
-        .context("Generate snapshot from deployment files".to_string())?;
-
-    snapshot.phase = BattlePhase::Deployment;
-
-    Ok(())
+            Side::A => vec![
+                squad_at(places, "53f27839-4f3f-486e-bb47-420f382be19c", "50"), // Mg34
+                squad_at(places, "03f99100-deff-4bd6-9b24-d3a4e1b3bbf6", "56"), // Mg34
+                squad_at(places, "04f4eec9-fc48-4bf9-a2cd-4d072656e4a7", "42"), // Rifle
+                squad_at(places, "578150d7-4cd9-448f-82cb-44c70e1da22b", "49"), // Rifle
+            ],
+            Side::B => vec![],
+        })
+        .with_orders(utils::hide_and_defend(side))
 }

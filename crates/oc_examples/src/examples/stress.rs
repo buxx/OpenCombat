@@ -1,8 +1,11 @@
 #![allow(clippy::unwrap_used)]
 use std::path::PathBuf;
 
-use crate::{logging, run, snapshot::SnapshotBuilder};
-use anyhow::Context as ContextExt;
+use crate::{
+    logging, run,
+    snapshot::SnapshotBuilder,
+    utils::{self, Loaded, NAVAL_BOMBARD},
+};
 use bevy::prelude::*;
 use clap::Parser;
 use oc_battle_gui::{ingame::GameConfigReceived, network::output::ToServerEvent};
@@ -11,21 +14,13 @@ use oc_mod::Mod;
 use oc_network::ToServer;
 use oc_root::{
     WorldConfig,
-    battle::BattlePhase,
     geo::{WorldVec2, WorldVec3},
-    physics::Meters,
     side::Side,
 };
-use oc_world::{meta::Meta, support::SupportType};
-use tests::{
-    individual::TestIndividual,
-    squad::TestSquad,
-    weapons::{TestWeapon, TestWeapons},
-};
+use oc_world::support::SupportType;
+use tests::{individual::TestIndividual, squad::TestSquad};
 // WARNING: AI generated module
 
-/// Support declared by mods std1 and tests1
-const NAVAL_BOMBARD: &str = "Naval bombard";
 const MOD: &str = "mods/std1";
 const MAP: &str = "maps/world1";
 const INDIVIDUALS_BY_SQUAD: usize = 5;
@@ -63,24 +58,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::warn!("`debug` feature disabled: no immortality, only side A requests bombardments");
 
     let mod_path = PathBuf::from(MOD);
-    let mod_ = Mod::load(&mod_path, None)?;
-    let meta = Meta::from_file(&PathBuf::from(MAP).join("meta.toml"))?;
-    let map = oc_world::reader::MapReader::new(&PathBuf::from(MAP));
-    let map = map.context(format!("Read map {MAP}"))?;
-    let w = WorldConfig::new(map.width().unwrap() as u64, map.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z));
+    let Loaded { mod_, map, w, .. } = Loaded::new(&mod_path, &PathBuf::from(MAP))?;
 
     let (individuals, squads) = battalions(&w, &mod_, args.squads);
-    let snapshot = SnapshotBuilder::new(
-        map,
-        individuals,
-        squads,
-        vec![],
-        BattlePhase::Fight,
-        vec![],
-        vec![],
-    )
-    .build(w.clone(), &mod_)?;
+    let snapshot = SnapshotBuilder::fight(map, individuals, squads).build(w.clone(), &mod_)?;
 
     let bombard = Bombard::new(&w, &mod_);
     let example = run::Example::builder()
@@ -141,12 +122,7 @@ fn battalions(w: &WorldConfig, mod_: &Mod, squads_by_side: usize) -> (Vec<Indivi
                             position.y,
                             0.,
                         ))
-                        .weapons(
-                            TestWeapons::builder()
-                                .primary(TestWeapon::filled(mod_, WEAPON).make())
-                                .build()
-                                .make(),
-                        )
+                        .weapons(utils::armed(mod_, WEAPON))
                         .magazines(spare_magazines.clone())
                         .build()
                         .make(w),

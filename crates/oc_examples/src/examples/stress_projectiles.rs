@@ -1,58 +1,50 @@
 #![allow(clippy::unwrap_used)]
 
+use std::f32::consts::TAU;
 use std::path::PathBuf;
-use std::{f32::consts::TAU, time::Duration};
 
-use crate::{logging, run, snapshot::SnapshotBuilder};
-use anyhow::Context as ContextExt;
+use crate::{
+    logging, run,
+    snapshot::SnapshotBuilder,
+    utils::{Firing, Loaded, direction},
+};
 use bevy::prelude::*;
 use oc_battle_gui::ingame::GameConfigReceived;
 use oc_battle_gui::{ingame::camera::move_::CenterCameraOn, network::output::ToServerEvent};
-use oc_mod::{
-    Mod, ammunition::IndexedAmmunition, armament::IndexedShotMode, weapons::IndexedWeapon,
-};
 use oc_network::ToServer;
-use oc_projectile::spawn::SpawnProjectiles;
-use oc_root::battle::BattlePhase;
 use oc_root::geo::WorldVec2;
-use oc_root::{WorldConfig, geo::WorldVec3, physics::Meters, side::Side};
-use oc_world::meta::Meta;
+use oc_root::side::Side;
+
+const MOD: &str = "mods/tests1";
+const MAP: &str = "maps/world1";
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     logging::setup_logging()?;
 
-    let mod_ = PathBuf::from("mods/tests1");
-    let mod__ = Mod::load(&mod_, None)?;
-    let meta = Meta::from_file(&PathBuf::from("maps/world1/meta.toml"))?;
-    let map_ = PathBuf::from("maps/world1");
-    let map = oc_world::reader::MapReader::new(&map_);
-    let map = map.context(format!("Read map {}", map_.display()))?;
-    let w = WorldConfig::new(map.width().unwrap() as u64, map.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z));
-    let snapshot = SnapshotBuilder::new(
-        map,
-        vec![],
-        vec![],
-        vec![],
-        BattlePhase::Fight,
-        vec![],
-        vec![],
-    )
-    .build(w, &mod__)?;
+    let loaded = Loaded::new(&PathBuf::from(MOD), &PathBuf::from(MAP))?;
+    // Move at the center of the world
+    let config = Config {
+        firing: Firing::weapon1(&loaded.mod_),
+        orbit_radius: 150.,
+        center_x: loaded.w.world_width_pixels() as f32 / 2.,
+        center_y: loaded.w.world_height_pixels() as f32 / 2.,
+    };
+    let snapshot =
+        SnapshotBuilder::fight(loaded.map, vec![], vec![]).build(loaded.w, &loaded.mod_)?;
 
     let example = run::Example::builder()
-        .world(PathBuf::from("maps/world1"))
-        .mod_(mod_)
-        .install(Box::new(install))
+        .world(PathBuf::from(MAP))
+        .mod_(PathBuf::from(MOD))
+        .install(Box::new(move |app| install(app, config.clone())))
         .snapshot(snapshot);
     example.build().run()?;
 
     Ok(())
 }
 
-#[derive(Resource)]
+#[derive(Resource, Clone)]
 struct Config {
-    mod_: Mod,
+    firing: Firing,
     orbit_radius: f32,
     center_x: f32,
     center_y: f32,
@@ -66,25 +58,7 @@ struct Orbiter {
     speed: f32, // radians per second
 }
 
-fn install(app: &mut bevy::app::App) {
-    // TODO: avoid repetition with main()
-    let meta = Meta::from_file(&PathBuf::from("maps/world1/meta.toml")).unwrap();
-    let map_ = PathBuf::from("maps/world1");
-    let map = oc_world::reader::MapReader::new(&map_).unwrap();
-    let w = WorldConfig::new(map.width().unwrap() as u64, map.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z));
-    let mod_ = Mod::load(&PathBuf::from("mods/tests1"), None).unwrap();
-    // Move at the center of the world
-    let center_x = (map.width().unwrap() as f32 * w.geo_pixels_per_tile() as f32) / 2.;
-    let center_y = (map.height().unwrap() as f32 * w.geo_pixels_per_tile() as f32) / 2.;
-
-    let config = Config {
-        mod_,
-        orbit_radius: 150.,
-        center_x,
-        center_y,
-    };
-
+fn install(app: &mut bevy::app::App, config: Config) {
     app.insert_resource(config)
         .add_systems(Startup, setup)
         .add_systems(Update, orbit)
@@ -99,33 +73,17 @@ fn install(app: &mut bevy::app::App) {
 }
 
 fn setup(mut commands: Commands, config: Res<Config>) {
-    commands.spawn((
-        Transform::from_xyz(config.center_x + config.orbit_radius, 0., 3.),
-        Orbiter {
-            center: Vec3::new(config.center_x, config.center_y, 15.0),
-            angle: 0.0,
-            radius: config.orbit_radius,
-            speed: 5.0,
-        },
-    ));
-    commands.spawn((
-        Transform::from_xyz(config.center_x + config.orbit_radius, 0., 3.),
-        Orbiter {
-            center: Vec3::new(config.center_x, config.center_y, 15.0),
-            angle: (0.0 + 5.0 * 1.0) % TAU,
-            radius: config.orbit_radius,
-            speed: 5.0,
-        },
-    ));
-    commands.spawn((
-        Transform::from_xyz(config.center_x + config.orbit_radius, 0., 3.),
-        Orbiter {
-            center: Vec3::new(config.center_x, config.center_y, 15.0),
-            angle: (0.0 + 5.0 * 2.0) % TAU,
-            radius: config.orbit_radius,
-            speed: 5.0,
-        },
-    ));
+    for i in 0..3 {
+        commands.spawn((
+            Transform::from_xyz(config.center_x + config.orbit_radius, 0., 3.),
+            Orbiter {
+                center: Vec3::new(config.center_x, config.center_y, 15.0),
+                angle: (5.0 * i as f32) % TAU,
+                radius: config.orbit_radius,
+                speed: 5.0,
+            },
+        ));
+    }
 }
 
 fn orbit(
@@ -140,50 +98,13 @@ fn orbit(
         let y = orbiter.radius * orbiter.angle.sin();
         transform.translation = Vec3::new(x, y, 3.);
 
-        let (weapon, ammunition, shot) = weapons(&config);
-        let directions: Vec<WorldVec3> = vec![
-            (WorldVec3::new(orbiter.center.x + x, orbiter.center.y + y, 500.)
-                - WorldVec3::new(orbiter.center.x, orbiter.center.y, 500.))
-            .normalize_or_zero(),
-        ];
+        let from = [orbiter.center.x, orbiter.center.y, 500.];
+        let directions = vec![direction(
+            from,
+            [orbiter.center.x + x, orbiter.center.y + y, 500.],
+        )];
         commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(
-            SpawnProjectiles::new(
-                weapon.index(),
-                ammunition.index(),
-                shot.index(),
-                1,
-                [orbiter.center.x, orbiter.center.y, 500.].into(),
-                directions,
-                Side::A,
-                Duration::ZERO,
-                None,
-            ),
+            config.firing.spawn(1, from, directions, Side::A),
         )));
     }
-}
-
-fn weapons<'a>(
-    config: &'a Res<'a, Config>,
-) -> (
-    &'a IndexedWeapon,
-    &'a IndexedAmmunition,
-    &'a IndexedShotMode,
-) {
-    let weapon = config
-        .mod_
-        .weapons
-        .iter()
-        .find(|w| w.name() == "Weapon1")
-        .unwrap();
-    let ammunition = weapon
-        .ammunitions()
-        .iter()
-        .find(|a| a.name() == "Ammo1")
-        .unwrap();
-    let shot = weapon
-        .shots()
-        .iter()
-        .find(|s| s.name() == "Single")
-        .unwrap();
-    (weapon, ammunition, shot)
 }

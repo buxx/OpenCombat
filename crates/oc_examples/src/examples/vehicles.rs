@@ -2,27 +2,26 @@
 
 use std::path::PathBuf;
 
-use crate::{logging, run, snapshot::SnapshotBuilder};
-use anyhow::Context as ContextExt;
+use crate::{
+    logging, run,
+    snapshot::SnapshotBuilder,
+    utils::{self, Firing, Loaded},
+};
 use clap::{Parser, ValueEnum};
 use oc_battle_gui::{ingame::FirstIngameEnter, network::output::ToServerEvent};
-use oc_geo::tile::WorldTileIndex;
 use oc_individual::{IndividualIndex, order::Order};
 use oc_mod::{Mod, vehicle::CrewRole};
 use oc_network::ToServer;
 use oc_projectile::spawn::SpawnProjectiles;
 use oc_root::{
-    WcfgFrom, WorldConfig,
-    battle::BattlePhase,
+    WorldConfig,
     geo::{WorldVec2, WorldVec3},
-    physics::Meters,
     side::Side,
 };
-use oc_utils::{d2::Direction, index::AtIndex};
+use oc_utils::d2::Direction;
 use oc_vehicle::{Vehicle, VehicleIndex};
-use oc_world::{meta::Meta, tile::Tile};
-use std::time::Duration;
-use tests::{individual::TestIndividual, squad::TestSquad};
+use oc_world::tile::Tile;
+use tests::squad::TestSquad;
 
 const MOD: &str = "mods/tests1";
 const MAP: &str = "maps/meadow1";
@@ -109,37 +108,22 @@ pub fn main() -> Result<(), anyhow::Error> {
 
     let args = Args::parse_from(crate::args());
 
-    #[cfg(not(feature = "test"))]
-    if args.test {
-        panic!("Execute with --test need `test` feature enabled")
-    }
+    utils::ensure_test_feature(args.test);
 
     let mod_ = PathBuf::from(MOD);
-    let mod__ = oc_mod::Mod::load(&mod_, None)?;
     let map = PathBuf::from(MAP);
-    let meta = Meta::from_file(&map.join("meta.toml"))?;
-    let map_ = oc_world::reader::MapReader::new(&map);
-    let map_ = map_.context(format!("Read map_ {}", map.display()))?;
-    let w = WorldConfig::new(map_.width().unwrap() as u64, map_.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z));
-    let tiles = map_.tiles(&w, &mod__).unwrap();
+    let loaded = Loaded::new(&mod_, &map)?;
+    let (w, mod__) = (&loaded.w, &loaded.mod_);
+    let tiles = loaded.tiles(w)?;
 
     let tanks = tanks(&args);
-    let individuals = individuals(&w, &tiles, &tanks, &args);
-    let squads = squads(&w, &tiles, &individuals, &args);
-    let vehicles = vehicles(&w, &tiles, &mod__, &tanks);
-    let projectiles = projectiles(&w, &tiles, &mod__, &args);
-    let snapshot = SnapshotBuilder::new(
-        map_,
-        individuals,
-        squads,
-        vec![],
-        BattlePhase::Fight,
-        vec![],
-        vec![],
-    )
-    .with_vehicles(vehicles)
-    .build(w, &mod__)?;
+    let individuals = crews(w, &tiles, &tanks);
+    let squads = squads(&individuals, &args);
+    let vehicles = vehicles(w, &tiles, mod__, &tanks);
+    let projectiles = projectiles(w, &tiles, mod__, &args);
+    let snapshot = SnapshotBuilder::fight(loaded.map.clone(), individuals, squads)
+        .with_vehicles(vehicles)
+        .build(w.clone(), mod__)?;
 
     let example = run::Example::builder()
         .world(map)
@@ -245,35 +229,13 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
     }
 }
 
-fn z(w: &WorldConfig, tiles: &[Tile], position: WorldVec2) -> f32 {
-    tiles.at(WorldTileIndex::from_(position, w)).z_pixels(w)
-}
-
-fn individuals(
-    w: &WorldConfig,
-    tiles: &[Tile],
-    tanks: &[TankSetup],
-    args: &Args,
-) -> Vec<oc_individual::Individual> {
-    match args.case {
-        TestCase::TankMove
-        | TestCase::TankTarget
-        | TestCase::TankProjectiles
-        | TestCase::DrawTanks => crews(w, tiles, tanks),
-    }
-}
-
 fn crews(w: &WorldConfig, tiles: &[Tile], tanks: &[TankSetup]) -> Vec<oc_individual::Individual> {
     let mut individuals = vec![];
 
     for (i, tank) in tanks.iter().enumerate() {
-        let position = tank.position.extend(z(w, tiles, tank.position));
+        let position = utils::on_ground(w, tiles, tank.position);
         for role in &tank.crew {
-            let individual = TestIndividual::builder()
-                .side(tank.side)
-                .position(position)
-                .build()
-                .make(w)
+            let individual = utils::soldier(w, tank.side, position)
                 .with_embarked(Some((VehicleIndex(i as u64), *role)));
             individuals.push(individual);
         }
@@ -283,8 +245,6 @@ fn crews(w: &WorldConfig, tiles: &[Tile], tanks: &[TankSetup]) -> Vec<oc_individ
 }
 
 fn squads(
-    _w: &WorldConfig,
-    _tiles: &[Tile],
     individuals: &[oc_individual::Individual],
     args: &Args,
 ) -> Vec<oc_individual::squad::Squad> {
@@ -336,7 +296,7 @@ fn vehicles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, tanks: &[TankSetup]) ->
                 tank.side,
                 type_,
                 oc_mod::illustration::IllustrationIndex(0),
-                tank.position.extend(z(w, tiles, tank.position)),
+                utils::on_ground(w, tiles, tank.position),
                 vec![],
                 tank.chassis,
                 tank.turret,
@@ -351,33 +311,14 @@ fn vehicles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, tanks: &[TankSetup]) ->
 fn projectiles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, args: &Args) -> Vec<SpawnProjectiles> {
     match args.case {
         TestCase::TankProjectiles => {
-            let weapon = mod_.weapons.iter().find(|w| w.name() == "Weapon1").unwrap();
-            let ammunition = weapon
-                .ammunitions()
-                .iter()
-                .find(|a| a.name() == "Ammo1")
-                .unwrap();
-            let shot = weapon
-                .shots()
-                .iter()
-                .find(|s| s.name() == "Single")
-                .unwrap();
+            let firing = Firing::weapon1(mod_);
 
             [TP_NEAR, TP_HIT, TP_OVER]
                 .into_iter()
                 .map(|(from, height)| {
-                    let from = WorldVec2::new(from[0], from[1]);
-                    SpawnProjectiles::new(
-                        weapon.index(),
-                        ammunition.index(),
-                        shot.index(),
-                        1,
-                        from.extend(z(w, tiles, from) + height),
-                        vec![WorldVec3::from(TP_DIRECTION)],
-                        Side::B,
-                        Duration::ZERO,
-                        None,
-                    )
+                    let mut from = utils::on_ground(w, tiles, from.into());
+                    from.z += height;
+                    firing.spawn(1, from, vec![WorldVec3::from(TP_DIRECTION)], Side::B)
                 })
                 .collect()
         }

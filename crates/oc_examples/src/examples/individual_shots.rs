@@ -6,8 +6,11 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::{logging, run, snapshot::SnapshotBuilder};
-use anyhow::Context as ContextExt;
+use crate::{
+    logging, run,
+    snapshot::SnapshotBuilder,
+    utils::{self, Firing, Loaded, direction},
+};
 use bevy::prelude::*;
 use clap::{Parser, ValueEnum};
 use oc_battle_gui::{
@@ -20,12 +23,8 @@ use oc_individual::{
 };
 use oc_mod::{Mod, illustration::IllustrationIndex};
 use oc_network::ToServer;
-use oc_projectile::spawn::SpawnProjectiles;
-use oc_root::{
-    Wcfg, WorldConfig, battle::BattlePhase, geo::WorldVec3, physics::Meters, side::Side,
-};
+use oc_root::{Wcfg, WorldConfig, side::Side};
 use oc_utils::{d2::Direction, let_some};
-use oc_world::{meta::Meta, tile::Tile};
 
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
@@ -51,34 +50,20 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     logging::setup_logging()?;
 
     let args = Args::parse_from(crate::args());
-    if args.test {
-        #[cfg(not(feature = "test"))]
-        {
-            panic!("To enable test, feature `test` must be enabled too")
-        }
-    }
+    utils::ensure_test_feature(args.test);
 
     let mod_ = PathBuf::from("mods/tests1");
-    let mod__ = oc_mod::Mod::load(&mod_, None)?;
     let map = PathBuf::from("maps/meadow1");
-    let meta = Meta::from_file(&map.join("meta.toml"))?;
-    let map_ = oc_world::reader::MapReader::new(&map);
-    let map_ = map_.context(format!("Read map_ {}", map.display()))?;
-    let w = WorldConfig::new(map_.width().unwrap() as u64, map_.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z))
-        .with_geo_pixels_per_meters(5.0);
-    let tiles = map_.tiles(&w, &mod__).unwrap();
-    let (individuals, squads) = individuals(&args, &w, &tiles);
-    let snapshot = SnapshotBuilder::new(
-        map_,
-        individuals,
-        squads,
-        vec![],
-        BattlePhase::Fight,
-        vec![],
-        vec![],
-    )
-    .build(w, &mod__)?;
+    let Loaded {
+        mod_: mod__,
+        map: map_,
+        w,
+        ..
+    } = Loaded::new(&mod_, &map)?;
+    // Individuals are built with the default geo pixels per meters
+    let (individuals, squads) = individuals(&args, &w);
+    let w = w.with_geo_pixels_per_meters(5.0);
+    let snapshot = SnapshotBuilder::fight(map_, individuals, squads).build(w, &mod__)?;
 
     let example = run::Example::builder()
         .world(map)
@@ -95,39 +80,20 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     if args.test {
         #[cfg(feature = "test")]
         {
-            use oc_world_server::state::ObjectId;
+            use utils::tracked;
 
             let tracker = tracker.take();
-
-            // We consider success if physics event own at least 10 projectiles collisions
-            let collision = tracker.physics.iter().find(|event| {
-                matches!(
-                    event,
-                    oc_physics::Event::Collision(
-                        ObjectId::Projectile(_),
-                        ObjectId::Individual(_),
-                        _
-                    )
-                )
-            });
-            let dead = tracker.individuals.iter().find(|event| {
-                matches!(
-                    event,
-                    (
-                        IndividualIndex(0),
-                        oc_individual::Update::SetStatus(oc_individual::Status::Dead)
-                    )
-                )
-            });
+            let collision = tracked::individual_collisions(&tracker) > 0;
+            let dead = tracked::dead(&tracker, IndividualIndex(0));
 
             match args.case {
                 TestCase::SamePixel | TestCase::InVolume | TestCase::DifferentTile => {
-                    assert!(collision.is_some());
-                    assert!(dead.is_some());
+                    assert!(collision);
+                    assert!(dead);
                 }
                 TestCase::Above | TestCase::AboveProne | TestCase::NearRotatedProne => {
-                    assert!(collision.is_none());
-                    assert!(dead.is_none());
+                    assert!(!collision);
+                    assert!(!dead);
                 }
             }
 
@@ -140,8 +106,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn individuals(
     args: &Args,
-    _: &WorldConfig,
-    _: &Vec<Tile>,
+    w: &WorldConfig,
 ) -> (
     Vec<oc_individual::Individual>,
     Vec<oc_individual::squad::Squad>,
@@ -155,18 +120,11 @@ fn individuals(
         TestCase::NearRotatedProne => vec![[151.0, 151.0, 0.0]],
     };
 
-    // TODO: avoid repetition with main()
-    let meta = Meta::from_file(&PathBuf::from("maps/meadow1/meta.toml")).unwrap();
-    let map_ = PathBuf::from("maps/meadow1");
-    let map = oc_world::reader::MapReader::new(&map_).unwrap();
-    let w = WorldConfig::new(map.width().unwrap() as u64, map.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z));
-
     let individuals = positions
         .iter()
         .map(|p| {
             let position = (*p).into();
-            oc_individual::Individual::fresh(&w, Side::A, position)
+            oc_individual::Individual::fresh(w, Side::A, position)
         })
         .collect();
 
@@ -278,18 +236,7 @@ fn install(app: &mut bevy::app::App) {
 fn on_first_ingame_enter(_: On<FirstIngameEnter>, mut commands: Commands) {
     let args = Args::parse_from(crate::args());
     let mod_ = Mod::load(&PathBuf::from("mods/tests1"), None).unwrap();
-
-    let weapon1 = mod_.weapons.iter().find(|w| w.name() == "Weapon1").unwrap();
-    let ammunition = weapon1
-        .ammunitions()
-        .iter()
-        .find(|a| a.name() == "Ammo1")
-        .unwrap();
-    let shot = weapon1
-        .shots()
-        .iter()
-        .find(|s| s.name() == "Single")
-        .unwrap();
+    let firing = Firing::weapon1(&mod_);
 
     let body_height = INDIVIDUAL_PRONE_VOLUME_WIDTH.0 * 5.0;
     let projectiles = match args.case {
@@ -307,22 +254,7 @@ fn on_first_ingame_enter(_: On<FirstIngameEnter>, mut commands: Commands) {
     };
 
     for (start, end) in projectiles {
-        let direction = (WorldVec3::new(end[0], end[1], end[2])
-            - WorldVec3::new(start[0], start[1], start[2]))
-        .normalize_or_zero();
-
-        commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(
-            SpawnProjectiles::new(
-                weapon1.index(),
-                ammunition.index(),
-                shot.index(),
-                1,
-                start.into(),
-                vec![direction],
-                Side::B,
-                Duration::ZERO,
-                None,
-            ),
-        )));
+        let spawn = firing.spawn(1, start, vec![direction(start, end)], Side::B);
+        commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(spawn)));
     }
 }

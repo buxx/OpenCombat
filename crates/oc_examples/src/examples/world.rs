@@ -8,8 +8,11 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
-use crate::{logging, run, snapshot::SnapshotBuilder};
-use anyhow::Context as ContextExt;
+use crate::{
+    logging, run,
+    snapshot::SnapshotBuilder,
+    utils::{self, Loaded, NAVAL_BOMBARD, armed_soldier, soldier},
+};
 use bevy::prelude::*;
 use clap::{Parser, ValueEnum};
 #[cfg(feature = "test")]
@@ -26,7 +29,6 @@ use oc_physics::update::bevy::Position;
 #[cfg(feature = "test")]
 use oc_root::battle::{End, Result as BattleResult, SideResult};
 use oc_root::{
-    WorldConfig,
     battle::BattlePhase,
     geo::{WorldVec2, WorldVec3},
     physics::Meters,
@@ -34,18 +36,8 @@ use oc_root::{
 };
 #[cfg(feature = "test")]
 use oc_utils::{d2::AlmostEqual, let_some, true_};
-use oc_world::{
-    meta::Meta,
-    support::{Support, SupportType, Supports},
-};
-use tests::{
-    individual::TestIndividual,
-    squad::TestSquad,
-    weapons::{TestWeapon, TestWeapons},
-};
-
-/// Support declared by mods std1 and tests1
-const NAVAL_BOMBARD: &str = "Naval bombard";
+use oc_world::support::{SupportType, Supports};
+use tests::{individual::TestIndividual, squad::TestSquad, weapons::TestWeapons};
 
 #[cfg(feature = "test")]
 static SUCCESS: AtomicBool = AtomicBool::new(false);
@@ -97,18 +89,12 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse_from(crate::args());
     logging::setup_logging()?;
 
-    #[cfg(not(feature = "test"))]
-    if args.test {
-        panic!("Execute with --test need `test` feature enabled")
-    }
+    utils::ensure_test_feature(args.test);
 
     let mod_path = PathBuf::from("mods").join(&args.mod_);
-    let mod_ = Mod::load(&mod_path, None)?;
-    let meta = Meta::from_file(&PathBuf::from(MAP).join("meta.toml"))?;
-    let map = oc_world::reader::MapReader::new(&PathBuf::from(MAP));
-    let map = map.context(format!("Read map {MAP}"))?;
-    let mut w = WorldConfig::new(map.width().unwrap() as u64, map.height().unwrap() as u64)
-        .with_geo_meters_per_z(Meters(meta.geo_meters_per_z));
+    let Loaded {
+        mod_, map, mut w, ..
+    } = Loaded::new(&mod_path, &PathBuf::from(MAP))?;
     if matches!(args.case, Case::EndTime) {
         // Fight duration is in game time (server compares it to real elapsed * speed). Ensure at
         // least 1s of real time, so individual has time to move before the end even with a high
@@ -126,13 +112,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         Case::EndTime => (
             BattlePhase::Deployment,
             Supports::default(),
-            vec![
-                TestIndividual::builder()
-                    .side(Side::A)
-                    .position(WorldVec3::new(center.x, center.y, 0.))
-                    .build()
-                    .make(&w),
-            ],
+            vec![soldier(&w, Side::A, center.extend(0.))],
             vec![
                 TestSquad::builder()
                     .position(center)
@@ -149,22 +129,14 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             BattlePhase::Deployment,
             Supports::default(),
             vec![
-                TestIndividual::builder()
-                    .side(Side::A)
-                    .position(WorldVec3::new(center.x, center.y + 100., 0.))
-                    .weapons(
-                        TestWeapons::builder()
-                            .primary(TestWeapon::filled(&mod_, "Weapon3").make())
-                            .build()
-                            .make(),
-                    )
-                    .build()
-                    .make(&w),
-                TestIndividual::builder()
-                    .side(Side::B)
-                    .position(WorldVec3::new(center.x, center.y, 0.))
-                    .build()
-                    .make(&w),
+                armed_soldier(
+                    &w,
+                    &mod_,
+                    Side::A,
+                    [center.x, center.y + 100., 0.],
+                    "Weapon3",
+                ),
+                soldier(&w, Side::B, center.extend(0.)),
             ],
             vec![
                 TestSquad::builder()
@@ -206,16 +178,14 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         Case::ExplosionAlterWall => (BattlePhase::Deployment, Supports::default(), vec![], vec![]),
         Case::Support => (
             BattlePhase::Deployment,
-            Supports::new(
-                Support(vec![(SupportType::new(NAVAL_BOMBARD), 1)]),
-                Support::default(),
-            ),
+            utils::naval_bombards(1),
             vec![],
             vec![],
         ),
     };
 
-    let snapshot = SnapshotBuilder::new(map, individuals, squads, vec![], phase, vec![], vec![])
+    let snapshot = SnapshotBuilder::fight(map, individuals, squads)
+        .with_phase(phase)
         .with_supports(supports)
         .build(w, &mod_)?;
 
@@ -227,10 +197,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     example.build().run()?;
 
     #[cfg(feature = "test")]
-    match SUCCESS.load(Ordering::Relaxed) {
-        true => println!("✅ SUCCESS !"),
-        false => return Err("❌ FAILED !".into()),
-    }
+    utils::test_result(&SUCCESS)?;
 
     Ok(())
 }
