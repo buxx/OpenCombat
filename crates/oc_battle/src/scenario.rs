@@ -187,16 +187,8 @@ mod tests {
             "Orchard_battle/Allied_push.ron",
         ] {
             let scenario = Scenario::from_ron_file(battles.join(path)).unwrap();
-            assert_eq!(
-                scenario.side(Side::A).ai,
-                AiKind::Offensive,
-                "{path}"
-            );
-            assert_eq!(
-                scenario.side(Side::B).ai,
-                AiKind::Defensive,
-                "{path}"
-            );
+            assert_eq!(scenario.side(Side::A).ai, AiKind::Offensive, "{path}");
+            assert_eq!(scenario.side(Side::B).ai, AiKind::Defensive, "{path}");
         }
 
         let test = Scenario::from_ron_file(battles.join("Test1/scenario_1.ron")).unwrap();

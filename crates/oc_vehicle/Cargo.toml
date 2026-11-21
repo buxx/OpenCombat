@@ -15,3 +15,4 @@ oc_physics = { path = "../oc_physics" }
 derive_more = { workspace = true, features = ["constructor"] }
 rkyv.workspace = true
 serde.workspace = true
+glam.workspace = true

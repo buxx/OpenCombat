@@ -2,5 +2,6 @@
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MaterialKind {
     Individual,
+    Vehicle,
     Projectile,
 }

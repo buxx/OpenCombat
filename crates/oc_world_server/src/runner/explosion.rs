@@ -130,9 +130,12 @@ impl<E: Client> super::State<E> {
                 }
             }
 
-            // Survivors in suppress rayon are suppressed
+            // Survivors in suppress rayon are suppressed (except in vehicle, which protects them)
             for i in &individuals {
-                if !killed.contains(i) && distance(*i) <= suppress_rayon {
+                if !killed.contains(i)
+                    && distance(*i) <= suppress_rayon
+                    && world.individual(*i).embarked.is_none()
+                {
                     let suppress = world.individual(*i).suppress;
                     updates.push(Update::UpdateIndividual(
                         *i,
@@ -489,7 +492,8 @@ fn line_tiles(w: &WorldConfig, a: WorldVec2, b: WorldVec2) -> Vec<WorldTileIndex
 
 // WARNING: AI generated
 // TODO: verify this code
-/// Individuals killed by explosion's shrapnels. Individuals inside an interior are not concerned.
+/// Individuals killed by explosion's shrapnels. Individuals inside an interior or a vehicle are
+/// not concerned.
 fn shrapnels(
     world: &World,
     mod_: &Mod,
@@ -507,6 +511,8 @@ fn shrapnels(
         .iter()
         .copied()
         .filter(|i| distance(*i) <= shrapnel_rayon)
+        // Individuals in vehicle are protected against shrapnels
+        .filter(|i| world.individual(*i).embarked.is_none())
         .filter(|i| {
             let p = world.individual(*i).position.into();
             !world.interiors.iter().any(|interior| interior.contains(p))
@@ -582,6 +588,47 @@ fn shrapnel_stopped(world: &World, mod_: &Mod, start: WorldVec3, tiles: &[WorldT
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_shrapnels_spare_individuals_in_vehicle() {
+        // Given: two individuals near explosion, one of them embarked in a vehicle
+        let w = WorldConfig::new(100, 100);
+        let position = WorldVec3::new(260., 250., 0.);
+        let individual = ::tests::individual::TestIndividual::builder()
+            .position(position)
+            .build();
+        let embarked = ::tests::individual::TestIndividual::builder()
+            .position(position)
+            .build()
+            .make(&w)
+            .with_embarked(Some((
+                oc_vehicle::VehicleIndex(0),
+                oc_mod::vehicle::CrewRole::Driver,
+            )));
+        let world = ::tests::world::TestWorld::builder()
+            .individuals(vec![individual.make(&w), embarked])
+            .build()
+            .make(&w);
+        let explosion = Explosion {
+            kill_rayon: Meters(0.),
+            stunned_rayon: Meters(0.),
+            shrapnel_rayon: Meters(10.),
+            suppress_rayon: Meters(0.),
+            destruction_rayon: Meters(0.),
+            destruction_force: 0.,
+            shrapnel_quantity: 5000,
+            penetration_force: 0.,
+        };
+        let start = WorldVec3::new(250., 250., 0.);
+        let candidates = [IndividualIndex(0), IndividualIndex(1)];
+
+        // When
+        let (killed, _) = shrapnels(&world, world.mod_(), &explosion, start, &candidates);
+
+        // Then
+        assert!(killed.contains(&IndividualIndex(0)));
+        assert!(!killed.contains(&IndividualIndex(1)));
+    }
 
     #[test]
     fn test_line_tiles() {

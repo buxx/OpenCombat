@@ -50,6 +50,11 @@ impl Processor<'_> {
             return vec![];
         }
 
+        // Leader in vehicle: squad order is operated by the vehicle crew
+        if leader.embarked.is_some() {
+            return self.distribute_in_vehicle(squad_i, squad);
+        }
+
         let order = squad.orders.first();
         let mut updates = vec![];
         let mut distribution: Vec<(IndividualIndex, Vec<Order>)> =
@@ -202,8 +207,9 @@ impl Processor<'_> {
         for (member_i, orders) in distribution {
             let member = self.world.individual(member_i);
 
-            // Dead individuals must keep no order
-            if !member.status.is_target() {
+            // Dead individuals must keep no order. Individuals in vehicle (with a leader outside it)
+            // don't follow squad formation.
+            if !member.status.is_target() || member.embarked.is_some() {
                 continue;
             }
 

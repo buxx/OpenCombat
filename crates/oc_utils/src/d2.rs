@@ -307,6 +307,25 @@ impl Direction {
         Quat::from_xyzw(0., 0., half_sin, half_cos)
     }
 
+    // WARNING: AI generated
+    /// Signed angle (radians, in `[-PI, PI]`) to rotate from this direction to `other`
+    pub fn angle_to(&self, other: &Direction) -> f32 {
+        let diff = other.y.atan2(other.x) - self.y.atan2(self.x);
+        (diff + std::f32::consts::PI).rem_euclid(std::f32::consts::TAU) - std::f32::consts::PI
+    }
+
+    // WARNING: AI generated
+    /// This direction rotated toward `target` by at most `max` radians (`target` when reachable)
+    pub fn rotated_toward(&self, target: &Direction, max: f32) -> Direction {
+        let angle = self.angle_to(target);
+        if angle.abs() <= max {
+            return *target;
+        }
+
+        let angle = self.y.atan2(self.x) + max.copysign(angle);
+        Direction::new(angle.cos(), angle.sin())
+    }
+
     /// Rotate a vector (vx, vy) by this direction, treating
     /// (x, y) as (cos θ, sin θ) of the rotation.
     #[inline]
@@ -396,6 +415,47 @@ impl AlmostEqual for WorldVec3 {
 
 #[cfg(test)]
 mod tests {
+
+    // WARNING: AI generated
+    #[test]
+    fn test_direction_angle_to() {
+        assert!(almost_equal(
+            Direction::NORTH.angle_to(&Direction::NORTH),
+            0.,
+            1e-5
+        ));
+        assert!(almost_equal(
+            Direction::EST.angle_to(&Direction::NORTH),
+            FRAC_PI_2,
+            1e-5
+        ));
+        assert!(almost_equal(
+            Direction::NORTH.angle_to(&Direction::EST),
+            -FRAC_PI_2,
+            1e-5
+        ));
+        // Shortest way, across PI
+        let a = Direction::new(-1., 0.1);
+        let b = Direction::new(-1., -0.1);
+        assert!(a.angle_to(&b) > 0. && a.angle_to(&b) < 0.3);
+    }
+
+    // WARNING: AI generated
+    #[test]
+    fn test_direction_rotated_toward() {
+        // Target reachable
+        let d = Direction::EST.rotated_toward(&Direction::NORTH, FRAC_PI_2 + 0.1);
+        assert_eq!(d, Direction::NORTH);
+
+        // Target not reachable: rotate of max
+        let d = Direction::EST.rotated_toward(&Direction::NORTH, FRAC_PI_2 / 2.);
+        assert!(almost_equal(d.x, d.y, 1e-5));
+        assert!(d.x > 0.);
+
+        // Rotate by the shortest way
+        let d = Direction::NORTH.rotated_toward(&Direction::EST, 0.1);
+        assert!(d.x > 0. && d.y > 0.);
+    }
     use super::*;
     use rstest::rstest;
 

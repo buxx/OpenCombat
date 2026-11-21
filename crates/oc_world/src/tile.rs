@@ -132,6 +132,7 @@ impl Physic for Tile {
         match kind {
             MaterialKind::Projectile => nature.intercept.projectile.probability(),
             MaterialKind::Individual => 0.0,
+            MaterialKind::Vehicle => 0.0,
         }
     }
 

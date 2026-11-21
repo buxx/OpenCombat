@@ -128,7 +128,7 @@ impl Indexes {
         for (i, vehicle) in world.vehicles().iter().enumerate() {
             let size = world.mod_.vehicle(vehicle.type_).size;
             let position = WorldVec2::from(vehicle.position);
-            for tile in chassis_tiles(size, position, vehicle.chassis_orientation, w) {
+            for tile in chassis_tiles(size, position, vehicle.chassis_direction, w) {
                 tiles_vehicles.at_mut(tile).push(i.into());
             }
             regions_vehicles
@@ -339,6 +339,11 @@ impl Indexes {
                     }
                 },
             },
+            Effect::Vehicle(i, effect) => match effect {
+                VehicleEffect::Placement { size, now, before } => {
+                    self.update_vehicle_position(i, size, now, before, w)
+                }
+            },
         }
     }
 
@@ -364,7 +369,7 @@ fn chassis_tiles(
     )
 }
 
-fn vehicle_region(position: WorldVec2, w: &WorldConfig) -> WorldRegionIndex {
+pub fn vehicle_region(position: WorldVec2, w: &WorldConfig) -> WorldRegionIndex {
     let tile = WorldTileIndex::from_(TileXy::from_(position, w), w);
     tile.into_(w)
 }
@@ -372,6 +377,16 @@ fn vehicle_region(position: WorldVec2, w: &WorldConfig) -> WorldRegionIndex {
 pub enum Effect {
     Individual(IndividualIndex, IndividualEffect),
     Projectile(ProjectileId, ProjectileEffect),
+    Vehicle(VehicleIndex, VehicleEffect),
+}
+
+pub enum VehicleEffect {
+    /// Chassis moved or rotated: chassis size, (position, orientation) now and before
+    Placement {
+        size: (Meters, Meters),
+        now: (WorldVec2, Direction),
+        before: (WorldVec2, Direction),
+    },
 }
 
 pub enum IndividualEffect {
@@ -425,7 +440,7 @@ mod tests {
         oc_mod::Mod::load(&::tests::utils::workspace_path("mods/tests1"), None).unwrap()
     }
 
-    /// "Tank1" of mods/tests1 (chassis 2.2m x 4.5m)
+    /// "Tank1" of mods/tests1 (chassis 2.7m x 6.5m)
     fn vehicle(
         mod_: &oc_mod::Mod,
         position: WorldVec3,
@@ -442,8 +457,8 @@ mod tests {
         )
     }
 
-    /// 1 pixel per meter and per tile: mods/tests1 "Tank1" chassis (2.2m x 4.5m) covers 3x5 tiles when
-    /// facing north, 5x3 when facing est
+    /// 1 pixel per meter and per tile: mods/tests1 "Tank1" chassis (2.7m x 6.5m) covers 4x8 tiles when
+    /// facing north, 8x4 when facing est
     fn vehicle_world_config() -> WorldConfig {
         WorldConfig::new(10, 10)
             .with_geo_pixels_per_tile(1)
@@ -485,7 +500,7 @@ mod tests {
         // Then
         assert_eq!(
             tiles_with_vehicle(&indexes, &w),
-            tiles_rect(&w, 3..=6, 2..=7)
+            tiles_rect(&w, 3..=6, 1..=8)
         );
         assert_eq!(
             indexes.region_vehicles(WorldRegionIndex(0)),
@@ -519,7 +534,7 @@ mod tests {
         // Then
         assert_eq!(
             tiles_with_vehicle(&indexes, &w),
-            tiles_rect(&w, 2..=7, 3..=6)
+            tiles_rect(&w, 1..=8, 3..=6)
         );
         assert!(
             tiles_rect(&w, 0..=9, 0..=9)

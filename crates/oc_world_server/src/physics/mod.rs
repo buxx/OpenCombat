@@ -55,7 +55,22 @@ impl<'x, E: Client> Processor<'x, E> {
         let mut updates = vec![];
         updates.extend(self.react(subject_events));
         updates.extend(self.react(projectile_events));
+        updates.extend(self.step_vehicles(i));
+
         updates
+    }
+
+    /// Vehicles physics (see [`crate::vehicle::step`]) of the chunk `i`
+    fn step_vehicles(&self, i: usize) -> Vec<crate::runner::update::Update> {
+        let state = &self.ctx.state;
+        let world = state.world();
+        let all = world.vehicles().with_ids();
+        let Some(chunk) = chunk(&all, self.ctx.cpus, i) else {
+            return vec![];
+        };
+        let delta = state.w.physics_tick().period() * state.w.speed();
+
+        crate::vehicle::step(&world, chunk, &state.w, &state._mod, delta)
     }
 
     #[cfg(feature = "tracker")]
@@ -80,13 +95,7 @@ impl<'x, E: Client> Processor<'x, E> {
         let world = self.ctx.state.world();
         let indexes = self.ctx.state.indexes();
         let all = all(&world);
-        let size = (all.len() as f32 / self.ctx.cpus as f32).ceil() as usize;
-        if size == 0 {
-            return (vec![], vec![]);
-        };
-        let chunks = all.chunks(size).collect::<Vec<_>>();
-        let chunk = chunks.get(i);
-        let Some(chunk) = chunk else {
+        let Some(chunk) = chunk(&all, self.ctx.cpus, i) else {
             return (vec![], vec![]);
         };
 
@@ -100,7 +109,12 @@ impl<'x, E: Client> Processor<'x, E> {
             let mut objects = vec![];
 
             for i in individuals {
-                let individual: &dyn Physic = world.individual(*i);
+                let individual = world.individual(*i);
+                // Individuals in vehicle are protected against projectiles
+                if individual.embarked.is_some() {
+                    continue;
+                }
+                let individual: &dyn Physic = individual;
                 objects.push((ObjectId::Individual(*i), individual));
             }
 
@@ -120,7 +134,12 @@ impl<'x, E: Client> Processor<'x, E> {
 
             let mut objects = vec![];
             for i in individuals {
-                let individual: &dyn Physic = world.individual(*i);
+                let individual = world.individual(*i);
+                // Individuals in vehicle are protected against suppress
+                if individual.embarked.is_some() {
+                    continue;
+                }
+                let individual: &dyn Physic = individual;
                 objects.push((ObjectId::Individual(*i), individual));
             }
 
@@ -255,7 +274,7 @@ impl<'x, E: Client> Processor<'x, E> {
 
             match event {
                 Event::NoTile(id) => match id {
-                    ObjectId::Individual(_) | ObjectId::Tile(_) => {}
+                    ObjectId::Individual(_) | ObjectId::Tile(_) | ObjectId::Vehicle(_) => {}
                     ObjectId::Projectile(id) => {
                         updates.push(crate::runner::update::Update::RemoveProjectile(id));
                     }
@@ -267,7 +286,10 @@ impl<'x, E: Client> Processor<'x, E> {
                     | (ObjectId::Individual(_), ObjectId::Tile(_))
                     | (ObjectId::Tile(_), ObjectId::Individual(_))
                     | (ObjectId::Tile(_), ObjectId::Projectile(_))
-                    | (ObjectId::Tile(_), ObjectId::Tile(_)) => {}
+                    | (ObjectId::Tile(_), ObjectId::Tile(_))
+                    // TODO: projectile collision with vehicle
+                    | (ObjectId::Vehicle(_), _)
+                    | (_, ObjectId::Vehicle(_)) => {}
                     (ObjectId::Projectile(projectile_id), ObjectId::Individual(individual_i)) => {
                         let lag = self.lag(progress);
                         updates.extend(
@@ -384,6 +406,14 @@ impl<'x, E: Client> Processor<'x, E> {
         let value = (increment.0 as f32 * factor).round() as u8;
         oc_root::behavior::Suppress(suppress.0.saturating_add(value))
     }
+}
+
+fn chunk<T>(all: &[T], cpus: usize, i: usize) -> Option<&[T]> {
+    let size = all.len().div_ceil(cpus);
+    if size == 0 {
+        return None;
+    }
+    all.chunks(size).nth(i)
 }
 
 pub fn changes<I, T>(

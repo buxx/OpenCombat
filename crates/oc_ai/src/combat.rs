@@ -244,7 +244,7 @@ pub fn advance_orders(
         ),
         None => {
             let step = crawl_step(perception, squad, objective);
-(step, true, vec![Order::SneakTo(step)])
+            (step, true, vec![Order::SneakTo(step)])
         }
     };
 

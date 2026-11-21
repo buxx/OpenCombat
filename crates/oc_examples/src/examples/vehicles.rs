@@ -6,7 +6,7 @@ use crate::{logging, run, snapshot::SnapshotBuilder};
 use anyhow::Context as ContextExt;
 use clap::{Parser, ValueEnum};
 use oc_geo::tile::WorldTileIndex;
-use oc_individual::IndividualIndex;
+use oc_individual::{IndividualIndex, order::Order};
 use oc_mod::{Mod, vehicle::CrewRole};
 use oc_root::{
     WcfgFrom, WorldConfig, battle::BattlePhase, geo::WorldVec2, physics::Meters, side::Side,
@@ -39,6 +39,7 @@ struct TankSetup {
     chassis: Direction,
     turret: Option<Direction>,
     crew: Vec<CrewRole>,
+    reload_progress: f32,
 }
 
 impl TankSetup {
@@ -49,7 +50,13 @@ impl TankSetup {
             chassis,
             turret,
             crew: vec![CrewRole::Driver],
+            reload_progress: oc_vehicle::LOADED,
         }
+    }
+
+    fn with_reload_progress(mut self, value: f32) -> Self {
+        self.reload_progress = value;
+        self
     }
 
     fn with_crew(mut self, crew: Vec<CrewRole>) -> Self {
@@ -59,11 +66,9 @@ impl TankSetup {
 }
 
 // FIXME BS NOW : tests and code to implement:
-// - Tank move (individual behavior => vehicle physics)
-// - Individual in vahicle protected against bullets, shrapnels, suppress, but not against stunned
 // - projectile collision with vehicle (all chassis surface, when oriented too)
 // - Tank destruction (penetration) and weak parts
-// - Tank fire/reload/ammunitions
+// - Tank fire/reload/ammunitions (with chassis/turret direction)
 // - Tank chassis visible (when crew hidden position)
 pub fn main() -> Result<(), anyhow::Error> {
     logging::setup_logging()?;
@@ -108,8 +113,17 @@ pub fn main() -> Result<(), anyhow::Error> {
 fn tanks(args: &Args) -> Vec<TankSetup> {
     let diagonal = Direction::new(1., 1.);
     match args.case {
-        // TODO: tank with move forward order
-        TestCase::TankMoveForward => vec![],
+        // Tank facing est, ordered to move north: rotates its chassis then moves. Gun not loaded.
+        TestCase::TankMoveForward => vec![
+            TankSetup::new(Side::A, [150., 250.], Direction::EST, Some(Direction::EST))
+                .with_crew(vec![
+                    CrewRole::Commander,
+                    CrewRole::Driver,
+                    CrewRole::Gunner,
+                    CrewRole::Loader,
+                ])
+                .with_reload_progress(0.),
+        ],
         TestCase::DrawTanks => vec![
             // Turret aligned with chassis, full crew
             TankSetup::new(
@@ -151,9 +165,7 @@ fn individuals(
     args: &Args,
 ) -> Vec<oc_individual::Individual> {
     match args.case {
-        // TODO: tank with move forward order
-        TestCase::TankMoveForward => vec![],
-        TestCase::DrawTanks => crews(w, tiles, tanks),
+        TestCase::TankMoveForward | TestCase::DrawTanks => crews(w, tiles, tanks),
     }
 }
 
@@ -183,13 +195,18 @@ fn squads(
     args: &Args,
 ) -> Vec<oc_individual::squad::Squad> {
     match args.case {
-        // TODO: tank with move forward order
-        TestCase::TankMoveForward => vec![],
-        TestCase::DrawTanks => crew_squads(individuals),
+        TestCase::TankMoveForward => crew_squads(
+            individuals,
+            vec![Order::MoveTo(oc_root::geo::WorldVec2::new(150., 150.))],
+        ),
+        TestCase::DrawTanks => crew_squads(individuals, vec![]),
     }
 }
 
-fn crew_squads(individuals: &[oc_individual::Individual]) -> Vec<oc_individual::squad::Squad> {
+fn crew_squads(
+    individuals: &[oc_individual::Individual],
+    orders: Vec<Order>,
+) -> Vec<oc_individual::squad::Squad> {
     let mut squads: Vec<(Option<VehicleIndex>, Vec<IndividualIndex>)> = vec![];
 
     for (i, individual) in individuals.iter().enumerate() {
@@ -210,6 +227,7 @@ fn crew_squads(individuals: &[oc_individual::Individual]) -> Vec<oc_individual::
                 .side(leader.side)
                 .position(leader.position.into())
                 .members(members)
+                .orders(orders.clone())
                 .build()
                 .make()
         })
@@ -231,6 +249,7 @@ fn vehicles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, tanks: &[TankSetup]) ->
                 tank.chassis,
                 tank.turret,
             )
+            .with_reload_progress(tank.reload_progress)
         })
         .collect()
 }

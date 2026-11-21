@@ -534,7 +534,10 @@ mod tests {
 
     #[test]
     fn vehicles() {
-        for name in ["std1", "tests1"] {
+        for (name, size, height) in [
+            ("std1", (Meters(4.0), Meters(10.0)), Meters(3.0)),
+            ("tests1", (Meters(2.7), Meters(6.5)), Meters(2.5)),
+        ] {
             let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("../../mods")
                 .join(name);
@@ -542,7 +545,8 @@ mod tests {
 
             let tank = mod_.vehicle_from_name("Tank1").unwrap();
             assert_eq!(tank.row, 0);
-            assert_eq!(tank.size, (Meters(2.2), Meters(4.5)));
+            assert_eq!(tank.size, size);
+            assert_eq!(tank.height, height);
             assert_eq!(mod_.vehicle(tank.index()), tank);
             assert!(tank.crew.contains(&vehicle::CrewRole::Commander));
             assert!(mod_.vehicle_from_name("Unknown").is_err());

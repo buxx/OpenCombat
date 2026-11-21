@@ -6990,6 +6990,7 @@ name = "oc_vehicle"
 version = "0.5.0"
 dependencies = [
  "derive_more",
+ "glam 0.33.12",
  "oc_derive",
  "oc_mod",
  "oc_physics",

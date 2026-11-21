@@ -399,6 +399,7 @@ impl Physic for Individual {
             cube,
             Traversability {
                 individual: true, // TODO: prevent individual collisions ? Will need enhance physic model ...
+                vehicle: true,
                 projectile: traversable,
             },
             direction,

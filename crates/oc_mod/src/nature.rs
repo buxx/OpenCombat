@@ -190,6 +190,7 @@ pub struct Nature {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Traversability {
     pub individual: bool,
+    pub vehicle: bool,
     pub projectile: bool,
 }
 
@@ -197,6 +198,7 @@ impl Traversability {
     fn from_deny_list(value: Vec<MaterialKind>) -> Self {
         Self {
             individual: !value.contains(&MaterialKind::Individual),
+            vehicle: !value.contains(&MaterialKind::Vehicle),
             projectile: !value.contains(&MaterialKind::Projectile),
         }
     }
@@ -204,6 +206,7 @@ impl Traversability {
     pub const fn all() -> Self {
         Self {
             individual: true,
+            vehicle: true,
             projectile: true,
         }
     }
@@ -211,6 +214,7 @@ impl Traversability {
     pub const fn none() -> Self {
         Self {
             individual: false,
+            vehicle: false,
             projectile: false,
         }
     }
@@ -218,6 +222,7 @@ impl Traversability {
     pub fn allow(&self, kind: MaterialKind) -> bool {
         match kind {
             MaterialKind::Individual => self.individual,
+            MaterialKind::Vehicle => self.vehicle,
             MaterialKind::Projectile => self.projectile,
         }
     }

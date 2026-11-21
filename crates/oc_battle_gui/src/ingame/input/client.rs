@@ -18,7 +18,7 @@ use crate::{
                 UpdateProjectilePhysicsEvent, UpdateSquadEvent,
             },
             projectile::InsertProjectileEvent,
-            vehicle::{ForgotVehicleEvent, InsertVehicleEvent},
+            vehicle::{ForgotVehicleEvent, InsertVehicleEvent, UpdateVehicleEvent},
         },
         projectile::ForgotProjectile,
     },
@@ -114,6 +114,9 @@ pub fn on_to_client(
         ToClient::Vehicle(message) => match message {
             Vehicle::Insert(i, vehicle) => {
                 commands.trigger(InsertVehicleEvent(*i, vehicle.clone()));
+            }
+            Vehicle::Update(i, update) => {
+                commands.trigger(UpdateVehicleEvent(*i, update.clone()));
             }
             Vehicle::Forgot(i) => {
                 commands.trigger(ForgotVehicleEvent(*i));

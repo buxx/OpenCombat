@@ -5,4 +5,7 @@ use oc_vehicle::{Vehicle, VehicleIndex};
 pub struct InsertVehicleEvent(pub VehicleIndex, pub Vehicle);
 
 #[derive(Debug, Event)]
+pub struct UpdateVehicleEvent(pub VehicleIndex, pub oc_vehicle::Update);
+
+#[derive(Debug, Event)]
 pub struct ForgotVehicleEvent(pub VehicleIndex);

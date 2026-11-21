@@ -1,4 +1,5 @@
 use oc_root::format::RkyvFile;
+use oc_vehicle::VehicleIndex;
 use std::{
     sync::{Arc, Mutex, MutexGuard},
     time::Instant,
@@ -95,6 +96,7 @@ pub enum ObjectId {
     Individual(IndividualIndex),
     Projectile(ProjectileId),
     Tile(WorldTileIndex),
+    Vehicle(VehicleIndex),
 }
 
 pub fn init<E: Client>(config: ServerConfig, map: &MapReader) -> Result<State<E>, anyhow::Error> {

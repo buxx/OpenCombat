@@ -91,6 +91,7 @@ impl Plugin for WorldPlugin {
             .add_observer(individual::on_update_individual_physics)
             .add_observer(individual::on_forgotten_region)
             .add_observer(vehicle::on_insert_vehicle)
+            .add_observer(vehicle::on_update_vehicle)
             .add_observer(vehicle::on_forgot_vehicle)
             .add_observer(vehicle::on_forgotten_region)
             .add_observer(visibilities::on_update_visibilities)
@@ -299,6 +300,13 @@ impl World {
         self.vehicles
             .get(region)
             .and_then(|vehicles| vehicles.get(&i))
+    }
+
+    pub fn vehicle_mut(&mut self, i: VehicleIndex) -> Option<&mut Vehicle> {
+        let region = self.vehicles_refs.get(&i)?;
+        self.vehicles
+            .get_mut(region)
+            .and_then(|vehicles| vehicles.get_mut(&i))
     }
 
     // TODO: if consume too much CPU: create an index

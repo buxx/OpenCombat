@@ -14,6 +14,7 @@ mod act;
 pub mod death;
 mod decide;
 mod distribute;
+mod embarked;
 mod gesture;
 pub mod situation;
 #[cfg(test)]
@@ -75,6 +76,15 @@ impl<'a> Processor<'a> {
         }
 
         let distribute = self.distribute();
+
+        // Individual in vehicle operates it instead of acting by itself
+        if let Some((vehicle, role)) = individual.embarked {
+            updates.extend(distribute);
+            updates.extend(self.embarked(individual, vehicle, role));
+            tracing::trace!(name = "individual-step-embarked-updates", i=?self.i, updates=?updates);
+            return updates;
+        }
+
         let intent = self.decide(situation);
         let behavior = self.act(situation, &intent);
         let (gesture, updates_) = self.gesture(individual, situation, &behavior);

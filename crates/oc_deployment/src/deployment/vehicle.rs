@@ -113,7 +113,7 @@ mod tests {
         ));
 
         // Role not declared by mod vehicle
-        vehicle.crew = vec![member(CrewRole::Loader, &squad, 0)];
+        vehicle.crew = vec![member(CrewRole::Passenger, &squad, 0)];
         assert!(matches!(
             vehicle.validate(&mod_, &squad),
             Err(Error::UnknownRole(..))

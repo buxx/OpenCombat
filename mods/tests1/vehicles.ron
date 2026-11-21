@@ -3,7 +3,12 @@
   (
     name: "Tank1",
     row: 0,
-    crew: [Commander, Gunner, Driver, Operator],
+    crew: [Commander, Gunner, Driver, Loader, Operator],
     size: (Meters(2.7), Meters(6.5)),
+    height: Meters(2.5),
+    speed: MetersSeconds(5.0),
+    chassis_rotation_speed: DegreesPerSeconds(30.0),
+    turret_rotation_speed: DegreesPerSeconds(45.0),
+    reload_duration: Seconds(6.0),
   ),
 ]

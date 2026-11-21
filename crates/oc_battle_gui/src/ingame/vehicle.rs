@@ -23,7 +23,8 @@ impl Plugin for VehiclePlugin {
             .add_observer(on_insert_vehicle)
             .add_observer(on_forgot_vehicle)
             .add_observer(on_forgotten_region)
-            .add_observer(on_visibilities_updated);
+            .add_observer(on_visibilities_updated)
+            .add_systems(Update, animate_vehicles);
     }
 }
 
@@ -78,7 +79,7 @@ fn on_insert_vehicle(
     let tile: oc_geo::tile::TileXy = vehicle.position.into_(&g.w);
     let tile: oc_geo::tile::WorldTileIndex = tile.into_(&g.w);
     let region: WorldRegionIndex = tile.into_(&g.w);
-    let chassis_rotation = vehicle.chassis_orientation.bquat(V::Gui);
+    let chassis_rotation = vehicle.chassis_direction.bquat(V::Gui);
     let visibility = visibility(identity, i, vehicle, &world, config.see_all_enemies);
 
     let entity = commands
@@ -142,5 +143,54 @@ fn on_visibilities_updated(
     for (i, mut visibility) in query.iter_mut() {
         let_some!(vehicle = world.vehicle(i.0), continue);
         *visibility = self::visibility(identity, i.0, vehicle, &world, config.see_all_enemies);
+    }
+}
+
+/// Animate vehicles between server updates (rotations toward targets and translation by forces).
+fn animate_vehicles(
+    g: Res<GameConfig>,
+    time: Res<Time>,
+    mut world: ResMut<World>,
+    mut vehicles: Query<(&VehicleIndex, &mut Transform, Option<&Children>), Without<VehicleTurret>>,
+    mut turrets: Query<&mut Transform, With<VehicleTurret>>,
+) {
+    let_some!(g = &g.0, return);
+    let delta = time.delta_secs() * g.w.speed();
+
+    for (i, mut transform, children) in &mut vehicles {
+        let_some!(vehicle = world.vehicle(i.0), continue);
+        let type_ = g.mod_.vehicle(vehicle.type_);
+        let (chassis, turret) = vehicle.rotate(type_, delta);
+        let position = vehicle.translate(&g.w, delta);
+        if (chassis, turret, position)
+            == (
+                vehicle.chassis_direction,
+                vehicle.turret_direction,
+                vehicle.position,
+            )
+        {
+            continue;
+        }
+
+        let_some!(vehicle = world.vehicle_mut(i.0), continue);
+        vehicle.chassis_direction = chassis;
+        vehicle.turret_direction = turret;
+        vehicle.position = position;
+
+        let screen = ScreenVec2::from_(position, &g.w);
+        let chassis_rotation = chassis.bquat(V::Gui);
+        transform.translation.x = screen.x;
+        transform.translation.y = screen.y;
+        transform.rotation = chassis_rotation;
+
+        let (Some(turret), Some(children)) = (turret, children) else {
+            continue;
+        };
+        for child in children.iter() {
+            if let Ok(mut transform) = turrets.get_mut(child) {
+                // Turret rotation is relative to chassis one
+                transform.rotation = chassis_rotation.inverse() * turret.bquat(V::Gui);
+            }
+        }
     }
 }

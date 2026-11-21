@@ -46,6 +46,7 @@ pub enum Update {
     UpdateIndividual(IndividualIndex, oc_individual::Update),
     UpdateVisibilities(Vec<(IndividualIndex, IndividualIndex, Visibility)>),
     UpdateSquad(SquadIndex, oc_individual::squad::Update),
+    UpdateVehicle(oc_vehicle::VehicleIndex, oc_vehicle::Update),
     SetBattlePhase(BattlePhase),
     UpdateFlags(Flags),
     UpdateMorale(Morale),
@@ -150,6 +151,7 @@ pub fn update<E: Client>(ctx: &Context<E>, update: Update) {
         }
         Update::UpdateVisibilities(visibilities) => state.update_visibilities(visibilities),
         Update::UpdateSquad(i, update) => state.update_squad(i, update),
+        Update::UpdateVehicle(i, update) => state.update_vehicle(i, update),
         Update::SetBattlePhase(phase) => state.set_battle_phase(phase),
         Update::UpdateFlags(flags) => state.update_flags(flags),
         Update::UpdateMorale(morale) => state.update_morale(morale),
@@ -281,6 +283,19 @@ impl<E: Client> super::State<E> {
         let (outputs, effects) = {
             let mut world = self.world_mut();
             crate::individual::update::write(&mut world, update, i)
+        };
+        self.react_indexes(effects);
+        outputs
+    }
+
+    fn update_vehicle(
+        &self,
+        i: oc_vehicle::VehicleIndex,
+        update: oc_vehicle::Update,
+    ) -> Vec<(Listening, Vec<ToClient>)> {
+        let (outputs, effects) = {
+            let mut world = self.world_mut();
+            crate::vehicle::write(&mut world, update, i)
         };
         self.react_indexes(effects);
         outputs

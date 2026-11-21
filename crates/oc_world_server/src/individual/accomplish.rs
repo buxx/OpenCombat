@@ -6,11 +6,17 @@ use crate::runner;
 
 impl Processor<'_> {
     /// Builds the "accomplished" update batch for this individual, appending squad-level updates
-    /// when this individual is a squad leader.
+    /// when this individual holds the squad order (squad leader, or vehicle crew member when
+    /// leader is in a vehicle, see [`Processor::squad_order_holder`]).
     pub fn accomplished_updates(&self, direction: Direction) -> Vec<runner::update::Update> {
         let squad_i = self.index.individual_squad(self.i);
         let squad = self.world.squad(squad_i);
-        let is_squad_leader = self.i == squad.leader();
+        let individual = self.world.individual(self.i);
+        let leader_embarked = self.world.individual(squad.leader()).embarked.is_some();
+        // In vehicle, crew can receive the squad order from leader again (distributed before it
+        // was accomplished): only the current squad order can be accomplished.
+        let is_squad_leader = self.squad_order_holder(squad) == Some(self.i)
+            && (!leader_embarked || individual.orders.first() == squad.orders.first());
 
         let i_accomplish = Update::Accomplished;
         let i_accomplish = runner::update::Update::UpdateIndividual(self.i, i_accomplish);

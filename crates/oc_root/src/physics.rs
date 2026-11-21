@@ -61,3 +61,15 @@ impl Deref for MetersSeconds {
         &self.0
     }
 }
+
+/// Rotation speed
+#[oc_derive::archivable(serde)]
+#[derive(Debug, PartialEq, Clone, Copy, PartialOrd)]
+pub struct DegreesPerSeconds(pub f32);
+
+impl DegreesPerSeconds {
+    /// Angle (radians) covered in `delta` seconds
+    pub fn radians(&self, delta: f32) -> f32 {
+        self.0.to_radians() * delta
+    }
+}

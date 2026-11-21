@@ -1,6 +1,6 @@
 use std::{collections::HashSet, path::Path};
 
-use oc_root::physics::Meters;
+use oc_root::physics::{DegreesPerSeconds, Meters, MetersSeconds, Seconds};
 use thiserror::Error;
 
 use crate::indexed::{Indexed, index_all, read_ron};
@@ -30,9 +30,20 @@ pub struct Vehicle {
     pub name: String,
     /// Row of this vehicle in the mod `sprites/vehicles.png` spritesheet
     pub row: u8,
+    /// Existing Crew role for this vehicle
     pub crew: Vec<CrewRole>,
     /// Chassis (width, height), used for physics
     pub size: (Meters, Meters),
+    /// Chassis height, used for physics
+    pub height: Meters,
+    /// Maximum chassis translation speed
+    pub speed: MetersSeconds,
+    /// Chassis rotation speed
+    pub chassis_rotation_speed: DegreesPerSeconds,
+    /// Turret rotation speed
+    pub turret_rotation_speed: DegreesPerSeconds,
+    /// Duration for the loader to load the gun
+    pub reload_duration: Seconds,
 }
 
 pub fn load(path: &Path) -> Result<Vec<IndexedVehicle>, Error> {

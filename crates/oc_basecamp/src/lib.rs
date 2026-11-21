@@ -22,9 +22,13 @@ pub fn use_exe_dir_if_data_beside() -> std::io::Result<()> {
     let Some(dir) = exe.parent() else {
         return Ok(());
     };
-    let data_beside = [mods::MODS_FOLDER, battle::MAPS_FOLDER, battle::BATTLES_FOLDER]
-        .iter()
-        .all(|folder| dir.join(folder).is_dir());
+    let data_beside = [
+        mods::MODS_FOLDER,
+        battle::MAPS_FOLDER,
+        battle::BATTLES_FOLDER,
+    ]
+    .iter()
+    .all(|folder| dir.join(folder).is_dir());
     if data_beside {
         std::env::set_current_dir(dir)?;
     }
