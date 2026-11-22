@@ -197,14 +197,14 @@ mod tests {
             IllustrationIndex(0),
             WorldVec3::new(250., 250., 0.),
             vec![],
-            Direction::NORTH,
-            Some(Direction::NORTH),
+            Direction::SOUTH,
+            Some(Direction::SOUTH),
         )
     }
 
     #[test]
     fn vehicle_translates_with_its_crew() {
-        // Given: tank moving north at 5m/s (5 pixels per meter)
+        // Given: tank moving south at 5m/s (5 pixels per meter)
         let force = Force::Translation(WorldVec3::new(0., 1., 0.), MetersSeconds(5.));
         let world = world(|mod_| {
             let mut tank = tank(mod_);
@@ -238,7 +238,7 @@ mod tests {
         );
     }
 
-    /// Tank (13.5px x 32.5px chassis) at center of tile (50, 50), moving north at 25px/s, with
+    /// Tank (13.5px x 32.5px chassis) at center of tile (50, 50), moving south at 25px/s, with
     /// "BigRock" tiles (blocking) at given tiles
     fn tank_world_with_rocks(rocks: &[(u64, u64)]) -> World {
         let w = WorldConfig::new(100, 100);
@@ -368,7 +368,7 @@ mod tests {
         let world = world(|mod_| {
             let mut tank = tank(mod_);
             tank.chassis_target = Some(Direction::EST);
-            tank.turret_target = Some(Direction::SOUTH);
+            tank.turret_target = Some(Direction::NORTH);
             tank
         });
 
@@ -396,7 +396,7 @@ mod tests {
                 _ => unreachable!(),
             }
         }
-        let angle = |d: Direction| Direction::NORTH.angle_to(&d).abs().to_degrees();
+        let angle = |d: Direction| Direction::SOUTH.angle_to(&d).abs().to_degrees();
         // Turret is carried by chassis rotation (30°) and rotates itself (45°)
         assert!((angle(chassis.unwrap()) - 30.).abs() < 1e-3);
         assert!((angle(turret.unwrap()) - 75.).abs() < 1e-3);

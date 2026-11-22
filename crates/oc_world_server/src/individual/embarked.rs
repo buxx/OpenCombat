@@ -592,7 +592,7 @@ mod tests {
         ];
         let world = tank_world(
             &w,
-            tank(&w, Direction::NORTH),
+            tank(&w, Direction::SOUTH),
             &crew,
             vec![order.clone()],
             vec![],
@@ -626,7 +626,7 @@ mod tests {
             // Given
             let world = tank_world(
                 &w,
-                tank(&w, Direction::NORTH),
+                tank(&w, Direction::SOUTH),
                 &crew,
                 vec![order.clone()],
                 vec![],
@@ -651,7 +651,7 @@ mod tests {
             Order::MoveTo(WorldVec2::new(250., 400.)),
             Order::Defend(Direction::EST),
         ];
-        let world = tank_world(&w, tank(&w, Direction::NORTH), &crew, orders, vec![]);
+        let world = tank_world(&w, tank(&w, Direction::SOUTH), &crew, orders, vec![]);
 
         // When
         let updates = step(&world, 0);
@@ -666,7 +666,7 @@ mod tests {
 
     #[test]
     fn driver_rotates_chassis_before_moving() {
-        // Given: tank facing est, driver ordered to move north
+        // Given: tank facing est, driver ordered to move south
         let w = w();
         let crew = [
             (CrewRole::Commander, vec![]),
@@ -680,10 +680,10 @@ mod tests {
         // When
         let updates = step(&world, 1);
 
-        // Then: chassis rotate to north, without translation
+        // Then: chassis rotate to south, without translation
         assert!(
             updates.contains(&vehicle_update(oc_vehicle::Update::SetChassisTarget(Some(
-                Direction::NORTH
+                Direction::SOUTH
             ))))
         );
         assert!(!updates.iter().any(|u| matches!(
@@ -699,14 +699,14 @@ mod tests {
 
     #[test]
     fn driver_moves_when_chassis_oriented() {
-        // Given: tank facing north, driver ordered to move north
+        // Given: tank facing south, driver ordered to move south
         let w = w();
         let destination = WorldVec2::new(250., 400.);
         let crew = [
             (CrewRole::Commander, vec![]),
             (CrewRole::Driver, vec![Order::MoveTo(destination)]),
         ];
-        let world = tank_world(&w, tank(&w, Direction::NORTH), &crew, vec![], vec![]);
+        let world = tank_world(&w, tank(&w, Direction::SOUTH), &crew, vec![], vec![]);
 
         // When
         let updates = step(&world, 1);
@@ -725,7 +725,7 @@ mod tests {
     fn driver_stops_vehicle_without_move_order() {
         // Given: moving tank, driver without order
         let w = w();
-        let mut vehicle = tank(&w, Direction::NORTH);
+        let mut vehicle = tank(&w, Direction::SOUTH);
         vehicle.forces = vec![Force::Translation(WorldVec3::new(0., 1., 0.), TANK_SPEED)];
         let crew = [(CrewRole::Commander, vec![]), (CrewRole::Driver, vec![])];
         let world = tank_world(&w, vehicle, &crew, vec![], vec![]);
@@ -746,7 +746,7 @@ mod tests {
             (CrewRole::Commander, vec![]),
             (CrewRole::Driver, vec![order.clone()]),
         ];
-        let world = tank_world(&w, tank(&w, Direction::NORTH), &crew, vec![order], vec![]);
+        let world = tank_world(&w, tank(&w, Direction::SOUTH), &crew, vec![order], vec![]);
 
         // When
         let updates = step(&world, 1);
@@ -771,7 +771,7 @@ mod tests {
             (CrewRole::Commander, vec![]),
             (CrewRole::Driver, vec![order.clone()]),
         ];
-        let world = tank_world(&w, tank(&w, Direction::NORTH), &crew, vec![order], vec![]);
+        let world = tank_world(&w, tank(&w, Direction::SOUTH), &crew, vec![order], vec![]);
 
         // When
         let updates = step(&world, 1);
@@ -789,7 +789,7 @@ mod tests {
 
     #[test]
     fn gunner_rotates_turret_to_engaged_target() {
-        // Given: turret facing est, enemy at north
+        // Given: turret facing est, enemy at south
         let w = w();
         let enemy = TestIndividual::builder()
             .side(Side::B)
@@ -808,18 +808,18 @@ mod tests {
         // Then
         assert!(
             updates.contains(&vehicle_update(oc_vehicle::Update::SetTurretTarget(Some(
-                Direction::NORTH
+                Direction::SOUTH
             ))))
         );
     }
 
-    /// Tank facing north, loaded, half aimed, with 2 shells of mods/tests1 "5/38 shell"
+    /// Tank facing south, loaded, half aimed, with 2 shells of mods/tests1 "5/38 shell"
     /// (compatible with "Tank1"), gunner ordered to suppress `target`. mods/tests1 "Tank1" aim
     /// duration is 2 seconds (so, a tick of one second finishes aiming).
     fn firing_world(w: &WorldConfig, vehicle: impl FnOnce(Vehicle) -> Vehicle) -> World {
         let mod_ = TestWorld::builder().build().make(w).mod_;
         let shell = mod_.shell_from_name("5/38 shell").unwrap().index();
-        let mut tank = tank(w, Direction::NORTH).with_shells(vec![(shell, 2)]);
+        let mut tank = tank(w, Direction::SOUTH).with_shells(vec![(shell, 2)]);
         tank.aim_progress = 0.5;
         let vehicle = vehicle(tank);
         let crew = [
@@ -955,7 +955,7 @@ mod tests {
     fn loader_loads_gun() {
         // Given: gun not loaded (mods/tests1 "Tank1" reload duration is 6 seconds)
         let w = w();
-        let vehicle = tank(&w, Direction::NORTH).with_reload_progress(0.);
+        let vehicle = tank(&w, Direction::SOUTH).with_reload_progress(0.);
         let crew = [(CrewRole::Commander, vec![]), (CrewRole::Loader, vec![])];
         let world = tank_world(&w, vehicle, &crew, vec![], vec![]);
 
@@ -976,7 +976,7 @@ mod tests {
     fn loader_does_nothing_when_loaded() {
         let w = w();
         let crew = [(CrewRole::Commander, vec![]), (CrewRole::Loader, vec![])];
-        let world = tank_world(&w, tank(&w, Direction::NORTH), &crew, vec![], vec![]);
+        let world = tank_world(&w, tank(&w, Direction::SOUTH), &crew, vec![], vec![]);
 
         let updates = step(&world, 1);
 
@@ -1040,7 +1040,7 @@ mod tests {
 
     #[test]
     fn gunner_rotates_turret_to_visible_enemy_without_fire_order() {
-        // Given: turret facing est, enemy at north visible by the commander, gunner without order
+        // Given: turret facing est, enemy at south visible by the commander, gunner without order
         let w = w();
         let world = natural_target_world(
             &w,
@@ -1054,7 +1054,7 @@ mod tests {
         let updates = step(&world, GUNNER);
 
         // Then
-        assert_eq!(turret_target(&updates), Some(Some(Direction::NORTH)));
+        assert_eq!(turret_target(&updates), Some(Some(Direction::SOUTH)));
     }
 
     #[test]
@@ -1077,9 +1077,9 @@ mod tests {
 
     #[test]
     fn gunner_anticipates_vehicle_move_to_orient_turret() {
-        // Given: tank moving north, enemy at est
+        // Given: tank moving south, enemy at est
         let w = w();
-        let mut vehicle = tank(&w, Direction::NORTH);
+        let mut vehicle = tank(&w, Direction::SOUTH);
         vehicle.forces = vec![Force::Translation(WorldVec3::new(0., 1., 0.), TANK_SPEED)];
         let enemy = WorldVec3::new(400., 250., 0.);
         let world = natural_target_world(&w, vehicle, vec![], enemy, true);
@@ -1101,11 +1101,11 @@ mod tests {
 
     #[test]
     fn gunner_fires_on_visible_enemy_while_moving() {
-        // Given: tank moving north, loaded and half aimed, turret on the enemy (at north)
+        // Given: tank moving south, loaded and half aimed, turret on the enemy (at south)
         let w = w();
         let mod_ = TestWorld::builder().build().make(&w).mod_;
         let shell = mod_.shell_from_name("5/38 shell").unwrap().index();
-        let mut vehicle = tank(&w, Direction::NORTH).with_shells(vec![(shell, 2)]);
+        let mut vehicle = tank(&w, Direction::SOUTH).with_shells(vec![(shell, 2)]);
         vehicle.aim_progress = 0.5;
         vehicle.forces = vec![Force::Translation(WorldVec3::new(0., 1., 0.), TANK_SPEED)];
         let enemy = WorldVec3::new(250., 400., 0.);
@@ -1125,11 +1125,11 @@ mod tests {
 
     #[test]
     fn gunner_holds_fire_on_visible_enemy_when_hiding() {
-        // Given: loaded and aimed tank, enemy visible at north, gunner ordered to hide toward est
+        // Given: loaded and aimed tank, enemy visible at south, gunner ordered to hide toward est
         let w = w();
         let mod_ = TestWorld::builder().build().make(&w).mod_;
         let shell = mod_.shell_from_name("5/38 shell").unwrap().index();
-        let mut vehicle = tank(&w, Direction::NORTH).with_shells(vec![(shell, 2)]);
+        let mut vehicle = tank(&w, Direction::SOUTH).with_shells(vec![(shell, 2)]);
         vehicle.aim_progress = 0.5;
         let enemy = WorldVec3::new(250., 400., 0.);
         let world =

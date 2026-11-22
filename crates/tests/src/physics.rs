@@ -58,7 +58,7 @@ mod test {
                     z: ref_.z,
                 },
                 Traversability::all(),
-                Direction::NORTH,
+                Direction::IDENTITY,
             )]
         }
 

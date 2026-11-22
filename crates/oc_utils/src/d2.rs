@@ -257,6 +257,7 @@ impl Direction {
     pub const EST: Self = Self::new(1., 0.);
     pub const SOUTH: Self = Self::new(0., 1.);
     pub const WEST: Self = Self::new(-1., 0.);
+    pub const IDENTITY: Self = Self::new(0., 1.);
 
     pub fn from_points2d(a: Vec2, b: Vec2) -> Self {
         Self::from((b - a).normalize_or_zero())

@@ -637,7 +637,7 @@ mod tests {
                     z: ref_.z,
                 },
                 Traversability::all(),
-                Direction::NORTH,
+                Direction::IDENTITY,
             )]
         }
 
@@ -689,7 +689,7 @@ mod tests {
                     depth: f32::MAX,
                 },
                 self.1.clone(),
-                Direction::NORTH,
+                Direction::IDENTITY,
             )]
         }
 
@@ -737,7 +737,7 @@ mod tests {
                     depth: 10.,
                 },
                 Traversability::none(),
-                Direction::NORTH,
+                Direction::IDENTITY,
             )]
         }
 
@@ -785,7 +785,7 @@ mod tests {
                     depth: f32::MAX,
                 },
                 self.1.clone(),
-                Direction::NORTH,
+                Direction::IDENTITY,
             )]
         }
 
@@ -837,7 +837,7 @@ mod tests {
                     depth: self.2,
                 },
                 Traversability::all(),
-                Direction::NORTH,
+                Direction::IDENTITY,
             )]
         }
 

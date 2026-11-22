@@ -76,7 +76,7 @@ pub fn on_insert_projectile(
             Forces(projectile.1.forces(&g.w).clone()),
             Material_(Some(oc_root::material::MaterialKind::Projectile)),
             Volumes(volumes),
-            Direction(oc_utils::d2::Direction::NORTH),
+            Direction(oc_utils::d2::Direction::IDENTITY),
             IgnoreOrigin(projectile.1.collision_ignore_origin().unwrap_or(position)),
             Mesh2d(meshes.add(line)),
             MeshMaterial2d(materials.add(Color::from(RED))),

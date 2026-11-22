@@ -322,8 +322,8 @@ mod tests {
 
         // Then: turret rotated as much as the chassis (45° clockwise)
         let turret = turret.unwrap();
-        assert!((Direction::NORTH.angle_to(&chassis) + 45f32.to_radians()).abs() < 1e-4);
-        assert!((Direction::WEST.angle_to(&turret) + 45f32.to_radians()).abs() < 1e-4);
+        assert!((Direction::NORTH.angle_to(&chassis) - 45f32.to_radians()).abs() < 1e-4);
+        assert!((Direction::WEST.angle_to(&turret) - 45f32.to_radians()).abs() < 1e-4);
     }
 
     #[test]

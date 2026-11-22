@@ -104,7 +104,7 @@ impl Physic for Tile {
                 depth: DEPTH + ref_.z,
             },
             Traversability::none(),
-            Direction::NORTH,
+            Direction::IDENTITY,
         );
         // Tile nature (hedge part for example)
         let nature = (
@@ -118,7 +118,7 @@ impl Physic for Tile {
             },
             // TODO: perf test with reference ?
             nature.traversability.clone(),
-            Direction::NORTH,
+            Direction::IDENTITY,
         );
 
         match include_underground {
@@ -207,7 +207,7 @@ mod test {
                     z: ref_.z,
                 },
                 Traversability::all(),
-                Direction::NORTH,
+                Direction::IDENTITY,
             )]
         }
 

@@ -106,7 +106,7 @@ impl Physic for Bullet {
                 z: ref_.z,
             },
             Traversability::all(),
-            Direction::NORTH,
+            Direction::IDENTITY,
         )]
     }
 
