@@ -11,7 +11,7 @@ use oc_root::WcfgFrom;
 use oc_root::geo::WorldVec2;
 use oc_root::geo::{ScreenVec2, WorldVec3};
 use oc_root::identity::Identity;
-use oc_root::y::V;
+use oc_root::y::{V, Y};
 use oc_utils::bevy::EntityMapping;
 use oc_utils::let_ok;
 use oc_utils::polygon::Polygon;
@@ -573,7 +573,8 @@ fn on_set_position_event(
     mut query: Query<&mut Position>,
     state: Res<EntityMapping<oc_individual::IndividualIndex>>,
     mut world: ResMut<crate::world::World>,
-    mut commands: Commands,
+    g: Res<GameConfig>,
+    mut markers: Query<(&mut Transform, &crate::ingame::behavior::DirectionSquadOrder)>,
 ) {
     let_some!(entity = state.get(&position.0), return);
     let_ok!(mut position_ = query.get_mut(*entity), return);
@@ -583,11 +584,21 @@ fn on_set_position_event(
     position_.0 = position.1;
     individual.position = position.1;
 
-    if let Some((squad_i, squad)) = world.individual_squad(position.0) {
-        commands.trigger(crate::ingame::behavior::RefreshSquadsOrdersEvent(
-            squad_i,
-            squad.orders.clone(),
-        ));
+    // Direction markers (defend/hide) are displayed on squad leader: they must follow it.
+    // Squad order markers must NOT be despawned/respawned here: embarked individuals receive a
+    // position at each vehicle move, which would destroy a squad order marker being dragged.
+    let_some!(g = &g.0, return);
+    let_some!((squad_i, squad) = world.individual_squad(position.0), return);
+    if squad.leader() != position.0 {
+        return;
+    }
+    let translation: Vec3 = position.1.into();
+    let translation = translation.to_gui_y(&g.w);
+    for (mut transform, marker) in markers.iter_mut() {
+        if marker.squad() == squad_i {
+            transform.translation.x = translation.x;
+            transform.translation.y = translation.y;
+        }
     }
 }
 
