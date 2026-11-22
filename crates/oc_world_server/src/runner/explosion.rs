@@ -108,7 +108,8 @@ impl<E: Client> super::State<E> {
 
             // Crew of vehicles hit by a shell (explosion on their chassis): killed if the shell
             // penetrates the chassis, else stunned.
-            let crew = vehicles_hit_crew(&world, mod_, &explosion, position, origin);
+            let hit = vehicles_hit(&world, mod_, &explosion, position, origin);
+            let crew = vehicles_crew(&world, &hit);
             for (i, penetrated) in &crew {
                 match penetrated {
                     true => {
@@ -125,6 +126,17 @@ impl<E: Client> super::State<E> {
                     )),
                 }
             }
+
+            // Vehicles penetrated by the shell are destroyed
+            for (i, penetrated) in &hit {
+                if *penetrated && !world.vehicle(*i).destroyed {
+                    updates.push(Update::UpdateVehicle(
+                        *i,
+                        oc_vehicle::Update::SetDestroyed(true),
+                    ));
+                }
+            }
+
             let individuals: Vec<IndividualIndex> = individuals
                 .into_iter()
                 .filter(|i| !crew.contains_key(i))
@@ -299,23 +311,22 @@ impl<E: Client> super::State<E> {
     }
 }
 
-/// Not dead crew of vehicles on which `explosion` (a shell one) is, with whether the shell
-/// penetrates their vehicle (`penetration_force` superior or equal to vehicle
-/// `penetration_resistance`)
-fn vehicles_hit_crew(
+/// Vehicles on which `explosion` (a shell one) is, with whether the shell penetrates them
+/// (`penetration_force` superior or equal to vehicle `penetration_resistance`)
+fn vehicles_hit(
     world: &World,
     mod_: &Mod,
     explosion: &Explosion,
     position: WorldVec2,
     origin: ExplosionOrigin,
-) -> FxHashMap<IndividualIndex, bool> {
+) -> FxHashMap<oc_vehicle::VehicleIndex, bool> {
     if !matches!(origin, ExplosionOrigin::Shell(_)) {
         return FxHashMap::default();
     }
 
     let w = &world.w;
     let tolerance = VEHICLE_CHASSIS_HIT_TOLERANCE.pixels(w);
-    let hit: FxHashMap<oc_vehicle::VehicleIndex, bool> = world
+    world
         .vehicles()
         .iter()
         .enumerate()
@@ -330,7 +341,14 @@ fn vehicles_hit_crew(
                     )
                 })
         })
-        .collect();
+        .collect()
+}
+
+/// Not dead crew of `hit` vehicles, with whether their vehicle is penetrated
+fn vehicles_crew(
+    world: &World,
+    hit: &FxHashMap<oc_vehicle::VehicleIndex, bool>,
+) -> FxHashMap<IndividualIndex, bool> {
     if hit.is_empty() {
         return FxHashMap::default();
     }

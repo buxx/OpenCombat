@@ -42,6 +42,8 @@ pub struct Vehicle {
     pub aim_progress: f32,
     /// Shells stored in the vehicle: count by shell type
     pub shells: Vec<(ShellIndex, u32)>,
+    /// Vehicle destroyed
+    pub destroyed: bool,
 }
 
 #[oc_derive::archivable]
@@ -57,6 +59,7 @@ pub enum Update {
     SetReloadProgress(f32),
     SetAimProgress(f32),
     SetShells(Vec<(ShellIndex, u32)>),
+    SetDestroyed(bool),
 }
 
 impl Vehicle {
@@ -83,6 +86,7 @@ impl Vehicle {
             reload_progress: LOADED,
             aim_progress: 0.,
             shells: vec![],
+            destroyed: false,
         }
     }
 
@@ -112,6 +116,16 @@ impl Vehicle {
             Update::SetReloadProgress(progress) => self.reload_progress = *progress,
             Update::SetAimProgress(progress) => self.aim_progress = *progress,
             Update::SetShells(shells) => self.shells = shells.clone(),
+            Update::SetDestroyed(destroyed) => {
+                self.destroyed = *destroyed;
+                if *destroyed {
+                    // Destroyed vehicle stops moving and rotating
+                    self.forces = vec![];
+                    self.destination = None;
+                    self.chassis_target = None;
+                    self.turret_target = None;
+                }
+            }
         }
     }
 
@@ -350,6 +364,29 @@ mod tests {
         assert!(vehicle.chassis_contains(&type_, &w, WorldVec2::new(x + 1.9 * ppm, y), 0.));
         assert!(!vehicle.chassis_contains(&type_, &w, WorldVec2::new(x, y + 1.9 * ppm), 0.));
         assert!(vehicle.chassis_contains(&type_, &w, WorldVec2::new(x, y + 1.9 * ppm), ppm));
+    }
+
+    #[test]
+    fn destroyed_stops_vehicle() {
+        // Given: moving and rotating vehicle
+        let mut vehicle = vehicle();
+        vehicle.forces = vec![Force::Translation(
+            WorldVec3::new(0., 1., 0.),
+            MetersSeconds(2.),
+        )];
+        vehicle.destination = Some(WorldVec2::new(10., 50.));
+        vehicle.chassis_target = Some(Direction::EST);
+        vehicle.turret_target = Some(Direction::EST);
+
+        // When
+        vehicle.apply(&Update::SetDestroyed(true));
+
+        // Then
+        assert!(vehicle.destroyed);
+        assert!(vehicle.forces.is_empty());
+        assert_eq!(vehicle.destination, None);
+        assert_eq!(vehicle.chassis_target, None);
+        assert_eq!(vehicle.turret_target, None);
     }
 
     #[test]

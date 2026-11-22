@@ -761,14 +761,25 @@ mod test {
             TestCase::TankChassisVisible => vehicles.iter().any(|(i, visibility)| {
                 i.0 == VehicleIndex(0) && *visibility == Visibility::Visible
             }),
+            // Crew killed and tank destroyed (penetrated)
             TestCase::TankCrewKilledByExplosion | TestCase::TankCrewKilledByTank => {
                 VH_CREW.iter().all(|i| {
                     world
                         .individual(IndividualIndex(*i))
                         .is_some_and(|individual| individual.status.is_dead())
-                })
+                }) && world
+                    .vehicle(VehicleIndex(0))
+                    .is_some_and(|vehicle| vehicle.destroyed)
             }
             TestCase::TankCrewStunnedByExplosion | TestCase::TankCrewStunnedByTank => {
+                if world
+                    .vehicle(VehicleIndex(0))
+                    .is_some_and(|vehicle| vehicle.destroyed)
+                {
+                    eprintln!("❌ FAILED ! Tank is destroyed ({:?})", args.0.case);
+                    commands.write_message(bevy::app::AppExit::from_code(1));
+                    return;
+                }
                 match crew_stun_duration(&world, speed) {
                     CrewStun::Pending => false,
                     CrewStun::Recovered(duration) => {
