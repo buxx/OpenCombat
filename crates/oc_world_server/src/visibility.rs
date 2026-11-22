@@ -6,6 +6,7 @@ use oc_root::side::{BySide, Side};
 use oc_root::{WcfgFrom, WorldConfig, opacity::CumulatedOpacity};
 use oc_utils::index::AtIndex;
 use oc_utils::{d2::Xy, polygon::Polygon};
+use oc_vehicle::VehicleIndex;
 use oc_world::{World, visibility::Visibility};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
@@ -23,8 +24,8 @@ impl<'a> Processor<'a> {
     pub fn compute(&self) -> Vec<(IndividualIndex, IndividualIndex, Visibility)> {
         let a = self.index.side_individuals(Side::A);
         let b = self.index.side_individuals(Side::B);
-        let mut visibilities = self.compute_for(a, b);
-        visibilities.extend(self.compute_for(b, a));
+        let mut visibilities = self.compute_individuals_for(a, b);
+        visibilities.extend(self.compute_individuals_for(b, a));
         visibilities
     }
 
@@ -44,7 +45,7 @@ impl<'a> Processor<'a> {
 
     /// Visibilities of given watchers on given targets. Computing by chunks of watchers, with
     /// world locks released between chunks, avoids to block writers during the whole computation.
-    pub fn compute_for(
+    pub fn compute_individuals_for(
         &self,
         watchers: &[IndividualIndex],
         targets: &[IndividualIndex],
@@ -117,6 +118,86 @@ impl<'a> Processor<'a> {
             .flat_map_iter(|i1| targets.iter().filter_map(|i2| compute_pair(i1, i2)))
             .collect::<Vec<_>>()
     }
+
+    /// Visibilities of given watchers on opposite side vehicles. A vehicle is visible when one of
+    /// its chassis sight points is.
+    pub fn compute_vehicles_for(
+        &self,
+        watchers: &[IndividualIndex],
+    ) -> Vec<(IndividualIndex, VehicleIndex, Visibility)> {
+        let vehicles = self.vehicles_sights();
+        if vehicles.is_empty() {
+            return vec![];
+        }
+
+        // Watchers are independent: compute them in parallel, keeping order
+        watchers
+            .par_iter()
+            .flat_map_iter(|i1| self.watcher_vehicles_visibilities(*i1, &vehicles))
+            .collect::<Vec<_>>()
+    }
+
+    /// Chassis sight points of all world vehicles (computed once for all watchers)
+    fn vehicles_sights(&self) -> Vec<VehicleSight> {
+        let (w, mod_) = (&self.world.w, &self.world.mod_);
+        self.world
+            .vehicles()
+            .iter()
+            .enumerate()
+            .map(|(i, vehicle)| VehicleSight {
+                i: VehicleIndex(i as u64),
+                side: vehicle.side,
+                points: vehicle.chassis_sight_points(w, mod_),
+            })
+            .collect()
+    }
+
+    /// Visibilities of given watcher on opposite side vehicles
+    fn watcher_vehicles_visibilities(
+        &self,
+        i1: IndividualIndex,
+        vehicles: &[VehicleSight],
+    ) -> Vec<(IndividualIndex, VehicleIndex, Visibility)> {
+        let watcher = self.world.individual(i1);
+        if !watcher.can_lov() {
+            return vec![];
+        }
+        let from = watcher
+            .position
+            .add_z(watcher.gesture.body.weapon_z().pixels(&self.world.w));
+
+        vehicles
+            .iter()
+            .filter(|vehicle| vehicle.side != watcher.side)
+            .map(|vehicle| {
+                let visibility = self.chassis_visibility(from, &vehicle.points);
+                tracing::trace!(name = "visibility-processor-compute-vehicle", i1=?i1, i2=?vehicle.i, visible=visibility.visible);
+                (i1, vehicle.i, visibility)
+            })
+            .collect()
+    }
+
+    /// Visibility of the most visible chassis point from given position
+    fn chassis_visibility(
+        &self,
+        from: oc_root::geo::WorldVec3,
+        points: &[oc_root::geo::WorldVec3],
+    ) -> Visibility {
+        let (w, mod_) = (&self.world.w, &self.world.mod_);
+        let at = |xy, z| path_objects_at(w, mod_, self.world, xy, z);
+        points
+            .iter()
+            .map(|to| visibility(w, at, from, *to, Modifier::None(true)))
+            .min_by(|a, b| a.opacity.0.total_cmp(&b.opacity.0))
+            .unwrap_or_default()
+    }
+}
+
+/// Vehicle points to test for its visibility
+struct VehicleSight {
+    i: VehicleIndex,
+    side: Side,
+    points: Vec<oc_root::geo::WorldVec3>,
 }
 
 pub fn visibility<I: IntoIterator<Item = oc_lov::Step>>(
@@ -259,7 +340,8 @@ mod tests {
         }
         let indexes = Indexes::new(&world, &w);
 
-        let visibilities = Processor::new(&world, &indexes).compute_for(&[WATCHER], &[TARGET]);
+        let visibilities =
+            Processor::new(&world, &indexes).compute_individuals_for(&[WATCHER], &[TARGET]);
 
         let (_, _, visibility) = visibilities
             .into_iter()
@@ -294,7 +376,8 @@ mod tests {
             .for_each(|s| *s = oc_utils::percent::Percent::FULL);
         let indexes = Indexes::new(&world, &w);
 
-        let visibilities = Processor::new(&world, &indexes).compute_for(&[WATCHER], &[TARGET]);
+        let visibilities =
+            Processor::new(&world, &indexes).compute_individuals_for(&[WATCHER], &[TARGET]);
 
         let (_, _, visibility) = visibilities.into_iter().next().expect("Pair computed");
         assert!(!visibility.visible);

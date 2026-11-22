@@ -34,8 +34,7 @@ pub struct VehicleIndex(pub oc_vehicle::VehicleIndex);
 #[derive(Debug, Component)]
 pub struct VehicleTurret;
 
-// FIXME BS NOW: chassis must be the tested thing for visibility
-/// Own side vehicles are always visible. Opposite side ones are visible if one of their crew is.
+/// Own side vehicles are always visible. Opposite side ones are visible if their chassis is.
 pub fn visibility(
     identity: &Identity,
     i: oc_vehicle::VehicleIndex,
@@ -43,10 +42,7 @@ pub fn visibility(
     world: &World,
     all: bool,
 ) -> Visibility {
-    match all
-        || identity.side == vehicle.side
-        || world.vehicle_crew(i).into_iter().any(|i| world.visible(i))
-    {
+    match all || identity.side == vehicle.side || world.vehicle_visible(i) {
         true => Visibility::Visible,
         false => Visibility::Hidden,
     }

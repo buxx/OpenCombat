@@ -1,5 +1,6 @@
 use oc_utils::index::AtIndex;
 use oc_utils::percent::Percent;
+use oc_vehicle::VehicleIndex;
 use std::time::{Duration, Instant};
 
 use crate::projectile;
@@ -47,9 +48,13 @@ pub enum Update {
     InsertProjectile(Projectile),
     RemoveProjectile(ProjectileId),
     UpdateIndividual(IndividualIndex, oc_individual::Update),
-    UpdateVisibilities(Vec<(IndividualIndex, IndividualIndex, Visibility)>),
+    /// Visibilities on opposite individuals and vehicles
+    UpdateVisibilities(
+        Vec<(IndividualIndex, IndividualIndex, Visibility)>,
+        Vec<(IndividualIndex, VehicleIndex, Visibility)>,
+    ),
     UpdateSquad(SquadIndex, oc_individual::squad::Update),
-    UpdateVehicle(oc_vehicle::VehicleIndex, oc_vehicle::Update),
+    UpdateVehicle(VehicleIndex, oc_vehicle::Update),
     SetBattlePhase(BattlePhase),
     UpdateFlags(Flags),
     UpdateMorale(Morale),
@@ -153,7 +158,9 @@ pub fn update<E: Client>(ctx: &Context<E>, update: Update) {
             }
             state.update_individual(i, update)
         }
-        Update::UpdateVisibilities(visibilities) => state.update_visibilities(visibilities),
+        Update::UpdateVisibilities(individuals, vehicles) => {
+            state.update_visibilities(individuals, vehicles)
+        }
         Update::UpdateSquad(i, update) => state.update_squad(i, update),
         Update::UpdateVehicle(i, update) => state.update_vehicle(i, update),
         Update::SetBattlePhase(phase) => state.set_battle_phase(phase),
@@ -294,7 +301,7 @@ impl<E: Client> super::State<E> {
 
     fn update_vehicle(
         &self,
-        i: oc_vehicle::VehicleIndex,
+        i: VehicleIndex,
         update: oc_vehicle::Update,
     ) -> Vec<(Listening, Vec<ToClient>)> {
         let (outputs, effects) = {
@@ -318,7 +325,8 @@ impl<E: Client> super::State<E> {
 
     fn update_visibilities(
         &self,
-        visibilities: Vec<(IndividualIndex, IndividualIndex, Visibility)>,
+        individuals: Vec<(IndividualIndex, IndividualIndex, Visibility)>,
+        vehicles: Vec<(IndividualIndex, VehicleIndex, Visibility)>,
     ) -> Vec<(Listening, Vec<ToClient>)> {
         // Be sure to release world write lock
         let visibilities = {
@@ -326,35 +334,42 @@ impl<E: Client> super::State<E> {
             let count = world.individuals().len();
             world.visibilities = Visibilities::empty(count);
 
-            for (i1, i2, visibility) in visibilities.clone() {
+            for (i1, i2, visibility) in individuals.clone() {
                 *world.visibilities.at_mut(i1).at_mut(i2) = visibility;
             }
-            visibilities
+            individuals
         };
 
-        self.emit_visibilities(visibilities)
+        self.emit_visibilities(visibilities, vehicles)
     }
 
     /// Distribute visibilities according to side
     fn emit_visibilities(
         &self,
-        visibilities: Vec<(IndividualIndex, IndividualIndex, Visibility)>,
+        individuals: Vec<(IndividualIndex, IndividualIndex, Visibility)>,
+        vehicles: Vec<(IndividualIndex, VehicleIndex, Visibility)>,
     ) -> Vec<(Listening, Vec<ToClient>)> {
         let world = self.world();
         let count = world.individuals().len(); // Prepare memory for more than side individuals in favor of cpu performance
         let mut sides = BySide::from_fn(|_| Vec::with_capacity(count));
+        let mut sides_vehicles = BySide::from_fn(|_| Vec::with_capacity(vehicles.len()));
 
-        for (i1, i2, visibility) in visibilities {
+        for (i1, i2, visibility) in individuals {
             let watcher = world.individual(i1);
             sides[watcher.side].push((i1, i2, visibility));
+        }
+        for (i1, i2, visibility) in vehicles {
+            let watcher = world.individual(i1);
+            sides_vehicles[watcher.side].push((i1, i2, visibility));
         }
 
         sides
             .into_iter()
-            .map(|(side, visibilities)| {
+            .zip(sides_vehicles)
+            .map(|((side, visibilities), (_, vehicles))| {
                 (
                     Listening::Side(side),
-                    vec![ToClient::UpdateVisibilities(visibilities)],
+                    vec![ToClient::UpdateVisibilities(visibilities, vehicles)],
                 )
             })
             .collect()

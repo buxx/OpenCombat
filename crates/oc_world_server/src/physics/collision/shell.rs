@@ -14,7 +14,14 @@ impl<'x, E: Client> Processor<'x, E> {
         let Some(Projectile::Shell(shell)) = world.projectile(&projectile) else {
             return None;
         };
-        let explosion = self.ctx.state._mod().shell(shell.shell).inner().clone().into();
+        let explosion = self
+            .ctx
+            .state
+            ._mod()
+            .shell(shell.shell)
+            .inner()
+            .clone()
+            .into();
         let position = WorldVec2::from(shell.position);
         tracing::debug!(name="physics-collision-shell", projectile=?projectile, position=?position);
 

@@ -163,9 +163,9 @@ pub fn on_to_client(
             tracing::trace!(name="ingame-input-fx", fx=?fx);
             commands.trigger(FxEvent(fx.clone()));
         }
-        ToClient::UpdateVisibilities(visibilities) => {
+        ToClient::UpdateVisibilities(visibilities, vehicles) => {
             tracing::trace!(name = "ingame-input-visibilities");
-            commands.trigger(UpdateVisibilities(visibilities.clone()));
+            commands.trigger(UpdateVisibilities(visibilities.clone(), vehicles.clone()));
         }
         ToClient::SetBattlePhase(phase) => {
             tracing::trace!(name = "ingame-input-set-battle-phase");

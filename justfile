@@ -149,6 +149,7 @@ test-e2e speed="" jobs="4":
         test-vehicles-tank-fire
         test-vehicles-tank-projectiles
         test-vehicles-tank-projectile-hit-object
+        test-vehicles-tank-chassis-visible
         test-interiors-enter
         test-interiors-out
         test-interiors-outside-explosion-protected
@@ -357,6 +358,9 @@ test-vehicles-tank-projectiles:
 
 test-vehicles-tank-projectile-hit-object:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-projectile-hit-object --test
+
+test-vehicles-tank-chassis-visible:
+    RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-chassis-visible --test
 
 test-interiors-enter:
     RUST_LOG=ERROR cargo run --bin oc_example --features test,debug -- interiors enter --test

@@ -9,7 +9,9 @@ use crate::{
 
 #[derive(Debug, Clone, Default)]
 pub struct Visibilities {
-    pub visible: Vec<oc_individual::IndividualIndex>,
+    pub individuals: Vec<oc_individual::IndividualIndex>,
+    /// Visible opposite vehicles
+    pub vehicles: Vec<oc_vehicle::VehicleIndex>,
     #[cfg(feature = "debug")]
     pub all: Vec<(
         oc_individual::IndividualIndex,
@@ -25,18 +27,28 @@ impl Visibilities {
             oc_individual::IndividualIndex,
             oc_world::visibility::Visibility,
         )],
+        vehicles: &[(
+            oc_individual::IndividualIndex,
+            oc_vehicle::VehicleIndex,
+            oc_world::visibility::Visibility,
+        )],
     ) -> Self {
-        let visible = visibilities
+        let individuals = visibilities
+            .iter()
+            .filter_map(|(_, i2, v)| v.visible.then_some(*i2))
+            .collect::<Vec<_>>();
+        let vehicles = vehicles
             .iter()
             .filter_map(|(_, i2, v)| v.visible.then_some(*i2))
             .collect::<Vec<_>>();
 
         #[cfg(not(feature = "debug"))]
-        return Self { visible };
+        return Self { visible, vehicles };
 
         #[cfg(feature = "debug")]
         return Self {
-            visible,
+            individuals,
+            vehicles,
             all: visibilities.to_vec(),
         };
     }
@@ -47,7 +59,7 @@ pub fn on_update_visibilities(
     mut commands: Commands,
     mut world: ResMut<crate::world::World>,
 ) {
-    world.visibilities = Visibilities::from_visibilities(&event.0);
+    world.visibilities = Visibilities::from_visibilities(&event.0, &event.1);
     commands.trigger(VisibilitiesUpdated);
 }
 

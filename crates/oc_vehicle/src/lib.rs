@@ -177,6 +177,29 @@ impl Vehicle {
 
         position
     }
+
+    // WARNING: AI generated
+    /// Chassis points an opposite individual can see: chassis center and corners (considering
+    /// chassis orientation). Seeing one of them is seeing the vehicle.
+    pub fn chassis_sight_points(&self, w: &WorldConfig, mod_: &Mod) -> Vec<WorldVec3> {
+        let type_ = mod_.vehicle(self.type_);
+        let (width, length) = type_.size;
+        let (half_width, half_length) = (width.pixels(w) / 2., length.pixels(w) / 2.);
+        let z = self.position.z + type_.height.pixels(w) / 2.;
+        let forward = Vec2::new(self.chassis_direction.x, self.chassis_direction.y)
+            .try_normalize()
+            .unwrap_or(Vec2::new(Direction::NORTH.x, Direction::NORTH.y));
+        let lateral = forward.perp();
+        let center = Vec2::new(self.position.x, self.position.y);
+
+        [(0., 0.), (1., 1.), (1., -1.), (-1., 1.), (-1., -1.)]
+            .into_iter()
+            .map(|(f, l)| {
+                let point = center + forward * (f * half_length) + lateral * (l * half_width);
+                WorldVec3::new(point.x, point.y, z)
+            })
+            .collect()
+    }
 }
 
 impl Physic for Vehicle {

@@ -230,7 +230,7 @@ pub fn visibility(
     match all
         || identity.side == individual.side
         || individual.is_always_visible()
-        || world.visible(i)
+        || world.individual_visible(i)
     {
         true => Visibility::Visible,
         false => Visibility::Hidden,
@@ -574,7 +574,10 @@ fn on_set_position_event(
     state: Res<EntityMapping<oc_individual::IndividualIndex>>,
     mut world: ResMut<crate::world::World>,
     g: Res<GameConfig>,
-    mut markers: Query<(&mut Transform, &crate::ingame::behavior::DirectionSquadOrder)>,
+    mut markers: Query<(
+        &mut Transform,
+        &crate::ingame::behavior::DirectionSquadOrder,
+    )>,
 ) {
     let_some!(entity = state.get(&position.0), return);
     let_ok!(mut position_ = query.get_mut(*entity), return);
@@ -588,7 +591,8 @@ fn on_set_position_event(
     // Squad order markers must NOT be despawned/respawned here: embarked individuals receive a
     // position at each vehicle move, which would destroy a squad order marker being dragged.
     let_some!(g = &g.0, return);
-    let_some!((squad_i, squad) = world.individual_squad(position.0), return);
+    let squad = world.individual_squad(position.0);
+    let_some!((squad_i, squad) = squad, return);
     if squad.leader() != position.0 {
         return;
     }

@@ -123,7 +123,7 @@ fn opposite_squad_points(
         let visible = squad
             .members
             .iter()
-            .any(|i| world.operational(*i) && (see_all || world.visible(*i)));
+            .any(|i| world.operational(*i) && (see_all || world.individual_visible(*i)));
         if visible {
             let_some!(leader = world.individual(squad.leader()), continue);
             points.push((leader.position.into(), SQUAD_MARKER_COLOR_OPPOSITE));

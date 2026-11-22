@@ -67,6 +67,11 @@ const TP_OVER: ([f32; 2], f32) = ([150., TP_FROM_Y], 15.);
 // Fired projectile hit wall
 const TPHO_START: [f32; 2] = [32.5, 250.];
 const TPHO_TARGET: [f32; 2] = [32.5, 30.];
+// Tank chassis visible: meadow1 BrickWall square covers x 15..50, y 60..95 (pixels). Watcher stands
+// south of it. Enemy tank (facing est) stands north of it: its position (and its crew) is hidden by
+// the walls, but its chassis rear end (x 38.75..71.25) exceeds the walls east side.
+const TCV_WATCHER: [f32; 2] = [32.5, 150.];
+const TCV_TANK: [f32; 2] = [55., 50.];
 /// Obstacle tiles nature
 #[cfg(feature = "test")]
 const BRICKWALL: &str = "BrickWall";
@@ -91,6 +96,7 @@ enum TestCase {
     TankFire,
     TankProjectiles,
     TankProjectileHitObject,
+    TankChassisVisible,
     DrawTanks,
 }
 
@@ -288,6 +294,13 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
             ])
             .with_shells(1),
         ],
+        // Enemy tank behind the BrickWall square, its chassis exceeding the walls
+        TestCase::TankChassisVisible => vec![TankSetup::new(
+            Side::B,
+            TCV_TANK,
+            Direction::EST,
+            Some(Direction::EST),
+        )],
         TestCase::TankProjectiles => vec![TankSetup::new(
             Side::A,
             TP_TANK,
@@ -318,7 +331,7 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
             TankSetup::new(Side::A, [250., 250.], diagonal, Some(Direction::WEST)),
             // Without turret
             TankSetup::new(Side::A, [300., 250.], Direction::SOUTH, None),
-            // Enemy: visible when its crew is visible
+            // Enemy: visible when its chassis is visible
             TankSetup::new(Side::B, [225., 190.], Direction::SOUTH, Some(diagonal)),
         ],
     }
@@ -339,13 +352,18 @@ fn crews(w: &WorldConfig, tiles: &[Tile], tanks: &[TankSetup]) -> Vec<oc_individ
     individuals
 }
 
-/// Not embarked individuals (each in its own squad, without orders)
+/// Not embarked individuals, enemies or watchers (each in its own squad, without orders)
 fn enemies(w: &WorldConfig, tiles: &[Tile], args: &Args) -> Vec<oc_individual::Individual> {
     match args.case {
         TestCase::TankMoveDuringTarget => vec![utils::soldier(
             w,
             Side::B,
             utils::on_ground(w, tiles, TMDT_ENEMY.into()),
+        )],
+        TestCase::TankChassisVisible => vec![utils::soldier(
+            w,
+            Side::A,
+            utils::on_ground(w, tiles, TCV_WATCHER.into()),
         )],
         TestCase::TankMoveForward
         | TestCase::TankMoveRotation
@@ -386,7 +404,9 @@ fn squads(
         TestCase::TankProjectileHitObject => {
             crew_squads(individuals, vec![Order::Suppress(TPHO_TARGET.into())])
         }
-        TestCase::TankProjectiles | TestCase::DrawTanks => crew_squads(individuals, vec![]),
+        TestCase::TankProjectiles | TestCase::TankChassisVisible | TestCase::DrawTanks => {
+            crew_squads(individuals, vec![])
+        }
     }
 }
 
@@ -470,6 +490,7 @@ fn projectiles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, args: &Args) -> Vec<
         | TestCase::TankTarget
         | TestCase::TankFire
         | TestCase::TankProjectileHitObject
+        | TestCase::TankChassisVisible
         | TestCase::DrawTanks => vec![],
     }
 }
@@ -535,6 +556,7 @@ mod test {
         args: Res<Args_>,
         w: Res<Wcfg>,
         world: Res<World>,
+        vehicles: Query<(&oc_battle_gui::ingame::vehicle::VehicleIndex, &Visibility)>,
     ) {
         let_some!(w = &w.0, return);
         static SUCCESS_SINCE: Mutex<Option<Instant>> = Mutex::new(None);
@@ -551,6 +573,8 @@ mod test {
             TestCase::TankProjectileHitObject => Duration::from_secs(30),
             // Let projectiles cross the tank (~3s at Weapon1 velocity)
             TestCase::TankProjectiles => Duration::from_secs(6),
+            // Let visibilities be computed
+            TestCase::TankChassisVisible => Duration::from_secs(10),
             TestCase::DrawTanks => Duration::from_secs(5),
         };
         let timeout = timeout.div_f32(speed).max(Duration::from_secs(5));
@@ -577,6 +601,10 @@ mod test {
             TestCase::TankProjectileHitObject => {
                 TANK_FIRE_OBSTACLE_EXPLOSION.load(std::sync::atomic::Ordering::Relaxed)
             }
+            // Enemy tank rendered visible (by its chassis, its position and crew being hidden)
+            TestCase::TankChassisVisible => vehicles.iter().any(|(i, visibility)| {
+                i.0 == VehicleIndex(0) && *visibility == Visibility::Visible
+            }),
             TestCase::DrawTanks => true,
             // Checked after app exit, from server tracker (see `check_tracker`)
             TestCase::TankProjectiles => false,
@@ -683,6 +711,7 @@ mod test {
             | TestCase::TankMoveDuringTarget
             | TestCase::TankTarget
             | TestCase::TankFire
+            | TestCase::TankChassisVisible
             | TestCase::DrawTanks => {}
         }
     }

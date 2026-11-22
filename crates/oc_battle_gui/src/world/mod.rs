@@ -66,6 +66,11 @@ pub struct UpdateVisibilities(
         IndividualIndex,
         oc_world::visibility::Visibility,
     )>,
+    pub  Vec<(
+        IndividualIndex,
+        oc_vehicle::VehicleIndex,
+        oc_world::visibility::Visibility,
+    )>,
 );
 
 #[derive(Debug, Event)]
@@ -367,7 +372,7 @@ impl World {
     pub fn engageable(&self, i: IndividualIndex, side: oc_root::side::Side) -> bool {
         self.individual(i)
             .is_some_and(|individual| individual.side == side && individual.status.is_target())
-            && self.visible(i)
+            && self.individual_visible(i)
     }
 
     /// Closest engageable individual of `side` within `radius` of `point`
@@ -497,8 +502,12 @@ impl World {
             .is_some_and(|individual| individual.status == oc_individual::Status::Operational)
     }
 
-    pub fn visible(&self, i: IndividualIndex) -> bool {
-        self.visibilities.visible.contains(&i)
+    pub fn individual_visible(&self, i: IndividualIndex) -> bool {
+        self.visibilities.individuals.contains(&i)
+    }
+
+    pub fn vehicle_visible(&self, i: oc_vehicle::VehicleIndex) -> bool {
+        self.visibilities.vehicles.contains(&i)
     }
 }
 

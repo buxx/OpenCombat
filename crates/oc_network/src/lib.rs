@@ -21,6 +21,7 @@ use oc_root::{
     static_::StaticSource,
 };
 use oc_utils::percent::Percent;
+use oc_vehicle::VehicleIndex;
 use oc_world::{
     crater::Crater,
     decor::Decor,
@@ -50,7 +51,11 @@ pub enum ToClient {
     Craters(WorldRegionIndex, Vec<Crater>),
     Smoke(WorldRegionIndex, Vec<(WorldTileIndex, Percent)>),
     Fx(Fx),
-    UpdateVisibilities(Vec<(IndividualIndex, IndividualIndex, Visibility)>),
+    /// Side individuals visibilities on opposite individuals, and on opposite vehicles
+    UpdateVisibilities(
+        Vec<(IndividualIndex, IndividualIndex, Visibility)>,
+        Vec<(IndividualIndex, VehicleIndex, Visibility)>,
+    ),
     SetBattlePhase(BattlePhase),
     Elapsed(std::time::Duration, std::time::Duration), // elapsed, total duration
     Flags(Flags),

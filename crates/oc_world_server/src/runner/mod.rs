@@ -292,21 +292,25 @@ impl<E: Client> Runner<E> {
 
                 // Then compute by chunks of watchers, releasing locks between chunks to let
                 // writers (individuals, physics, ...) go through
-                let mut visibilities = vec![];
+                let mut individuals = vec![];
+                let mut vehicles = vec![];
                 for (watchers, targets) in [(&side_a, &side_b), (&side_b, &side_a)] {
                     for chunk in watchers.chunks(VISIBILITIES_CHUNK) {
                         let world = &ctx.state.world();
                         let indexes = &ctx.state.indexes();
-                        visibilities.extend(
-                            crate::visibility::Processor::new(world, indexes)
-                                .compute_for(chunk, targets),
-                        );
+                        let processor = crate::visibility::Processor::new(world, indexes);
+                        individuals.extend(processor.compute_individuals_for(chunk, targets));
+                        vehicles.extend(processor.compute_vehicles_for(chunk));
                     }
                 }
-                visibilities
+                (individuals, vehicles)
             };
 
-            update::update(ctx, update::Update::UpdateVisibilities(visibilities));
+            let (individuals, vehicles) = visibilities;
+            update::update(
+                ctx,
+                update::Update::UpdateVisibilities(individuals, vehicles),
+            );
         }))
     }
 
