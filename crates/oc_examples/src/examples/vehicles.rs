@@ -64,6 +64,12 @@ const TP_NEAR: ([f32; 2], f32) = ([168., TP_FROM_Y], 6.);
 const TP_HIT: ([f32; 2], f32) = ([150., TP_FROM_Y], 6.);
 /// Cross over the chassis center, above its height: no collision
 const TP_OVER: ([f32; 2], f32) = ([150., TP_FROM_Y], 15.);
+// Fired projectile hit wall
+const TPHO_START: [f32; 2] = [32.5, 250.];
+const TPHO_TARGET: [f32; 2] = [32.5, 30.];
+/// Obstacle tiles nature
+#[cfg(feature = "test")]
+const BRICKWALL: &str = "BrickWall";
 
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
@@ -84,6 +90,7 @@ enum TestCase {
     TankTarget,
     TankFire,
     TankProjectiles,
+    TankProjectileHitObject,
     DrawTanks,
 }
 
@@ -152,6 +159,8 @@ pub fn main() -> Result<(), anyhow::Error> {
     let squads = squads(&individuals, &args);
     let vehicles = vehicles(w, &tiles, mod__, &tanks);
     let projectiles = projectiles(w, &tiles, mod__, &args);
+    #[cfg(feature = "test")]
+    let obstacles = obstacles(&tiles, mod__);
     let snapshot = SnapshotBuilder::fight(loaded.map.clone(), individuals, squads)
         .with_vehicles(vehicles)
         .build(w.clone(), mod__)?;
@@ -192,7 +201,7 @@ pub fn main() -> Result<(), anyhow::Error> {
     {
         let tracker = example.build().run()?;
         if args.test {
-            test::check_tracker(&args, &tracker.take());
+            test::check_tracker(&args, &obstacles, &tracker.take());
         }
     }
     #[cfg(not(feature = "test"))]
@@ -263,6 +272,22 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
                 ])
                 .with_shells(TF_SHELLS),
         ],
+        // Tank facing north, ordered to suppress behind the BrickWall square: shell hits the wall
+        TestCase::TankProjectileHitObject => vec![
+            TankSetup::new(
+                Side::A,
+                TPHO_START,
+                Direction::NORTH,
+                Some(Direction::NORTH),
+            )
+            .with_crew(vec![
+                CrewRole::Commander,
+                CrewRole::Driver,
+                CrewRole::Gunner,
+                CrewRole::Loader,
+            ])
+            .with_shells(1),
+        ],
         TestCase::TankProjectiles => vec![TankSetup::new(
             Side::A,
             TP_TANK,
@@ -327,8 +352,19 @@ fn enemies(w: &WorldConfig, tiles: &[Tile], args: &Args) -> Vec<oc_individual::I
         | TestCase::TankTarget
         | TestCase::TankFire
         | TestCase::TankProjectiles
+        | TestCase::TankProjectileHitObject
         | TestCase::DrawTanks => vec![],
     }
+}
+
+#[cfg(feature = "test")]
+fn obstacles(tiles: &[Tile], mod_: &Mod) -> Vec<oc_geo::tile::WorldTileIndex> {
+    let nature = mod_.nature_index(BRICKWALL).unwrap();
+    tiles
+        .iter()
+        .filter(|tile| tile.nature == nature)
+        .map(|tile| tile.i)
+        .collect()
 }
 
 fn squads(
@@ -347,6 +383,9 @@ fn squads(
         }
         TestCase::TankTarget => crew_squads(individuals, vec![Order::Suppress(TT_TARGET.into())]),
         TestCase::TankFire => crew_squads(individuals, vec![Order::Suppress(TF_TARGET.into())]),
+        TestCase::TankProjectileHitObject => {
+            crew_squads(individuals, vec![Order::Suppress(TPHO_TARGET.into())])
+        }
         TestCase::TankProjectiles | TestCase::DrawTanks => crew_squads(individuals, vec![]),
     }
 }
@@ -430,6 +469,7 @@ fn projectiles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, args: &Args) -> Vec<
         | TestCase::TankMoveDuringTarget
         | TestCase::TankTarget
         | TestCase::TankFire
+        | TestCase::TankProjectileHitObject
         | TestCase::DrawTanks => vec![],
     }
 }
@@ -450,18 +490,25 @@ mod test {
     use oc_utils::let_some;
     use oc_vehicle::VehicleIndex;
 
+    use oc_geo::tile::WorldTileIndex;
     use oc_projectile::ProjectileId;
     use oc_world_server::{state::ObjectId, tracker::Tracker_};
 
     use crate::examples::vehicles::{TMDT_ENEMY_INDEX, TMR_TARGET};
 
-    use super::{Args, TF_TARGET, TF_TOLERANCE, TMF_TARGET, TT_TARGET, TT_TOLERANCE, TestCase};
+    use super::{
+        Args, TF_TARGET, TF_TOLERANCE, TMF_TARGET, TPHO_TARGET, TT_TARGET, TT_TOLERANCE, TestCase,
+    };
 
     /// Set when an explosion is spawned at `TF_TARGET`
     static TANK_FIRE_EXPLOSION: std::sync::atomic::AtomicBool =
         std::sync::atomic::AtomicBool::new(false);
 
-    /// Record explosion spawned at the tank fire target
+    /// Set when an explosion is spawned (anywhere but at `TPHO_TARGET`)
+    static TANK_FIRE_OBSTACLE_EXPLOSION: std::sync::atomic::AtomicBool =
+        std::sync::atomic::AtomicBool::new(false);
+
+    /// Record explosion spawned at the tank fire target (or elsewhere)
     pub fn on_fx(fx: On<oc_battle_gui::fx::FxEvent>) {
         use oc_physics::fx::{Fx, Visual};
 
@@ -471,6 +518,9 @@ mod test {
         let position: Vec2 = (*position).into();
         if position.distance(TF_TARGET.into()) <= TF_TOLERANCE {
             TANK_FIRE_EXPLOSION.store(true, std::sync::atomic::Ordering::Relaxed);
+        }
+        if position.distance(TPHO_TARGET.into()) > TF_TOLERANCE {
+            TANK_FIRE_OBSTACLE_EXPLOSION.store(true, std::sync::atomic::Ordering::Relaxed);
         }
     }
 
@@ -497,6 +547,8 @@ mod test {
             TestCase::TankTarget => Duration::from_secs(30),
             // Turret rotation (90° at 45°/s) then shell flight
             TestCase::TankFire => Duration::from_secs(30),
+            // Aim, reload, then shell flight
+            TestCase::TankProjectileHitObject => Duration::from_secs(30),
             // Let projectiles cross the tank (~3s at Weapon1 velocity)
             TestCase::TankProjectiles => Duration::from_secs(6),
             TestCase::DrawTanks => Duration::from_secs(5),
@@ -520,6 +572,11 @@ mod test {
                 })
                 .unwrap_or_default(),
             TestCase::TankFire => TANK_FIRE_EXPLOSION.load(std::sync::atomic::Ordering::Relaxed),
+            // Shell exploded (out of the target): what it hit is checked after app exit, from
+            // server tracker (see `check_tracker`)
+            TestCase::TankProjectileHitObject => {
+                TANK_FIRE_OBSTACLE_EXPLOSION.load(std::sync::atomic::Ordering::Relaxed)
+            }
             TestCase::DrawTanks => true,
             // Checked after app exit, from server tracker (see `check_tracker`)
             TestCase::TankProjectiles => false,
@@ -565,7 +622,7 @@ mod test {
     }
 
     /// Check, after app exit, expectations based on server tracker. Panic if not satisfied.
-    pub fn check_tracker(args: &Args, tracker: &Tracker_) {
+    pub fn check_tracker(args: &Args, obstacles: &[WorldTileIndex], tracker: &Tracker_) {
         match args.case {
             TestCase::TankProjectiles => {
                 let collided = |projectile: ProjectileId| {
@@ -602,6 +659,24 @@ mod test {
                     std::process::exit(1);
                 }
                 println!("✅ SUCCESS ! ({:?})", args.case);
+            }
+            TestCase::TankProjectileHitObject => {
+                // Tank shell is the only projectile: it must collide with an obstacle tile
+                let hit = tracker.physics.iter().any(|event| match event {
+                    oc_physics::Event::Collision(a, b, _) => matches!(
+                        (a, b),
+                        (ObjectId::Projectile(_), ObjectId::Tile(tile))
+                        | (ObjectId::Tile(tile), ObjectId::Projectile(_))
+                        if obstacles.contains(tile)
+                    ),
+                    _ => false,
+                });
+
+                if !hit {
+                    eprintln!("❌ FAILED ! Shell did not hit obstacle ({:?})", args.case);
+                    std::process::exit(1);
+                }
+                println!("✅ SUCCESS ! Shell hit obstacle ({:?})", args.case);
             }
             TestCase::TankMoveForward
             | TestCase::TankMoveRotation
