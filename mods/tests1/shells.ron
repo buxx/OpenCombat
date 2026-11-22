@@ -1,6 +1,7 @@
 [
   (
     name: "5/38 shell",
+    velocity: MetersSeconds(600.0),
     kill_rayon: Meters(5.0),
     stunned_rayon: Meters(15.0),
     shrapnel_rayon: Meters(25.0),
@@ -12,6 +13,7 @@
   ),
   (
     name: "Stun only (no shrapnel)",
+    velocity: MetersSeconds(600.0),
     kill_rayon: Meters(1.0),
     stunned_rayon: Meters(15.0),
     shrapnel_rayon: Meters(0.0),
@@ -23,6 +25,7 @@
   ),
   (
     name: "Kill & Stun only (no shrapnel & 0.1 destruction force)",
+    velocity: MetersSeconds(600.0),
     kill_rayon: Meters(15.0),
     stunned_rayon: Meters(15.0),
     shrapnel_rayon: Meters(0.0),
@@ -34,6 +37,7 @@
   ),
   (
     name: "Destruction Only (10 meters)",
+    velocity: MetersSeconds(600.0),
     kill_rayon: Meters(0.0),
     stunned_rayon: Meters(0.0),
     shrapnel_rayon: Meters(0.0),
@@ -45,6 +49,7 @@
   ),
   (
     name: "Kill & Stun only (no shrapnel & 1.0 destruction force)",
+    velocity: MetersSeconds(600.0),
     kill_rayon: Meters(15.0),
     stunned_rayon: Meters(15.0),
     shrapnel_rayon: Meters(0.0),
@@ -56,6 +61,7 @@
   ),
   (
     name: "Kill & Stun only (no shrapnel & 0.0 penetration)",
+    velocity: MetersSeconds(600.0),
     kill_rayon: Meters(15.0),
     stunned_rayon: Meters(15.0),
     shrapnel_rayon: Meters(0.0),

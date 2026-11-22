@@ -35,6 +35,14 @@ const TT_START: [f32; 2] = [150., 250.];
 const TT_TARGET: [f32; 2] = [150., 150.];
 const TT_TOLERANCE: f32 = 0.01;
 
+// Target far enough (30m) to keep the tank crew out of the shell shrapnel rayon (25m)
+const TF_START: [f32; 2] = [150., 250.];
+const TF_TARGET: [f32; 2] = [150., 100.];
+/// Explosion must be spawned at this distance (pixels) of the target
+const TF_TOLERANCE: f32 = 1.;
+const TF_SHELL: &str = "5/38 shell";
+const TF_SHELLS: u32 = 10;
+
 // Tank1 chassis (6.5m x 2.7m, height 2.5m, 5 pixels per meter) facing est at `TP_TANK` covers
 // x 133.75..166.25, y 243.25..256.75 and z ground..ground+12.5 (pixels).
 const TP_TANK: [f32; 2] = [150., 250.];
@@ -64,6 +72,7 @@ enum TestCase {
     TankMoveForward,
     TankMoveRotation,
     TankTarget,
+    TankFire,
     TankProjectiles,
     DrawTanks,
 }
@@ -75,6 +84,7 @@ struct TankSetup {
     turret: Option<Direction>,
     crew: Vec<CrewRole>,
     reload_progress: f32,
+    shells: u32,
 }
 
 impl TankSetup {
@@ -86,11 +96,17 @@ impl TankSetup {
             turret,
             crew: vec![CrewRole::Driver],
             reload_progress: oc_vehicle::LOADED,
+            shells: 0,
         }
     }
 
     fn with_reload_progress(mut self, value: f32) -> Self {
         self.reload_progress = value;
+        self
+    }
+
+    fn with_shells(mut self, value: u32) -> Self {
+        self.shells = value;
         self
     }
 
@@ -152,6 +168,7 @@ pub fn main() -> Result<(), anyhow::Error> {
             #[cfg(feature = "test")]
             if args.test {
                 app.insert_resource(test::Args_(args.clone()))
+                    .add_observer(test::on_fx)
                     .add_systems(bevy::app::Update, test::end_when_success_or_timeout);
             }
             #[cfg(not(feature = "test"))]
@@ -206,6 +223,17 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
                     CrewRole::Loader,
                 ],
             ),
+        ],
+        // Tank facing est, ordered to suppress north: rotates its turret then fires
+        TestCase::TankFire => vec![
+            TankSetup::new(Side::A, TF_START, Direction::EST, Some(Direction::EST))
+                .with_crew(vec![
+                    CrewRole::Commander,
+                    CrewRole::Driver,
+                    CrewRole::Gunner,
+                    CrewRole::Loader,
+                ])
+                .with_shells(TF_SHELLS),
         ],
         TestCase::TankProjectiles => vec![TankSetup::new(
             Side::A,
@@ -270,6 +298,7 @@ fn squads(
             crew_squads(individuals, vec![Order::MoveTo(TMR_TARGET.into())])
         }
         TestCase::TankTarget => crew_squads(individuals, vec![Order::Suppress(TT_TARGET.into())]),
+        TestCase::TankFire => crew_squads(individuals, vec![Order::Suppress(TF_TARGET.into())]),
         TestCase::TankProjectiles | TestCase::DrawTanks => crew_squads(individuals, vec![]),
     }
 }
@@ -307,6 +336,7 @@ fn crew_squads(
 
 fn vehicles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, tanks: &[TankSetup]) -> Vec<Vehicle> {
     let type_ = mod_.vehicle_from_name(TANK).unwrap().index();
+    let shell = mod_.shell_from_name(TF_SHELL).unwrap().index();
 
     tanks
         .iter()
@@ -321,6 +351,7 @@ fn vehicles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, tanks: &[TankSetup]) ->
                 tank.turret,
             )
             .with_reload_progress(tank.reload_progress)
+            .with_shells(vec![(shell, tank.shells)])
         })
         .collect()
 }
@@ -344,6 +375,7 @@ fn projectiles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, args: &Args) -> Vec<
         TestCase::TankMoveForward
         | TestCase::TankMoveRotation
         | TestCase::TankTarget
+        | TestCase::TankFire
         | TestCase::DrawTanks => vec![],
     }
 }
@@ -369,7 +401,24 @@ mod test {
 
     use crate::examples::vehicles::TMR_TARGET;
 
-    use super::{Args, TMF_TARGET, TT_TARGET, TT_TOLERANCE, TestCase};
+    use super::{Args, TF_TARGET, TF_TOLERANCE, TMF_TARGET, TT_TARGET, TT_TOLERANCE, TestCase};
+
+    /// Set when an explosion is spawned at `TF_TARGET`
+    static TANK_FIRE_EXPLOSION: std::sync::atomic::AtomicBool =
+        std::sync::atomic::AtomicBool::new(false);
+
+    /// Record explosion spawned at the tank fire target
+    pub fn on_fx(fx: On<oc_battle_gui::fx::FxEvent>) {
+        use oc_physics::fx::{Fx, Visual};
+
+        let Fx::Visual(Visual::Explosion(position, _)) = &fx.0 else {
+            return;
+        };
+        let position: Vec2 = (*position).into();
+        if position.distance(TF_TARGET.into()) <= TF_TOLERANCE {
+            TANK_FIRE_EXPLOSION.store(true, std::sync::atomic::Ordering::Relaxed);
+        }
+    }
 
     #[derive(Debug, Resource)]
     pub struct Args_(pub Args);
@@ -390,6 +439,8 @@ mod test {
         let timeout = match args.0.case {
             TestCase::TankMoveForward | TestCase::TankMoveRotation => Duration::from_secs(60),
             TestCase::TankTarget => Duration::from_secs(30),
+            // Turret rotation (90° at 45°/s) then shell flight
+            TestCase::TankFire => Duration::from_secs(30),
             // Let projectiles cross the tank (~3s at Weapon1 velocity)
             TestCase::TankProjectiles => Duration::from_secs(6),
             TestCase::DrawTanks => Duration::from_secs(5),
@@ -409,6 +460,7 @@ mod test {
                         .map(|turret| turret.angle_to(&target).abs() <= TT_TOLERANCE)
                 })
                 .unwrap_or_default(),
+            TestCase::TankFire => TANK_FIRE_EXPLOSION.load(std::sync::atomic::Ordering::Relaxed),
             TestCase::DrawTanks => true,
             // Checked after app exit, from server tracker (see `check_tracker`)
             TestCase::TankProjectiles => false,
@@ -495,6 +547,7 @@ mod test {
             TestCase::TankMoveForward
             | TestCase::TankMoveRotation
             | TestCase::TankTarget
+            | TestCase::TankFire
             | TestCase::DrawTanks => {}
         }
     }

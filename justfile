@@ -145,6 +145,7 @@ test-e2e speed="" jobs="4":
         test-vehicles-tank-move-forward
         test-vehicles-tank-move-rotation
         test-vehicles-tank-target
+        test-vehicles-tank-fire
         test-vehicles-tank-projectiles
         test-interiors-enter
         test-interiors-out
@@ -342,6 +343,9 @@ test-vehicles-tank-move-rotation:
 
 test-vehicles-tank-target:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-target --test
+
+test-vehicles-tank-fire:
+    RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-fire --test
 
 test-vehicles-tank-projectiles:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-projectiles --test

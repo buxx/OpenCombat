@@ -1,6 +1,7 @@
 [
   (
     name: "5/38 shell",
+    velocity: MetersSeconds(600.0),
     kill_rayon: Meters(8.0),
     stunned_rayon: Meters(20.0),
     shrapnel_rayon: Meters(40.0),
@@ -13,6 +14,7 @@
   ),
   (
     name: "Artillery shell",
+    velocity: MetersSeconds(600.0),
     kill_rayon: Meters(4.0),
     stunned_rayon: Meters(15.0),
     shrapnel_rayon: Meters(25.0),
@@ -25,6 +27,7 @@
   ),
   (
     name: "Tank shell",
+    velocity: MetersSeconds(600.0),
     kill_rayon: Meters(2.0),
     stunned_rayon: Meters(10.0),
     shrapnel_rayon: Meters(15.0),

@@ -18,6 +18,8 @@ oc_utils::index_type! {
 // FIXME: manage multiple weapons (and so, reload per weapons)
 /// Main weapon is loaded when its reload progress reach this value
 pub const LOADED: f32 = 1.0;
+/// Main weapon is aimed when its aim progress reach this value
+pub const AIMED: f32 = 1.0;
 /// Tolerance (pixels) to consider the vehicle reached its destination
 pub const DESTINATION_TOLERANCE: f32 = 5.0;
 
@@ -36,6 +38,8 @@ pub struct Vehicle {
     pub destination: Option<WorldVec2>,
     // FIXME BS NOW: refactor U8Progress to be f32 Progress and use it.
     pub reload_progress: f32,
+    /// Gunner aiming progress (turret oriented to the target), fire when reach [`AIMED`]
+    pub aim_progress: f32,
     /// Shells stored in the vehicle: count by shell type
     pub shells: Vec<(ShellIndex, u32)>,
 }
@@ -51,6 +55,7 @@ pub enum Update {
     SetTurretTarget(Option<Direction>),
     SetDestination(Option<WorldVec2>),
     SetReloadProgress(f32),
+    SetAimProgress(f32),
     SetShells(Vec<(ShellIndex, u32)>),
 }
 
@@ -76,6 +81,7 @@ impl Vehicle {
             turret_target: None,
             destination: None,
             reload_progress: LOADED,
+            aim_progress: 0.,
             shells: vec![],
         }
     }
@@ -104,6 +110,7 @@ impl Vehicle {
             Update::SetTurretTarget(direction) => self.turret_target = *direction,
             Update::SetDestination(destination) => self.destination = *destination,
             Update::SetReloadProgress(progress) => self.reload_progress = *progress,
+            Update::SetAimProgress(progress) => self.aim_progress = *progress,
             Update::SetShells(shells) => self.shells = shells.clone(),
         }
     }
@@ -265,6 +272,7 @@ mod tests {
             chassis_rotation_speed: DegreesPerSeconds(90.),
             turret_rotation_speed: DegreesPerSeconds(45.),
             reload_duration: Seconds(4.),
+            aim_duration: Seconds(1.),
             compatible_shell: vec![],
         }
     }

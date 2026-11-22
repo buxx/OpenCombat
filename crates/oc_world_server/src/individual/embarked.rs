@@ -1,3 +1,5 @@
+use std::time::{Duration, Instant};
+
 use glam::Vec2;
 use oc_individual::{
     Individual, IndividualIndex, Update,
@@ -5,14 +7,14 @@ use oc_individual::{
     order::Order,
     squad::{Squad, SquadIndex},
 };
-use oc_mod::vehicle::CrewRole;
+use oc_mod::{shell::ShellIndex, vehicle::CrewRole};
 use oc_physics::Force;
 use oc_root::geo::{WorldVec2, WorldVec3};
 use oc_utils::d2::Direction;
-use oc_vehicle::{LOADED, Vehicle, VehicleIndex};
+use oc_vehicle::{AIMED, LOADED, Vehicle, VehicleIndex};
 
 use super::Processor;
-use crate::runner;
+use crate::runner::{self, update::ExplosionOrigin};
 
 /// Driver translates the vehicle only when chassis is oriented to its destination with this
 /// tolerance (radians). Otherwise, it rotates the chassis first.
@@ -21,6 +23,8 @@ const CHASSIS_ALIGNED_TOLERANCE: f32 = 0.05;
 const MOVE_SPEED_FACTOR: f32 = 0.7;
 /// Vehicle speed factor (of its maximum speed) when sneaking
 const SNEAK_SPEED_FACTOR: f32 = 0.5;
+/// Gunner fires only when turret is oriented to its target with this tolerance (radians)
+const TURRET_ALIGNED_TOLERANCE: f32 = 0.01;
 
 /// Crew role which must execute `order` when squad leader is in a vehicle. None when order concerns
 /// nobody in particular (idle).
@@ -151,19 +155,20 @@ impl Processor<'_> {
         self.clear_individual(individual, &mut updates, direction);
 
         let vehicle = self.world.vehicle(vehicle_i);
-        let vehicle_updates = match role {
-            CrewRole::Driver => self.drive(individual, vehicle),
-            CrewRole::Gunner => self.aim(individual, vehicle),
-            CrewRole::Loader => self.load(vehicle),
-            CrewRole::Commander | CrewRole::Operator | CrewRole::Passenger => vec![],
+        let (vehicle_updates, others) = match role {
+            CrewRole::Driver => (self.drive(individual, vehicle), vec![]),
+            CrewRole::Gunner => self.gun(individual, vehicle),
+            CrewRole::Loader => (self.load(vehicle), vec![]),
+            CrewRole::Commander | CrewRole::Operator | CrewRole::Passenger => (vec![], vec![]),
         };
-        tracing::trace!(name="individual-step-embarked", i=?self.i, vehicle=?vehicle_i, role=?role, updates=?vehicle_updates);
+        tracing::trace!(name="individual-step-embarked", i=?self.i, vehicle=?vehicle_i, role=?role, updates=?vehicle_updates, others=?others);
 
         updates.extend(
             vehicle_updates
                 .into_iter()
                 .map(|update| runner::update::Update::UpdateVehicle(vehicle_i, update)),
         );
+        updates.extend(others);
         updates
     }
 
@@ -234,30 +239,169 @@ impl Processor<'_> {
         updates
     }
 
-    /// Fire orders: rotate the turret to the target
-    fn aim(&self, individual: &Individual, vehicle: &Vehicle) -> Vec<oc_vehicle::Update> {
+    /// Fire orders: rotate the turret to the target, aim when turret is on it, then fire.
+    /// Aiming restarts when firing is no longer possible (turret moved away from target,
+    /// gun not loaded, etc).
+    fn gun(
+        &self,
+        individual: &Individual,
+        vehicle: &Vehicle,
+    ) -> (Vec<oc_vehicle::Update>, Vec<runner::update::Update>) {
+        let mut updates = self.orient_turret(individual, vehicle);
+        let mut others = vec![];
+
+        match self.fire_solution(individual, vehicle) {
+            Some((target, shell)) => match self.aim(vehicle) {
+                Ok(lag) => {
+                    let (vehicle_updates, explosion) = self.fire(vehicle, target, shell, lag);
+                    updates.extend(vehicle_updates);
+                    updates.push(oc_vehicle::Update::SetAimProgress(0.));
+                    others.push(explosion);
+                }
+                Err(progress) => updates.push(oc_vehicle::Update::SetAimProgress(progress)),
+            },
+            None => {
+                if vehicle.aim_progress != 0. {
+                    updates.push(oc_vehicle::Update::SetAimProgress(0.));
+                }
+            }
+        }
+
+        (updates, others)
+    }
+
+    // FIXME: super type Progress instead f32 (U8Progress in Progress f32)
+    /// Progress aiming during one tick. Ok when aiming is finished, with the lag (duration since
+    /// aiming finished during this tick). Err with the new progress otherwise.
+    fn aim(&self, vehicle: &Vehicle) -> Result<Duration, f32> {
+        let w = &self.world.w;
+        let type_ = self.world.mod_.vehicle(vehicle.type_);
+        let elapsed = w.individual_tick().period() * w.speed();
+        let needed = (AIMED - vehicle.aim_progress).max(0.) * type_.aim_duration.0;
+
+        match elapsed >= needed {
+            true => Ok(Duration::from_secs_f32((elapsed - needed) / w.speed())),
+            false => Err(vehicle.aim_progress + elapsed / type_.aim_duration.0),
+        }
+    }
+
+    /// Turret direction to reach the current order target
+    fn turret_target(&self, individual: &Individual, vehicle: &Vehicle) -> Option<Direction> {
+        let from: Vec2 = WorldVec2::from(vehicle.position).into();
+        let toward = |to: WorldVec2| Some(Direction::from_points2d(from, to.into()));
+        match individual.orders.first() {
+            Some(Order::Defend(direction) | Order::Hide(direction)) => Some(*direction),
+            _ => self.fire_target(individual).and_then(toward),
+        }
+    }
+
+    /// Position where the gun must fire according to the current order
+    fn fire_target(&self, individual: &Individual) -> Option<WorldVec2> {
+        match individual.orders.first() {
+            Some(Order::Engage(target)) => {
+                Some(WorldVec2::from(self.world.individual(*target).position))
+            }
+            Some(Order::Suppress(position) | Order::Grenade(position) | Order::Smoke(position)) => {
+                Some(*position)
+            }
+            Some(
+                Order::Defend(_)
+                | Order::Hide(_)
+                | Order::Idle
+                | Order::MoveTo(_)
+                | Order::MoveFastTo(_)
+                | Order::SneakTo(_),
+            )
+            | None => None,
+        }
+    }
+
+    /// Rotate the turret to the target
+    fn orient_turret(&self, individual: &Individual, vehicle: &Vehicle) -> Vec<oc_vehicle::Update> {
         if vehicle.turret_direction.is_none() {
             return vec![];
         }
 
-        let from: Vec2 = WorldVec2::from(vehicle.position).into();
-        let toward = |to: Vec2| Some(Direction::from_points2d(from, to));
-        let target = match individual.orders.first() {
-            Some(Order::Engage(target)) => {
-                toward(WorldVec2::from(self.world.individual(*target).position).into())
-            }
-            Some(Order::Suppress(position) | Order::Grenade(position) | Order::Smoke(position)) => {
-                toward((*position).into())
-            }
-            Some(Order::Defend(direction) | Order::Hide(direction)) => Some(*direction),
-            Some(Order::Idle | Order::MoveTo(_) | Order::MoveFastTo(_) | Order::SneakTo(_))
-            | None => None,
-        };
-
+        let target = self.turret_target(individual, vehicle);
         match vehicle.turret_target != target {
             true => vec![oc_vehicle::Update::SetTurretTarget(target)],
             false => vec![],
         }
+    }
+
+    /// Target position and shell to fire when the gun can fire (once aimed): fire order (suppress or
+    /// engage), turret oriented to the target, gun loaded and compatible shell available.
+    fn fire_solution(
+        &self,
+        individual: &Individual,
+        vehicle: &Vehicle,
+    ) -> Option<(WorldVec2, ShellIndex)> {
+        if !matches!(
+            individual.orders.first(),
+            Some(Order::Suppress(_) | Order::Engage(_))
+        ) {
+            return None;
+        }
+        let target = self.fire_target(individual)?;
+        let turret = vehicle.turret_direction?;
+        if !vehicle.loaded() {
+            return None;
+        }
+
+        let from: Vec2 = WorldVec2::from(vehicle.position).into();
+        let direction = Direction::from_points2d(from, target.into());
+        if turret.angle_to(&direction).abs() > TURRET_ALIGNED_TOLERANCE {
+            return None;
+        }
+
+        let type_ = self.world.mod_.vehicle(vehicle.type_);
+        let shell = vehicle
+            .shells
+            .iter()
+            .find(|(shell, count)| *count > 0 && type_.compatible_shell.contains(shell))
+            .map(|(shell, _)| *shell)?;
+
+        Some((target, shell))
+    }
+
+    /// Fire `shell` to `target`: consume the shell, empty the gun and schedule the shell explosion.
+    fn fire(
+        &self,
+        vehicle: &Vehicle,
+        target: WorldVec2,
+        shell: ShellIndex,
+        lag: Duration,
+    ) -> (Vec<oc_vehicle::Update>, runner::update::Update) {
+        let w = &self.world.w;
+        let shells = vehicle
+            .shells
+            .iter()
+            .map(|(shell_, count)| match *shell_ == shell {
+                true => (*shell_, count.saturating_sub(1)),
+                false => (*shell_, *count),
+            })
+            .collect();
+
+        let from: Vec2 = WorldVec2::from(vehicle.position).into();
+        let distance = from.distance(target.into()) / w.geo_pixels_per_meters();
+        let shell_ = self.world.mod_.shell(shell).inner();
+        let flight = Duration::from_secs_f32(distance / shell_.velocity.0).div_f32(w.speed());
+        let explosion = shell_.clone().into();
+        let explode = runner::update::Update::SpawnExplosion(
+            explosion,
+            target,
+            ExplosionOrigin::Shell(shell),
+        );
+        let at = Instant::now().checked_sub(lag).unwrap_or_else(Instant::now);
+        tracing::debug!(name="individual-step-embarked-fire", i=?self.i, target=?target, shell=?shell, flight=?flight);
+
+        (
+            vec![
+                oc_vehicle::Update::SetReloadProgress(0.),
+                oc_vehicle::Update::SetShells(shells),
+            ],
+            runner::update::Update::Schedule(at + flight, Box::new(explode)),
+        )
     }
 
     /// Loader always loads the gun when it is not loaded
@@ -598,6 +742,139 @@ mod tests {
                 Direction::NORTH
             ))))
         );
+    }
+
+    /// Tank facing north, loaded, half aimed, with 2 shells of mods/tests1 "5/38 shell"
+    /// (compatible with "Tank1"), gunner ordered to suppress `target`. mods/tests1 "Tank1" aim
+    /// duration is 2 seconds (so, a tick of one second finishes aiming).
+    fn firing_world(w: &WorldConfig, vehicle: impl FnOnce(Vehicle) -> Vehicle) -> World {
+        let mod_ = TestWorld::builder().build().make(w).mod_;
+        let shell = mod_.shell_from_name("5/38 shell").unwrap().index();
+        let mut tank = tank(w, Direction::NORTH).with_shells(vec![(shell, 2)]);
+        tank.aim_progress = 0.5;
+        let vehicle = vehicle(tank);
+        let crew = [
+            (CrewRole::Commander, vec![]),
+            (
+                CrewRole::Gunner,
+                vec![Order::Suppress(WorldVec2::new(250., 400.))],
+            ),
+        ];
+        tank_world(w, vehicle, &crew, vec![], vec![])
+    }
+
+    fn explosion_scheduled(updates: &[runner::update::Update]) -> Option<WorldVec2> {
+        updates.iter().find_map(|u| match u {
+            runner::update::Update::Schedule(_, update) => match update.as_ref() {
+                runner::update::Update::SpawnExplosion(_, position, ExplosionOrigin::Shell(_)) => {
+                    Some(*position)
+                }
+                _ => None,
+            },
+            _ => None,
+        })
+    }
+
+    fn aim_progress(updates: &[runner::update::Update]) -> Option<f32> {
+        updates.iter().find_map(|u| match u {
+            runner::update::Update::UpdateVehicle(_, oc_vehicle::Update::SetAimProgress(p)) => {
+                Some(*p)
+            }
+            _ => None,
+        })
+    }
+
+    #[test]
+    fn gunner_aims_before_firing() {
+        // Given: turret on target, aiming not started
+        let w = w();
+        let world = firing_world(&w, |mut vehicle| {
+            vehicle.aim_progress = 0.;
+            vehicle
+        });
+
+        // When: one second
+        let updates = step(&world, 1);
+
+        // Then: half aimed (2 seconds aim duration), not fired
+        assert_eq!(explosion_scheduled(&updates), None);
+        assert!((aim_progress(&updates).unwrap() - 0.5).abs() < 1e-4);
+    }
+
+    #[test]
+    fn gunner_aiming_restarts_when_turret_leaves_target() {
+        // Given: half aimed, but turret no more on target
+        let w = w();
+        let world = firing_world(&w, |mut vehicle| {
+            vehicle.turret_direction = Some(Direction::EST);
+            vehicle
+        });
+
+        // When
+        let updates = step(&world, 1);
+
+        // Then
+        assert_eq!(aim_progress(&updates), Some(0.));
+    }
+
+    #[test]
+    fn gunner_fires_when_turret_on_target() {
+        // Given
+        let w = w();
+        let world = firing_world(&w, |vehicle| vehicle);
+        let shell = world.vehicle(VEHICLE).shells[0].0;
+
+        // When
+        let updates = step(&world, 1);
+
+        // Then: explosion at target, gun emptied, aiming restarts, shell consumed
+        assert_eq!(aim_progress(&updates), Some(0.));
+        assert_eq!(
+            explosion_scheduled(&updates),
+            Some(WorldVec2::new(250., 400.))
+        );
+        assert!(updates.contains(&vehicle_update(oc_vehicle::Update::SetReloadProgress(0.))));
+        assert!(
+            updates.contains(&vehicle_update(oc_vehicle::Update::SetShells(vec![(
+                shell, 1
+            )])))
+        );
+    }
+
+    #[test]
+    fn gunner_does_not_fire_when_turret_not_on_target() {
+        let w = w();
+        let world = firing_world(&w, |mut vehicle| {
+            vehicle.turret_direction = Some(Direction::EST);
+            vehicle
+        });
+
+        let updates = step(&world, 1);
+
+        assert_eq!(explosion_scheduled(&updates), None);
+    }
+
+    #[test]
+    fn gunner_does_not_fire_when_gun_not_loaded() {
+        let w = w();
+        let world = firing_world(&w, |vehicle| vehicle.with_reload_progress(0.5));
+
+        let updates = step(&world, 1);
+
+        assert_eq!(explosion_scheduled(&updates), None);
+    }
+
+    #[test]
+    fn gunner_does_not_fire_without_shells() {
+        let w = w();
+        let world = firing_world(&w, |mut vehicle| {
+            vehicle.shells[0].1 = 0;
+            vehicle
+        });
+
+        let updates = step(&world, 1);
+
+        assert_eq!(explosion_scheduled(&updates), None);
     }
 
     #[test]

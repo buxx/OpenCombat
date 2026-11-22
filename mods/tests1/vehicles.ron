@@ -10,6 +10,7 @@
     chassis_rotation_speed: DegreesPerSeconds(30.0),
     turret_rotation_speed: DegreesPerSeconds(45.0),
     reload_duration: Seconds(6.0),
+    aim_duration: Seconds(2.0),
     compatible_shell: ["5/38 shell"],
   ),
 ]

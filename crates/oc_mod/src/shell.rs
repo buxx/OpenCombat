@@ -1,6 +1,9 @@
 use std::path::Path;
 
-use oc_root::{explosion::Explosion, physics::Meters};
+use oc_root::{
+    explosion::Explosion,
+    physics::{Meters, MetersSeconds},
+};
 
 use crate::{
     Mod,
@@ -21,6 +24,8 @@ pub type IndexedShell = Indexed<ShellIndex, Shell>;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Shell<S: ArchivedDebug = Vec<SoundIndex>> {
     pub name: String,
+    /// Shell flight speed (when fired by a gun)
+    pub velocity: MetersSeconds,
     pub kill_rayon: Meters,
     pub stunned_rayon: Meters,
     pub shrapnel_rayon: Meters,
@@ -63,6 +68,7 @@ impl ShellRaw {
         let sounds = mod_.find_sound_indexes(&self.sounds).map_err(Box::new)?;
         Ok(Shell {
             name: self.name,
+            velocity: self.velocity,
             kill_rayon: self.kill_rayon,
             stunned_rayon: self.stunned_rayon,
             shrapnel_rayon: self.shrapnel_rayon,

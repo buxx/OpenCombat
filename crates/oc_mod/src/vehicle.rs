@@ -50,6 +50,8 @@ where
     pub turret_rotation_speed: DegreesPerSeconds,
     /// Duration for the loader to load the gun
     pub reload_duration: Seconds,
+    /// Duration for the gunner to aim, once the turret is oriented to the target, before firing
+    pub aim_duration: Seconds,
     /// Shells this vehicle gun can fire
     pub compatible_shell: Vec<S>,
 }
