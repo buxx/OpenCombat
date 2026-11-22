@@ -28,7 +28,8 @@ const MAP: &str = "maps/meadow1";
 const TANK: &str = "Tank1";
 
 const TMF_START: [f32; 2] = [150., 250.];
-const TMF_TARGET: [f32; 2] = [150., 150.];
+const TMF_TARGET: [f32; 2] = [250., 250.];
+const TMR_TARGET: [f32; 2] = [150., 150.];
 
 const TT_START: [f32; 2] = [150., 250.];
 const TT_TARGET: [f32; 2] = [150., 150.];
@@ -60,7 +61,8 @@ struct Args {
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum TestCase {
-    TankMove,
+    TankMoveForward,
+    TankMoveRotation,
     TankTarget,
     TankProjectiles,
     DrawTanks,
@@ -173,7 +175,18 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
     let diagonal = Direction::new(1., 1.);
     match args.case {
         // Tank facing est, ordered to move north: rotates its chassis then moves. Gun not loaded.
-        TestCase::TankMove => vec![
+        TestCase::TankMoveForward => vec![
+            TankSetup::new(Side::A, TMF_START, Direction::EST, Some(Direction::EST))
+                .with_crew(vec![
+                    CrewRole::Commander,
+                    CrewRole::Driver,
+                    CrewRole::Gunner,
+                    CrewRole::Loader,
+                ])
+                .with_reload_progress(0.),
+        ],
+        // Tank facing est, ordered to move north: rotates its chassis then moves. Gun not loaded.
+        TestCase::TankMoveRotation => vec![
             TankSetup::new(Side::A, TMF_START, Direction::EST, Some(Direction::EST))
                 .with_crew(vec![
                     CrewRole::Commander,
@@ -249,7 +262,12 @@ fn squads(
     args: &Args,
 ) -> Vec<oc_individual::squad::Squad> {
     match args.case {
-        TestCase::TankMove => crew_squads(individuals, vec![Order::MoveTo(TMF_TARGET.into())]),
+        TestCase::TankMoveForward => {
+            crew_squads(individuals, vec![Order::MoveTo(TMF_TARGET.into())])
+        }
+        TestCase::TankMoveRotation => {
+            crew_squads(individuals, vec![Order::MoveTo(TMR_TARGET.into())])
+        }
         TestCase::TankTarget => crew_squads(individuals, vec![Order::Suppress(TT_TARGET.into())]),
         TestCase::TankProjectiles | TestCase::DrawTanks => crew_squads(individuals, vec![]),
     }
@@ -322,7 +340,10 @@ fn projectiles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, args: &Args) -> Vec<
                 })
                 .collect()
         }
-        TestCase::TankMove | TestCase::TankTarget | TestCase::DrawTanks => vec![],
+        TestCase::TankMoveForward
+        | TestCase::TankMoveRotation
+        | TestCase::TankTarget
+        | TestCase::DrawTanks => vec![],
     }
 }
 
@@ -344,6 +365,8 @@ mod test {
     use oc_projectile::ProjectileId;
     use oc_world_server::{state::ObjectId, tracker::Tracker_};
 
+    use crate::examples::vehicles::TMR_TARGET;
+
     use super::{Args, TMF_TARGET, TT_TARGET, TT_TOLERANCE, TestCase};
 
     #[derive(Debug, Resource)]
@@ -363,7 +386,7 @@ mod test {
 
         let speed = w.speed();
         let timeout = match args.0.case {
-            TestCase::TankMove => Duration::from_secs(60),
+            TestCase::TankMoveForward | TestCase::TankMoveRotation => Duration::from_secs(60),
             TestCase::TankTarget => Duration::from_secs(30),
             // Let projectiles cross the tank (~3s at Weapon1 velocity)
             TestCase::TankProjectiles => Duration::from_secs(6),
@@ -372,12 +395,22 @@ mod test {
         let timeout = timeout.div_f32(speed).max(Duration::from_secs(5));
 
         let success = match args.0.case {
-            TestCase::TankMove => world
+            TestCase::TankMoveForward => world
                 .vehicle(VehicleIndex(0))
                 .map(|vehicle| {
                     let (dx, dy) = (
                         vehicle.position.x - TMF_TARGET[0],
                         vehicle.position.y - TMF_TARGET[1],
+                    );
+                    (dx * dx + dy * dy).sqrt() <= oc_vehicle::DESTINATION_TOLERANCE
+                })
+                .unwrap_or_default(),
+            TestCase::TankMoveRotation => world
+                .vehicle(VehicleIndex(0))
+                .map(|vehicle| {
+                    let (dx, dy) = (
+                        vehicle.position.x - TMR_TARGET[0],
+                        vehicle.position.y - TMR_TARGET[1],
                     );
                     (dx * dx + dy * dy).sqrt() <= oc_vehicle::DESTINATION_TOLERANCE
                 })
@@ -456,7 +489,10 @@ mod test {
                 }
                 println!("✅ SUCCESS ! ({:?})", args.case);
             }
-            TestCase::TankMove | TestCase::TankTarget | TestCase::DrawTanks => {}
+            TestCase::TankMoveForward
+            | TestCase::TankMoveRotation
+            | TestCase::TankTarget
+            | TestCase::DrawTanks => {}
         }
     }
 }
