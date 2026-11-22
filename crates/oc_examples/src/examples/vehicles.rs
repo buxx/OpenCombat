@@ -357,6 +357,7 @@ mod test {
 
     use bevy::prelude::*;
     use oc_battle_gui::{states::Game, world::World};
+    use oc_individual::squad::SquadIndex;
     use oc_root::Wcfg;
     use oc_root::geo::WorldVec2;
     use oc_utils::d2::Direction;
@@ -396,26 +397,8 @@ mod test {
         let timeout = timeout.div_f32(speed).max(Duration::from_secs(5));
 
         let success = match args.0.case {
-            TestCase::TankMoveForward => world
-                .vehicle(VehicleIndex(0))
-                .map(|vehicle| {
-                    let (dx, dy) = (
-                        vehicle.position.x - TMF_TARGET[0],
-                        vehicle.position.y - TMF_TARGET[1],
-                    );
-                    (dx * dx + dy * dy).sqrt() <= oc_vehicle::DESTINATION_TOLERANCE
-                })
-                .unwrap_or_default(),
-            TestCase::TankMoveRotation => world
-                .vehicle(VehicleIndex(0))
-                .map(|vehicle| {
-                    let (dx, dy) = (
-                        vehicle.position.x - TMR_TARGET[0],
-                        vehicle.position.y - TMR_TARGET[1],
-                    );
-                    (dx * dx + dy * dy).sqrt() <= oc_vehicle::DESTINATION_TOLERANCE
-                })
-                .unwrap_or_default(),
+            TestCase::TankMoveForward => move_accomplished(&world, TMF_TARGET),
+            TestCase::TankMoveRotation => move_accomplished(&world, TMR_TARGET),
             TestCase::TankTarget => world
                 .vehicle(VehicleIndex(0))
                 .and_then(|vehicle| {
@@ -449,6 +432,25 @@ mod test {
             eprintln!("❌ FAILED ! Timeout reached ({:?})", args.0.case);
             commands.write_message(bevy::app::AppExit::from_code(1));
         }
+    }
+
+    /// Tank reached `target` and its move order is finished: squad and crew have no more orders
+    fn move_accomplished(world: &World, target: [f32; 2]) -> bool {
+        let reached = world
+            .vehicle(VehicleIndex(0))
+            .map(|vehicle| {
+                let position: Vec2 = WorldVec2::from(vehicle.position).into();
+                position.distance(target.into()) <= oc_vehicle::DESTINATION_TOLERANCE
+            })
+            .unwrap_or_default();
+        let_some!(squad = world.squad(SquadIndex(0)), return false);
+        let crew_without_orders = squad.members.iter().all(|member| {
+            world
+                .individual(*member)
+                .is_some_and(|individual| individual.orders.is_empty())
+        });
+
+        reached && squad.orders.is_empty() && crew_without_orders
     }
 
     /// Check, after app exit, expectations based on server tracker. Panic if not satisfied.

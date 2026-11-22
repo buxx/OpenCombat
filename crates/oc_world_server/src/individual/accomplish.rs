@@ -84,7 +84,13 @@ impl Processor<'_> {
                 updates = Some(self.accomplished_updates(direction));
             }
             Order::MoveTo(position) | Order::MoveFastTo(position) | Order::SneakTo(position) => {
-                if position.almost_equal(individual.position, POSITION_TOLERANCE) {
+                // Vehicle stops when near its destination (see `oc_vehicle::Vehicle::want_stop`):
+                // its crew must consider the move accomplished with the same tolerance.
+                let tolerance = match individual.embarked {
+                    Some(_) => oc_vehicle::DESTINATION_TOLERANCE,
+                    None => POSITION_TOLERANCE,
+                };
+                if position.almost_equal(individual.position, tolerance) {
                     tracing::trace!(name = "individual-step-accomplished-move-to-finished", i = ?self.i);
                     updates = Some(self.accomplished_updates(direction));
                 }

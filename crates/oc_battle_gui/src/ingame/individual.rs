@@ -623,11 +623,19 @@ fn on_accomplished_event(
     accomplished: On<AccomplishedEvent>,
     mut query: Query<&mut Orders>,
     state: Res<EntityMapping<oc_individual::IndividualIndex>>,
+    mut world: ResMut<crate::world::World>,
     mut commands: Commands,
 ) {
     let_some!(entity = state.get(&accomplished.0), return);
     let_ok!(mut orders = query.get_mut(*entity), return);
     tracing::trace!(name = "update-individual-accomplished", i=?accomplished.0);
+
+    // World individual orders must stay in sync with component ones
+    if let Some(individual) = world.get_individual_mut(accomplished.0)
+        && !individual.orders.is_empty()
+    {
+        individual.orders.remove(0);
+    }
 
     if !orders.0.is_empty() {
         let order = orders.0.remove(0);

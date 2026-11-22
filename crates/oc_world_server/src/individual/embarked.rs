@@ -546,6 +546,35 @@ mod tests {
     }
 
     #[test]
+    fn driver_accomplishes_squad_move_order_when_vehicle_stopped_near_destination() {
+        // Given: vehicle stopped near (within its destination tolerance, but farther than the
+        // individual position tolerance) the squad move order position
+        let w = w();
+        let order = Order::MoveTo(WorldVec2::new(
+            250.,
+            250. + oc_vehicle::DESTINATION_TOLERANCE - 0.5,
+        ));
+        let crew = [
+            (CrewRole::Commander, vec![]),
+            (CrewRole::Driver, vec![order.clone()]),
+        ];
+        let world = tank_world(&w, tank(&w, Direction::NORTH), &crew, vec![order], vec![]);
+
+        // When
+        let updates = step(&world, 1);
+
+        // Then: individual and squad orders are finished
+        assert!(updates.contains(&runner::update::Update::UpdateIndividual(
+            IndividualIndex(1),
+            Update::Accomplished,
+        )));
+        assert!(updates.contains(&runner::update::Update::UpdateSquad(
+            SquadIndex(0),
+            oc_individual::squad::Update::SetOrders(vec![]),
+        )));
+    }
+
+    #[test]
     fn gunner_rotates_turret_to_engaged_target() {
         // Given: turret facing est, enemy at north
         let w = w();
