@@ -250,6 +250,7 @@ impl Mod {
             turret_rotation_speed: raw.turret_rotation_speed,
             reload_duration: raw.reload_duration,
             aim_duration: raw.aim_duration,
+            penetration_resistance: raw.penetration_resistance,
         })
     }
 

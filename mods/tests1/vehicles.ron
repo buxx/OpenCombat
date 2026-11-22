@@ -11,6 +11,22 @@
     turret_rotation_speed: DegreesPerSeconds(45.0),
     reload_duration: Seconds(6.0),
     aim_duration: Seconds(2.0),
+    penetration_resistance: 1.5,
+    compatible_shell: ["5/38 shell"],
+  ),
+  // Same as Tank1, but its chassis is penetrated by "5/38 shell" (penetration force 1.0)
+  (
+    name: "LightTank1",
+    row: 0,
+    crew: [Commander, Gunner, Driver, Loader, Operator],
+    size: (Meters(2.7), Meters(6.5)),
+    height: Meters(2.5),
+    speed: MetersSeconds(5.0),
+    chassis_rotation_speed: DegreesPerSeconds(30.0),
+    turret_rotation_speed: DegreesPerSeconds(45.0),
+    reload_duration: Seconds(6.0),
+    aim_duration: Seconds(2.0),
+    penetration_resistance: 1.0,
     compatible_shell: ["5/38 shell"],
   ),
 ]

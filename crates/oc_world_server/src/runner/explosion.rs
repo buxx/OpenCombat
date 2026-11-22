@@ -21,7 +21,7 @@ use oc_world::crater::Crater;
 use oc_world::interior::Interior;
 use oc_world::smoke::SmokeCloud;
 use oc_world::tile::AlteredTile;
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use super::update::{ExplosionOrigin, Update};
 use crate::individual::death::die;
@@ -46,6 +46,11 @@ const SMOKE_EDGE_OPACITY: Percent = Percent(43);
 /// Suppress value added to survivors in the explosion suppress rayon
 const EXPLOSION_SUPPRESS_INCREASE: u8 = 75;
 
+/// Tolerance to consider hit point in chassis. Required because projectile collision by oc_physics stop
+/// and consider hit point just before the object (here chassis).
+const VEHICLE_CHASSIS_HIT_TOLERANCE: Meters = Meters(0.5);
+
+// FIXME: dynamic count
 /// Number of crater sprites available per crater type in the crater sprites
 const CRATER_SPRITES_COUNT: usize = 5;
 
@@ -100,6 +105,30 @@ impl<E: Client> super::State<E> {
 
             let mut killed = FxHashSet::default();
             let mut updates = vec![];
+
+            // Crew of vehicles hit by a shell (explosion on their chassis): killed if the shell
+            // penetrates the chassis, else stunned.
+            let crew = vehicles_hit_crew(&world, mod_, &explosion, position, origin);
+            for (i, penetrated) in &crew {
+                match penetrated {
+                    true => {
+                        killed.insert(*i);
+                        #[cfg(feature = "battle_instrument")]
+                        crate::battle_log::kill(&world, *i, crate::battle_log::Cause::Explosion);
+                        updates.extend(die(&world, mod_, *i));
+                    }
+                    false => updates.push(Update::UpdateIndividual(
+                        *i,
+                        IndividualUpdate::SetStatus(Status::Stunned(
+                            w.vehicle_crew_stunned_value(),
+                        )),
+                    )),
+                }
+            }
+            let individuals: Vec<IndividualIndex> = individuals
+                .into_iter()
+                .filter(|i| !crew.contains_key(i))
+                .collect();
 
             // Individuals in kill rayon die, unless protected by an interior
             for i in &individuals {
@@ -268,6 +297,55 @@ impl<E: Client> super::State<E> {
 
         vec![(Listening::Regions(vec![region]), messages)]
     }
+}
+
+/// Not dead crew of vehicles on which `explosion` (a shell one) is, with whether the shell
+/// penetrates their vehicle (`penetration_force` superior or equal to vehicle
+/// `penetration_resistance`)
+fn vehicles_hit_crew(
+    world: &World,
+    mod_: &Mod,
+    explosion: &Explosion,
+    position: WorldVec2,
+    origin: ExplosionOrigin,
+) -> FxHashMap<IndividualIndex, bool> {
+    if !matches!(origin, ExplosionOrigin::Shell(_)) {
+        return FxHashMap::default();
+    }
+
+    let w = &world.w;
+    let tolerance = VEHICLE_CHASSIS_HIT_TOLERANCE.pixels(w);
+    let hit: FxHashMap<oc_vehicle::VehicleIndex, bool> = world
+        .vehicles()
+        .iter()
+        .enumerate()
+        .filter_map(|(i, vehicle)| {
+            let type_ = mod_.vehicle(vehicle.type_);
+            vehicle
+                .chassis_contains(type_, w, position, tolerance)
+                .then(|| {
+                    (
+                        oc_vehicle::VehicleIndex(i as u64),
+                        explosion.penetration_force >= type_.penetration_resistance,
+                    )
+                })
+        })
+        .collect();
+    if hit.is_empty() {
+        return FxHashMap::default();
+    }
+
+    world
+        .individuals()
+        .iter()
+        .enumerate()
+        .filter(|(_, individual)| !matches!(individual.status, Status::Dead))
+        .filter_map(|(i, individual)| {
+            let (vehicle, _) = individual.embarked?;
+            hit.get(&vehicle)
+                .map(|penetrated| (IndividualIndex(i as u64), *penetrated))
+        })
+        .collect()
 }
 
 fn destructed_tiles(

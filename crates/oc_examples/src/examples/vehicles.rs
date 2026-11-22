@@ -26,6 +26,8 @@ use tests::squad::TestSquad;
 const MOD: &str = "mods/tests1";
 const MAP: &str = "maps/meadow1";
 const TANK: &str = "Tank1";
+/// Same as `TANK`, but penetrated by `TF_SHELL`
+const LIGHT_TANK: &str = "LightTank1";
 
 const TMF_START: [f32; 2] = [150., 250.];
 const TMF_TARGET: [f32; 2] = [250., 250.];
@@ -38,16 +40,19 @@ const TMDT_TARGET: [f32; 2] = [150., 50.];
 // 40m from the tank path
 const TMDT_ENEMY: [f32; 2] = [350., 250.];
 /// Enemy index: after the tank crew (commander, driver, gunner, loader)
+#[cfg(feature = "test")]
 const TMDT_ENEMY_INDEX: u64 = 4;
 
 const TT_START: [f32; 2] = [150., 250.];
 const TT_TARGET: [f32; 2] = [150., 150.];
+#[cfg(feature = "test")]
 const TT_TOLERANCE: f32 = 0.01;
 
 // Target far enough (30m) to keep the tank crew out of the shell shrapnel rayon (25m)
 const TF_START: [f32; 2] = [150., 250.];
 const TF_TARGET: [f32; 2] = [150., 100.];
 /// Explosion must be spawned at this distance (pixels) of the target
+#[cfg(feature = "test")]
 const TF_TOLERANCE: f32 = 1.;
 const TF_SHELL: &str = "5/38 shell";
 const TF_SHELLS: u32 = 10;
@@ -72,6 +77,22 @@ const TPHO_TARGET: [f32; 2] = [32.5, 30.];
 // the walls, but its chassis rear end (x 38.75..71.25) exceeds the walls east side.
 const TCV_WATCHER: [f32; 2] = [32.5, 150.];
 const TCV_TANK: [f32; 2] = [55., 50.];
+// Tank crew stunned/killed: a `TF_SHELL` (penetration force 1.0) explodes on the chassis of a
+// tank. `TANK` resists to the penetration (crew is stunned), `LIGHT_TANK` does not (crew is killed).
+// "By explosion": explosion is directly spawned on the chassis of a lone tank (at `VH_TANK`).
+// "By tank": attacker tank (side B, at `VH_ATTACKER`, 30m south of the target tank) is ordered to
+// fire one shell on the target tank: shell explodes on the target chassis south side.
+const VH_TANK: [f32; 2] = [150., 100.];
+const VH_ATTACKER: [f32; 2] = [150., 250.];
+/// Target tank crew (commander, driver, gunner, loader) indexes: target tank is the first one
+#[cfg(feature = "test")]
+const VH_CREW: [u64; 4] = [0, 1, 2, 3];
+/// Expected crew stun duration (game seconds) when the shell does not penetrate the chassis
+#[cfg(feature = "test")]
+const VH_STUN_DURATION: f32 = 30.;
+/// Tolerance (game seconds) on stun duration (individual tick is one second)
+#[cfg(feature = "test")]
+const VH_STUN_TOLERANCE: f32 = 3.;
 /// Obstacle tiles nature
 #[cfg(feature = "test")]
 const BRICKWALL: &str = "BrickWall";
@@ -97,10 +118,15 @@ enum TestCase {
     TankProjectiles,
     TankProjectileHitObject,
     TankChassisVisible,
+    TankCrewStunnedByExplosion,
+    TankCrewKilledByExplosion,
+    TankCrewStunnedByTank,
+    TankCrewKilledByTank,
     DrawTanks,
 }
 
 struct TankSetup {
+    type_: &'static str,
     side: Side,
     position: WorldVec2,
     chassis: Direction,
@@ -108,11 +134,14 @@ struct TankSetup {
     crew: Vec<CrewRole>,
     reload_progress: f32,
     shells: u32,
+    /// Crew squad receives the case orders
+    ordered: bool,
 }
 
 impl TankSetup {
     fn new(side: Side, position: [f32; 2], chassis: Direction, turret: Option<Direction>) -> Self {
         Self {
+            type_: TANK,
             side,
             position: WorldVec2::new(position[0], position[1]),
             chassis,
@@ -120,7 +149,18 @@ impl TankSetup {
             crew: vec![CrewRole::Driver],
             reload_progress: oc_vehicle::LOADED,
             shells: 0,
+            ordered: true,
         }
+    }
+
+    fn with_type(mut self, value: &'static str) -> Self {
+        self.type_ = value;
+        self
+    }
+
+    fn without_orders(mut self) -> Self {
+        self.ordered = false;
+        self
     }
 
     fn with_reload_progress(mut self, value: f32) -> Self {
@@ -142,6 +182,7 @@ impl TankSetup {
 // FIXME BS NOW : tests and code to implement:
 // - projectile collision with vehicle (all chassis surface, when oriented too)
 // - Tank destruction (penetration) and weak parts
+//    ---> FIXME: add random with more or less around penetration score to permit luck)
 // - Tank fire/reload/ammunitions (with chassis/turret direction)
 // - Tank chassis visible (when crew hidden position)
 // - Tank move during "natural" target (chassis must move, gunner mst adjust turrent direction):
@@ -152,19 +193,29 @@ pub fn main() -> Result<(), anyhow::Error> {
     let args = Args::parse_from(crate::args());
 
     utils::ensure_test_feature(args.test);
+    #[cfg(not(feature = "debug"))]
+    if !explosions(&args).is_empty() {
+        anyhow::bail!("{:?} case requires the `debug` feature", args.case);
+    }
 
     let mod_ = PathBuf::from(MOD);
     let map = PathBuf::from(MAP);
     let loaded = Loaded::new(&mod_, &map)?;
-    let (w, mod__) = (&loaded.w, &loaded.mod_);
+    let w = &world_config(loaded.w.clone(), &args);
+    let mod__ = &loaded.mod_;
     let tiles = loaded.tiles(w)?;
 
     let tanks = tanks(&args);
     let mut individuals = crews(w, &tiles, &tanks);
     individuals.extend(enemies(w, &tiles, &args));
-    let squads = squads(&individuals, &args);
+    let squads = squads(&individuals, &tanks, &args);
     let vehicles = vehicles(w, &tiles, mod__, &tanks);
     let projectiles = projectiles(w, &tiles, mod__, &args);
+    #[cfg(feature = "debug")]
+    let (explosions, shell) = (
+        explosions(&args),
+        mod__.shell_from_name(TF_SHELL).unwrap().index(),
+    );
     #[cfg(feature = "test")]
     let obstacles = obstacles(&tiles, mod__);
     let snapshot = SnapshotBuilder::fight(loaded.map.clone(), individuals, squads)
@@ -192,6 +243,20 @@ pub fn main() -> Result<(), anyhow::Error> {
                 );
             }
 
+            #[cfg(feature = "debug")]
+            if !explosions.is_empty() {
+                let explosions = explosions.clone();
+                app.add_observer(
+                    move |_: bevy::prelude::On<FirstIngameEnter>,
+                          mut commands: bevy::prelude::Commands| {
+                        for position in explosions.clone() {
+                            let explosion = ToServer::DebugExplosion(shell, position);
+                            commands.trigger(ToServerEvent(explosion));
+                        }
+                    },
+                );
+            }
+
             #[cfg(feature = "test")]
             if args.test {
                 app.insert_resource(test::Args_(args.clone()))
@@ -214,6 +279,26 @@ pub fn main() -> Result<(), anyhow::Error> {
     example.build().run()?;
 
     Ok(())
+}
+
+fn world_config(w: WorldConfig, args: &Args) -> WorldConfig {
+    match args.case {
+        // Target tank crew is the whole side A: once stunned, side A morale is zero. Prevent battle
+        // end by morale, else the battle ends before the stun ends.
+        TestCase::TankCrewStunnedByTank => w.with_morale_end_threshold(0.),
+        TestCase::TankMoveForward
+        | TestCase::TankMoveRotation
+        | TestCase::TankMoveDuringTarget
+        | TestCase::TankTarget
+        | TestCase::TankFire
+        | TestCase::TankProjectiles
+        | TestCase::TankProjectileHitObject
+        | TestCase::TankChassisVisible
+        | TestCase::TankCrewStunnedByExplosion
+        | TestCase::TankCrewKilledByExplosion
+        | TestCase::TankCrewKilledByTank
+        | TestCase::DrawTanks => w,
+    }
 }
 
 fn tanks(args: &Args) -> Vec<TankSetup> {
@@ -301,6 +386,12 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
             Direction::EST,
             Some(Direction::EST),
         )],
+        // Lone tank, a shell explodes on its chassis
+        TestCase::TankCrewStunnedByExplosion => vec![shelled_tank(TANK)],
+        TestCase::TankCrewKilledByExplosion => vec![shelled_tank(LIGHT_TANK)],
+        // Target tank first, then the attacker
+        TestCase::TankCrewStunnedByTank => vec![shelled_tank(TANK), attacker_tank()],
+        TestCase::TankCrewKilledByTank => vec![shelled_tank(LIGHT_TANK), attacker_tank()],
         TestCase::TankProjectiles => vec![TankSetup::new(
             Side::A,
             TP_TANK,
@@ -337,6 +428,36 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
     }
 }
 
+/// Target tank of `type_` with full crew, without shells nor orders: a shell explodes on its chassis
+fn shelled_tank(type_: &'static str) -> TankSetup {
+    TankSetup::new(Side::A, VH_TANK, Direction::EST, Some(Direction::EST))
+        .with_type(type_)
+        .with_crew(vec![
+            CrewRole::Commander,
+            CrewRole::Driver,
+            CrewRole::Gunner,
+            CrewRole::Loader,
+        ])
+        .without_orders()
+}
+
+/// Enemy tank, facing the target tank, with one shell to fire on it
+fn attacker_tank() -> TankSetup {
+    TankSetup::new(
+        Side::B,
+        VH_ATTACKER,
+        Direction::NORTH,
+        Some(Direction::NORTH),
+    )
+    .with_crew(vec![
+        CrewRole::Commander,
+        CrewRole::Driver,
+        CrewRole::Gunner,
+        CrewRole::Loader,
+    ])
+    .with_shells(1)
+}
+
 fn crews(w: &WorldConfig, tiles: &[Tile], tanks: &[TankSetup]) -> Vec<oc_individual::Individual> {
     let mut individuals = vec![];
 
@@ -371,6 +492,10 @@ fn enemies(w: &WorldConfig, tiles: &[Tile], args: &Args) -> Vec<oc_individual::I
         | TestCase::TankFire
         | TestCase::TankProjectiles
         | TestCase::TankProjectileHitObject
+        | TestCase::TankCrewStunnedByExplosion
+        | TestCase::TankCrewKilledByExplosion
+        | TestCase::TankCrewStunnedByTank
+        | TestCase::TankCrewKilledByTank
         | TestCase::DrawTanks => vec![],
     }
 }
@@ -387,31 +512,31 @@ fn obstacles(tiles: &[Tile], mod_: &Mod) -> Vec<oc_geo::tile::WorldTileIndex> {
 
 fn squads(
     individuals: &[oc_individual::Individual],
+    tanks: &[TankSetup],
     args: &Args,
 ) -> Vec<oc_individual::squad::Squad> {
+    let crew_squads = |orders| crew_squads(individuals, tanks, orders);
     match args.case {
-        TestCase::TankMoveForward => {
-            crew_squads(individuals, vec![Order::MoveTo(TMF_TARGET.into())])
+        TestCase::TankMoveForward => crew_squads(vec![Order::MoveTo(TMF_TARGET.into())]),
+        TestCase::TankMoveRotation => crew_squads(vec![Order::MoveTo(TMR_TARGET.into())]),
+        TestCase::TankMoveDuringTarget => crew_squads(vec![Order::MoveTo(TMDT_TARGET.into())]),
+        TestCase::TankTarget => crew_squads(vec![Order::Suppress(TT_TARGET.into())]),
+        TestCase::TankFire => crew_squads(vec![Order::Suppress(TF_TARGET.into())]),
+        TestCase::TankProjectileHitObject => crew_squads(vec![Order::Suppress(TPHO_TARGET.into())]),
+        TestCase::TankCrewStunnedByTank | TestCase::TankCrewKilledByTank => {
+            crew_squads(vec![Order::Suppress(VH_TANK.into())])
         }
-        TestCase::TankMoveRotation => {
-            crew_squads(individuals, vec![Order::MoveTo(TMR_TARGET.into())])
-        }
-        TestCase::TankMoveDuringTarget => {
-            crew_squads(individuals, vec![Order::MoveTo(TMDT_TARGET.into())])
-        }
-        TestCase::TankTarget => crew_squads(individuals, vec![Order::Suppress(TT_TARGET.into())]),
-        TestCase::TankFire => crew_squads(individuals, vec![Order::Suppress(TF_TARGET.into())]),
-        TestCase::TankProjectileHitObject => {
-            crew_squads(individuals, vec![Order::Suppress(TPHO_TARGET.into())])
-        }
-        TestCase::TankProjectiles | TestCase::TankChassisVisible | TestCase::DrawTanks => {
-            crew_squads(individuals, vec![])
-        }
+        TestCase::TankProjectiles
+        | TestCase::TankChassisVisible
+        | TestCase::TankCrewStunnedByExplosion
+        | TestCase::TankCrewKilledByExplosion
+        | TestCase::DrawTanks => crew_squads(vec![]),
     }
 }
 
 fn crew_squads(
     individuals: &[oc_individual::Individual],
+    tanks: &[TankSetup],
     orders: Vec<Order>,
 ) -> Vec<oc_individual::squad::Squad> {
     let mut squads: Vec<(Option<VehicleIndex>, Vec<IndividualIndex>)> = vec![];
@@ -426,14 +551,14 @@ fn crew_squads(
         }
     }
 
-    // Only vehicle crews receive `orders`
+    // Only (ordered) vehicle crews receive `orders`
     squads
         .into_iter()
         .map(|(vehicle, members)| {
             let leader = &individuals[members[0].0 as usize];
             let orders = match vehicle {
-                Some(_) => orders.clone(),
-                None => vec![],
+                Some(vehicle) if tanks[vehicle.0 as usize].ordered => orders.clone(),
+                _ => vec![],
             };
             TestSquad::builder()
                 .side(leader.side)
@@ -447,7 +572,6 @@ fn crew_squads(
 }
 
 fn vehicles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, tanks: &[TankSetup]) -> Vec<Vehicle> {
-    let type_ = mod_.vehicle_from_name(TANK).unwrap().index();
     let shell = mod_.shell_from_name(TF_SHELL).unwrap().index();
 
     tanks
@@ -455,7 +579,7 @@ fn vehicles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, tanks: &[TankSetup]) ->
         .map(|tank| {
             Vehicle::new(
                 tank.side,
-                type_,
+                mod_.vehicle_from_name(tank.type_).unwrap().index(),
                 oc_mod::illustration::IllustrationIndex(0),
                 utils::on_ground(w, tiles, tank.position),
                 vec![],
@@ -491,6 +615,30 @@ fn projectiles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, args: &Args) -> Vec<
         | TestCase::TankFire
         | TestCase::TankProjectileHitObject
         | TestCase::TankChassisVisible
+        | TestCase::TankCrewStunnedByExplosion
+        | TestCase::TankCrewKilledByExplosion
+        | TestCase::TankCrewStunnedByTank
+        | TestCase::TankCrewKilledByTank
+        | TestCase::DrawTanks => vec![],
+    }
+}
+
+/// `TF_SHELL` explosions sent to the server at game start (requires `debug` feature)
+fn explosions(args: &Args) -> Vec<WorldVec2> {
+    match args.case {
+        TestCase::TankCrewStunnedByExplosion | TestCase::TankCrewKilledByExplosion => {
+            vec![VH_TANK.into()]
+        }
+        TestCase::TankMoveForward
+        | TestCase::TankMoveRotation
+        | TestCase::TankMoveDuringTarget
+        | TestCase::TankTarget
+        | TestCase::TankFire
+        | TestCase::TankProjectiles
+        | TestCase::TankProjectileHitObject
+        | TestCase::TankChassisVisible
+        | TestCase::TankCrewStunnedByTank
+        | TestCase::TankCrewKilledByTank
         | TestCase::DrawTanks => vec![],
     }
 }
@@ -519,6 +667,7 @@ mod test {
 
     use super::{
         Args, TF_TARGET, TF_TOLERANCE, TMF_TARGET, TPHO_TARGET, TT_TARGET, TT_TOLERANCE, TestCase,
+        VH_CREW, VH_STUN_DURATION, VH_STUN_TOLERANCE,
     };
 
     /// Set when an explosion is spawned at `TF_TARGET`
@@ -575,6 +724,13 @@ mod test {
             TestCase::TankProjectiles => Duration::from_secs(6),
             // Let visibilities be computed
             TestCase::TankChassisVisible => Duration::from_secs(10),
+            TestCase::TankCrewKilledByExplosion => Duration::from_secs(10),
+            // Aim, then shell flight
+            TestCase::TankCrewKilledByTank => Duration::from_secs(30),
+            // Stun duration
+            TestCase::TankCrewStunnedByExplosion => Duration::from_secs(60),
+            // Aim, shell flight, then stun duration
+            TestCase::TankCrewStunnedByTank => Duration::from_secs(80),
             TestCase::DrawTanks => Duration::from_secs(5),
         };
         let timeout = timeout.div_f32(speed).max(Duration::from_secs(5));
@@ -605,6 +761,35 @@ mod test {
             TestCase::TankChassisVisible => vehicles.iter().any(|(i, visibility)| {
                 i.0 == VehicleIndex(0) && *visibility == Visibility::Visible
             }),
+            TestCase::TankCrewKilledByExplosion | TestCase::TankCrewKilledByTank => {
+                VH_CREW.iter().all(|i| {
+                    world
+                        .individual(IndividualIndex(*i))
+                        .is_some_and(|individual| individual.status.is_dead())
+                })
+            }
+            TestCase::TankCrewStunnedByExplosion | TestCase::TankCrewStunnedByTank => {
+                match crew_stun_duration(&world, speed) {
+                    CrewStun::Pending => false,
+                    CrewStun::Recovered(duration) => {
+                        let ok = (duration - VH_STUN_DURATION).abs() <= VH_STUN_TOLERANCE;
+                        if !ok {
+                            eprintln!(
+                                "❌ FAILED ! Crew stunned during {duration}s, expected {VH_STUN_DURATION}s ({:?})",
+                                args.0.case
+                            );
+                            commands.write_message(bevy::app::AppExit::from_code(1));
+                            return;
+                        }
+                        true
+                    }
+                    CrewStun::Dead => {
+                        eprintln!("❌ FAILED ! Crew is dead ({:?})", args.0.case);
+                        commands.write_message(bevy::app::AppExit::from_code(1));
+                        return;
+                    }
+                }
+            }
             TestCase::DrawTanks => true,
             // Checked after app exit, from server tracker (see `check_tracker`)
             TestCase::TankProjectiles => false,
@@ -628,6 +813,58 @@ mod test {
             eprintln!("❌ FAILED ! Timeout reached ({:?})", args.0.case);
             commands.write_message(bevy::app::AppExit::from_code(1));
         }
+    }
+
+    enum CrewStun {
+        /// Crew not yet stunned, or still stunned
+        Pending,
+        /// Whole crew was stunned, then recovered after this duration (game seconds)
+        Recovered(f32),
+        /// A crew member is dead
+        Dead,
+    }
+
+    /// Follow target tank crew status: record when the whole crew is stunned, then when it is
+    /// operational again
+    fn crew_stun_duration(world: &World, speed: f32) -> CrewStun {
+        use oc_individual::Status;
+
+        static STUNNED_SINCE: Mutex<Option<Instant>> = Mutex::new(None);
+        static RECOVERED: Mutex<Option<f32>> = Mutex::new(None);
+
+        let statuses: Vec<Status> = VH_CREW
+            .iter()
+            .filter_map(|i| world.individual(IndividualIndex(*i)))
+            .map(|individual| individual.status)
+            .collect();
+        if statuses.len() != VH_CREW.len() {
+            return CrewStun::Pending;
+        }
+        if statuses.iter().any(|status| status.is_dead()) {
+            return CrewStun::Dead;
+        }
+        if let Some(duration) = *RECOVERED.lock().unwrap() {
+            return CrewStun::Recovered(duration);
+        }
+
+        let mut since = STUNNED_SINCE.lock().unwrap();
+        let stunned = statuses
+            .iter()
+            .all(|status| matches!(status, Status::Stunned(_)));
+        let operational = statuses
+            .iter()
+            .all(|status| matches!(status, Status::Operational));
+        match (*since, stunned, operational) {
+            (None, true, _) => *since = Some(Instant::now()),
+            (Some(since), _, true) => {
+                let duration = since.elapsed().as_secs_f32() * speed;
+                *RECOVERED.lock().unwrap() = Some(duration);
+                return CrewStun::Recovered(duration);
+            }
+            _ => {}
+        }
+
+        CrewStun::Pending
     }
 
     /// Tank reached `target` and its move order is finished: squad and crew have no more orders
@@ -712,6 +949,10 @@ mod test {
             | TestCase::TankTarget
             | TestCase::TankFire
             | TestCase::TankChassisVisible
+            | TestCase::TankCrewStunnedByExplosion
+            | TestCase::TankCrewKilledByExplosion
+            | TestCase::TankCrewStunnedByTank
+            | TestCase::TankCrewKilledByTank
             | TestCase::DrawTanks => {}
         }
     }

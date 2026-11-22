@@ -10,6 +10,7 @@
     turret_rotation_speed: DegreesPerSeconds(45.0),
     reload_duration: Seconds(6.0),
     aim_duration: Seconds(1.0),
+    penetration_resistance: 0.7,
     compatible_shell: ["Tank shell"],
   ),
 ]

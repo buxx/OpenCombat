@@ -126,6 +126,7 @@ fn replay_config(
         .roots(roots)
         .regions_width(REPLAY_REGIONS)
         .regions_height(REPLAY_REGIONS)
+        .see_all_enemies(see_all_enemies)
         .build())
 }
 

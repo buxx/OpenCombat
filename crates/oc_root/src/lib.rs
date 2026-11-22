@@ -177,6 +177,10 @@ pub struct WorldConfig {
     /// Stun value given to individuals caught by explosion stunned rayon
     #[getset(get_copy = "pub", set_with = "pub")]
     explosion_stunned_value: Stun,
+    /// Stun value given to vehicle crew when a shell explodes on the vehicle chassis without
+    /// penetrating it (30 seconds: decreased by `individual_tick_decrease_stunned` each second)
+    #[getset(get_copy = "pub", set_with = "pub")]
+    vehicle_crew_stunned_value: Stun,
     /// Individual with this or more suppress will hide (instead of make other things)
     #[getset(get_copy = "pub")]
     individual_suppress_limit_hide: Suppress,
@@ -268,6 +272,7 @@ impl WorldConfig {
         let individual_tick_decrease_suppress = Suppress(20);
         let individual_tick_decrease_stunned = Stun(5);
         let explosion_stunned_value = Stun(255);
+        let vehicle_crew_stunned_value = Stun(150);
         let individual_suppress_limit_hide = Suppress(200);
         let individual_hide_engage_distance = Meters(40.0);
         let individual_grenade_enemy_distance = Meters(15.0);
@@ -327,6 +332,7 @@ impl WorldConfig {
             individual_tick_decrease_suppress,
             individual_tick_decrease_stunned,
             explosion_stunned_value,
+            vehicle_crew_stunned_value,
             individual_suppress_limit_hide,
             individual_hide_engage_distance,
             individual_grenade_enemy_distance,

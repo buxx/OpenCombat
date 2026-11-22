@@ -178,6 +178,28 @@ impl Vehicle {
         position
     }
 
+    // WARNING: AT generated
+    /// Whether `point` is on the chassis footprint (considering chassis orientation),
+    /// enlarged by `tolerance` pixels on each side
+    pub fn chassis_contains(
+        &self,
+        type_: &oc_mod::vehicle::Vehicle,
+        w: &WorldConfig,
+        point: WorldVec2,
+        tolerance: f32,
+    ) -> bool {
+        let (width, length) = type_.size;
+        let (half_width, half_length) = (width.pixels(w) / 2., length.pixels(w) / 2.);
+        let forward = Vec2::new(self.chassis_direction.x, self.chassis_direction.y)
+            .try_normalize()
+            .unwrap_or(Vec2::new(Direction::NORTH.x, Direction::NORTH.y));
+        let lateral = forward.perp();
+        let to = Vec2::from(point) - Vec2::new(self.position.x, self.position.y);
+
+        to.dot(forward).abs() <= half_length + tolerance
+            && to.dot(lateral).abs() <= half_width + tolerance
+    }
+
     // WARNING: AI generated
     /// Chassis points an opposite individual can see: chassis center and corners (considering
     /// chassis orientation). Seeing one of them is seeing the vehicle.
@@ -296,6 +318,7 @@ mod tests {
             turret_rotation_speed: DegreesPerSeconds(45.),
             reload_duration: Seconds(4.),
             aim_duration: Seconds(1.),
+            penetration_resistance: 1.,
             compatible_shell: vec![],
         }
     }
@@ -310,6 +333,23 @@ mod tests {
             Direction::NORTH,
             Some(Direction::NORTH),
         )
+    }
+
+    #[test]
+    fn chassis_contains_oriented() {
+        // Given: chassis (2m x 4m) facing est, so 4m along x and 2m along y
+        let w = WorldConfig::new(100, 100);
+        let type_ = type_();
+        let mut vehicle = vehicle();
+        vehicle.chassis_direction = Direction::EST;
+        let (x, y) = (vehicle.position.x, vehicle.position.y);
+        let ppm = w.geo_pixels_per_meters();
+
+        // Then
+        assert!(vehicle.chassis_contains(&type_, &w, WorldVec2::new(x, y), 0.));
+        assert!(vehicle.chassis_contains(&type_, &w, WorldVec2::new(x + 1.9 * ppm, y), 0.));
+        assert!(!vehicle.chassis_contains(&type_, &w, WorldVec2::new(x, y + 1.9 * ppm), 0.));
+        assert!(vehicle.chassis_contains(&type_, &w, WorldVec2::new(x, y + 1.9 * ppm), ppm));
     }
 
     #[test]

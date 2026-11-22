@@ -43,7 +43,10 @@ impl Visibilities {
             .collect::<Vec<_>>();
 
         #[cfg(not(feature = "debug"))]
-        return Self { visible, vehicles };
+        return Self {
+            individuals,
+            vehicles,
+        };
 
         #[cfg(feature = "debug")]
         return Self {
