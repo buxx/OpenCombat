@@ -114,6 +114,7 @@ pub struct GameConfig {
     pub mod_: Mod,
     pub meta: Meta,
     pub static_: StaticSource,
+    pub persist: bool,
 }
 
 #[oc_derive::archivable]

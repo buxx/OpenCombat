@@ -371,6 +371,7 @@ mod tests {
             mod_,
             Meta::default(),
             oc_root::static_::StaticSource::Local,
+            true,
         );
         let resume = WorldResume {
             squads: vec![],

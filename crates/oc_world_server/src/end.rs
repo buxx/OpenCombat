@@ -8,6 +8,12 @@ pub enum EndPolicy {
     SaveMapPersistTo(PathBuf),
 }
 
+impl EndPolicy {
+    pub fn persists(&self) -> bool {
+        !matches!(self, Self::None)
+    }
+}
+
 const NONE: &str = "none";
 const SAVE_MAP_PERSIST_TO: &str = "save-map-persist-to:";
 

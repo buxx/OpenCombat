@@ -392,6 +392,7 @@ impl<E: Client> Runner<E> {
         let mod_ = self.state.world().mod_().clone();
         let meta = self.state.world().meta().clone();
         let static_ = self.config.static_.clone();
+        let persist_end = self.end.persists();
 
         let ctx = self.context();
 
@@ -402,7 +403,13 @@ impl<E: Client> Runner<E> {
                         state.listeners_mut().push(endpoint.clone());
 
                         let config =
-                            GameConfig::new(w.clone(), mod_.clone(), meta.clone(), static_.clone());
+                            GameConfig::new(
+                            w.clone(),
+                            mod_.clone(),
+                            meta.clone(),
+                            static_.clone(),
+                            persist_end,
+                        );
                         output
                             .send((endpoint.clone(), ToClient::GameConfig(Box::new(config))))
                             .unwrap(); // TODO

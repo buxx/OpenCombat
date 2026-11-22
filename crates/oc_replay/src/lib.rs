@@ -16,7 +16,7 @@ use oc_root::{
 };
 
 const MAGIC: &[u8; 5] = b"OCREC";
-const VERSION: u8 = 2;
+const VERSION: u8 = 3;
 const SIDE_A: u8 = 0;
 const SIDE_B: u8 = 1;
 const SERVER: u8 = 0;

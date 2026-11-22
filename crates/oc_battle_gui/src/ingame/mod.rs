@@ -373,8 +373,9 @@ fn on_set_battle_phase(
         BattlePhase::End => {
             // Keep end window state if battle summary was already received
             if !matches!(window.0, Some(crate::window::Window::BattleEnd(_))) {
-                // If its is a replay, no need to wait battle save
-                let resumed = replay.0.is_some();
+                // No need to wait battle save if it is a replay or if server doesn't persist it
+                let persisted = g.0.as_ref().is_none_or(|g| g.persist);
+                let resumed = replay.0.is_some() || !persisted;
                 window.0 = Some(crate::window::Window::BattleEnd(
                     crate::window::battle::end::Window { resumed },
                 ));
