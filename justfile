@@ -142,7 +142,8 @@ test-e2e speed="" jobs="4":
         test-engaging-engage-one-by-one
         test-engaging-suppress-fire
         test-height-climb
-        test-vehicles-tank-move
+        test-vehicles-tank-move-forward
+        test-vehicles-tank-move-rotation
         test-vehicles-tank-target
         test-vehicles-tank-projectiles
         test-interiors-enter
@@ -333,8 +334,11 @@ test-engaging-suppress-fire:
 test-height-climb:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- height climb --test
 
-test-vehicles-tank-move:
-    RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-move --test
+test-vehicles-tank-move-forward:
+    RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-move-forward --test
+
+test-vehicles-tank-move-rotation:
+    RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-move-rotation --test
 
 test-vehicles-tank-target:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-target --test

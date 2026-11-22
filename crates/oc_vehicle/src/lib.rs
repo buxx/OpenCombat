@@ -109,6 +109,8 @@ impl Vehicle {
     }
 
     /// Chassis and turret directions after rotating `delta` seconds toward their targets (at `type_` rotation speeds).
+    /// Turret is mounted on the chassis: it is carried by the chassis rotation, then rotates (relatively to
+    /// the chassis) toward its target.
     pub fn rotate(
         &self,
         type_: &oc_mod::vehicle::Vehicle,
@@ -120,12 +122,23 @@ impl Vehicle {
                 .rotated_toward(&target, type_.chassis_rotation_speed.radians(delta)),
             None => self.chassis_direction,
         };
-        let turret = match (self.turret_direction, self.turret_target) {
-            (Some(turret), Some(target)) => {
-                Some(turret.rotated_toward(&target, type_.turret_rotation_speed.radians(delta)))
+        let turret = self.turret_direction.map(|turret| {
+            let carried = match chassis == self.chassis_direction {
+                true => turret,
+                false => {
+                    let angle = self.chassis_direction.angle_to(&chassis);
+                    let rotation = Direction::new(angle.cos(), angle.sin());
+                    let (x, y) = rotation.rotate(turret.x, turret.y);
+                    Direction::new(x, y)
+                }
+            };
+            match self.turret_target {
+                Some(target) => {
+                    carried.rotated_toward(&target, type_.turret_rotation_speed.radians(delta))
+                }
+                None => carried,
             }
-            (turret, _) => turret,
-        };
+        });
 
         (chassis, turret)
     }
@@ -275,18 +288,52 @@ mod tests {
         vehicle.chassis_target = Some(Direction::EST);
         vehicle.turret_target = Some(Direction::EST);
 
-        // When: half a second
-        let (chassis, turret) = vehicle.rotate(&type_(), 0.5);
+        // When: a quarter of second
+        let (chassis, turret) = vehicle.rotate(&type_(), 0.25);
 
-        // Then: chassis rotated 45°, turret 22.5°
-        assert!((Direction::NORTH.angle_to(&chassis).abs() - 45f32.to_radians()).abs() < 1e-4);
+        // Then: chassis rotated 22.5°, turret carried by chassis (22.5°) plus its own 11.25°
+        assert!((Direction::NORTH.angle_to(&chassis).abs() - 22.5f32.to_radians()).abs() < 1e-4);
         let turret = turret.unwrap();
-        assert!((Direction::NORTH.angle_to(&turret).abs() - 22.5f32.to_radians()).abs() < 1e-4);
+        assert!((Direction::NORTH.angle_to(&turret).abs() - 33.75f32.to_radians()).abs() < 1e-4);
 
         // When: enough time, targets are reached
         let (chassis, turret) = vehicle.rotate(&type_(), 2.);
         assert_eq!(chassis, Direction::EST);
         assert_eq!(turret, Some(Direction::EST));
+    }
+
+    #[test]
+    fn turret_follows_chassis_rotation() {
+        // Given: turret without target, chassis must rotate to est (90°)
+        let mut vehicle = vehicle();
+        vehicle.turret_direction = Some(Direction::WEST);
+        vehicle.chassis_target = Some(Direction::EST);
+
+        // When: half a second
+        let (chassis, turret) = vehicle.rotate(&type_(), 0.5);
+
+        // Then: turret rotated as much as the chassis (45° clockwise)
+        let turret = turret.unwrap();
+        assert!((Direction::NORTH.angle_to(&chassis) + 45f32.to_radians()).abs() < 1e-4);
+        assert!((Direction::WEST.angle_to(&turret) + 45f32.to_radians()).abs() < 1e-4);
+    }
+
+    #[test]
+    fn turret_compensates_chassis_rotation_to_keep_target() {
+        // Given: turret on its target (north) while chassis rotates to est
+        let mut vehicle = vehicle();
+        vehicle.chassis_target = Some(Direction::EST);
+        vehicle.turret_target = Some(Direction::NORTH);
+        let type_ = oc_mod::vehicle::Vehicle {
+            chassis_rotation_speed: DegreesPerSeconds(30.),
+            ..type_()
+        };
+
+        // When
+        let (_, turret) = vehicle.rotate(&type_, 0.5);
+
+        // Then: turret faster than chassis, it stays on target
+        assert_eq!(turret, Some(Direction::NORTH));
     }
 
     #[test]

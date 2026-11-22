@@ -372,13 +372,13 @@ mod tests {
             tank
         });
 
-        // When: 3 seconds
+        // When: 1 second
         let updates = step(
             &world,
             &world.vehicles().with_ids(),
             &world.w,
             &world.mod_,
-            3.0,
+            1.0,
         );
 
         // Then
@@ -397,8 +397,9 @@ mod tests {
             }
         }
         let angle = |d: Direction| Direction::NORTH.angle_to(&d).abs().to_degrees();
-        assert!((angle(chassis.unwrap()) - 90.).abs() < 1e-3);
-        assert!((angle(turret.unwrap()) - 135.).abs() < 1e-3);
+        // Turret is carried by chassis rotation (30°) and rotates itself (45°)
+        assert!((angle(chassis.unwrap()) - 30.).abs() < 1e-3);
+        assert!((angle(turret.unwrap()) - 75.).abs() < 1e-3);
     }
 
     #[test]

@@ -105,6 +105,7 @@ impl TankSetup {
 // - Tank destruction (penetration) and weak parts
 // - Tank fire/reload/ammunitions (with chassis/turret direction)
 // - Tank chassis visible (when crew hidden position)
+// - Tank move during "natural" target (chassis must move, gunner mst adjust turrent direction)
 pub fn main() -> Result<(), anyhow::Error> {
     logging::setup_logging()?;
 
