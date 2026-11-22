@@ -1,6 +1,5 @@
-use std::time::{Duration, Instant};
-
-use glam::Vec2;
+use glam::{Vec2, Vec3};
+use oc_geo::tile::{TileXy, WorldTileIndex};
 use oc_individual::{
     Individual, IndividualIndex, Update,
     behavior::{Behavior, Intent},
@@ -9,12 +8,16 @@ use oc_individual::{
 };
 use oc_mod::{shell::ShellIndex, vehicle::CrewRole};
 use oc_physics::Force;
-use oc_root::geo::{WorldVec2, WorldVec3};
+use oc_projectile::Projectile;
+use oc_root::{
+    WcfgFrom,
+    geo::{WorldVec2, WorldVec3},
+};
 use oc_utils::d2::Direction;
 use oc_vehicle::{AIMED, LOADED, Vehicle, VehicleIndex};
 
 use super::Processor;
-use crate::runner::{self, update::ExplosionOrigin};
+use crate::runner;
 
 /// Driver translates the vehicle only when chassis is oriented to its destination with this
 /// tolerance (radians). Otherwise, it rotates the chassis first.
@@ -252,11 +255,11 @@ impl Processor<'_> {
 
         match self.fire_solution(individual, vehicle) {
             Some((target, shell)) => match self.aim(vehicle) {
-                Ok(lag) => {
-                    let (vehicle_updates, explosion) = self.fire(vehicle, target, shell, lag);
+                Ok(()) => {
+                    let (vehicle_updates, projectile) = self.fire(vehicle, target, shell);
                     updates.extend(vehicle_updates);
                     updates.push(oc_vehicle::Update::SetAimProgress(0.));
-                    others.push(explosion);
+                    others.push(projectile);
                 }
                 Err(progress) => updates.push(oc_vehicle::Update::SetAimProgress(progress)),
             },
@@ -271,16 +274,16 @@ impl Processor<'_> {
     }
 
     // FIXME: super type Progress instead f32 (U8Progress in Progress f32)
-    /// Progress aiming during one tick. Ok when aiming is finished, with the lag (duration since
-    /// aiming finished during this tick). Err with the new progress otherwise.
-    fn aim(&self, vehicle: &Vehicle) -> Result<Duration, f32> {
+    /// Progress aiming during one tick. Ok when aiming is finished, Err with the new progress
+    /// otherwise.
+    fn aim(&self, vehicle: &Vehicle) -> Result<(), f32> {
         let w = &self.world.w;
         let type_ = self.world.mod_.vehicle(vehicle.type_);
         let elapsed = w.individual_tick().period() * w.speed();
         let needed = (AIMED - vehicle.aim_progress).max(0.) * type_.aim_duration.0;
 
         match elapsed >= needed {
-            true => Ok(Duration::from_secs_f32((elapsed - needed) / w.speed())),
+            true => Ok(()),
             false => Err(vehicle.aim_progress + elapsed / type_.aim_duration.0),
         }
     }
@@ -364,13 +367,12 @@ impl Processor<'_> {
         Some((target, shell))
     }
 
-    /// Fire `shell` to `target`: consume the shell, empty the gun and schedule the shell explosion.
+    /// Fire `shell` to `target`: consume the shell, empty the gun and spawn the shell projectile.
     fn fire(
         &self,
         vehicle: &Vehicle,
         target: WorldVec2,
         shell: ShellIndex,
-        lag: Duration,
     ) -> (Vec<oc_vehicle::Update>, runner::update::Update) {
         let w = &self.world.w;
         let shells = vehicle
@@ -382,25 +384,35 @@ impl Processor<'_> {
             })
             .collect();
 
-        let from: Vec2 = WorldVec2::from(vehicle.position).into();
-        let distance = from.distance(target.into()) / w.geo_pixels_per_meters();
-        let shell_ = self.world.mod_.shell(shell).inner();
-        let flight = Duration::from_secs_f32(distance / shell_.velocity.0).div_f32(w.speed());
-        let explosion = shell_.clone().into();
-        let explode = runner::update::Update::SpawnExplosion(
-            explosion,
-            target,
-            ExplosionOrigin::Shell(shell),
+        let type_ = self.world.mod_.vehicle(vehicle.type_);
+        let from = WorldVec3::new(
+            vehicle.position.x,
+            vehicle.position.y,
+            vehicle.position.z + type_.height.pixels(w),
         );
-        let at = Instant::now().checked_sub(lag).unwrap_or_else(Instant::now);
-        tracing::debug!(name="individual-step-embarked-fire", i=?self.i, target=?target, shell=?shell, flight=?flight);
+        let tile = WorldTileIndex::from_(TileXy::from_(target, w), w);
+        let ground = self.world.tile(tile).map_or(0., |tile| tile.z_pixels(w));
+        let target = target.extend(ground);
+        let direction = Vec3::from(target - from).normalize_or_zero();
+        let direction = WorldVec3::new(direction.x, direction.y, direction.z);
+        let velocity = self.world.mod_.shell(shell).inner().velocity;
+        let forces = vec![Force::Translation(direction, velocity)];
+        let projectile = Projectile::Shell(oc_projectile::shell::Shell::new(
+            shell,
+            from,
+            vehicle.side,
+            forces,
+            Some(self.i),
+            w,
+        ));
+        tracing::debug!(name="individual-step-embarked-fire", i=?self.i, from=?from, target=?target, shell=?shell);
 
         (
             vec![
                 oc_vehicle::Update::SetReloadProgress(0.),
                 oc_vehicle::Update::SetShells(shells),
             ],
-            runner::update::Update::Schedule(at + flight, Box::new(explode)),
+            runner::update::Update::InsertProjectile(projectile),
         )
     }
 
@@ -763,14 +775,12 @@ mod tests {
         tank_world(w, vehicle, &crew, vec![], vec![])
     }
 
-    fn explosion_scheduled(updates: &[runner::update::Update]) -> Option<WorldVec2> {
+    /// Shell projectile spawned by `updates`
+    fn shell_fired(updates: &[runner::update::Update]) -> Option<oc_projectile::shell::Shell> {
         updates.iter().find_map(|u| match u {
-            runner::update::Update::Schedule(_, update) => match update.as_ref() {
-                runner::update::Update::SpawnExplosion(_, position, ExplosionOrigin::Shell(_)) => {
-                    Some(*position)
-                }
-                _ => None,
-            },
+            runner::update::Update::InsertProjectile(Projectile::Shell(shell)) => {
+                Some(shell.clone())
+            }
             _ => None,
         })
     }
@@ -797,7 +807,7 @@ mod tests {
         let updates = step(&world, 1);
 
         // Then: half aimed (2 seconds aim duration), not fired
-        assert_eq!(explosion_scheduled(&updates), None);
+        assert_eq!(shell_fired(&updates), None);
         assert!((aim_progress(&updates).unwrap() - 0.5).abs() < 1e-4);
     }
 
@@ -827,12 +837,19 @@ mod tests {
         // When
         let updates = step(&world, 1);
 
-        // Then: explosion at target, gun emptied, aiming restarts, shell consumed
+        // Then: shell fired from the tank toward the target, gun emptied, aiming restarts, shell
+        // consumed
         assert_eq!(aim_progress(&updates), Some(0.));
-        assert_eq!(
-            explosion_scheduled(&updates),
-            Some(WorldVec2::new(250., 400.))
-        );
+        let fired = shell_fired(&updates).unwrap();
+        let from = world.vehicle(VEHICLE).position;
+        assert_eq!(fired.shell, shell);
+        assert_eq!((fired.position.x, fired.position.y), (from.x, from.y));
+        let [Force::Translation(direction, _)] = fired.forces.as_slice() else {
+            panic!("Shell must have one translation force");
+        };
+        let expected = (Vec2::new(250., 400.) - Vec2::new(from.x, from.y)).normalize();
+        let direction = Vec2::new(direction.x, direction.y).normalize();
+        assert!(direction.distance(expected) < 1e-4);
         assert!(updates.contains(&vehicle_update(oc_vehicle::Update::SetReloadProgress(0.))));
         assert!(
             updates.contains(&vehicle_update(oc_vehicle::Update::SetShells(vec![(
@@ -851,7 +868,7 @@ mod tests {
 
         let updates = step(&world, 1);
 
-        assert_eq!(explosion_scheduled(&updates), None);
+        assert_eq!(shell_fired(&updates), None);
     }
 
     #[test]
@@ -861,7 +878,7 @@ mod tests {
 
         let updates = step(&world, 1);
 
-        assert_eq!(explosion_scheduled(&updates), None);
+        assert_eq!(shell_fired(&updates), None);
     }
 
     #[test]
@@ -874,7 +891,7 @@ mod tests {
 
         let updates = step(&world, 1);
 
-        assert_eq!(explosion_scheduled(&updates), None);
+        assert_eq!(shell_fired(&updates), None);
     }
 
     #[test]

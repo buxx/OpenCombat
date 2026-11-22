@@ -17,6 +17,7 @@ use oc_mod::{Mod, PickSound};
 use oc_network::ToClient;
 use oc_physics::fx;
 use oc_projectile::NextProjectileId;
+use oc_projectile::Projectile;
 use oc_projectile::ProjectileId;
 use oc_projectile::spawn::SpawnProjectile;
 use oc_projectile::spawn::SpawnProjectiles;
@@ -42,6 +43,8 @@ pub enum Update {
     Schedule(Instant, Box<Update>),
     SpawnProjectiles(SpawnProjectiles),
     SpawnProjectile(SpawnProjectile, bool), // bool = fx
+    /// Insert an already built projectile (like a gun shell)
+    InsertProjectile(Projectile),
     RemoveProjectile(ProjectileId),
     UpdateIndividual(IndividualIndex, oc_individual::Update),
     UpdateVisibilities(Vec<(IndividualIndex, IndividualIndex, Visibility)>),
@@ -140,6 +143,7 @@ pub fn update<E: Client>(ctx: &Context<E>, update: Update) {
         Update::Schedule(instant, update) => state.schedule(instant, *update),
         Update::SpawnProjectiles(spawns) => state.spawn_projectiles(spawns),
         Update::SpawnProjectile(spawn, fx) => state.spawn_projectile(spawn, fx),
+        Update::InsertProjectile(projectile) => state.insert_projectile(projectile, vec![]),
         Update::RemoveProjectile(i) => state.remove_projectile(i),
         Update::UpdateIndividual(i, update) => {
             #[cfg(feature = "tracker")]
@@ -408,13 +412,32 @@ impl<E: Client> super::State<E> {
         spawn: SpawnProjectile,
         fx: bool,
     ) -> Vec<(Listening, Vec<ToClient>)> {
-        let i = self._ids.next_projectile_id();
-
         let projectile = {
             let world = self.world();
             let mod_ = world.mod_();
             projectile::Builder::new(&self.w, mod_, spawn.clone()).build()
         };
+
+        let sound = fx.then(|| self._mod().pick_sound((spawn.weapon, spawn.shot)));
+        let fx = sound.flatten().map(|sound| {
+            let position = projectile.position();
+            ToClient::Fx(fx::Fx::Audio(fx::Audio::PlayWithGeo(
+                sound,
+                position,
+                fx::SoundBus::Fire,
+            )))
+        });
+
+        self.insert_projectile(projectile, fx.into_iter().collect())
+    }
+
+    /// Insert `projectile` in world and broadcast it (with `messages`) to its region listeners
+    fn insert_projectile(
+        &self,
+        projectile: Projectile,
+        messages: Vec<ToClient>,
+    ) -> Vec<(Listening, Vec<ToClient>)> {
+        let i = self._ids.next_projectile_id();
 
         // Make both insert and update index at same clock to lock at the same time
         {
@@ -428,23 +451,11 @@ impl<E: Client> super::State<E> {
 
         // Broadcast the new projectile (TODO: normalize/refactor to not call loop manually ?)
         let region: WorldRegionIndex = projectile.region();
-        let sound = fx.then(|| self._mod().pick_sound((spawn.weapon, spawn.shot)));
-        let sound = sound.flatten();
-        let position = projectile.position();
+        let insert = oc_projectile::network::Projectile::Insert(i, projectile);
+        let mut messages_ = vec![ToClient::Projectile(insert)];
+        messages_.extend(messages);
 
-        let mut messages = vec![];
-
-        let insert = oc_projectile::network::Projectile::Insert(i, projectile.clone());
-        let insert = ToClient::Projectile(insert);
-        messages.push(insert);
-
-        if let Some(sound) = sound {
-            let fx = fx::Fx::Audio(fx::Audio::PlayWithGeo(sound, position, fx::SoundBus::Fire));
-            let fx = ToClient::Fx(fx);
-            messages.push(fx);
-        }
-
-        vec![(Listening::Regions(vec![region]), messages)]
+        vec![(Listening::Regions(vec![region]), messages_)]
     }
 
     fn remove_projectile(&self, id: ProjectileId) -> Vec<(Listening, Vec<ToClient>)> {

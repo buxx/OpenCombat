@@ -11,7 +11,17 @@ use oc_physics::{Force, IgnoreSide, Physic, UpdatePhysic, collision::Material, v
 use oc_root::{WorldConfig, geo::WorldVec3, ids::Ids, material::MaterialKind};
 use oc_utils::{collections::WithIds, d2::Direction};
 
-use crate::bullet::Bullet;
+use crate::{bullet::Bullet, shell::Shell};
+
+/// Same code for each projectile kind (all kinds share the same physic fields)
+macro_rules! each {
+    ($self:expr, $p:ident => $e:expr) => {
+        match $self {
+            Projectile::Bullet($p) => $e,
+            Projectile::Shell($p) => $e,
+        }
+    };
+}
 
 // FIXME: projectiles hould have an forced life end.
 // As we don't compute la perte de vitesse et donc la chute,
@@ -19,6 +29,7 @@ use crate::bullet::Bullet;
 // ou alors on calcule la chute et le ralentissement ...
 pub mod bullet;
 pub mod network;
+pub mod shell;
 pub mod spawn;
 
 oc_utils::index_type! {
@@ -35,53 +46,44 @@ impl From<&ProjectileId> for ProjectileId {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Projectile {
     Bullet(Bullet),
+    Shell(Shell),
 }
 
 impl Projectile {
     pub fn position(&self) -> WorldVec3 {
-        match self {
-            Projectile::Bullet(bullet) => bullet.position,
-        }
+        each!(self, p => p.position)
     }
 
     pub fn tile(&self) -> WorldTileIndex {
-        match self {
-            Projectile::Bullet(bullet) => bullet.tile,
-        }
+        each!(self, p => p.tile)
+    }
+
+    pub fn origin(&self) -> WorldVec3 {
+        each!(self, p => p.origin)
     }
 
     pub fn shooter(&self) -> Option<oc_individual::IndividualIndex> {
-        match self {
-            Projectile::Bullet(bullet) => bullet.shooter,
-        }
+        each!(self, p => p.shooter)
     }
 }
 
 impl Region for Projectile {
     fn region(&self) -> WorldRegionIndex {
-        match self {
-            Projectile::Bullet(bullet) => bullet.region,
-        }
+        each!(self, p => p.region)
     }
 
     fn set_region(&mut self, value: WorldRegionIndex) {
-        match self {
-            Projectile::Bullet(bullet) => bullet.region = value,
-        }
+        each!(self, p => p.region = value)
     }
 }
 
 impl Physic for Projectile {
     fn position(&self, _: &WorldConfig) -> WorldVec3 {
-        match self {
-            Projectile::Bullet(bullet) => bullet.position,
-        }
+        each!(self, p => p.position)
     }
 
     fn forces(&self, _: &WorldConfig) -> &Vec<Force> {
-        match self {
-            Projectile::Bullet(bullet) => &bullet.forces,
-        }
+        each!(self, p => &p.forces)
     }
 
     fn volumes(
@@ -103,9 +105,7 @@ impl Physic for Projectile {
     }
 
     fn ignore_side(&self) -> IgnoreSide {
-        match self {
-            Projectile::Bullet(bullet) => IgnoreSide::Side(bullet.side),
-        }
+        each!(self, p => IgnoreSide::Side(p.side))
     }
 
     fn side(&self) -> Option<oc_root::side::Side> {
@@ -117,29 +117,21 @@ impl Physic for Projectile {
     }
 
     fn collision_ignore_origin(&self) -> Option<WorldVec3> {
-        match self {
-            Projectile::Bullet(bullet) => Some(bullet.origin),
-        }
+        each!(self, p => Some(p.origin))
     }
 }
 
 impl UpdatePhysic for Projectile {
     fn set_position(&mut self, value: WorldVec3) {
-        match self {
-            Projectile::Bullet(bullet) => bullet.position = value,
-        }
+        each!(self, p => p.position = value)
     }
 
     fn push_force(&mut self, value: Force) {
-        match self {
-            Projectile::Bullet(bullet) => bullet.forces.push(value),
-        }
+        each!(self, p => p.forces.push(value))
     }
 
     fn remove_force(&mut self, value: &Force) {
-        match self {
-            Projectile::Bullet(bullet) => bullet.forces.retain(|f| f != value),
-        }
+        each!(self, p => p.forces.retain(|f| f != value))
     }
 
     fn set_volumes(&self, _value: Vec<(Volume, Traversability)>) {
@@ -149,17 +141,13 @@ impl UpdatePhysic for Projectile {
 
 impl Geo for Projectile {
     fn tile(&self) -> WorldTileIndex {
-        match self {
-            Projectile::Bullet(bullet) => bullet.tile,
-        }
+        each!(self, p => p.tile)
     }
 }
 
 impl UpdateGeo for Projectile {
     fn set_tile(&mut self, value: WorldTileIndex) {
-        match self {
-            Projectile::Bullet(bullet) => bullet.tile = value,
-        }
+        each!(self, p => p.tile = value)
     }
 }
 

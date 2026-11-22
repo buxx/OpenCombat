@@ -29,11 +29,13 @@ impl<'x, E: Client> Processor<'x, E> {
             }
             #[cfg(feature = "battle_instrument")]
             {
-                let oc_projectile::Projectile::Bullet(bullet) = &projectile_;
                 crate::battle_log::kill(
                     &world,
                     i,
-                    crate::battle_log::Cause::Gunshot(bullet.shooter, bullet.origin.into()),
+                    crate::battle_log::Cause::Gunshot(
+                        projectile_.shooter(),
+                        projectile_.origin().into(),
+                    ),
                 );
             }
             updates.extend(die(&world, self.ctx.state._mod(), i));

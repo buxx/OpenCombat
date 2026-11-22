@@ -278,6 +278,13 @@ impl<'x, E: Client> Processor<'x, E> {
                 self.ctx.broadcast(Listening::Any, messages);
             }
 
+            if let Event::Collision(ObjectId::Projectile(id), _, _) = event
+                && let Some(updates_) = self.shell_impact(id)
+            {
+                updates.extend(updates_);
+                continue;
+            }
+
             match event {
                 Event::NoTile(id) => match id {
                     ObjectId::Individual(_) | ObjectId::Tile(_) | ObjectId::Vehicle(_) => {}
