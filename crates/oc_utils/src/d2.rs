@@ -253,9 +253,9 @@ impl Default for Direction {
 }
 
 impl Direction {
-    pub const NORTH: Self = Self::new(0., 1.);
+    pub const NORTH: Self = Self::new(0., -1.);
     pub const EST: Self = Self::new(1., 0.);
-    pub const SOUTH: Self = Self::new(0., -1.);
+    pub const SOUTH: Self = Self::new(0., 1.);
     pub const WEST: Self = Self::new(-1., 0.);
 
     pub fn from_points2d(a: Vec2, b: Vec2) -> Self {
@@ -426,12 +426,12 @@ mod tests {
         ));
         assert!(almost_equal(
             Direction::EST.angle_to(&Direction::NORTH),
-            FRAC_PI_2,
+            -FRAC_PI_2,
             1e-5
         ));
         assert!(almost_equal(
             Direction::NORTH.angle_to(&Direction::EST),
-            -FRAC_PI_2,
+            FRAC_PI_2,
             1e-5
         ));
         // Shortest way, across PI
@@ -449,12 +449,12 @@ mod tests {
 
         // Target not reachable: rotate of max
         let d = Direction::EST.rotated_toward(&Direction::NORTH, FRAC_PI_2 / 2.);
-        assert!(almost_equal(d.x, d.y, 1e-5));
+        assert!(almost_equal(d.x, -d.y, 1e-5));
         assert!(d.x > 0.);
 
         // Rotate by the shortest way
         let d = Direction::NORTH.rotated_toward(&Direction::EST, 0.1);
-        assert!(d.x > 0. && d.y > 0.);
+        assert!(d.x > 0. && d.y < 0.);
     }
     use super::*;
     use rstest::rstest;
