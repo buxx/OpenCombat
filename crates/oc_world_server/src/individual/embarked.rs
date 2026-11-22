@@ -288,35 +288,91 @@ impl Processor<'_> {
         }
     }
 
-    /// Turret direction to reach the current order target
+    /// Turret direction to reach the current target. When the vehicle moves, the direction is
+    /// computed from the position the vehicle will reach at the next tick: so turret is still on
+    /// the target when gunner checks it again.
     fn turret_target(&self, individual: &Individual, vehicle: &Vehicle) -> Option<Direction> {
-        let from: Vec2 = WorldVec2::from(vehicle.position).into();
-        let toward = |to: WorldVec2| Some(Direction::from_points2d(from, to.into()));
+        let from: Vec2 = self.next_tick_position(vehicle).into();
+        let toward = |to: WorldVec2| Direction::from_points2d(from, to.into());
         match individual.orders.first() {
-            Some(Order::Defend(direction) | Order::Hide(direction)) => Some(*direction),
-            _ => self.fire_target(individual).and_then(toward),
+            Some(Order::Hide(direction)) => Some(*direction),
+            Some(Order::Defend(direction)) => Some(
+                self.fire_target(individual, vehicle)
+                    .map_or(*direction, toward),
+            ),
+            _ => self.fire_target(individual, vehicle).map(toward),
         }
     }
 
-    /// Position where the gun must fire according to the current order
-    fn fire_target(&self, individual: &Individual) -> Option<WorldVec2> {
+    /// Vehicle position at the next individual tick, according to its translation forces
+    fn next_tick_position(&self, vehicle: &Vehicle) -> WorldVec2 {
+        let w = &self.world.w;
+        let elapsed = w.individual_tick().period() * w.speed();
+        let position: Vec2 = WorldVec2::from(vehicle.position).into();
+        let position = vehicle
+            .forces
+            .iter()
+            .fold(position, |position, force| match force {
+                Force::Translation(direction, speed) => {
+                    let pixels = speed.0 * elapsed * w.geo_pixels_per_meters();
+                    position + Vec2::new(direction.x, direction.y) * pixels
+                }
+            });
+        WorldVec2::new(position.x, position.y)
+    }
+
+    /// Position where the gun must fire: the current order target or, when the order doesn't
+    /// concern fire (move, defend, idle), the natural target (see `natural_target`)
+    fn fire_target(&self, individual: &Individual, vehicle: &Vehicle) -> Option<WorldVec2> {
+        let position = |i: IndividualIndex| WorldVec2::from(self.world.individual(i).position);
         match individual.orders.first() {
-            Some(Order::Engage(target)) => {
-                Some(WorldVec2::from(self.world.individual(*target).position))
-            }
+            Some(Order::Engage(target)) => Some(position(*target)),
             Some(Order::Suppress(position) | Order::Grenade(position) | Order::Smoke(position)) => {
                 Some(*position)
             }
+            Some(Order::Hide(_)) => None,
             Some(
                 Order::Defend(_)
-                | Order::Hide(_)
                 | Order::Idle
                 | Order::MoveTo(_)
                 | Order::MoveFastTo(_)
                 | Order::SneakTo(_),
             )
-            | None => None,
+            | None => self.natural_target(vehicle).map(position),
         }
+    }
+
+    /// Nearest operational enemy visible by at least one crew member of the vehicle
+    fn natural_target(&self, vehicle: &Vehicle) -> Option<IndividualIndex> {
+        let (vehicle_i, _) = self.world.individual(self.i).embarked?;
+        let squad = self.world.squad(self.index.individual_squad(self.i));
+
+        squad
+            .members
+            .iter()
+            .filter(|member| {
+                let member = self.world.individual(**member);
+                member.embarked.is_some_and(|(i, _)| i == vehicle_i) && member.status.is_target()
+            })
+            .flat_map(|member| {
+                self.world
+                    .visibilities
+                    .for_(*member)
+                    .iter()
+                    .enumerate()
+                    .filter(|&(_, v)| v.visible)
+                    .map(|(i, _)| IndividualIndex::from(i))
+            })
+            .filter(|target| {
+                let target = self.world.individual(*target);
+                target.side != vehicle.side && target.status.is_target()
+            })
+            .map(|target| {
+                let target_ = self.world.individual(target);
+                (target, vehicle.position.distance(target_.position))
+            })
+            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .map(|(target, _)| target)
     }
 
     /// Rotate the turret to the target
@@ -332,20 +388,21 @@ impl Processor<'_> {
         }
     }
 
-    /// Target position and shell to fire when the gun can fire (once aimed): fire order (suppress or
-    /// engage), turret oriented to the target, gun loaded and compatible shell available.
+    /// Target position and shell to fire when the gun can fire (once aimed): fire target (suppress
+    /// or engage order, or natural target), turret oriented to the target, gun loaded and
+    /// compatible shell available.
     fn fire_solution(
         &self,
         individual: &Individual,
         vehicle: &Vehicle,
     ) -> Option<(WorldVec2, ShellIndex)> {
-        if !matches!(
+        if matches!(
             individual.orders.first(),
-            Some(Order::Suppress(_) | Order::Engage(_))
+            Some(Order::Grenade(_) | Order::Smoke(_) | Order::Hide(_))
         ) {
             return None;
         }
-        let target = self.fire_target(individual)?;
+        let target = self.fire_target(individual, vehicle)?;
         let turret = vehicle.turret_direction?;
         if !vehicle.loaded() {
             return None;
@@ -436,8 +493,8 @@ mod tests {
     use ::tests::{individual::TestIndividual, squad::TestSquad, world::TestWorld};
     use oc_individual::{Individual, squad::Squad};
     use oc_mod::illustration::IllustrationIndex;
-    use oc_root::{WorldConfig, physics::MetersSeconds, side::Side};
-    use oc_world::World;
+    use oc_root::{WorldConfig, opacity::CumulatedOpacity, physics::MetersSeconds, side::Side};
+    use oc_world::{World, visibility::Visibility};
 
     use super::*;
     use crate::index::Indexes;
@@ -928,5 +985,161 @@ mod tests {
                 .iter()
                 .any(|u| matches!(u, runner::update::Update::UpdateVehicle(..)))
         );
+    }
+
+    /// Crew (commander, driver, gunner) of `vehicle` with given gunner orders, and a side B enemy
+    /// (`ENEMY`) at `enemy` position, visible by the commander when `visible`.
+    fn natural_target_world(
+        w: &WorldConfig,
+        vehicle: Vehicle,
+        gunner_orders: Vec<Order>,
+        enemy: WorldVec3,
+        visible: bool,
+    ) -> World {
+        let enemy = TestIndividual::builder()
+            .side(Side::B)
+            .position(enemy)
+            .build()
+            .make(w);
+        let crew = [
+            (CrewRole::Commander, vec![]),
+            (CrewRole::Driver, vec![]),
+            (CrewRole::Gunner, gunner_orders),
+        ];
+        let mut world = tank_world(w, vehicle, &crew, vec![], vec![enemy]);
+        let count = world.individuals().len();
+        let mut visibilities = vec![vec![Visibility::default(); count]; count];
+        if visible {
+            visibilities[0][ENEMY.0 as usize] = visible_visibility();
+        }
+        *world.visibilities.values_mut() = visibilities;
+        world
+    }
+
+    const GUNNER: u64 = 2;
+    const ENEMY: IndividualIndex = IndividualIndex(3);
+
+    #[cfg(not(feature = "debug"))]
+    fn visible_visibility() -> Visibility {
+        Visibility::new(true, CumulatedOpacity(0.))
+    }
+
+    #[cfg(feature = "debug")]
+    fn visible_visibility() -> Visibility {
+        Visibility::new(true, CumulatedOpacity(0.), vec![])
+    }
+
+    fn turret_target(updates: &[runner::update::Update]) -> Option<Option<Direction>> {
+        updates.iter().find_map(|u| match u {
+            runner::update::Update::UpdateVehicle(_, oc_vehicle::Update::SetTurretTarget(d)) => {
+                Some(*d)
+            }
+            _ => None,
+        })
+    }
+
+    #[test]
+    fn gunner_rotates_turret_to_visible_enemy_without_fire_order() {
+        // Given: turret facing est, enemy at north visible by the commander, gunner without order
+        let w = w();
+        let world = natural_target_world(
+            &w,
+            tank(&w, Direction::EST),
+            vec![],
+            WorldVec3::new(250., 400., 0.),
+            true,
+        );
+
+        // When
+        let updates = step(&world, GUNNER);
+
+        // Then
+        assert_eq!(turret_target(&updates), Some(Some(Direction::NORTH)));
+    }
+
+    #[test]
+    fn gunner_ignores_not_visible_or_dead_enemy() {
+        let w = w();
+        let enemy = WorldVec3::new(250., 400., 0.);
+        let not_visible = natural_target_world(&w, tank(&w, Direction::EST), vec![], enemy, false);
+        let mut dead = natural_target_world(&w, tank(&w, Direction::EST), vec![], enemy, true);
+        dead.individual_mut(ENEMY).status = oc_individual::Status::Dead;
+
+        for world in [not_visible, dead] {
+            // When
+            let updates = step(&world, GUNNER);
+
+            // Then
+            assert_eq!(turret_target(&updates), None);
+            assert_eq!(shell_fired(&updates), None);
+        }
+    }
+
+    #[test]
+    fn gunner_anticipates_vehicle_move_to_orient_turret() {
+        // Given: tank moving north, enemy at est
+        let w = w();
+        let mut vehicle = tank(&w, Direction::NORTH);
+        vehicle.forces = vec![Force::Translation(WorldVec3::new(0., 1., 0.), TANK_SPEED)];
+        let enemy = WorldVec3::new(400., 250., 0.);
+        let world = natural_target_world(&w, vehicle, vec![], enemy, true);
+
+        // When
+        let updates = step(&world, GUNNER);
+
+        // Then: turret target computed from the vehicle position at the next tick
+        let elapsed = w.individual_tick().period() * w.speed();
+        let next = Vec2::new(
+            250.,
+            250. + TANK_SPEED.0 * elapsed * w.geo_pixels_per_meters(),
+        );
+        let expected = Direction::from_points2d(next, Vec2::new(enemy.x, enemy.y));
+        let target = turret_target(&updates).flatten().unwrap();
+        assert!(target.angle_to(&expected).abs() < 1e-4);
+        assert!(target.angle_to(&Direction::EST).abs() > 0.1);
+    }
+
+    #[test]
+    fn gunner_fires_on_visible_enemy_while_moving() {
+        // Given: tank moving north, loaded and half aimed, turret on the enemy (at north)
+        let w = w();
+        let mod_ = TestWorld::builder().build().make(&w).mod_;
+        let shell = mod_.shell_from_name("5/38 shell").unwrap().index();
+        let mut vehicle = tank(&w, Direction::NORTH).with_shells(vec![(shell, 2)]);
+        vehicle.aim_progress = 0.5;
+        vehicle.forces = vec![Force::Translation(WorldVec3::new(0., 1., 0.), TANK_SPEED)];
+        let enemy = WorldVec3::new(250., 400., 0.);
+        let world = natural_target_world(&w, vehicle, vec![], enemy, true);
+
+        // When
+        let updates = step(&world, GUNNER);
+
+        // Then
+        let fired = shell_fired(&updates).unwrap();
+        let [Force::Translation(direction, _)] = fired.forces.as_slice() else {
+            panic!("Shell must have one translation force");
+        };
+        let direction = Vec2::new(direction.x, direction.y).normalize();
+        assert!(direction.distance(Vec2::new(0., 1.)) < 1e-4);
+    }
+
+    #[test]
+    fn gunner_holds_fire_on_visible_enemy_when_hiding() {
+        // Given: loaded and aimed tank, enemy visible at north, gunner ordered to hide toward est
+        let w = w();
+        let mod_ = TestWorld::builder().build().make(&w).mod_;
+        let shell = mod_.shell_from_name("5/38 shell").unwrap().index();
+        let mut vehicle = tank(&w, Direction::NORTH).with_shells(vec![(shell, 2)]);
+        vehicle.aim_progress = 0.5;
+        let enemy = WorldVec3::new(250., 400., 0.);
+        let world =
+            natural_target_world(&w, vehicle, vec![Order::Hide(Direction::EST)], enemy, true);
+
+        // When
+        let updates = step(&world, GUNNER);
+
+        // Then
+        assert_eq!(turret_target(&updates), Some(Some(Direction::EST)));
+        assert_eq!(shell_fired(&updates), None);
     }
 }

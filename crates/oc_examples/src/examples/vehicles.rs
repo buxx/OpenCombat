@@ -31,6 +31,15 @@ const TMF_START: [f32; 2] = [150., 250.];
 const TMF_TARGET: [f32; 2] = [250., 250.];
 const TMR_TARGET: [f32; 2] = [150., 150.];
 
+// Tank crosses the map from south to north (80m) while an enemy, out of the tank path and of the
+// shell shrapnel rayon (25m), is visible. Gunner must target and kill it during the move.
+const TMDT_START: [f32; 2] = [150., 450.];
+const TMDT_TARGET: [f32; 2] = [150., 50.];
+// 40m from the tank path
+const TMDT_ENEMY: [f32; 2] = [350., 250.];
+/// Enemy index: after the tank crew (commander, driver, gunner, loader)
+const TMDT_ENEMY_INDEX: u64 = 4;
+
 const TT_START: [f32; 2] = [150., 250.];
 const TT_TARGET: [f32; 2] = [150., 150.];
 const TT_TOLERANCE: f32 = 0.01;
@@ -71,6 +80,7 @@ struct Args {
 enum TestCase {
     TankMoveForward,
     TankMoveRotation,
+    TankMoveDuringTarget,
     TankTarget,
     TankFire,
     TankProjectiles,
@@ -121,7 +131,8 @@ impl TankSetup {
 // - Tank destruction (penetration) and weak parts
 // - Tank fire/reload/ammunitions (with chassis/turret direction)
 // - Tank chassis visible (when crew hidden position)
-// - Tank move during "natural" target (chassis must move, gunner mst adjust turrent direction)
+// - Tank move during "natural" target (chassis must move, gunner mst adjust turrent direction):
+//   see `TestCase::TankMoveDuringTarget`
 pub fn main() -> Result<(), anyhow::Error> {
     logging::setup_logging()?;
 
@@ -136,7 +147,8 @@ pub fn main() -> Result<(), anyhow::Error> {
     let tiles = loaded.tiles(w)?;
 
     let tanks = tanks(&args);
-    let individuals = crews(w, &tiles, &tanks);
+    let mut individuals = crews(w, &tiles, &tanks);
+    individuals.extend(enemies(w, &tiles, &args));
     let squads = squads(&individuals, &args);
     let vehicles = vehicles(w, &tiles, mod__, &tanks);
     let projectiles = projectiles(w, &tiles, mod__, &args);
@@ -214,6 +226,22 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
                 ])
                 .with_reload_progress(0.),
         ],
+        // Tank facing north, ordered to move far north, enemy visible at est of its path
+        TestCase::TankMoveDuringTarget => vec![
+            TankSetup::new(
+                Side::A,
+                TMDT_START,
+                Direction::NORTH,
+                Some(Direction::NORTH),
+            )
+            .with_crew(vec![
+                CrewRole::Commander,
+                CrewRole::Driver,
+                CrewRole::Gunner,
+                CrewRole::Loader,
+            ])
+            .with_shells(TF_SHELLS),
+        ],
         TestCase::TankTarget => vec![
             TankSetup::new(Side::A, TT_START, Direction::EST, Some(Direction::EST)).with_crew(
                 vec![
@@ -286,6 +314,23 @@ fn crews(w: &WorldConfig, tiles: &[Tile], tanks: &[TankSetup]) -> Vec<oc_individ
     individuals
 }
 
+/// Not embarked individuals (each in its own squad, without orders)
+fn enemies(w: &WorldConfig, tiles: &[Tile], args: &Args) -> Vec<oc_individual::Individual> {
+    match args.case {
+        TestCase::TankMoveDuringTarget => vec![utils::soldier(
+            w,
+            Side::B,
+            utils::on_ground(w, tiles, TMDT_ENEMY.into()),
+        )],
+        TestCase::TankMoveForward
+        | TestCase::TankMoveRotation
+        | TestCase::TankTarget
+        | TestCase::TankFire
+        | TestCase::TankProjectiles
+        | TestCase::DrawTanks => vec![],
+    }
+}
+
 fn squads(
     individuals: &[oc_individual::Individual],
     args: &Args,
@@ -296,6 +341,9 @@ fn squads(
         }
         TestCase::TankMoveRotation => {
             crew_squads(individuals, vec![Order::MoveTo(TMR_TARGET.into())])
+        }
+        TestCase::TankMoveDuringTarget => {
+            crew_squads(individuals, vec![Order::MoveTo(TMDT_TARGET.into())])
         }
         TestCase::TankTarget => crew_squads(individuals, vec![Order::Suppress(TT_TARGET.into())]),
         TestCase::TankFire => crew_squads(individuals, vec![Order::Suppress(TF_TARGET.into())]),
@@ -319,15 +367,20 @@ fn crew_squads(
         }
     }
 
+    // Only vehicle crews receive `orders`
     squads
         .into_iter()
-        .map(|(_, members)| {
+        .map(|(vehicle, members)| {
             let leader = &individuals[members[0].0 as usize];
+            let orders = match vehicle {
+                Some(_) => orders.clone(),
+                None => vec![],
+            };
             TestSquad::builder()
                 .side(leader.side)
                 .position(leader.position.into())
                 .members(members)
-                .orders(orders.clone())
+                .orders(orders)
                 .build()
                 .make()
         })
@@ -374,6 +427,7 @@ fn projectiles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, args: &Args) -> Vec<
         }
         TestCase::TankMoveForward
         | TestCase::TankMoveRotation
+        | TestCase::TankMoveDuringTarget
         | TestCase::TankTarget
         | TestCase::TankFire
         | TestCase::DrawTanks => vec![],
@@ -389,7 +443,7 @@ mod test {
 
     use bevy::prelude::*;
     use oc_battle_gui::{states::Game, world::World};
-    use oc_individual::squad::SquadIndex;
+    use oc_individual::{IndividualIndex, squad::SquadIndex};
     use oc_root::Wcfg;
     use oc_root::geo::WorldVec2;
     use oc_utils::d2::Direction;
@@ -399,7 +453,7 @@ mod test {
     use oc_projectile::ProjectileId;
     use oc_world_server::{state::ObjectId, tracker::Tracker_};
 
-    use crate::examples::vehicles::TMR_TARGET;
+    use crate::examples::vehicles::{TMDT_ENEMY_INDEX, TMR_TARGET};
 
     use super::{Args, TF_TARGET, TF_TOLERANCE, TMF_TARGET, TT_TARGET, TT_TOLERANCE, TestCase};
 
@@ -438,6 +492,8 @@ mod test {
         let speed = w.speed();
         let timeout = match args.0.case {
             TestCase::TankMoveForward | TestCase::TankMoveRotation => Duration::from_secs(60),
+            // Move (80m at 5m/s), turret rotation, aim, reload and shell flights
+            TestCase::TankMoveDuringTarget => Duration::from_secs(60),
             TestCase::TankTarget => Duration::from_secs(30),
             // Turret rotation (90° at 45°/s) then shell flight
             TestCase::TankFire => Duration::from_secs(30),
@@ -450,6 +506,9 @@ mod test {
         let success = match args.0.case {
             TestCase::TankMoveForward => move_accomplished(&world, TMF_TARGET),
             TestCase::TankMoveRotation => move_accomplished(&world, TMR_TARGET),
+            TestCase::TankMoveDuringTarget => world
+                .individual(IndividualIndex(TMDT_ENEMY_INDEX))
+                .is_some_and(|enemy| enemy.status.is_dead()),
             TestCase::TankTarget => world
                 .vehicle(VehicleIndex(0))
                 .and_then(|vehicle| {
@@ -546,6 +605,7 @@ mod test {
             }
             TestCase::TankMoveForward
             | TestCase::TankMoveRotation
+            | TestCase::TankMoveDuringTarget
             | TestCase::TankTarget
             | TestCase::TankFire
             | TestCase::DrawTanks => {}
