@@ -154,6 +154,10 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
         // Gui assets are in the `assets` folder of current folder (like mods, maps, etc.)
         .env("BEVY_ASSET_ROOT", cwd);
 
+    if state.is_file() {
+        command.arg("--persisted-map").arg(&state);
+    }
+
     if let Some(record) = record {
         command.arg("--record").arg(record);
     }

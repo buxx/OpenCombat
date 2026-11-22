@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use oc_root::format::RkyvFile;
 use bon::Builder;
 use oc_deployment::deployment::{
     Deployments,
@@ -16,7 +17,11 @@ use oc_root::{
     side::{BySide, Side},
 };
 use oc_world::{
-    load::WorldPath, meta::Meta, reader::MapReader, snapshot::Snapshot, spawn::SpawnZone,
+    load::WorldPath,
+    meta::Meta,
+    reader::MapReader,
+    snapshot::{Snapshot, State},
+    spawn::SpawnZone,
     support::Supports,
 };
 
@@ -65,6 +70,9 @@ pub struct Generate {
     order_a: Option<InitialOrder>,
     /// Initial order of side B squads (default: see [`Generate::snapshot`])
     order_b: Option<InitialOrder>,
+    /// World state file saved by a previous battle: its altered tiles, decor and craters replace
+    /// map original ones.
+    persisted_map: Option<PathBuf>,
 }
 
 impl Generate {
@@ -156,6 +164,12 @@ impl Generate {
             .with_decor(map.decor().context("Read map decor")?)
             .with_supports(self.supports.clone())
             .with_phase(BattlePhase::Deployment);
+        if let Some(path) = &self.persisted_map {
+            let state = State::load(path)
+                .context(format!("Load persisted map {}", path.display()))?;
+            apply_persisted_map(&mut snapshot, state)
+                .context(format!("Apply persisted map {}", path.display()))?;
+        }
         snapshot.spawns = deployments
             .as_ref()
             .map(|d| d.spawns.iter().map(|s| s.name.clone()).collect());
@@ -166,6 +180,25 @@ impl Generate {
 
         Ok(snapshot)
     }
+}
+
+/// Replace snapshot altered tiles, decor and craters by persisted ones
+fn apply_persisted_map(snapshot: &mut Snapshot, state: State) -> anyhow::Result<()> {
+    let expected = snapshot.tiles.len();
+    for (name, len) in [
+        ("altered tiles", state.altered_tiles.len()),
+        ("decor", state.decor.len()),
+    ] {
+        if len != expected {
+            anyhow::bail!("Persisted {name} count ({len}) don't match map tiles count ({expected})");
+        }
+    }
+
+    snapshot.altered_tiles = state.altered_tiles;
+    snapshot.decor = state.decor;
+    snapshot.craters = state.craters;
+
+    Ok(())
 }
 
 #[cfg(test)]

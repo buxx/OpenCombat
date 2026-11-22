@@ -111,6 +111,10 @@ pub struct SnapshotArgs {
     /// Initial order of side B squads (default: hide, or defend if client plays side A)
     #[clap(long, value_enum, conflicts_with = "snapshot")]
     pub order_b: Option<InitialOrder>,
+    /// World state file (`.ocws`) saved by a previous battle on this map: its altered tiles,
+    /// decor and craters are used instead of map original ones.
+    #[clap(long, conflicts_with = "snapshot")]
+    pub persisted_map: Option<PathBuf>,
 }
 
 impl ServerArgs {
@@ -200,6 +204,7 @@ impl SnapshotArgs {
                 ))
                 .maybe_order_a(self.order_a)
                 .maybe_order_b(self.order_b)
+                .maybe_persisted_map(self.persisted_map.clone())
                 .build(),
         ))
     }
