@@ -93,6 +93,18 @@ const VH_STUN_DURATION: f32 = 30.;
 /// Tolerance (game seconds) on stun duration (individual tick is one second)
 #[cfg(feature = "test")]
 const VH_STUN_TOLERANCE: f32 = 3.;
+// Tank lov: tank chassis (crewless, facing north: its length is along y axis) stands between a
+// watcher (side A, west) and a hidden enemy (side B, est). Control enemy (side B) is not behind the
+// chassis. Hidden enemy must stay not visible while control one is visible.
+const TL_TANK: [f32; 2] = [150., 250.];
+const TL_WATCHER: [f32; 2] = [100., 250.];
+const TL_HIDDEN: [f32; 2] = [180., 250.];
+const TL_CONTROL: [f32; 2] = [180., 310.];
+/// Watcher, hidden and control indexes (tank has no crew)
+#[cfg(feature = "test")]
+const TL_HIDDEN_INDEX: u64 = 1;
+#[cfg(feature = "test")]
+const TL_CONTROL_INDEX: u64 = 2;
 /// Obstacle tiles nature
 #[cfg(feature = "test")]
 const BRICKWALL: &str = "BrickWall";
@@ -118,6 +130,7 @@ enum TestCase {
     TankProjectiles,
     TankProjectileHitObject,
     TankChassisVisible,
+    TankLov,
     TankCrewStunnedByExplosion,
     TankCrewKilledByExplosion,
     TankCrewStunnedByTank,
@@ -281,7 +294,22 @@ pub fn main() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+// FIXME BS NOW: mesure stun server side to permit speed test
+/// Max speed (OC_SPEED) for crew stun cases: stun duration is measured client side in real time,
+/// a higher speed makes the tolerance (3 game seconds) shorter than client update latency.
+#[cfg(feature = "debug")]
+const VH_STUN_MAX_SPEED: f32 = 5.;
+
 fn world_config(w: WorldConfig, args: &Args) -> WorldConfig {
+    #[cfg(feature = "debug")]
+    if matches!(
+        args.case,
+        TestCase::TankCrewStunnedByExplosion | TestCase::TankCrewStunnedByTank
+    ) && w.speed() > VH_STUN_MAX_SPEED
+    {
+        WorldConfig::set_speed((VH_STUN_MAX_SPEED * 10.) as u32);
+    }
+
     match args.case {
         // Target tank crew is the whole side A: once stunned, side A morale is zero. Prevent battle
         // end by morale, else the battle ends before the stun ends.
@@ -294,6 +322,7 @@ fn world_config(w: WorldConfig, args: &Args) -> WorldConfig {
         | TestCase::TankProjectiles
         | TestCase::TankProjectileHitObject
         | TestCase::TankChassisVisible
+        | TestCase::TankLov
         | TestCase::TankCrewStunnedByExplosion
         | TestCase::TankCrewKilledByExplosion
         | TestCase::TankCrewKilledByTank
@@ -386,6 +415,12 @@ fn tanks(args: &Args) -> Vec<TankSetup> {
             Direction::EST,
             Some(Direction::EST),
         )],
+        // Crewless tank between watcher and hidden enemy
+        TestCase::TankLov => vec![
+            TankSetup::new(Side::A, TL_TANK, Direction::NORTH, Some(Direction::NORTH))
+                .with_crew(vec![])
+                .without_orders(),
+        ],
         // Lone tank, a shell explodes on its chassis
         TestCase::TankCrewStunnedByExplosion => vec![shelled_tank(TANK)],
         TestCase::TankCrewKilledByExplosion => vec![shelled_tank(LIGHT_TANK)],
@@ -486,6 +521,11 @@ fn enemies(w: &WorldConfig, tiles: &[Tile], args: &Args) -> Vec<oc_individual::I
             Side::A,
             utils::on_ground(w, tiles, TCV_WATCHER.into()),
         )],
+        TestCase::TankLov => vec![
+            utils::soldier(w, Side::A, utils::on_ground(w, tiles, TL_WATCHER.into())),
+            utils::soldier(w, Side::B, utils::on_ground(w, tiles, TL_HIDDEN.into())),
+            utils::soldier(w, Side::B, utils::on_ground(w, tiles, TL_CONTROL.into())),
+        ],
         TestCase::TankMoveForward
         | TestCase::TankMoveRotation
         | TestCase::TankTarget
@@ -528,6 +568,7 @@ fn squads(
         }
         TestCase::TankProjectiles
         | TestCase::TankChassisVisible
+        | TestCase::TankLov
         | TestCase::TankCrewStunnedByExplosion
         | TestCase::TankCrewKilledByExplosion
         | TestCase::DrawTanks => crew_squads(vec![]),
@@ -615,6 +656,7 @@ fn projectiles(w: &WorldConfig, tiles: &[Tile], mod_: &Mod, args: &Args) -> Vec<
         | TestCase::TankFire
         | TestCase::TankProjectileHitObject
         | TestCase::TankChassisVisible
+        | TestCase::TankLov
         | TestCase::TankCrewStunnedByExplosion
         | TestCase::TankCrewKilledByExplosion
         | TestCase::TankCrewStunnedByTank
@@ -637,6 +679,7 @@ fn explosions(args: &Args) -> Vec<WorldVec2> {
         | TestCase::TankProjectiles
         | TestCase::TankProjectileHitObject
         | TestCase::TankChassisVisible
+        | TestCase::TankLov
         | TestCase::TankCrewStunnedByTank
         | TestCase::TankCrewKilledByTank
         | TestCase::DrawTanks => vec![],
@@ -653,8 +696,8 @@ mod test {
     use bevy::prelude::*;
     use oc_battle_gui::{states::Game, world::World};
     use oc_individual::{IndividualIndex, squad::SquadIndex};
-    use oc_root::Wcfg;
     use oc_root::geo::WorldVec2;
+    use oc_root::{Wcfg, WorldConfig};
     use oc_utils::d2::Direction;
     use oc_utils::let_some;
     use oc_vehicle::VehicleIndex;
@@ -663,7 +706,7 @@ mod test {
     use oc_projectile::ProjectileId;
     use oc_world_server::{state::ObjectId, tracker::Tracker_};
 
-    use crate::examples::vehicles::{TMDT_ENEMY_INDEX, TMR_TARGET};
+    use crate::examples::vehicles::{TL_CONTROL_INDEX, TL_HIDDEN_INDEX, TMDT_ENEMY_INDEX, TMR_TARGET};
 
     use super::{
         Args, TF_TARGET, TF_TOLERANCE, TMF_TARGET, TPHO_TARGET, TT_TARGET, TT_TOLERANCE, TestCase,
@@ -706,6 +749,10 @@ mod test {
         w: Res<Wcfg>,
         world: Res<World>,
         vehicles: Query<(&oc_battle_gui::ingame::vehicle::VehicleIndex, &Visibility)>,
+        individuals: Query<(
+            &oc_battle_gui::entity::individual::IndividualIndex,
+            &Visibility,
+        )>,
     ) {
         let_some!(w = &w.0, return);
         static SUCCESS_SINCE: Mutex<Option<Instant>> = Mutex::new(None);
@@ -723,7 +770,7 @@ mod test {
             // Let projectiles cross the tank (~3s at Weapon1 velocity)
             TestCase::TankProjectiles => Duration::from_secs(6),
             // Let visibilities be computed
-            TestCase::TankChassisVisible => Duration::from_secs(10),
+            TestCase::TankChassisVisible | TestCase::TankLov => Duration::from_secs(10),
             TestCase::TankCrewKilledByExplosion => Duration::from_secs(10),
             // Aim, then shell flight
             TestCase::TankCrewKilledByTank => Duration::from_secs(30),
@@ -761,6 +808,20 @@ mod test {
             TestCase::TankChassisVisible => vehicles.iter().any(|(i, visibility)| {
                 i.0 == VehicleIndex(0) && *visibility == Visibility::Visible
             }),
+            // Lov path to the enemy behind the chassis is blocked (opacity), not the control one
+            TestCase::TankLov => {
+                let visible = |index: u64| {
+                    individuals.iter().find_map(|(i, v)| {
+                        (i.0 == IndividualIndex(index)).then_some(*v == Visibility::Visible)
+                    })
+                };
+                if visible(TL_HIDDEN_INDEX) == Some(true) {
+                    eprintln!("❌ FAILED ! Enemy behind the tank chassis is visible");
+                    commands.write_message(bevy::app::AppExit::from_code(1));
+                    return;
+                }
+                visible(TL_CONTROL_INDEX) == Some(true) && visible(TL_HIDDEN_INDEX) == Some(false)
+            }
             // Crew killed and tank destroyed (penetrated)
             TestCase::TankCrewKilledByExplosion | TestCase::TankCrewKilledByTank => {
                 VH_CREW.iter().all(|i| {
@@ -780,7 +841,7 @@ mod test {
                     commands.write_message(bevy::app::AppExit::from_code(1));
                     return;
                 }
-                match crew_stun_duration(&world, speed) {
+                match crew_stun_duration(&world, w, speed) {
                     CrewStun::Pending => false,
                     CrewStun::Recovered(duration) => {
                         let ok = (duration - VH_STUN_DURATION).abs() <= VH_STUN_TOLERANCE;
@@ -837,7 +898,7 @@ mod test {
 
     /// Follow target tank crew status: record when the whole crew is stunned, then when it is
     /// operational again
-    fn crew_stun_duration(world: &World, speed: f32) -> CrewStun {
+    fn crew_stun_duration(world: &World, w: &WorldConfig, speed: f32) -> CrewStun {
         use oc_individual::Status;
 
         static STUNNED_SINCE: Mutex<Option<Instant>> = Mutex::new(None);
@@ -866,7 +927,26 @@ mod test {
             .iter()
             .all(|status| matches!(status, Status::Operational));
         match (*since, stunned, operational) {
-            (None, true, _) => *since = Some(Instant::now()),
+            (None, true, _) => {
+                // Stun may already be decreased when first seen (client update latency, mainly
+                // at game start): take into account the already elapsed stun (one decrease per
+                // game second)
+                let stun = statuses
+                    .iter()
+                    .filter_map(|status| match status {
+                        Status::Stunned(stun) => Some(stun.0),
+                        _ => None,
+                    })
+                    .max()
+                    .unwrap_or_default();
+                let consumed = w.vehicle_crew_stunned_value().0.saturating_sub(stun) as f32
+                    / w.individual_tick_decrease_stunned().0.max(1) as f32;
+                let now = Instant::now();
+                *since = Some(
+                    now.checked_sub(Duration::from_secs_f32(consumed / speed))
+                        .unwrap_or(now),
+                );
+            }
             (Some(since), _, true) => {
                 let duration = since.elapsed().as_secs_f32() * speed;
                 *RECOVERED.lock().unwrap() = Some(duration);
@@ -960,6 +1040,7 @@ mod test {
             | TestCase::TankTarget
             | TestCase::TankFire
             | TestCase::TankChassisVisible
+            | TestCase::TankLov
             | TestCase::TankCrewStunnedByExplosion
             | TestCase::TankCrewKilledByExplosion
             | TestCase::TankCrewStunnedByTank

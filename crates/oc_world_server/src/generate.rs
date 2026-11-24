@@ -1,13 +1,13 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use oc_root::format::RkyvFile;
 use bon::Builder;
 use oc_deployment::deployment::{
     Deployments,
     place::{OrderPolicy, Placer},
 };
 use oc_mod::Mod;
+use oc_root::format::RkyvFile;
 use oc_root::uuids::SquadUuid;
 use oc_root::{
     WorldConfig,
@@ -70,9 +70,9 @@ pub struct Generate {
     order_a: Option<InitialOrder>,
     /// Initial order of side B squads (default: see [`Generate::snapshot`])
     order_b: Option<InitialOrder>,
-    /// World state file saved by a previous battle: its altered tiles, decor and craters replace
+    /// World state file saved by a previous battle: its altered tiles, decor, craters and wrecks replace
     /// map original ones.
-    persisted_map: Option<PathBuf>,
+    persisted: Option<PathBuf>,
 }
 
 impl Generate {
@@ -164,9 +164,9 @@ impl Generate {
             .with_decor(map.decor().context("Read map decor")?)
             .with_supports(self.supports.clone())
             .with_phase(BattlePhase::Deployment);
-        if let Some(path) = &self.persisted_map {
-            let state = State::load(path)
-                .context(format!("Load persisted map {}", path.display()))?;
+        if let Some(path) = &self.persisted {
+            let state =
+                State::load(path).context(format!("Load persisted map {}", path.display()))?;
             apply_persisted_map(&mut snapshot, state)
                 .context(format!("Apply persisted map {}", path.display()))?;
         }
@@ -182,21 +182,24 @@ impl Generate {
     }
 }
 
-/// Replace snapshot altered tiles, decor and craters by persisted ones
-fn apply_persisted_map(snapshot: &mut Snapshot, state: State) -> anyhow::Result<()> {
+/// Replace snapshot altered tiles, decor, craters and wrecks by persisted ones
+pub fn apply_persisted_map(snapshot: &mut Snapshot, state: State) -> anyhow::Result<()> {
     let expected = snapshot.tiles.len();
     for (name, len) in [
         ("altered tiles", state.altered_tiles.len()),
         ("decor", state.decor.len()),
     ] {
         if len != expected {
-            anyhow::bail!("Persisted {name} count ({len}) don't match map tiles count ({expected})");
+            anyhow::bail!(
+                "Persisted {name} count ({len}) don't match map tiles count ({expected})"
+            );
         }
     }
 
     snapshot.altered_tiles = state.altered_tiles;
     snapshot.decor = state.decor;
     snapshot.craters = state.craters;
+    snapshot.wrecks = state.wrecks;
 
     Ok(())
 }

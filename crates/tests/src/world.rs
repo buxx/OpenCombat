@@ -44,6 +44,8 @@ pub struct TestWorld {
     #[builder(default)]
     vehicles: Vec<oc_vehicle::Vehicle>,
     #[builder(default)]
+    wrecks: Vec<oc_world::wreck::Wreck>,
+    #[builder(default)]
     projectiles: FxHashMap<ProjectileId, Projectile>,
     #[builder(default)]
     interiors: Vec<oc_world::interior::Interior>,
@@ -99,6 +101,7 @@ impl TestWorld {
             altered_tiles,
             decor,
             craters: vec![],
+            wrecks: self.wrecks,
             side_spawn_zones: BySide::default(),
             spawn_zones: vec![],
             smoke,

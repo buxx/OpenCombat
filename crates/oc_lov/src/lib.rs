@@ -213,6 +213,14 @@ impl Step {
 }
 
 impl Step {
+    pub fn opaque() -> Self {
+        Self {
+            opacity: Opacity(1.0),
+            crawling_opacity_bonus: 0.0,
+            hiding_opacity_bonus: 0.0,
+        }
+    }
+
     pub fn from_smoke(opacity: Percent) -> Self {
         Self {
             opacity: Opacity(opacity.ratio()),

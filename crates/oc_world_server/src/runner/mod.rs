@@ -163,6 +163,8 @@ impl<E: Client> Runner<E> {
     /// Battle is ended and runner threads are stopped
     fn end(&self) {
         let ctx = self.context();
+        // Destroyed vehicles stay on the map as wrecks
+        self.state.world_mut().wreck_destroyed_vehicles();
         let world = self.state.world();
         let world: &oc_world::World = &world;
 
@@ -344,7 +346,7 @@ impl<E: Client> Runner<E> {
         let mut ai = crate::ai::Ai::from_config(config);
 
         spawn_ticker(self.context(), Kind::Ai, true, move |ctx| {
-            let perception = ai.perceive(&ctx.state.world());
+            let perception = ai.perceive(&ctx.state.world(), &ctx.state.indexes());
             let commands = ai.decide(&perception);
             true_!(!commands.is_empty(), return);
             let updates = ai.updates(&ctx.state.world(), commands);

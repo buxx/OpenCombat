@@ -52,7 +52,6 @@ impl<'a> Processor<'a> {
     ) -> Vec<(IndividualIndex, IndividualIndex, Visibility)> {
         let w = &self.world.w;
         let mod_ = &self.world.mod_;
-        let at = |xy, z| path_objects_at(w, mod_, self.world, xy, z);
         let occupied =
             BySide::from_fn(|side| self.occupied_interiors(self.index.side_individuals(side)));
 
@@ -108,6 +107,13 @@ impl<'a> Processor<'a> {
                 _ => Modifier::None(true),
             };
 
+            // Watcher and target own vehicles (when embarked) don't block the view
+            let ignore: Vec<VehicleIndex> = [individual1.embarked, individual2.embarked]
+                .into_iter()
+                .flatten()
+                .map(|(vehicle, _)| vehicle)
+                .collect();
+            let at = |xy, z| path_objects_at(w, mod_, self.world, self.index, &ignore, xy, z);
             let visibility = visibility(w, at, p1, p2, modifier);
             Some((*i1, *i2, visibility))
         };
@@ -170,7 +176,14 @@ impl<'a> Processor<'a> {
             .iter()
             .filter(|vehicle| vehicle.side != watcher.side)
             .map(|vehicle| {
-                let visibility = self.chassis_visibility(from, &vehicle.points);
+                // Watcher own vehicle (when embarked) and target vehicle don't block the view
+                let ignore: Vec<VehicleIndex> = watcher
+                    .embarked
+                    .map(|(vehicle, _)| vehicle)
+                    .into_iter()
+                    .chain([vehicle.i])
+                    .collect();
+                let visibility = self.chassis_visibility(from, &vehicle.points, &ignore);
                 tracing::trace!(name = "visibility-processor-compute-vehicle", i1=?i1, i2=?vehicle.i, visible=visibility.visible);
                 (i1, vehicle.i, visibility)
             })
@@ -182,9 +195,10 @@ impl<'a> Processor<'a> {
         &self,
         from: oc_root::geo::WorldVec3,
         points: &[oc_root::geo::WorldVec3],
+        ignore: &[VehicleIndex],
     ) -> Visibility {
         let (w, mod_) = (&self.world.w, &self.world.mod_);
-        let at = |xy, z| path_objects_at(w, mod_, self.world, xy, z);
+        let at = |xy, z| path_objects_at(w, mod_, self.world, self.index, ignore, xy, z);
         points
             .iter()
             .map(|to| visibility(w, at, from, *to, Modifier::None(true)))
@@ -238,10 +252,14 @@ pub fn visibility<I: IntoIterator<Item = oc_lov::Step>>(
     );
 }
 
+/// Lov steps at given position. Vehicles chassis block the view, except `ignore` ones (like
+/// vehicle of the watcher crew, or the target vehicle itself).
 pub fn path_objects_at(
     w: &WorldConfig,
     mod_: &oc_mod::Mod,
     world: &World,
+    indexes: &Indexes,
+    ignore: &[VehicleIndex],
     at: Xy,
     z: f32,
 ) -> Vec<oc_lov::Step> {
@@ -253,12 +271,30 @@ pub fn path_objects_at(
             let tile_z = t.z as f32 * w.geo_meters_per_z().0 * w.geo_pixels_per_meters();
             let relative_z = z - tile_z;
             let nature = mod_.nature(t.nature);
-            let opacity = nature.opacity(w, relative_z);
-            tracing::trace!(name="visibility-path-objects-at", at=?at, z=z, t=?t, tile_z=?tile_z, relative_z=?relative_z, nature=?nature, opacity=?opacity);
             let mut steps = vec![oc_lov::Step::from_nature(w, nature, relative_z)];
+
+            // Smoke
             if !smoke.is_zero() {
                 steps.push(oc_lov::Step::from_smoke(smoke));
             }
+
+            // Wreck chassis blocks the view
+            if indexes
+                .tile_wrecks(i)
+                .iter()
+                .any(|wreck| world.wreck(*wreck).occupies_z(z, w, mod_))
+            {
+                steps.push(oc_lov::Step::opaque());
+            }
+
+            // Vehicle chassis blocks the view
+            if indexes.tile_vehicles(i).iter().any(|vehicle| {
+                !ignore.contains(vehicle) && world.vehicle(*vehicle).occupies_z(z, w, mod_)
+            }) {
+                steps.push(oc_lov::Step::opaque());
+            }
+
+            tracing::trace!(name="visibility-path-objects-at", at=?at, z=z, t=?t, tile_z=?tile_z, relative_z=?relative_z, steps=?steps);
             steps
         })
         .unwrap_or_default()
@@ -381,6 +417,108 @@ mod tests {
 
         let (_, _, visibility) = visibilities.into_iter().next().expect("Pair computed");
         assert!(!visibility.visible);
+    }
+
+    #[test]
+    fn test_wreck_between_watcher_and_target_hides_target() {
+        let w = WorldConfig::new(100, 100);
+        let individuals = vec![
+            TestIndividual::builder()
+                .side(Side::A)
+                .position(WorldVec3::new(10., 10., 0.))
+                .build()
+                .make(&w),
+            TestIndividual::builder()
+                .side(Side::B)
+                .position(WorldVec3::new(50., 50., 0.))
+                .build()
+                .make(&w),
+        ];
+        // Wreck chassis across the line of view
+        let wreck = oc_world::wreck::Wreck::Vehicle {
+            type_: oc_mod::vehicle::VehicleIndex(0),
+            position: WorldVec3::new(30., 30., 0.),
+            chassis_direction: oc_utils::d2::Direction::new(1., -1.),
+        };
+        let world = TestWorld::builder()
+            .individuals(individuals)
+            .wrecks(vec![wreck])
+            .build()
+            .make(&w);
+        let indexes = Indexes::new(&world, &w);
+
+        let visibilities =
+            Processor::new(&world, &indexes).compute_individuals_for(&[WATCHER], &[TARGET]);
+
+        let (_, _, visibility) = visibilities.into_iter().next().expect("Pair computed");
+        assert!(!visibility.visible);
+    }
+
+    /// Side A watcher at `watcher` (embarked in the vehicle if `embarked`), side B target at
+    /// (50, 50) and a side A vehicle chassis at `vehicle`. Returns visibility of the target.
+    fn target_visible_with_vehicle(watcher: WorldVec3, embarked: bool, vehicle: WorldVec3) -> bool {
+        let w = WorldConfig::new(100, 100);
+        let embarked = embarked.then_some((VehicleIndex(0), oc_mod::vehicle::CrewRole::Commander));
+        let individuals = vec![
+            TestIndividual::builder()
+                .side(Side::A)
+                .position(watcher)
+                .build()
+                .make(&w)
+                .with_embarked(embarked),
+            TestIndividual::builder()
+                .side(Side::B)
+                .position(WorldVec3::new(50., 50., 0.))
+                .build()
+                .make(&w),
+        ];
+        let vehicle = oc_vehicle::Vehicle::new(
+            Side::A,
+            oc_mod::vehicle::VehicleIndex(0),
+            oc_mod::illustration::IllustrationIndex(0),
+            vehicle,
+            vec![],
+            oc_utils::d2::Direction::new(1., -1.),
+            None,
+        );
+        let world = TestWorld::builder()
+            .individuals(individuals)
+            .vehicles(vec![vehicle])
+            .build()
+            .make(&w);
+        let indexes = Indexes::new(&world, &w);
+
+        let visibilities =
+            Processor::new(&world, &indexes).compute_individuals_for(&[WATCHER], &[TARGET]);
+
+        let (_, _, visibility) = visibilities.into_iter().next().expect("Pair computed");
+        visibility.visible
+    }
+
+    #[test]
+    fn test_vehicle_between_watcher_and_target_hides_target() {
+        let watcher = WorldVec3::new(10., 10., 0.);
+        assert!(!target_visible_with_vehicle(
+            watcher,
+            false,
+            WorldVec3::new(30., 30., 0.)
+        ));
+    }
+
+    #[test]
+    fn test_vehicle_aside_watcher_and_target_does_not_hide_target() {
+        let watcher = WorldVec3::new(10., 10., 0.);
+        assert!(target_visible_with_vehicle(
+            watcher,
+            false,
+            WorldVec3::new(80., 10., 0.)
+        ));
+    }
+
+    #[test]
+    fn test_embarked_watcher_own_vehicle_does_not_hide_target() {
+        let watcher = WorldVec3::new(30., 30., 0.);
+        assert!(target_visible_with_vehicle(watcher, true, watcher));
     }
 
     #[test]

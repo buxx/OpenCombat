@@ -150,6 +150,7 @@ test-e2e speed="" jobs="4":
         test-vehicles-tank-projectiles
         test-vehicles-tank-projectile-hit-object
         test-vehicles-tank-chassis-visible
+        test-vehicles-tank-lov
         test-vehicles-tank-crew-stunned-by-explosion
         test-vehicles-tank-crew-killed-by-explosion
         test-vehicles-tank-crew-stunned-by-tank
@@ -167,6 +168,9 @@ test-e2e speed="" jobs="4":
         test-world-end-morale
         test-world-explosion-alter-wall
         test-world-smoke-grenade
+        test-world-persist
+        test-world-bullet-collide-wreck
+        test-world-wreck-lov
         test-basecamp-battle-test1
         test-basecamp-battle-finished
     )
@@ -366,6 +370,9 @@ test-vehicles-tank-projectile-hit-object:
 test-vehicles-tank-chassis-visible:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-chassis-visible --test
 
+test-vehicles-tank-lov:
+    RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-lov --test
+
 test-vehicles-tank-crew-stunned-by-explosion:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- vehicles tank-crew-stunned-by-explosion --test
 
@@ -416,6 +423,15 @@ test-world-explosion-alter-wall:
 
 test-world-smoke-grenade:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- world smoke-grenade --test
+
+test-world-persist:
+    RUST_LOG=ERROR cargo run --bin oc_example --features test -- world world-persist --test
+
+test-world-bullet-collide-wreck:
+    RUST_LOG=ERROR cargo run --bin oc_example --features test -- world bullet-collide-wreck --test
+
+test-world-wreck-lov:
+    RUST_LOG=ERROR cargo run --bin oc_example --features test -- world wreck-lov --test
 
 # Basecamp starts the battle gui found next to its executable (target/release)
 build-for-basecamp:

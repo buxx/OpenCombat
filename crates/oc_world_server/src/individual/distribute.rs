@@ -313,7 +313,7 @@ impl Processor<'_> {
         let w = &self.world.w;
         let mod_ = &self.world.mod_;
         let distance = FORMATION_MIN_FIRE;
-        let at = |xy, z| path_objects_at(w, mod_, self.world, xy, z);
+        let at = |xy, z| path_objects_at(w, mod_, self.world, self.index, &[], xy, z);
         let tile_px = w.geo_pixels_per_tile() as f32;
         let radius = w.formation_tiles_radius_placement() as i64;
         let fire = Vec2::from(direction).normalize_or_zero() * distance.pixels(w);

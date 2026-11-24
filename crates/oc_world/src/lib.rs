@@ -41,6 +41,7 @@ use crate::{
     tile::AlteredTile,
     tile::Tile,
     visibility::Visibilities,
+    wreck::Wreck,
 };
 
 pub mod cache;
@@ -67,6 +68,7 @@ pub mod terrain;
 pub mod tile;
 pub mod utils;
 pub mod visibility;
+pub mod wreck;
 
 #[derive(Constructor)]
 #[allow(clippy::too_many_arguments)]
@@ -87,6 +89,7 @@ pub struct World {
     pub altered_tiles: Vec<Option<AlteredTile>>,
     pub decor: Vec<Option<Decor>>,
     pub craters: Vec<Crater>,
+    pub wrecks: Vec<Wreck>,
     pub smoke: Vec<Percent>,
     pub smoke_clouds: Vec<SmokeCloud>,
     pub navmesh: polyanya::Mesh,
@@ -168,6 +171,27 @@ impl World {
             .collect()
     }
 
+    pub fn region_wrecks(&self, region: WorldRegionIndex) -> Vec<Wreck> {
+        self.wrecks
+            .iter()
+            .filter(|wreck| {
+                let region_: WorldRegionIndex = wreck.tile(&self.w).into_(&self.w);
+                region_ == region
+            })
+            .cloned()
+            .collect()
+    }
+
+    /// Add a wreck for each destroyed vehicle
+    pub fn wreck_destroyed_vehicles(&mut self) {
+        let wrecks = self
+            .vehicles
+            .iter()
+            .filter(|vehicle| vehicle.destroyed)
+            .map(Wreck::from_vehicle);
+        self.wrecks.extend(wrecks);
+    }
+
     pub fn smoke_at(&self, i: WorldTileIndex) -> Percent {
         self.smoke.get_at(i).copied().unwrap_or_default()
     }
@@ -232,6 +256,10 @@ impl World {
 
     pub fn vehicle(&self, i: VehicleIndex) -> &Vehicle {
         self.vehicles.at(i)
+    }
+
+    pub fn wreck(&self, i: wreck::WreckIndex) -> &wreck::Wreck {
+        self.wrecks.at(i)
     }
 
     pub fn vehicle_mut(&mut self, i: VehicleIndex) -> &mut Vehicle {
@@ -398,6 +426,7 @@ mod tests {
             altered_tiles,
             decor,
             vec![],
+            vec![],
             vec![Percent::ZERO; w.tiles_count() as usize],
             vec![],
             polyanya::Mesh::default(),
@@ -460,6 +489,7 @@ mod tests {
             tiles,
             altered_tiles,
             decor,
+            vec![],
             vec![],
             vec![Percent::ZERO; w.tiles_count() as usize],
             vec![],

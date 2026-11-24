@@ -186,7 +186,7 @@
         crater: None,
         opacity: 1.0,
         z: Meters(2.5),
-        deny: [Individual, Projectile],
+        deny: [Individual, Projectile, Vehicle],
     ),
     (
         name: "Cliff",

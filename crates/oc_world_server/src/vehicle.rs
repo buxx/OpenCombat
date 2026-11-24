@@ -9,14 +9,13 @@ use oc_utils::{
     index::AtIndex,
 };
 use oc_vehicle::{Update, VehicleIndex, network};
-use oc_world::World;
+use oc_world::{World, utils::oriented_rectangle_covered_tiles};
 
 use crate::{
-    index::{self, vehicle_region},
+    index::{self, Indexes, vehicle_region},
     routing::Listening,
     runner,
     state::ObjectId,
-    utils::d2::oriented_rectangle_covered_tiles,
 };
 
 pub fn write(
@@ -57,6 +56,7 @@ pub fn write(
 /// then forces application (crew follows its vehicle).
 pub fn step(
     world: &World,
+    indexes: &Indexes,
     vehicles: &[(VehicleIndex, &oc_vehicle::Vehicle)],
     w: &WorldConfig,
     mod_: &Mod,
@@ -83,10 +83,11 @@ pub fn step(
             continue;
         }
 
-        // Vehicles collide with world tiles only
+        // Vehicles collide with world tiles and wrecks
         let size = type_.size;
         let orientation = vehicle.chassis_direction;
-        let collision_objects = |xy: Xy| chassis_tiles_objects(world, w, xy, size, orientation);
+        let collision_objects =
+            |xy: Xy| chassis_tiles_objects(world, indexes, w, xy, size, orientation);
         let (position, forces, _) = oc_physics::step(
             w,
             delta,
@@ -122,6 +123,7 @@ pub fn step(
 /// Tiles under the chassis of a vehicle.
 fn chassis_tiles_objects<'a>(
     world: &'a World,
+    indexes: &Indexes,
     w: &WorldConfig,
     xy: Xy,                 // Will consider center of this tile
     size: (Meters, Meters), // size of the chassis
@@ -133,12 +135,26 @@ fn chassis_tiles_objects<'a>(
     // Vehicle center is somewhere on the tile `xy`: enlarge by one tile to cover all its positions
     let (width, length) = (size.0.pixels(w) + tile, size.1.pixels(w) + tile);
 
-    oriented_rectangle_covered_tiles(center_, width, length, orientation, w)
+    let tiles: Vec<WorldTileIndex> =
+        oriented_rectangle_covered_tiles(center_, width, length, orientation, w)
+            .into_iter()
+            .filter(|i| *i != center)
+            .chain(std::iter::once(center))
+            .collect();
+
+    // Wrecks covering these tiles (each one once)
+    let mut wrecks: Vec<(ObjectId, &dyn Physic)> = vec![];
+    for i in tiles.iter().flat_map(|i| indexes.tile_wrecks(*i)) {
+        if !wrecks.iter().any(|(id, _)| *id == ObjectId::Wreck(*i)) {
+            wrecks.push((ObjectId::Wreck(*i), world.wreck(*i) as &dyn Physic));
+        }
+    }
+
+    tiles
         .into_iter()
-        .filter(|i| *i != center)
-        .chain(std::iter::once(center))
         .filter_map(|i| world.tile(i))
         .map(|tile| (ObjectId::Tile(tile.i), tile as &dyn Physic))
+        .chain(wrecks)
         .collect()
 }
 
@@ -215,6 +231,7 @@ mod tests {
         // When: one second
         let updates = step(
             &world,
+            &Indexes::new(&world, &world.w),
             &world.vehicles().with_ids(),
             &world.w,
             &world.mod_,
@@ -289,6 +306,7 @@ mod tests {
         // When: one second (center would reach 277.5 without obstacle)
         let updates = step(
             &world,
+            &Indexes::new(&world, &world.w),
             &world.vehicles().with_ids(),
             &world.w,
             &world.mod_,
@@ -305,6 +323,42 @@ mod tests {
     }
 
     #[test]
+    fn vehicle_stopped_by_wreck() {
+        // Given: tank moving south, a wreck (same chassis) 50px ahead
+        let w = WorldConfig::new(100, 100);
+        let base = tank_world_with_rocks(&[]);
+        let tank = base.vehicles[0].clone();
+        let wreck = oc_world::wreck::Wreck::Vehicle {
+            type_: tank.type_,
+            position: WorldVec3::new(252.5, 302.5, 0.),
+            chassis_direction: Direction::SOUTH,
+        };
+        let world = TestWorld::builder()
+            .vehicles(vec![tank])
+            .wrecks(vec![wreck])
+            .build()
+            .make(&w);
+
+        // When: one second (center would reach 277.5 without wreck)
+        let updates = step(
+            &world,
+            &Indexes::new(&world, &world.w),
+            &world.vehicles().with_ids(),
+            &world.w,
+            &world.mod_,
+            1.0,
+        );
+
+        // Then: stopped when chassis front (16.25px ahead of center) touch the wreck back (286.25)
+        let position = moved_to(&updates).unwrap_or(WorldVec3::new(252.5, 252.5, 0.));
+        assert!(position.y < 272., "{position:?}");
+        assert!(updates.contains(&runner::update::Update::UpdateVehicle(
+            VehicleIndex(0),
+            Update::SetForces(vec![])
+        )));
+    }
+
+    #[test]
     fn vehicle_chassis_passes_beside_obstacle() {
         // Given: rocks on tile x=53 (pixels 265 to 270), beside chassis (x from 245.75 to 259.25)
         let world = tank_world_with_rocks(&[(53, 52), (53, 55), (53, 57)]);
@@ -312,6 +366,7 @@ mod tests {
         // When
         let updates = step(
             &world,
+            &Indexes::new(&world, &world.w),
             &world.vehicles().with_ids(),
             &world.w,
             &world.mod_,
@@ -340,6 +395,7 @@ mod tests {
         // When
         let updates = step(
             &world,
+            &Indexes::new(&world, &world.w),
             &world.vehicles().with_ids(),
             &world.w,
             &world.mod_,
@@ -375,6 +431,7 @@ mod tests {
         // When: 1 second
         let updates = step(
             &world,
+            &Indexes::new(&world, &world.w),
             &world.vehicles().with_ids(),
             &world.w,
             &world.mod_,

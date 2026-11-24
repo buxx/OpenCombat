@@ -6,6 +6,7 @@ use oc_root::{Wcfg, files, static_::StaticSource};
 use oc_vehicle::network::Vehicle;
 
 use crate::ingame::hud::supports::{SetSupportCountEvent, SupportExecutedEvent};
+use crate::world::InsertWrecks;
 use crate::{
     fx::FxEvent,
     ingame::collision::CollisionEvent,
@@ -154,6 +155,10 @@ pub fn on_to_client(
         ToClient::Craters(region, craters) => {
             tracing::trace!(name="ingame-input-craters", region=?region);
             commands.trigger(InsertCraters(*region, craters.clone()));
+        }
+        ToClient::Wrecks(region, wrecks) => {
+            tracing::trace!(name="ingame-input-wrecks", region=?region);
+            commands.trigger(InsertWrecks(*region, wrecks.clone()));
         }
         ToClient::Smoke(region, smoke) => {
             tracing::trace!(name="ingame-input-smoke", region=?region);

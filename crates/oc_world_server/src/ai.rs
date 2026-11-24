@@ -22,6 +22,7 @@ use oc_world::World;
 use std::{collections::HashMap, f32::consts::FRAC_PI_2};
 
 use crate::{
+    index::Indexes,
     runner::{
         input::{request_support, set_leader_position},
         update::Update,
@@ -113,18 +114,23 @@ impl Ai {
 
     /// What AI side knows about `world` (with deployment knowledge during deployment phase, cover
     /// positions during fight phase)
-    pub fn perceive(&mut self, world: &World) -> Perception {
+    pub fn perceive(&mut self, world: &World, indexes: &Indexes) -> Perception {
         let perception = Perception::from_world(world, self.side);
         match world.phase {
             BattlePhase::Deployment => self.deployment_perceive(world, perception),
-            BattlePhase::Fight => self.fight_perceive(world, perception),
+            BattlePhase::Fight => self.fight_perceive(world, indexes, perception),
             _ => perception,
         }
     }
 
     /// Add squads under fire, enemies seen recently and cover positions of squads in contact,
     /// under fire or near a known enemy to perception
-    fn fight_perceive(&mut self, world: &World, perception: Perception) -> Perception {
+    fn fight_perceive(
+        &mut self,
+        world: &World,
+        indexes: &Indexes,
+        perception: Perception,
+    ) -> Perception {
         let tick = self.fight_ticks;
         self.fight_ticks += 1;
         #[cfg(feature = "battle_instrument")]
@@ -142,7 +148,7 @@ impl Ai {
             .with_under_fire(&under_fire)
             .with_remembered(remembered);
         let walls = self.walls.get_or_insert_with(|| wall_positions(world));
-        let covers = covers(world, &perception, walls);
+        let covers = covers(world, indexes, &perception, walls);
         perception.with_covers(covers)
     }
 
@@ -268,6 +274,7 @@ fn suppressed(world: &World, squad: SquadIndex) -> bool {
 /// [`squad_covers`].
 fn covers(
     world: &World,
+    indexes: &Indexes,
     perception: &Perception,
     walls: &[WorldVec2],
 ) -> Vec<(SquadIndex, Candidate)> {
@@ -287,7 +294,7 @@ fn covers(
                     None,
                 ),
             };
-            let covers = squad_covers(world, perception, squad.index, threat, enemy, walls);
+            let covers = squad_covers(world, indexes, perception, squad.index, threat, enemy, walls);
             Some(covers.into_iter().map(|c| (squad.index, c)))
         })
         .flatten()
@@ -298,6 +305,7 @@ fn covers(
 /// `threat` (see [`protection`]) and, if given, from which `enemy` is visible (squad can fire)
 fn squad_covers(
     world: &World,
+    indexes: &Indexes,
     perception: &Perception,
     squad: SquadIndex,
     threat: WorldVec2,
@@ -327,7 +335,7 @@ fn squad_covers(
             (cover >= COVER_MIN).then_some((position, kind, cover))
         })
         .filter(|(position, _, _)| {
-            enemy.is_none_or(|enemy| can_fire(world, *position, leader.position.z, enemy))
+            enemy.is_none_or(|enemy| can_fire(world, indexes, *position, leader.position.z, enemy))
         })
         .map(|(position, kind, cover)| Candidate {
             position,
@@ -375,9 +383,17 @@ fn protection(world: &World, position: WorldVec2, enemy: WorldVec2) -> f32 {
 }
 
 /// True if an individual lying at `position` (ground at `z`) sees `enemy`
-fn can_fire(world: &World, position: WorldVec2, z: f32, enemy: &Individual) -> bool {
+fn can_fire(
+    world: &World,
+    indexes: &Indexes,
+    position: WorldVec2,
+    z: f32,
+    enemy: &Individual,
+) -> bool {
     let w = &world.w;
-    let at = |xy, z| path_objects_at(w, &world.mod_, world, xy, z);
+    // Enemy own vehicle (when embarked) doesn't block the view
+    let ignore: Vec<_> = enemy.embarked.map(|(vehicle, _)| vehicle).into_iter().collect();
+    let at = |xy, z| path_objects_at(w, &world.mod_, world, indexes, &ignore, xy, z);
     let weapon_z = BodyGesture::Crawling(Default::default())
         .weapon_z()
         .pixels(w);

@@ -15,9 +15,11 @@ use oc_root::{WcfgFrom, WcfgInto, WorldConfig};
 use oc_utils::d2::{Direction, Xy, shape_cover_tiles};
 use oc_vehicle::VehicleIndex;
 use oc_world::World;
+use oc_world::wreck::WreckIndex;
 
 use crate::physics;
-use crate::utils::d2::{oriented_rectangle_covered_tiles, shape_from_tile};
+use crate::utils::d2::shape_from_tile;
+use oc_world::utils::oriented_rectangle_covered_tiles;
 
 pub struct SizedIndex<T>(Vec<Vec<T>>);
 
@@ -52,6 +54,8 @@ pub struct Indexes {
     tiles_vehicles: SizedIndex<VehicleIndex>,
     regions_vehicles: SizedIndex<VehicleIndex>,
     regions_craters: SizedIndex<usize>,
+    /// Wreck presence on tiles (positions in `World::wrecks`, considering chassis size and orientation)
+    tiles_wrecks: SizedIndex<WreckIndex>,
     individuals_squad: Vec<SquadIndex>,
     side_individuals: BySide<Vec<IndividualIndex>>,
 }
@@ -67,6 +71,7 @@ impl Indexes {
         let mut tiles_vehicles = SizedIndex::new(world.w.tiles_count() as usize);
         let mut regions_vehicles = SizedIndex::new(world.w.regions_count() as usize);
         let mut regions_craters = SizedIndex::new(world.w.regions_count() as usize);
+        let mut tiles_wrecks = SizedIndex::new(world.w.tiles_count() as usize);
         let mut individuals_squad = Vec::with_capacity(world.individuals.len());
         let mut side_individuals = BySide::from_fn(|side| {
             Vec::with_capacity(individuals.iter().filter(|i| i.side == side).count())
@@ -142,8 +147,15 @@ impl Indexes {
             regions_craters.at_mut(region).push(i);
         }
 
+        for (i, wreck) in world.wrecks.iter().enumerate() {
+            for tile in wreck.covered_tiles(w, &world.mod_) {
+                tiles_wrecks.at_mut(tile).push(i.into());
+            }
+        }
+
         Self {
             regions_craters,
+            tiles_wrecks,
             tiles_individuals,
             proximity_individuals,
             regions_individuals,
@@ -282,6 +294,7 @@ impl Indexes {
         self.proximity_individuals.at(tile)
     }
 
+    /// Positions in `World::vehicle` of wrecks covering given tile
     pub fn tile_vehicles(&self, tile: WorldTileIndex) -> &Vec<VehicleIndex> {
         self.tiles_vehicles.at(tile)
     }
@@ -300,6 +313,11 @@ impl Indexes {
 
     pub fn region_craters(&self, region: WorldRegionIndex) -> &Vec<usize> {
         self.regions_craters.at(region)
+    }
+
+    /// Positions in `World::wrecks` of wrecks covering given tile
+    pub fn tile_wrecks(&self, tile: WorldTileIndex) -> &Vec<WreckIndex> {
+        self.tiles_wrecks.at(tile)
     }
 
     pub fn individual_squad(&self, individual: IndividualIndex) -> SquadIndex {
@@ -506,6 +524,33 @@ mod tests {
             indexes.region_vehicles(WorldRegionIndex(0)),
             &vec![VehicleIndex(0)]
         );
+    }
+
+    #[test]
+    fn test_indexes_tile_wrecks() {
+        // Given: a wreck at same place than chassis of `test_indexes_tile_vehicles`
+        let w = vehicle_world_config();
+        let mod_ = tests1_mod();
+        let vehicle = vehicle(&mod_, WorldVec3::new(5., 5., 0.), Direction::NORTH);
+        let wreck = oc_world::wreck::Wreck::from_vehicle(&vehicle);
+        let world = TestWorld::builder()
+            .mod_(mod_)
+            .wrecks(vec![wreck])
+            .build()
+            .make(&w);
+
+        // When
+        let indexes = Indexes::new(&world, &w);
+
+        // Then
+        let tiles: Vec<_> = (0..w.tiles_count())
+            .map(WorldTileIndex)
+            .filter(|i| !indexes.tile_wrecks(*i).is_empty())
+            .collect();
+        assert_eq!(tiles, tiles_rect(&w, 3..=6, 1..=8));
+        for tile in tiles {
+            assert_eq!(indexes.tile_wrecks(tile), &vec![WreckIndex(0)]);
+        }
     }
 
     #[test]

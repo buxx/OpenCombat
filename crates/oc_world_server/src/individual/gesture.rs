@@ -126,7 +126,9 @@ impl Processor<'_> {
             return (Gesture::body(BodyGesture::Prone(direction)), vec![])
         );
         let tile_z = target_tile.z_pixels(w);
-        let at = |xy, z| path_objects_at(w, mod_, self.world, xy, z);
+        // Individual own vehicle (when embarked) doesn't block the view
+        let ignore: Vec<_> = individual.embarked.map(|(v, _)| v).into_iter().collect();
+        let at = |xy, z| path_objects_at(w, mod_, self.world, self.index, &ignore, xy, z);
         let target_ = target.extend(tile_z);
         let modifier = oc_lov::Modifier::None(false);
         let visibility = visibility(w, at, individual.position, target_, modifier);

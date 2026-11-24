@@ -12,7 +12,9 @@ use oc_individual::IndividualIndex;
 use oc_mod::Mod;
 use oc_projectile::ProjectileId;
 use oc_root::{Client, WorldConfig, ids::Ids};
-use oc_world::{World, load::WorldLoader, reader::MapReader, snapshot::Snapshot};
+use oc_world::{
+    World, load::WorldLoader, reader::MapReader, snapshot::Snapshot, wreck::WreckIndex,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -97,6 +99,7 @@ pub enum ObjectId {
     Projectile(ProjectileId),
     Tile(WorldTileIndex),
     Vehicle(VehicleIndex),
+    Wreck(WreckIndex),
 }
 
 pub fn init<E: Client>(config: ServerConfig, map: &MapReader) -> Result<State<E>, anyhow::Error> {

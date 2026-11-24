@@ -27,6 +27,7 @@ use crate::{
             on_adjust_minimap, on_despawn_world_map_background, on_spawn_minimap,
             on_spawn_visible_battle_square, on_spawn_world_map_background, on_update_battle_square,
         },
+        wreck::WreckPlugin,
     },
     network::{self, output::ToServerEvent},
     replay::Replay,
@@ -61,6 +62,7 @@ pub mod state;
 pub mod tile;
 pub mod vehicle;
 pub mod world;
+pub mod wreck;
 
 pub struct IngamePlugin;
 
@@ -166,6 +168,7 @@ impl Plugin for IngamePlugin {
             .add_plugins(ProjectilePlugin)
             .add_plugins(CraterPlugin)
             .add_plugins(VehiclePlugin)
+            .add_plugins(WreckPlugin)
             .add_plugins(DecorPlugin)
             .add_plugins(BehaviorPlugin)
             .add_plugins(LovPlugin)

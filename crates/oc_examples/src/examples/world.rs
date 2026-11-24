@@ -46,6 +46,37 @@ const WALL_POSITION: WorldVec2 = WorldVec2::new(17.5, 77.5);
 
 const MAP: &str = "maps/meadow1";
 
+/// WorldPersist: offsets (pixels, from map center) of persisted crater and wreck. Altered tile is
+/// at map center.
+const PERSIST_CRATER_OFFSET: f32 = 40.;
+const PERSIST_WRECK_OFFSET: f32 = -40.;
+const PERSIST_ALTERED_NATURE: &str = "BrickWallDebris";
+const PERSIST_WRECK_VEHICLE: &str = "Tank1";
+/// BulletCollideWreck: bullet is fired from this distance (pixels, west of the wreck), at this
+/// height above ground (meters, under wreck chassis height)
+const BULLET_FROM_WRECK: f32 = 60.;
+const BULLET_HEIGHT: Meters = Meters(1.);
+/// BulletCollideWreck: let time to the bullet to reach the wreck (game time)
+#[cfg(feature = "test")]
+const BULLET_DURATION: Duration = Duration::from_secs(3);
+
+/// WreckLov: watcher (side A) is west of the wreck, hidden enemy (side B) is east of it (pixels,
+/// from wreck center). Control enemy is not behind the wreck (wreck chassis is north oriented: its
+/// length is along y axis)
+const LOV_WATCHER_FROM_WRECK: WorldVec2 = WorldVec2::new(-50., 0.);
+const LOV_HIDDEN_FROM_WRECK: WorldVec2 = WorldVec2::new(30., 0.);
+const LOV_CONTROL_FROM_WRECK: WorldVec2 = WorldVec2::new(30., 60.);
+/// WreckLov: duration (game time) during which control must be visible and hidden one not
+#[cfg(feature = "test")]
+const LOV_HOLD: Duration = Duration::from_secs(2);
+/// WreckLov: minimal real duration of hold (network and frames precision)
+#[cfg(feature = "test")]
+const LOV_MIN_HOLD: Duration = Duration::from_secs(1);
+
+/// Bullet (from, to) fired by BulletCollideWreck case
+#[derive(Resource, Clone, Copy)]
+struct Bullet(WorldVec3, WorldVec3);
+
 /// Precision of smoke durations check (server fading tick, network and frames)
 #[cfg(feature = "test")]
 const SMOKE_TOLERANCE: Duration = Duration::from_millis(900);
@@ -76,6 +107,9 @@ enum Case {
     EndMorale,
     ExplosionAlterWall,
     SmokeGrenade,
+    WorldPersist,
+    BulletCollideWreck,
+    WreckLov,
 }
 
 #[cfg(feature = "test")]
@@ -107,6 +141,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         w.world_width_pixels() as f32 / 2.,
         w.world_height_pixels() as f32 / 2.,
     );
+
+    let tiles = map.tiles(&w, &mod_)?;
+    let wreck = utils::on_ground(&w, &tiles, offset_x(center, PERSIST_WRECK_OFFSET));
+    let wreck_xy = WorldVec2::new(wreck.x, wreck.y);
 
     let (phase, supports, individuals, squads) = match args.case {
         Case::EndTime => (
@@ -175,7 +213,35 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ],
             )
         }
-        Case::ExplosionAlterWall => (BattlePhase::Deployment, Supports::default(), vec![], vec![]),
+        Case::WreckLov => {
+            let at = |offset: WorldVec2| {
+                utils::on_ground(
+                    &w,
+                    &tiles,
+                    WorldVec2::new(wreck_xy.x + offset.x, wreck_xy.y + offset.y),
+                )
+            };
+            let individuals = vec![
+                soldier(&w, Side::A, at(LOV_WATCHER_FROM_WRECK)),
+                soldier(&w, Side::B, at(LOV_HIDDEN_FROM_WRECK)),
+                soldier(&w, Side::B, at(LOV_CONTROL_FROM_WRECK)),
+            ];
+            let squads = individuals
+                .iter()
+                .enumerate()
+                .map(|(i, individual)| {
+                    TestSquad::builder()
+                        .position(WorldVec2::new(individual.position.x, individual.position.y))
+                        .members(vec![oc_individual::IndividualIndex(i as u64)])
+                        .build()
+                        .make()
+                })
+                .collect();
+            (BattlePhase::Fight, Supports::default(), individuals, squads)
+        }
+        Case::ExplosionAlterWall | Case::WorldPersist | Case::BulletCollideWreck => {
+            (BattlePhase::Deployment, Supports::default(), vec![], vec![])
+        }
         Case::Support => (
             BattlePhase::Deployment,
             utils::naval_bombards(1),
@@ -184,17 +250,49 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
     };
 
-    let snapshot = SnapshotBuilder::fight(map, individuals, squads)
+    let bullet = matches!(args.case, Case::BulletCollideWreck).then(|| {
+        let height = BULLET_HEIGHT.pixels(&w);
+        let from = utils::on_ground(
+            &w,
+            &tiles,
+            offset_x(center, PERSIST_WRECK_OFFSET - BULLET_FROM_WRECK),
+        );
+        Bullet(
+            WorldVec3::new(from.x, from.y, from.z + height),
+            WorldVec3::new(wreck.x, wreck.y, wreck.z + height),
+        )
+    });
+
+    let mut builder = SnapshotBuilder::fight(map, individuals, squads)
         .with_phase(phase)
-        .with_supports(supports)
-        .build(w, &mod_)?;
+        .with_supports(supports);
+    if matches!(
+        args.case,
+        Case::WorldPersist | Case::BulletCollideWreck | Case::WreckLov
+    ) {
+        builder = builder.with_persisted(persisted_map(&w, &mod_, center, wreck)?);
+    }
+    let snapshot = builder.build(w, &mod_)?;
 
     let example = run::Example::builder()
         .world(PathBuf::from(MAP))
         .mod_(mod_path)
-        .install(Box::new(move |app| setup(app, center, speed)))
+        .install(Box::new(move |app| setup(app, center, speed, bullet)))
         .snapshot(snapshot);
+    #[cfg(feature = "test")]
+    let tracker = example.build().run()?;
+    #[cfg(not(feature = "test"))]
     example.build().run()?;
+
+    // Collisions are known by server (tracker), and not by gui
+    #[cfg(feature = "test")]
+    if matches!(args.case, Case::BulletCollideWreck) {
+        let collisions = utils::tracked::wreck_collisions(&tracker.take());
+        if collisions == 0 {
+            eprintln!("❌ Bullet did not collide with wreck");
+        }
+        SUCCESS.store(collisions > 0, Ordering::Relaxed);
+    }
 
     #[cfg(feature = "test")]
     utils::test_result(&SUCCESS)?;
@@ -202,10 +300,67 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn setup(app: &mut App, center: WorldVec2, #[allow(unused)] speed: f32) {
+fn offset_x(position: WorldVec2, x: f32) -> WorldVec2 {
+    WorldVec2::new(position.x + x, position.y)
+}
+
+/// Generate (on the fly) a persisted map (as saved at the end of a previous battle) containing an
+/// altered tile, a crater and a wreck
+fn persisted_map(
+    w: &oc_root::WorldConfig,
+    mod_: &Mod,
+    center: WorldVec2,
+    wreck: WorldVec3,
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    use oc_geo::tile::WorldTileIndex;
+    use oc_root::{WcfgInto, craters::CraterType, format::RkyvFile, side::BySide};
+    use oc_utils::d2::Direction;
+    use oc_world::{crater::Crater, snapshot::State, tile::AlteredTile, wreck::Wreck};
+
+    let count = w.tiles_count() as usize;
+
+    let mut altered_tiles = vec![None; count];
+    let tile: WorldTileIndex = center.into_(w);
+    let nature = mod_
+        .nature_index(PERSIST_ALTERED_NATURE)
+        .ok_or(format!("Nature {PERSIST_ALTERED_NATURE} not found"))?;
+    altered_tiles[tile.0 as usize] = Some(AlteredTile { i: tile, nature });
+
+    let craters = vec![Crater::new(
+        offset_x(center, PERSIST_CRATER_OFFSET),
+        CraterType::Mud,
+        0,
+        30.,
+    )];
+
+    let wreck = Wreck::Vehicle {
+        type_: mod_.vehicle_from_name(PERSIST_WRECK_VEHICLE)?.index(),
+        position: wreck,
+        chassis_direction: Direction::NORTH,
+    };
+
+    let state = State::new(
+        altered_tiles,
+        vec![None; count],
+        craters,
+        vec![wreck],
+        BySide::new(vec![], vec![]),
+        vec![],
+        Default::default(),
+    );
+    let (_, path) = tempfile::NamedTempFile::new()?.keep()?;
+    state.save(&path)?;
+
+    Ok(path)
+}
+
+fn setup(app: &mut App, center: WorldVec2, #[allow(unused)] speed: f32, bullet: Option<Bullet>) {
     let args = Args::parse_from(crate::args());
 
     app.insert_resource(Center(center));
+    if let Some(bullet) = bullet {
+        app.insert_resource(bullet);
+    }
 
     match args.case {
         Case::Support => {
@@ -218,6 +373,22 @@ fn setup(app: &mut App, center: WorldVec2, #[allow(unused)] speed: f32) {
             app.add_observer(explosion_alter_wall);
             #[cfg(feature = "test")]
             app.add_systems(Update, alter_wall_test);
+        }
+        Case::WorldPersist => {
+            app.add_observer(center_camera);
+            #[cfg(feature = "test")]
+            app.add_systems(Update, world_persist_test);
+        }
+        Case::WreckLov => {
+            app.add_observer(center_camera_on_wreck);
+            #[cfg(feature = "test")]
+            app.init_resource::<LovWatch>()
+                .add_systems(Update, wreck_lov_test);
+        }
+        Case::BulletCollideWreck => {
+            app.add_observer(fire_bullet);
+            #[cfg(feature = "test")]
+            app.add_systems(Update, bullet_exit);
         }
         Case::SmokeGrenade => {
             app.add_observer(request_fight);
@@ -249,6 +420,136 @@ fn setup(app: &mut App, center: WorldVec2, #[allow(unused)] speed: f32) {
             .add_observer(on_fx)
             .add_systems(Update, timeout_exit);
     }
+}
+
+/// Fire one bullet towards the wreck
+fn fire_bullet(_: On<GameConfigReceived>, bullet: Res<Bullet>, mut commands: Commands) {
+    let mod_ = Mod::load(
+        &PathBuf::from("mods").join(Args::parse_from(crate::args()).mod_),
+        None,
+    )
+    .unwrap();
+    let Bullet(from, to) = *bullet;
+
+    commands.trigger(CenterCameraOn(WorldVec2::new(to.x, to.y)));
+    let spawn =
+        utils::Firing::weapon1(&mod_).spawn(1, from, vec![utils::direction(from, to)], Side::A);
+    commands.trigger(ToServerEvent(ToServer::ExplodeProjectile(spawn)));
+}
+
+/// Exit when bullet had time to reach the wreck (result is read from server tracker)
+#[cfg(feature = "test")]
+fn bullet_exit(
+    game: Res<oc_battle_gui::states::Game>,
+    g: Res<oc_battle_gui::states::GameConfig>,
+    mut commands: Commands,
+) {
+    let_some!(g = &g.0, return);
+    // Minimal duration to let time to app start and server exchanges
+    let duration = BULLET_DURATION
+        .div_f32(g.w.speed())
+        .max(Duration::from_secs(1));
+    if game.started.elapsed() > duration {
+        commands.write_message(AppExit::from_code(0));
+    }
+}
+
+fn center_camera_on_wreck(_: On<GameConfigReceived>, center: Res<Center>, mut commands: Commands) {
+    commands.trigger(CenterCameraOn(offset_x(center.0, PERSIST_WRECK_OFFSET)));
+}
+
+/// Since when control enemy is visible while hidden one is not
+#[cfg(feature = "test")]
+#[derive(Resource, Default)]
+struct LovWatch(Option<std::time::Instant>);
+
+/// Enemy behind the wreck must stay not visible while control enemy (same distance, not behind the
+/// wreck) is visible
+#[cfg(feature = "test")]
+fn wreck_lov_test(
+    g: Res<oc_battle_gui::states::GameConfig>,
+    individuals: Query<(
+        &oc_battle_gui::entity::individual::IndividualIndex,
+        &Visibility,
+    )>,
+    wrecks: Query<(), With<oc_battle_gui::ingame::wreck::WreckSprite>>,
+    mut watch: ResMut<LovWatch>,
+    mut commands: Commands,
+) {
+    let_some!(g = &g.0, return);
+    true_!(!wrecks.is_empty(), return);
+    let visible = |index: u64| {
+        individuals.iter().find_map(|(i, v)| {
+            (i.0 == oc_individual::IndividualIndex(index)).then_some(*v == Visibility::Visible)
+        })
+    };
+    let_some!(hidden = visible(1), return);
+    let_some!(control = visible(2), return);
+
+    if !control {
+        if watch.0.is_some() {
+            eprintln!("❌ Control enemy became not visible");
+            commands.write_message(AppExit::from_code(0));
+        }
+        return;
+    }
+    if hidden {
+        eprintln!("❌ Enemy behind the wreck is visible");
+        commands.write_message(AppExit::from_code(0));
+        return;
+    }
+
+    let since = *watch.0.get_or_insert_with(std::time::Instant::now);
+    if since.elapsed() >= LOV_HOLD.div_f32(g.w.speed()).max(LOV_MIN_HOLD) {
+        SUCCESS.store(true, Ordering::Relaxed);
+        commands.write_message(AppExit::from_code(0));
+    }
+}
+
+fn center_camera(_: On<GameConfigReceived>, center: Res<Center>, mut commands: Commands) {
+    commands.trigger(CenterCameraOn(center.0));
+}
+
+/// Persisted altered tile, crater and wreck must be in gui world (and displayed)
+#[cfg(feature = "test")]
+fn world_persist_test(
+    g: Res<oc_battle_gui::states::GameConfig>,
+    world: Res<oc_battle_gui::world::World>,
+    center: Res<Center>,
+    craters: Query<&Transform, With<oc_battle_gui::ingame::crater::CraterSprite>>,
+    wrecks: Query<&Transform, With<oc_battle_gui::ingame::wreck::WreckSprite>>,
+    mut commands: Commands,
+) {
+    use oc_geo::tile::WorldTileIndex;
+    use oc_root::{WcfgFrom, WcfgInto, geo::ScreenVec2};
+
+    let_some!(g = &g.0, return);
+    let w = &g.w;
+    let_some!(nature = g.mod_.nature_index(PERSIST_ALTERED_NATURE), return);
+
+    let tile: WorldTileIndex = center.0.into_(w);
+    let altered = world
+        .altered_tiles
+        .values()
+        .filter_map(|tiles| tiles.get(&tile))
+        .any(|t| t.nature == nature);
+    true_!(altered, return);
+
+    let near = |transform: &Transform, position: WorldVec2| {
+        let screen = ScreenVec2::from_(position.extend(0.), w);
+        transform
+            .translation
+            .truncate()
+            .distance(Vec2::new(screen.x, screen.y))
+            < 1.
+    };
+    let crater = offset_x(center.0, PERSIST_CRATER_OFFSET);
+    true_!(craters.iter().any(|t| near(t, crater)), return);
+    let wreck = offset_x(center.0, PERSIST_WRECK_OFFSET);
+    true_!(wrecks.iter().any(|t| near(t, wreck)), return);
+
+    SUCCESS.store(true, Ordering::Relaxed);
+    commands.write_message(AppExit::from_code(0));
 }
 
 /// Fire an explosion near the BrickWall square

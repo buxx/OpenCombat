@@ -64,13 +64,14 @@ impl<'x, E: Client> Processor<'x, E> {
     fn step_vehicles(&self, i: usize) -> Vec<crate::runner::update::Update> {
         let state = &self.ctx.state;
         let world = state.world();
+        let indexes = state.indexes();
         let all = world.vehicles().with_ids();
         let Some(chunk) = chunk(&all, self.ctx.cpus, i) else {
             return vec![];
         };
         let delta = state.w.physics_tick().period() * state.w.speed();
 
-        crate::vehicle::step(&world, chunk, &state.w, &state._mod, delta)
+        crate::vehicle::step(&world, &indexes, chunk, &state.w, &state._mod, delta)
     }
 
     #[cfg(feature = "tracker")]
@@ -122,6 +123,12 @@ impl<'x, E: Client> Processor<'x, E> {
             for i in indexes.tile_vehicles(i) {
                 let vehicle: &dyn Physic = world.vehicle(*i);
                 objects.push((ObjectId::Vehicle(*i), vehicle));
+            }
+
+            // Wrecks covering this tile (chassis size and orientation)
+            for i in indexes.tile_wrecks(i) {
+                let wreck: &dyn Physic = world.wreck(*i);
+                objects.push((ObjectId::Wreck(*i), wreck));
             }
 
             if let Some(tile_) = world.tile(tile.into_(&self.ctx.state.w)) {
@@ -287,7 +294,10 @@ impl<'x, E: Client> Processor<'x, E> {
 
             match event {
                 Event::NoTile(id) => match id {
-                    ObjectId::Individual(_) | ObjectId::Tile(_) | ObjectId::Vehicle(_) => {}
+                    ObjectId::Individual(_)
+                    | ObjectId::Tile(_)
+                    | ObjectId::Vehicle(_)
+                    | ObjectId::Wreck(_) => {}
                     ObjectId::Projectile(id) => {
                         updates.push(crate::runner::update::Update::RemoveProjectile(id));
                     }
@@ -301,10 +311,13 @@ impl<'x, E: Client> Processor<'x, E> {
                     | (ObjectId::Tile(_), ObjectId::Projectile(_))
                     | (ObjectId::Tile(_), ObjectId::Tile(_))
                     | (ObjectId::Vehicle(_), _)
+                    | (ObjectId::Wreck(_), _)
                     | (ObjectId::Individual(_), ObjectId::Vehicle(_))
-                    | (ObjectId::Tile(_), ObjectId::Vehicle(_)) => {}
+                    | (ObjectId::Individual(_), ObjectId::Wreck(_))
+                    | (ObjectId::Tile(_), ObjectId::Vehicle(_))
+                    | (ObjectId::Tile(_), ObjectId::Wreck(_)) => {}
                     // TODO: projectile damages on vehicle (penetration, weak parts, crew)
-                    (ObjectId::Projectile(id), ObjectId::Vehicle(_)) => {
+                    (ObjectId::Projectile(id), ObjectId::Vehicle(_) | ObjectId::Wreck(_)) => {
                         updates.push(crate::runner::update::Update::RemoveProjectile(id));
                     }
                     (ObjectId::Projectile(projectile_id), ObjectId::Individual(individual_i)) => {

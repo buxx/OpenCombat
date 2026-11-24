@@ -32,6 +32,7 @@ use oc_world::{
     support::SupportType,
     tile::{AlteredTile, Tile},
     visibility::Visibility,
+    wreck::Wreck,
 };
 
 #[oc_derive::archivable(no_compare)]
@@ -49,6 +50,7 @@ pub enum ToClient {
     Decor(WorldRegionIndex, Vec<Decor>),
     RemovedDecor(WorldRegionIndex, Vec<WorldTileIndex>),
     Craters(WorldRegionIndex, Vec<Crater>),
+    Wrecks(WorldRegionIndex, Vec<Wreck>),
     Smoke(WorldRegionIndex, Vec<(WorldTileIndex, Percent)>),
     Fx(Fx),
     /// Side individuals visibilities on opposite individuals, and on opposite vehicles

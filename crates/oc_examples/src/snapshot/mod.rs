@@ -6,7 +6,7 @@ use oc_mod::Mod;
 use oc_projectile::Projectile;
 use oc_root::{WorldConfig, battle::BattlePhase, side::BySide};
 use oc_world::{
-    snapshot::Snapshot,
+    snapshot::{Snapshot, State},
     spawn::SpawnZoneName,
     support::Supports,
     tile::{AlteredTile, Tile},
@@ -34,6 +34,7 @@ where
     side_a_spawns: Vec<SpawnZoneName>,
     side_b_spawns: Vec<SpawnZoneName>,
     supports: Supports,
+    persisted: Option<PathBuf>,
 }
 
 impl<T, I, S, P> SnapshotBuilder<T, I, S, P>
@@ -63,6 +64,7 @@ where
             side_b_spawns,
             supports: Supports::default(),
             altered_tiles: None,
+            persisted: None,
         }
     }
 
@@ -86,6 +88,11 @@ where
         self
     }
 
+    pub fn with_persisted(mut self, path: PathBuf) -> Self {
+        self.persisted = Some(path);
+        self
+    }
+
     pub fn build(&self, w: WorldConfig, mod_: &Mod) -> Result<PathBuf, Error> {
         let (_, snapshot_path) = tempfile::NamedTempFile::new()?.keep()?;
         let tiles = self.tiles.tiles(&w, mod_);
@@ -102,12 +109,13 @@ where
         let decor = vec![None; tiles.len()];
         let smoke = vec![oc_utils::percent::Percent::ZERO; tiles.len()];
 
-        let snapshot = Snapshot {
+        let mut snapshot = Snapshot {
             w,
             tiles,
             altered_tiles,
-            decor,
             craters: vec![],
+            wrecks: vec![],
+            decor,
             smoke,
             smoke_clouds: vec![],
             individuals,
@@ -123,6 +131,11 @@ where
             support_realized: vec![],
             uuids: Default::default(),
         };
+        if let Some(path) = &self.persisted {
+            let state = State::load(path)?;
+            oc_world_server::generate::apply_persisted_map(&mut snapshot, state)
+                .map_err(|e| Error::Persist(path.clone(), e))?;
+        }
         snapshot.save(&snapshot_path)?;
 
         Ok(snapshot_path)
@@ -157,6 +170,8 @@ pub enum Error {
     Keep(#[from] tempfile::PersistError),
     #[error("Build error: {0}")]
     Save(#[from] FileError),
+    #[error("Apply persisted map {0}: {1}")]
+    Persist(PathBuf, anyhow::Error),
 }
 
 pub struct EmptyGenerator<T>(PhantomData<T>);

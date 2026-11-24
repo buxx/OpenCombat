@@ -214,6 +214,11 @@ impl Vehicle {
             && to.dot(lateral).abs() <= half_width + tolerance
     }
 
+    /// Whether the chassis occupies given altitude (pixels)
+    pub fn occupies_z(&self, z: f32, w: &WorldConfig, mod_: &Mod) -> bool {
+        z >= self.position.z && z <= self.position.z + mod_.vehicle(self.type_).height.pixels(w)
+    }
+
     // WARNING: AI generated
     /// Chassis points an opposite individual can see: chassis center and corners (considering
     /// chassis orientation). Seeing one of them is seeing the vehicle.

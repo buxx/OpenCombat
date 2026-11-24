@@ -35,7 +35,7 @@ pub struct VehicleIndex(pub oc_vehicle::VehicleIndex);
 #[derive(Debug, Component)]
 pub struct VehicleTurret;
 
-const DESTROYED_COLOR: Color = Color::srgb(0.45, 0.45, 0.45);
+pub const DESTROYED_COLOR: Color = Color::srgb(0.45, 0.45, 0.45);
 
 /// Chassis sprite of `vehicle`: darkened when destroyed
 fn chassis_sprite(sprites: &VehicleSprites, row: u8, vehicle: &oc_vehicle::Vehicle) -> Sprite {

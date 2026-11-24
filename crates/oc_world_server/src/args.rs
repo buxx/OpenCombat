@@ -112,9 +112,9 @@ pub struct SnapshotArgs {
     #[clap(long, value_enum, conflicts_with = "snapshot")]
     pub order_b: Option<InitialOrder>,
     /// World state file (`.ocws`) saved by a previous battle on this map: its altered tiles,
-    /// decor and craters are used instead of map original ones.
+    /// decor, craters and wrecks are used instead of map original ones.
     #[clap(long, conflicts_with = "snapshot")]
-    pub persisted_map: Option<PathBuf>,
+    pub persisted: Option<PathBuf>,
 }
 
 impl ServerArgs {
@@ -204,7 +204,7 @@ impl SnapshotArgs {
                 ))
                 .maybe_order_a(self.order_a)
                 .maybe_order_b(self.order_b)
-                .maybe_persisted_map(self.persisted_map.clone())
+                .maybe_persisted(self.persisted.clone())
                 .build(),
         ))
     }

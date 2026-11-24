@@ -311,6 +311,10 @@ pub mod tracked {
         projectile_collisions(tracker, |o| matches!(o, ObjectId::Tile(_)))
     }
 
+    pub fn wreck_collisions(tracker: &Tracker_) -> usize {
+        projectile_collisions(tracker, |o| matches!(o, ObjectId::Wreck(_)))
+    }
+
     pub fn individual_collisions(tracker: &Tracker_) -> usize {
         projectile_collisions(tracker, |o| matches!(o, ObjectId::Individual(_)))
     }

@@ -23,6 +23,7 @@ use oc_world::{
     decor::Decor,
     support::SupportType,
     tile::{AlteredTile, Tile},
+    wreck::Wreck,
 };
 use rustc_hash::FxHashMap;
 
@@ -58,6 +59,9 @@ pub struct RemoveDecor(pub WorldRegionIndex, pub Vec<WorldTileIndex>);
 
 #[derive(Debug, Event)]
 pub struct InsertCraters(pub WorldRegionIndex, pub Vec<Crater>);
+
+#[derive(Debug, Event)]
+pub struct InsertWrecks(pub WorldRegionIndex, pub Vec<Wreck>);
 
 #[derive(Debug, Event)]
 pub struct UpdateVisibilities(

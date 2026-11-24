@@ -388,6 +388,7 @@ mod tests {
             vec![],
             vec![],
             vec![],
+            vec![],
             BySide::new(names(&["A1", "B1"]), names(&["B2"])),
             vec![],
             Flags::default(),

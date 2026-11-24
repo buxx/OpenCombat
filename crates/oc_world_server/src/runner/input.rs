@@ -213,6 +213,13 @@ impl<'a, E: Client> Dealer<'a, E> {
             let message = (self.endpoint.clone(), craters);
             self.output.send(message).ok_or_log();
         }
+
+        let wrecks = world.region_wrecks(region);
+        if !wrecks.is_empty() {
+            let wrecks = ToClient::Wrecks(region, wrecks);
+            let message = (self.endpoint.clone(), wrecks);
+            self.output.send(message).ok_or_log();
+        }
     }
 
     fn spawn_projectiles(&self, spawns: SpawnProjectiles) -> Vec<Update> {

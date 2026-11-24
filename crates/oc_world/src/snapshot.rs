@@ -21,6 +21,7 @@ use crate::smoke::SmokeCloud;
 use crate::spawn::{SpawnZoneName, owned_spawn_zones};
 use crate::support::{PendingSupport, SupportType, Supports};
 use crate::tile::{AlteredTile, Tile};
+use crate::wreck::Wreck;
 use oc_geo::tile::WorldTileIndex;
 use oc_root::DEFAULT_FIGHT_DURATION;
 
@@ -33,6 +34,7 @@ pub struct Snapshot {
     pub altered_tiles: Vec<Option<AlteredTile>>,
     pub decor: Vec<Option<Decor>>,
     pub craters: Vec<Crater>,
+    pub wrecks: Vec<Wreck>,
     pub smoke: Vec<Percent>,
     pub smoke_clouds: Vec<SnapshotSmokeCloud>,
     pub individuals: Vec<Individual>,
@@ -159,6 +161,7 @@ impl Snapshot {
             altered_tiles: vec![],
             decor: vec![],
             craters: vec![],
+            wrecks: vec![],
             smoke: vec![],
             smoke_clouds: vec![],
             individuals: vec![],
@@ -227,6 +230,7 @@ pub struct State {
     pub altered_tiles: Vec<Option<AlteredTile>>,
     pub decor: Vec<Option<Decor>>,
     pub craters: Vec<Crater>,
+    pub wrecks: Vec<Wreck>,
     pub spawns: BySide<Vec<SpawnZoneName>>,
     pub individuals: Vec<IndividualState>,
     pub flags: Flags,
@@ -256,6 +260,7 @@ impl From<&World> for State {
             altered_tiles: world.altered_tiles.clone(),
             decor: world.decor.clone(),
             craters: world.craters.clone(),
+            wrecks: world.wrecks.clone(),
             spawns: BySide::from_fn(spawns),
             individuals: individuals_states(world),
             flags: world.flags.clone(),
