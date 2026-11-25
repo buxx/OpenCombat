@@ -9,15 +9,21 @@ use oc_individual::{
 use oc_mod::{shell::ShellIndex, vehicle::CrewRole};
 use oc_physics::Force;
 use oc_projectile::Projectile;
+#[cfg(feature = "debug")]
+use oc_root::WorldConfig;
 use oc_root::{
     WcfgFrom,
     geo::{WorldVec2, WorldVec3},
+    opacity::CumulatedOpacity,
 };
-use oc_utils::d2::Direction;
+use oc_utils::{d2::Direction, random::direction_with_inaccuracy_down};
 use oc_vehicle::{AIMED, LOADED, Vehicle, VehicleIndex};
 
 use super::Processor;
-use crate::runner;
+use crate::{
+    runner,
+    visibility::{path_objects_at, visibility},
+};
 
 /// Driver translates the vehicle only when chassis is oriented to its destination with this
 /// tolerance (radians). Otherwise, it rotates the chassis first.
@@ -269,7 +275,8 @@ impl Processor<'_> {
         match self.fire_solution(individual, vehicle) {
             Some((target, shell)) => match self.aim(vehicle) {
                 Ok(()) => {
-                    let (vehicle_updates, projectile) = self.fire(vehicle, target, shell);
+                    let (vehicle_updates, projectile) =
+                        self.fire(individual, vehicle, target, shell);
                     updates.extend(vehicle_updates);
                     updates.push(oc_vehicle::Update::SetAimProgress(0.));
                     others.push(projectile);
@@ -467,8 +474,10 @@ impl Processor<'_> {
     }
 
     /// Fire `shell` to `target`: consume the shell, empty the gun and spawn the shell projectile.
+    /// Shell direction deviates from the target according to [`Self::shell_inaccuracy`].
     fn fire(
         &self,
+        individual: &Individual,
         vehicle: &Vehicle,
         target: WorldVec2,
         shell: ShellIndex,
@@ -493,6 +502,16 @@ impl Processor<'_> {
         let ground = self.world.tile(tile).map_or(0., |tile| tile.z_pixels(w));
         let target = target.extend(ground);
         let direction = Vec3::from(target - from).normalize_or_zero();
+        let opacity = self.fire_opacity(from, target);
+        #[cfg(feature = "debug")]
+        let spread = match WorldConfig::inaccuracy_spread_enabled() {
+            true => WorldConfig::inaccuracy_spread(),
+            false => self.shell_inaccuracy(individual, vehicle, opacity),
+        };
+        #[cfg(not(feature = "debug"))]
+        let spread = self.shell_inaccuracy(individual, vehicle, opacity);
+        let direction =
+            direction_with_inaccuracy_down(direction, spread, w.inaccuracy_down_factor());
         let direction = WorldVec3::new(direction.x, direction.y, direction.z);
         let velocity = self.world.mod_.shell(shell).inner().velocity;
         let forces = vec![Force::Translation(direction, velocity)];
@@ -513,6 +532,57 @@ impl Processor<'_> {
             ],
             runner::update::Update::InsertProjectile(projectile),
         )
+    }
+
+    /// Opacity between the gun (`from`) and the fire `target`, ignoring the vehicle itself
+    fn fire_opacity(&self, from: WorldVec3, target: WorldVec3) -> CumulatedOpacity {
+        let w = &self.world.w;
+        let mod_ = &self.world.mod_;
+        let ignore: Vec<_> = self
+            .world
+            .individual(self.i)
+            .embarked
+            .map(|(v, _)| v)
+            .into_iter()
+            .collect();
+        let at = |xy, z| path_objects_at(w, mod_, self.world, self.index, &ignore, xy, z);
+        let modifier = oc_lov::Modifier::None(false);
+        visibility(w, at, from, target, modifier).opacity
+    }
+
+    /// Shell fire inaccuracy (degrees), like individual fire: base inaccuracy plus gunner
+    /// experience and suppression, vehicle gun, vehicle movement and target opacity.
+    pub fn shell_inaccuracy(
+        &self,
+        gunner: &Individual,
+        vehicle: &Vehicle,
+        opacity: CumulatedOpacity,
+    ) -> f32 {
+        let w = &self.world.w;
+        let type_ = self.world.mod_.vehicle(vehicle.type_);
+        let gunner_xp_inaccuracy = gunner.xp_inaccuracy(w);
+        let gunner_suppress_inaccuracy = gunner.suppress_inaccuracy(w);
+        let gun_inaccuracy = type_.inaccuracy;
+        let moving_inaccuracy = match vehicle.forces.is_empty() {
+            true => 0.,
+            false => w.vehicle_moving_inaccuracy(),
+        };
+        let opacity_inaccuracy = opacity.inaccuracy(w);
+
+        tracing::trace!(name="individual-processor-shell-inaccuracy", i=?self.i,
+            gunner_xp_inaccuracy=gunner_xp_inaccuracy,
+            gunner_suppress_inaccuracy=gunner_suppress_inaccuracy,
+            gun_inaccuracy=gun_inaccuracy,
+            moving_inaccuracy=moving_inaccuracy,
+            opacity_inaccuracy=opacity_inaccuracy,
+        );
+
+        w.base_inaccuracy()
+            + gunner_xp_inaccuracy
+            + gunner_suppress_inaccuracy
+            + gun_inaccuracy
+            + moving_inaccuracy
+            + opacity_inaccuracy
     }
 
     /// Loader always loads the gun when it is not loaded
@@ -545,7 +615,17 @@ mod tests {
     /// Speed of mods/tests1 "Tank1"
     const TANK_SPEED: MetersSeconds = MetersSeconds(5.0);
 
+    /// Config without shell fire inaccuracy (Tank1 gun inaccuracy is zero too): shells go straight
+    /// to their target
     fn w() -> WorldConfig {
+        inaccurate_w()
+            .with_base_inaccuracy(0.)
+            .with_vehicle_moving_inaccuracy(0.)
+            .with_opacity_inaccuracy(0.)
+    }
+
+    /// Config with default inaccuracy values
+    fn inaccurate_w() -> WorldConfig {
         WorldConfig::new(100, 100)
     }
 
@@ -1297,5 +1377,90 @@ mod tests {
 
         // Then
         assert_eq!(turret_target(&updates), Some(Some(Direction::EST)));
+    }
+
+    fn shell_inaccuracy(world: &World, opacity: CumulatedOpacity) -> f32 {
+        let indexes = Indexes::new(world, &world.w);
+        let processor = Processor::new(world, &indexes, IndividualIndex(1));
+        let gunner = world.individual(IndividualIndex(1));
+        processor.shell_inaccuracy(gunner, world.vehicle(VEHICLE), opacity)
+    }
+
+    #[test]
+    fn shell_inaccuracy_base() {
+        let w = inaccurate_w();
+        let world = firing_world(&w, |vehicle| vehicle);
+
+        let inaccuracy = shell_inaccuracy(&world, CumulatedOpacity(0.));
+
+        assert!((inaccuracy - w.base_inaccuracy()).abs() < 1e-6);
+    }
+
+    #[test]
+    fn shell_inaccuracy_increased_by_vehicle_moving() {
+        let w = inaccurate_w();
+        let world = firing_world(&w, |mut vehicle| {
+            vehicle.forces = vec![Force::Translation(WorldVec3::new(0., 1., 0.), TANK_SPEED)];
+            vehicle
+        });
+
+        let inaccuracy = shell_inaccuracy(&world, CumulatedOpacity(0.));
+
+        let expected = w.base_inaccuracy() + w.vehicle_moving_inaccuracy();
+        assert!((inaccuracy - expected).abs() < 1e-6);
+    }
+
+    #[test]
+    fn shell_inaccuracy_increased_by_gunner_suppress() {
+        let w = inaccurate_w();
+        let mut world = firing_world(&w, |vehicle| vehicle);
+        world.individual_mut(IndividualIndex(1)).suppress = oc_root::behavior::Suppress(255);
+
+        let inaccuracy = shell_inaccuracy(&world, CumulatedOpacity(0.));
+
+        let expected = w.base_inaccuracy() + w.suppress_inaccuracy();
+        assert!((inaccuracy - expected).abs() < 1e-6);
+    }
+
+    #[test]
+    fn shell_inaccuracy_increased_by_opacity() {
+        let w = inaccurate_w();
+        let world = firing_world(&w, |vehicle| vehicle);
+
+        let inaccuracy = shell_inaccuracy(&world, CumulatedOpacity(0.5));
+
+        let expected = w.base_inaccuracy() + 0.5 * w.opacity_inaccuracy();
+        assert!((inaccuracy - expected).abs() < 1e-6);
+    }
+
+    #[test]
+    fn fired_shell_deviates_inside_inaccuracy_cone() {
+        // Given: moving tank (high inaccuracy), turret on target
+        let w = inaccurate_w();
+        let world = firing_world(&w, |mut vehicle| {
+            vehicle.forces = vec![Force::Translation(WorldVec3::new(0., 1., 0.), TANK_SPEED)];
+            vehicle
+        });
+        let spread = shell_inaccuracy(&world, CumulatedOpacity(1.)).to_radians();
+        let from = world.vehicle(VEHICLE).position;
+        let expected = Vec2::new(250. - from.x, 400. - from.y).normalize();
+
+        // When: fire several times
+        let angles: Vec<f32> = (0..50)
+            .map(|_| {
+                let fired = shell_fired(&step(&world, 1)).unwrap();
+                let [Force::Translation(direction, _)] = fired.forces.as_slice() else {
+                    panic!("Shell must have one translation force");
+                };
+                Vec2::new(direction.x, direction.y)
+                    .normalize()
+                    .angle_to(expected)
+                    .abs()
+            })
+            .collect();
+
+        // Then: shells deviate, but never more than the maximum inaccuracy
+        assert!(angles.iter().any(|a| *a > 1e-4));
+        assert!(angles.iter().all(|a| *a <= spread + 1e-4));
     }
 }

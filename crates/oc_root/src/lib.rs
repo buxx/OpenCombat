@@ -142,6 +142,9 @@ pub struct WorldConfig {
     crawling_inaccuracy: f32,
     #[getset(get_copy = "pub", set_with = "pub")]
     prone_inaccuracy: f32,
+    /// Inaccuracy value of a vehicle gun fired while the vehicle is moving
+    #[getset(get_copy = "pub", set_with = "pub")]
+    vehicle_moving_inaccuracy: f32,
     /// Inaccuracy value for 100% opacity (50% opacity will by 50% of this value)
     #[getset(get_copy = "pub", set_with = "pub")]
     opacity_inaccuracy: f32,
@@ -260,6 +263,7 @@ impl WorldConfig {
         let running_inaccuracy = 2.5;
         let crawling_inaccuracy = 1.8;
         let prone_inaccuracy = 0.0;
+        let vehicle_moving_inaccuracy = 3.0;
         let opacity_inaccuracy = 2.0;
         let inaccuracy_down_factor = 0.25;
         let ignore_firsts_lov_tiles = 2;
@@ -321,6 +325,7 @@ impl WorldConfig {
             running_inaccuracy,
             crawling_inaccuracy,
             prone_inaccuracy,
+            vehicle_moving_inaccuracy,
             opacity_inaccuracy,
             inaccuracy_down_factor,
             ignore_firsts_lov_tiles,

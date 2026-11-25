@@ -397,6 +397,7 @@ mod tests {
             turret_rotation_speed: DegreesPerSeconds(45.),
             reload_duration: Seconds(4.),
             aim_duration: Seconds(1.),
+            inaccuracy: 0.,
             penetration_resistance: 1.,
             compatible_shell: vec![],
         }

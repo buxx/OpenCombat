@@ -52,6 +52,8 @@ where
     pub reload_duration: Seconds,
     /// Duration for the gunner to aim, once the turret is oriented to the target, before firing
     pub aim_duration: Seconds,
+    /// Gun inaccuracy (degrees), added to other shell fire inaccuracy factors
+    pub inaccuracy: f32,
     /// Chassis resistance to shell penetration
     pub penetration_resistance: f32,
     /// Shells this vehicle can fire
