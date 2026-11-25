@@ -331,7 +331,9 @@ pub fn set_leader_position(
         &policy,
     );
     let inside = |p: WorldVec2| zones.iter().any(|z| z.contains(p));
-    if !policy.fits(&world.w, &world.mod_, tiles, zones, position) || !places.iter().all(|p| inside(*p)) {
+    if !policy.fits(&world.w, &world.mod_, tiles, zones, position)
+        || !places.iter().all(|p| inside(*p))
+    {
         tracing::debug!(name="runner-input-set-leader-position-outside-spawn", squad=?squad, position=?position);
         return vec![];
     }

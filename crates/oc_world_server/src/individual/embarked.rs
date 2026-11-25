@@ -1391,7 +1391,11 @@ mod tests {
     }
 
     fn shell_inaccuracy(world: &World, opacity: CumulatedOpacity) -> f32 {
-        shell_inaccuracy_at(world, opacity, world.w.opacity_inaccuracy_reference_distance())
+        shell_inaccuracy_at(
+            world,
+            opacity,
+            world.w.opacity_inaccuracy_reference_distance(),
+        )
     }
 
     fn shell_inaccuracy_at(world: &World, opacity: CumulatedOpacity, distance: Meters) -> f32 {

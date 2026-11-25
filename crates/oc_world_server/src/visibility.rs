@@ -114,7 +114,12 @@ impl<'a> Processor<'a> {
                 .map(|(vehicle, _)| vehicle)
                 .collect();
             let at = |xy, z| path_objects_at(w, mod_, self.world, self.index, &ignore, xy, z);
-            let visibility = visibility(w, at, p1, p2, modifier);
+            let bonus = match individual2.shoot {
+                true => w.shoot_visibility_bonus(),
+                false => CumulatedOpacity(0.0),
+            };
+            let visibility = visibility_with_bonus(w, at, p1, p2, modifier, bonus);
+
             Some((*i1, *i2, visibility))
         };
 
@@ -221,6 +226,19 @@ pub fn visibility<I: IntoIterator<Item = oc_lov::Step>>(
     p2: oc_root::geo::WorldVec3,
     modifier: Modifier,
 ) -> Visibility {
+    visibility_with_bonus(w, at, p1, p2, modifier, CumulatedOpacity(0.0))
+}
+
+/// Like [`visibility`], but `bonus` opacity is removed when deciding if target is visible
+/// (like a firing target, easier to see). Returned opacity stays the real one.
+pub fn visibility_with_bonus<I: IntoIterator<Item = oc_lov::Step>>(
+    w: &WorldConfig,
+    at: impl Fn(Xy, f32) -> I,
+    p1: oc_root::geo::WorldVec3,
+    p2: oc_root::geo::WorldVec3,
+    modifier: Modifier,
+    bonus: CumulatedOpacity,
+) -> Visibility {
     let ignore = w.ignore_firsts_lov_tiles() as usize;
     let lov = oc_lov::PathBuilder::new(w, at).build(p1, p2, ignore, modifier);
 
@@ -229,7 +247,10 @@ pub fn visibility<I: IntoIterator<Item = oc_lov::Step>>(
         .last()
         .map(|s| s.opacity)
         .unwrap_or(CumulatedOpacity(1.0));
-    let visible = opacity <= w.individual_visibility_until();
+
+    // Bonus (like a firing target) makes target easier to see, without changing its opacity
+    let opacity_ = CumulatedOpacity((opacity.0 - bonus.0).max(0.0));
+    let visible = opacity_ <= w.individual_visibility_until();
 
     tracing::trace!(
         name="visibility-processor-compute-result",
@@ -314,6 +335,7 @@ mod tests {
 
     const WATCHER: IndividualIndex = IndividualIndex(0);
     const TARGET: IndividualIndex = IndividualIndex(1);
+    const SHOOT_TEST_SMOKE: u8 = 15;
 
     fn interior_around(center: WorldVec2) -> Interior {
         let points = vec![
@@ -417,6 +439,66 @@ mod tests {
 
         let (_, _, visibility) = visibilities.into_iter().next().expect("Pair computed");
         assert!(!visibility.visible);
+    }
+
+    /// Side A watcher at (10, 10) and side B target at (50, 50), with given smoke on every tile.
+    /// Target fired since last visibilities computing if `shoot`.
+    fn smoked_target_visibility(smoke: u8, shoot: bool) -> Visibility {
+        let w = WorldConfig::new(100, 100);
+        let individuals = vec![
+            TestIndividual::builder()
+                .side(Side::A)
+                .position(WorldVec3::new(10., 10., 0.))
+                .build()
+                .make(&w),
+            TestIndividual::builder()
+                .side(Side::B)
+                .position(WorldVec3::new(50., 50., 0.))
+                .build()
+                .make(&w)
+                .with_shoot(shoot),
+        ];
+        let mut world = TestWorld::builder()
+            .individuals(individuals)
+            .build()
+            .make(&w);
+        world
+            .smoke
+            .iter_mut()
+            .for_each(|s| *s = oc_utils::percent::Percent::new(smoke));
+        let indexes = Indexes::new(&world, &w);
+
+        let visibilities =
+            Processor::new(&world, &indexes).compute_individuals_for(&[WATCHER], &[TARGET]);
+
+        let (_, _, visibility) = visibilities.into_iter().next().expect("Pair computed");
+        visibility
+    }
+
+    #[test]
+    fn test_shooting_target_is_easier_to_see() {
+        let w = WorldConfig::new(100, 100);
+        let until = w.individual_visibility_until().0;
+        let bonus = w.shoot_visibility_bonus().0;
+        // Smoke making target opacity just above visibility limit, but below limit + bonus
+        let not_shooting = smoked_target_visibility(SHOOT_TEST_SMOKE, false);
+        assert!(
+            not_shooting.opacity.0 > until && not_shooting.opacity.0 < until + bonus,
+            "test smoke must give an opacity between limit and limit + bonus, got {:?}",
+            not_shooting.opacity
+        );
+
+        let shooting = smoked_target_visibility(SHOOT_TEST_SMOKE, true);
+
+        assert!(!not_shooting.visible);
+        assert!(shooting.visible);
+        // Bonus changes visibility decision only, not the real opacity
+        assert_eq!(shooting.opacity, not_shooting.opacity);
+    }
+
+    #[test]
+    fn test_shooting_target_behind_dense_smoke_stays_hidden() {
+        assert!(!smoked_target_visibility(100, true).visible);
     }
 
     #[test]

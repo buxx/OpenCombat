@@ -99,6 +99,9 @@ pub struct Individual {
     /// Vehicle (and crew role in it) this individual is embarked in
     #[getset(set_with = "pub")]
     pub embarked: Option<(VehicleIndex, CrewRole)>,
+    /// True if individual fired since last visibilities computing
+    #[getset(set_with = "pub")]
+    pub shoot: bool,
 }
 
 #[oc_derive::archivable]
@@ -209,6 +212,7 @@ impl Individual {
             Weapons::default(),
             vec![],
             None,
+            false,
         )
     }
 

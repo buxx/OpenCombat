@@ -331,6 +331,13 @@ impl<E: Client> super::State<E> {
             let count = world.individuals().len();
             world.visibilities = Visibilities::empty(count);
 
+            // Shoot bonus has been considered by this computing
+            // Note: some fire can be missed in interval. But we accept that.
+            world
+                .individuals
+                .iter_mut()
+                .for_each(|individual| individual.shoot = false);
+
             for (i1, i2, visibility) in individuals.clone() {
                 *world.visibilities.at_mut(i1).at_mut(i2) = visibility;
             }
@@ -430,6 +437,11 @@ impl<E: Client> super::State<E> {
             projectile::Builder::new(&self.w, mod_, spawn.clone()).build()
         };
 
+        // Shooter is easier to see until next visibilities computing
+        if let Some(shooter) = spawn.shooter {
+            self.world_mut().individual_mut(shooter).shoot = true;
+        }
+
         let sound = fx.then(|| self._mod().pick_sound((spawn.weapon, spawn.shot)));
         let fx = sound.flatten().map(|sound| {
             let position = projectile.position();
@@ -524,5 +536,68 @@ impl<E: Client> super::State<E> {
     ) -> Vec<(Listening, Vec<ToClient>)> {
         let fx = ToClient::Fx(fx::Fx::Audio(fx::Audio::PlayWithGeo(sound, position, bus)));
         vec![(Listening::Regions(vec![region]), vec![fx])]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ::tests::{individual::TestIndividual, world::TestWorld};
+    use oc_root::{ids::Ids, side::Side};
+
+    use super::*;
+    use crate::state::State;
+
+    const SHOOTER: IndividualIndex = IndividualIndex(0);
+
+    fn state() -> State<u64> {
+        let w = WorldConfig::new(100, 100);
+        let individual = TestIndividual::builder()
+            .side(Side::A)
+            .position(WorldVec3::new(50., 50., 0.))
+            .build()
+            .make(&w);
+        let world = TestWorld::builder()
+            .individuals(vec![individual])
+            .build()
+            .make(&w);
+        let mod_ = world.mod_().clone();
+        State::new(w, Ids::default(), mod_, world)
+    }
+
+    #[test]
+    fn test_fire_set_shoot() {
+        // Given
+        let state = state();
+        let mod_ = state._mod.clone();
+        let weapon = mod_.weapon(oc_mod::weapons::WeaponIndex(0));
+        let spawn = SpawnProjectile {
+            weapon: weapon.index(),
+            ammunition: weapon.ammunitions()[0].index(),
+            shot: weapon.shots()[0].index(),
+            from: WorldVec3::new(50., 50., 1.),
+            direction: WorldVec3::new(1., 0., 0.),
+            side: Side::A,
+            shooter: Some(SHOOTER),
+        };
+        assert!(!state.world().individual(SHOOTER).shoot);
+
+        // When
+        state.spawn_projectile(spawn, false);
+
+        // Then
+        assert!(state.world().individual(SHOOTER).shoot);
+    }
+
+    #[test]
+    fn test_visibilities_update_reset_shoot() {
+        // Given
+        let state = state();
+        state.world_mut().individual_mut(SHOOTER).shoot = true;
+
+        // When
+        state.update_visibilities(vec![], vec![]);
+
+        // Then
+        assert!(!state.world().individual(SHOOTER).shoot);
     }
 }
