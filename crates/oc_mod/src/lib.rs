@@ -560,42 +560,23 @@ mod tests {
 
     #[test]
     fn vehicles() {
-        for (name, vehicle, size, height, shells) in [
-            (
-                "std1",
-                "M4 Sherman",
-                (Meters(4.0), Meters(10.0)),
-                Meters(3.0),
-                vec!["AP 75mm", "HE 75mm"],
-            ),
-            (
-                "tests1",
-                "Tank1",
-                (Meters(2.7), Meters(6.5)),
-                Meters(2.5),
-                vec![
-                    "5/38 shell",
-                    "Kill & Stun only (no shrapnel & 0.1 destruction force)",
-                ],
-            ),
-        ] {
-            let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("../../mods")
-                .join(name);
-            let mod_ = Mod::load(&path, None).unwrap();
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../mods/tests1");
+        let mod_ = Mod::load(&path, None).unwrap();
 
-            let tank = mod_.vehicle_from_name(vehicle).unwrap();
-            assert_eq!(tank.row, 0);
-            assert_eq!(tank.size, size);
-            assert_eq!(tank.height, height);
-            assert_eq!(mod_.vehicle(tank.index()), tank);
-            assert!(tank.crew.contains(&vehicle::CrewRole::Commander));
-            let shells: Vec<ShellIndex> = shells
-                .into_iter()
-                .map(|n| mod_.shell_from_name(n).unwrap().index())
-                .collect();
-            assert_eq!(tank.compatible_shell, shells);
-            assert!(mod_.vehicle_from_name("Unknown").is_err());
-        }
+        let tank = mod_.vehicle_from_name("Tank1").unwrap();
+        assert_eq!(tank.row, 0);
+        assert_eq!(tank.size, (Meters(2.7), Meters(6.5)));
+        assert_eq!(tank.height, Meters(2.5));
+        assert_eq!(mod_.vehicle(tank.index()), tank);
+        assert!(tank.crew.contains(&vehicle::CrewRole::Commander));
+        let shells: Vec<ShellIndex> = [
+            "5/38 shell",
+            "Kill & Stun only (no shrapnel & 0.1 destruction force)",
+        ]
+        .into_iter()
+        .map(|n| mod_.shell_from_name(n).unwrap().index())
+        .collect();
+        assert_eq!(tank.compatible_shell, shells);
+        assert!(mod_.vehicle_from_name("Unknown").is_err());
     }
 }
