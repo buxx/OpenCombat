@@ -44,5 +44,26 @@
         ),
       ],
     ),
+    (
+      count: 1,
+      label: "Tiger 2",
+      illustration: "default",
+      vehicle: Some("Tiger II Ausf. B"),
+      shells: [
+        (name: "AP 75mm", count: 30),
+        (name: "HE 75mm", count: 40),
+      ],
+      individuals: [
+        (
+          count: 3,
+          illustration: "default",
+          xp: (140, 30),
+          weapons: (
+            main: None,
+          ),
+          magazines: [],
+        ),
+      ],
+    ),
   ],
 )

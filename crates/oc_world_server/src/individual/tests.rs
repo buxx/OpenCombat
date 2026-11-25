@@ -737,6 +737,38 @@ fn test_resolve_defend_order_defend_when_no_enemy_visible() {
     assert_eq!(intent, Intent::Defend(Direction::EST));
 }
 
+// Individual without anti-vehicle weapon sees an enemy embarked in a vehicle: don't engage it.
+#[test]
+fn test_resolve_defend_order_ignore_embarked_enemy() {
+    // Given
+    let w = WorldConfig::new(100, 100);
+    let mut world = one_vs_one_individual_world(
+        &w,
+        WorldVec3::new(100., 100., 0.),
+        WorldVec3::new(100., 200., 0.),
+        vec![Order::Defend(Direction::EST)],
+        vec![Order::Idle],
+    );
+    world.individual_mut(IndividualIndex(1)).embarked = Some((
+        oc_vehicle::VehicleIndex(0),
+        oc_mod::vehicle::CrewRole::Driver,
+    ));
+    *world.visibilities.values_mut() = vec![
+        vec![Visibility::default(), visible_visibility()],
+        vec![visible_visibility(), Visibility::default()],
+    ];
+    let index = Indexes::new(&world, &w);
+    let processor = Processor::new(&world, &index, IndividualIndex(0));
+    let individual = world.individual(IndividualIndex(0));
+
+    // When
+    let situation = processor.situation(individual);
+    let intent = processor.resolve_defend_order(individual, &situation, Direction::EST);
+
+    // Then
+    assert_eq!(intent, Intent::Defend(Direction::EST));
+}
+
 fn throw_test_world(w: &WorldConfig, order: Order, grenades: Vec<GrenadeIndex>) -> World {
     let mut world = one_individual_world(w, WorldVec3::new(100., 100., 0.), vec![Order::Idle]);
     let individual = world.individual_mut(IndividualIndex(0));

@@ -14,6 +14,15 @@ pub struct Squad {
     pub individuals: Vec<Individual>,
     #[serde(default)]
     pub vehicle: Option<String>,
+    /// Shells stored in the squad vehicle (ignored when no vehicle)
+    #[serde(default)]
+    pub shells: Vec<Shells>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Shells {
+    pub name: String,
+    pub count: u32,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

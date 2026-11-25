@@ -44,5 +44,26 @@
         ),
       ],
     ),
+    (
+      count: 2,
+      label: "M4 Sherman",
+      illustration: "default",
+      vehicle: Some("M4 Sherman"),
+      shells: [
+        (name: "AP 75mm", count: 30),
+        (name: "HE 75mm", count: 40),
+      ],
+      individuals: [
+        (
+          count: 3,
+          illustration: "default",
+          xp: (140, 30),
+          weapons: (
+            main: None,
+          ),
+          magazines: [],
+        ),
+      ],
+    ),
   ],
 )

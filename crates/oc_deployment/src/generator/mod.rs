@@ -7,7 +7,7 @@ use crate::{
         individual::Individual,
         magazine::Magazine,
         squad::Squad,
-        vehicle::{CrewMember, Vehicle},
+        vehicle::{CrewMember, Shells, Vehicle},
         weapon::Weapons,
     },
     generator::profile::Profile,
@@ -71,6 +71,13 @@ impl Generator {
                             individual: individual.uuid,
                         })
                         .collect();
+                    for shells in &squad.shells {
+                        let _ = mod_.shell_from_name(&shells.name)?;
+                        vehicle_.shells.push(Shells {
+                            name: shells.name.clone(),
+                            count: shells.count,
+                        });
+                    }
                     squad_.vehicle = Some(vehicle_);
                 }
 

@@ -344,6 +344,18 @@ impl Individual {
         }
     }
 
+    /// True if individual owns a weapon able to fire on vehicles
+    // FIXME: no anti-vehicle weapon exists for now
+    pub fn anti_vehicle(&self) -> bool {
+        false
+    }
+
+    /// True if individual can fire on `target`: individuals embarked in a vehicle are protected
+    /// by it, they can only be targeted with an anti-vehicle weapon
+    pub fn can_target(&self, target: &Individual) -> bool {
+        target.embarked.is_none() || self.anti_vehicle()
+    }
+
     // FIXME: add other factors like suppress
     pub fn aim_factor(&self) -> f32 {
         1.0 + (1.0 - self.xp.f32())

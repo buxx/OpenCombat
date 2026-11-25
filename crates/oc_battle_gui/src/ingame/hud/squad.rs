@@ -8,7 +8,7 @@ use crate::{
 use crate::utils::hover::Hovered;
 use bevy::prelude::*;
 use oc_individual::{Individual, IndividualIndex, Status};
-use oc_mod::{Mod, grenade::GrenadeNature, illustration::IllustrationKind};
+use oc_mod::{Mod, grenade::GrenadeNature, illustration::IllustrationKind, vehicle::CrewRole};
 use oc_root::files::Files;
 use oc_utils::bevy::EntityMapping;
 use oc_utils::{every, let_ok, let_some};
@@ -62,6 +62,7 @@ pub fn squad() -> impl Scene {
 fn row(
     g: &oc_network::GameConfig,
     files: &Files,
+    world: &World,
     i: IndividualIndex,
     individual: &Individual,
 ) -> impl Scene {
@@ -70,9 +71,9 @@ fn row(
     let kind = IllustrationKind::IngameIndividual;
     let illustration = g.mod_.illustration(kind, individual.illustration);
     let rect = illustration.inner().rect();
-    let action = status_label(individual);
+    let action = status_label(world, individual);
     let kia_visibility = kia_visibility(individual.status);
-    let rounds = format!("{} rnds.", primary_rounds(&g.mod_, individual));
+    let rounds = rounds_label(&g.mod_, world, individual);
     let status_color = status_color(individual.status);
     let grenades = grenades_label(&g.mod_, individual);
 
@@ -164,7 +165,7 @@ pub fn spawn_rows(
         let_some!(individual = world.individual(i), continue);
 
         commands
-            .spawn_scene(row(g, files, i, individual))
+            .spawn_scene(row(g, files, &world, i, individual))
             .insert((IndividualRow(i), ChildOf(details)));
     }
 }
@@ -212,7 +213,7 @@ pub fn update_rows(
     for (individual, mut text) in &mut texts {
         let_some!(individual = individual.0, continue);
         let_some!(individual = world.individual(individual), continue);
-        text.0 = status_label(individual);
+        text.0 = status_label(&world, individual);
     }
 
     for (individual, mut visibility) in &mut kias {
@@ -230,7 +231,7 @@ pub fn update_rows(
     for (individual, mut text) in &mut rounds {
         let_some!(individual = individual.0, continue);
         let_some!(individual = world.individual(individual), continue);
-        text.0 = format!("{} rnds.", primary_rounds(&g.mod_, individual));
+        text.0 = rounds_label(&g.mod_, &world, individual);
     }
 
     for (individual, mut text) in &mut grenades {
@@ -281,11 +282,37 @@ fn on_out(
     **h = false;
 }
 
-fn status_label(individual: &Individual) -> String {
+fn status_label(world: &World, individual: &Individual) -> String {
     match individual.status {
         Status::Dead => String::new(),
-        Status::Operational => individual.action_hud_label().to_string(),
+        Status::Operational => match individual.embarked {
+            Some((vehicle, role)) => crew_label(world, vehicle, role).to_string(),
+            None => individual.action_hud_label().to_string(),
+        },
         Status::Stunned(_) => individual.status.hud_label().to_string(),
+    }
+}
+
+/// What does an embarked individual according to its crew `role` and its `vehicle` state
+fn crew_label(world: &World, vehicle: oc_vehicle::VehicleIndex, role: CrewRole) -> &'static str {
+    let_some!(vehicle_ = world.vehicle(vehicle), return "");
+    // Without operational loader, gunner loads the gun himself
+    let gunner_loads = !world.vehicle_crew(vehicle).iter().any(|i| {
+        world.individual(*i).is_some_and(|i| {
+            i.embarked.is_some_and(|(_, r)| r == CrewRole::Loader) && i.status.is_target()
+        })
+    });
+    vehicle_.crew_hud_label(role, gunner_loads)
+}
+
+/// Primary weapon rounds or, when embarked, shells stored in the vehicle
+fn rounds_label(mod_: &Mod, world: &World, individual: &Individual) -> String {
+    match individual.embarked {
+        Some((vehicle, _)) => world
+            .vehicle(vehicle)
+            .map(|v| format!("{} shells", v.shells_count()))
+            .unwrap_or_default(),
+        None => format!("{} rnds.", primary_rounds(mod_, individual)),
     }
 }
 

@@ -399,16 +399,36 @@ fn on_click(
 ) {
     let individual = event.original_event_target();
     let_ok!(individual = query.get(individual), return);
+    click(
+        event.button,
+        individual.0,
+        &mut commands,
+        &mut state,
+        &world,
+        &mut selected,
+    );
+    event.propagate(false);
+}
 
-    if event.button == PointerButton::Secondary {
+/// Click on individual `i` (or on its vehicle): select its squad (primary button) or open its
+/// squad contextual menu (secondary button).
+pub fn click(
+    button: PointerButton,
+    i: oc_individual::IndividualIndex,
+    commands: &mut Commands,
+    state: &mut super::state::State,
+    world: &World,
+    selected: &mut Query<&mut Selected>,
+) {
+    if button == PointerButton::Secondary {
         // Unselect other squads: only the right clicked individual's squad stays selected
         selected.iter_mut().for_each(|mut s| s.0 = false);
 
-        let_some!(individual_ = world.individual(individual.0), return);
-        let_some!((squad, _) = world.individual_squad(individual.0), return);
+        let_some!(individual_ = world.individual(i), return);
+        let_some!((squad, _) = world.individual_squad(i), return);
         let squads = vec![squad];
         let_some!(squad = world.squad(squad), return);
-        let updated = state.update_selected(squads, squad.members.clone(), vec![individual.0]);
+        let updated = state.update_selected(squads, squad.members.clone(), vec![i]);
         let position = individual_.position;
         commands.trigger(updated);
         tracing::debug!("Trigger open squad contextual menu from individual on {position:?}");
@@ -419,11 +439,9 @@ fn on_click(
         commands.trigger(Select::Restore(state.selection()));
     }
 
-    if event.button == PointerButton::Primary {
-        commands.trigger(Select::Individual(individual.0));
+    if button == PointerButton::Primary {
+        commands.trigger(Select::Individual(i));
     }
-
-    event.propagate(false);
 }
 
 type RefreshRenderQuery<'w, 's> = Query<

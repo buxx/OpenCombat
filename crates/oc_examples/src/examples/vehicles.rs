@@ -706,7 +706,9 @@ mod test {
     use oc_projectile::ProjectileId;
     use oc_world_server::{state::ObjectId, tracker::Tracker_};
 
-    use crate::examples::vehicles::{TL_CONTROL_INDEX, TL_HIDDEN_INDEX, TMDT_ENEMY_INDEX, TMR_TARGET};
+    use crate::examples::vehicles::{
+        TL_CONTROL_INDEX, TL_HIDDEN_INDEX, TMDT_ENEMY_INDEX, TMR_TARGET,
+    };
 
     use super::{
         Args, TF_TARGET, TF_TOLERANCE, TMF_TARGET, TPHO_TARGET, TT_TARGET, TT_TOLERANCE, TestCase,

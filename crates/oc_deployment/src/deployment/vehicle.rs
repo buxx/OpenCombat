@@ -10,6 +10,16 @@ pub struct Vehicle {
     /// Squad individuals manning the vehicle
     #[serde(default)]
     pub crew: Vec<CrewMember>,
+    /// Shells stored in the vehicle
+    #[serde(default)]
+    pub shells: Vec<Shells>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Shells {
+    /// Mod shell name (see mod `shells.ron`)
+    pub name: String,
+    pub count: u32,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -21,13 +31,29 @@ pub struct CrewMember {
 
 impl Vehicle {
     pub fn new(name: String) -> Self {
-        Self { name, crew: vec![] }
+        Self {
+            name,
+            crew: vec![],
+            shells: vec![],
+        }
     }
 
     pub fn validate(&self, mod_: &oc_mod::Mod, squad: &super::squad::Squad) -> Result<(), Error> {
         let vehicle = mod_
             .vehicle_from_name(&self.name)
             .map_err(|_| Error::UnknownVehicle(self.name.clone()))?;
+
+        for shells in &self.shells {
+            let shell = mod_
+                .shell_from_name(&shells.name)
+                .map_err(|_| Error::UnknownShell(shells.name.clone()))?;
+            if !vehicle.compatible_shell.contains(&shell.index()) {
+                return Err(Error::IncompatibleShell(
+                    self.name.clone(),
+                    shells.name.clone(),
+                ));
+            }
+        }
 
         for (i, member) in self.crew.iter().enumerate() {
             if !vehicle.crew.contains(&member.role) {
@@ -59,6 +85,10 @@ impl Vehicle {
 pub enum Error {
     #[error("Unknown vehicle name: {0}")]
     UnknownVehicle(String),
+    #[error("Unknown shell name: {0}")]
+    UnknownShell(String),
+    #[error("Vehicle {0} can't fire shell {1}")]
+    IncompatibleShell(String, String),
     #[error("Vehicle {0} has no crew role {1:?}")]
     UnknownRole(String, CrewRole),
     #[error("Vehicle {0} crew role {1:?} assigned more than once")]

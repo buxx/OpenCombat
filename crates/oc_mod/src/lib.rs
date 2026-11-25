@@ -560,18 +560,23 @@ mod tests {
 
     #[test]
     fn vehicles() {
-        for (name, size, height, shells) in [
+        for (name, vehicle, size, height, shells) in [
             (
                 "std1",
+                "M4 Sherman",
                 (Meters(4.0), Meters(10.0)),
                 Meters(3.0),
-                vec!["Tank shell"],
+                vec!["AP 75mm", "HE 75mm"],
             ),
             (
                 "tests1",
+                "Tank1",
                 (Meters(2.7), Meters(6.5)),
                 Meters(2.5),
-                vec!["5/38 shell"],
+                vec![
+                    "5/38 shell",
+                    "Kill & Stun only (no shrapnel & 0.1 destruction force)",
+                ],
             ),
         ] {
             let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -579,7 +584,7 @@ mod tests {
                 .join(name);
             let mod_ = Mod::load(&path, None).unwrap();
 
-            let tank = mod_.vehicle_from_name("Tank1").unwrap();
+            let tank = mod_.vehicle_from_name(vehicle).unwrap();
             assert_eq!(tank.row, 0);
             assert_eq!(tank.size, size);
             assert_eq!(tank.height, height);

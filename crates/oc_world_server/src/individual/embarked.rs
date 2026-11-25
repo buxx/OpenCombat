@@ -160,7 +160,14 @@ impl Processor<'_> {
         let vehicle = self.world.vehicle(vehicle_i);
         let (vehicle_updates, others) = match role {
             CrewRole::Driver => (self.drive(individual, vehicle), vec![]),
-            CrewRole::Gunner => self.gun(individual, vehicle),
+            CrewRole::Gunner => {
+                let (mut vehicle_updates, others) = self.gun(individual, vehicle);
+                // Without operational loader, the gunner loads the gun himself
+                if !self.has_loader(vehicle_i) {
+                    vehicle_updates.extend(self.load(vehicle));
+                }
+                (vehicle_updates, others)
+            }
             CrewRole::Loader => (self.load(vehicle), vec![]),
             CrewRole::Commander | CrewRole::Operator | CrewRole::Passenger => (vec![], vec![]),
         };
@@ -173,6 +180,12 @@ impl Processor<'_> {
         );
         updates.extend(others);
         updates
+    }
+
+    /// True if an operational individual of the squad is the loader of `vehicle`
+    fn has_loader(&self, vehicle: VehicleIndex) -> bool {
+        let squad = self.world.squad(self.index.individual_squad(self.i));
+        self.crew_member(squad, vehicle, CrewRole::Loader).is_some()
     }
 
     fn clear_individual(
@@ -324,13 +337,26 @@ impl Processor<'_> {
     /// Position where the gun must fire: the current order target or, when the order doesn't
     /// concern fire (move, defend, idle), the natural target (see `natural_target`)
     fn fire_target(&self, individual: &Individual, vehicle: &Vehicle) -> Option<WorldVec2> {
-        let position = |i: IndividualIndex| WorldVec2::from(self.world.individual(i).position);
         match individual.orders.first() {
-            Some(Order::Engage(target)) => Some(position(*target)),
             Some(Order::Suppress(position) | Order::Grenade(position) | Order::Smoke(position)) => {
                 Some(*position)
             }
-            Some(Order::Hide(_)) => None,
+            _ => self
+                .fire_target_individual(individual, vehicle)
+                .map(|i| WorldVec2::from(self.world.individual(i).position)),
+        }
+    }
+
+    /// Individual targeted by the gun: the engage order target or, when the order doesn't concern
+    /// fire (move, defend, idle), the natural target (see `natural_target`)
+    fn fire_target_individual(
+        &self,
+        individual: &Individual,
+        vehicle: &Vehicle,
+    ) -> Option<IndividualIndex> {
+        match individual.orders.first() {
+            Some(Order::Engage(target)) => Some(*target),
+            Some(Order::Suppress(_) | Order::Grenade(_) | Order::Smoke(_) | Order::Hide(_)) => None,
             Some(
                 Order::Defend(_)
                 | Order::Idle
@@ -338,7 +364,7 @@ impl Processor<'_> {
                 | Order::MoveFastTo(_)
                 | Order::SneakTo(_),
             )
-            | None => self.natural_target(vehicle).map(position),
+            | None => self.natural_target(vehicle),
         }
     }
 
@@ -414,14 +440,32 @@ impl Processor<'_> {
             return None;
         }
 
-        let type_ = self.world.mod_.vehicle(vehicle.type_);
-        let shell = vehicle
-            .shells
-            .iter()
-            .find(|(shell, count)| *count > 0 && type_.compatible_shell.contains(shell))
-            .map(|(shell, _)| *shell)?;
+        let armored = self
+            .fire_target_individual(individual, vehicle)
+            .is_some_and(|i| self.world.individual(i).embarked.is_some());
+        let shell = self.pick_shell(vehicle, armored)?;
 
         Some((target, shell))
+    }
+
+    /// Available compatible shell the most suitable for the target: the most penetrating one
+    /// against an `armored` target, the most killing one otherwise
+    fn pick_shell(&self, vehicle: &Vehicle, armored: bool) -> Option<ShellIndex> {
+        let type_ = self.world.mod_.vehicle(vehicle.type_);
+        let score = |shell: ShellIndex| {
+            let shell = self.world.mod_.shell(shell);
+            match armored {
+                true => shell.penetration_force,
+                false => shell.kill_rayon.0,
+            }
+        };
+
+        vehicle
+            .shells
+            .iter()
+            .filter(|(shell, count)| *count > 0 && type_.compatible_shell.contains(shell))
+            .map(|(shell, _)| *shell)
+            .max_by(|a, b| score(*a).total_cmp(&score(*b)))
     }
 
     /// Fire `shell` to `target`: consume the shell, empty the gun and spawn the shell projectile.
@@ -972,6 +1016,49 @@ mod tests {
         assert!((progress.unwrap() - 1. / 6.).abs() < 1e-4);
     }
 
+    fn reload_progress(updates: &[runner::update::Update]) -> Option<f32> {
+        updates.iter().find_map(|u| match u {
+            runner::update::Update::UpdateVehicle(_, oc_vehicle::Update::SetReloadProgress(p)) => {
+                Some(*p)
+            }
+            _ => None,
+        })
+    }
+
+    #[test]
+    fn gunner_loads_gun_without_loader() {
+        // Given: gun not loaded, no loader in the crew
+        let w = w();
+        let vehicle = tank(&w, Direction::SOUTH).with_reload_progress(0.);
+        let crew = [(CrewRole::Commander, vec![]), (CrewRole::Gunner, vec![])];
+        let world = tank_world(&w, vehicle, &crew, vec![], vec![]);
+
+        // When
+        let updates = step(&world, 1);
+
+        // Then: one second of loading
+        assert!((reload_progress(&updates).unwrap() - 1. / 6.).abs() < 1e-4);
+    }
+
+    #[test]
+    fn gunner_does_not_load_gun_with_loader() {
+        // Given: gun not loaded, loader in the crew
+        let w = w();
+        let vehicle = tank(&w, Direction::SOUTH).with_reload_progress(0.);
+        let crew = [
+            (CrewRole::Commander, vec![]),
+            (CrewRole::Gunner, vec![]),
+            (CrewRole::Loader, vec![]),
+        ];
+        let world = tank_world(&w, vehicle, &crew, vec![], vec![]);
+
+        // When
+        let updates = step(&world, 1);
+
+        // Then
+        assert_eq!(reload_progress(&updates), None);
+    }
+
     #[test]
     fn loader_does_nothing_when_loaded() {
         let w = w();
@@ -1121,6 +1208,42 @@ mod tests {
         };
         let direction = Vec2::new(direction.x, direction.y).normalize();
         assert!(direction.distance(Vec2::new(0., 1.)) < 1e-4);
+    }
+
+    /// Shell fired by the gunner on the visible enemy (at south), embarked in a vehicle or not,
+    /// with a tank carrying a penetrating shell ("5/38 shell") and a killing one ("Kill & Stun
+    /// only ...")
+    fn shell_fired_on(embarked: bool) -> (ShellIndex, ShellIndex, ShellIndex) {
+        let w = w();
+        let mod_ = TestWorld::builder().build().make(&w).mod_;
+        let penetrating = mod_.shell_from_name("5/38 shell").unwrap().index();
+        let killing = mod_
+            .shell_from_name("Kill & Stun only (no shrapnel & 0.1 destruction force)")
+            .unwrap()
+            .index();
+        let mut vehicle =
+            tank(&w, Direction::SOUTH).with_shells(vec![(penetrating, 2), (killing, 2)]);
+        vehicle.aim_progress = 0.5;
+        let enemy = WorldVec3::new(250., 400., 0.);
+        let mut world = natural_target_world(&w, vehicle, vec![], enemy, true);
+        if embarked {
+            world.individual_mut(ENEMY).embarked = Some((VehicleIndex(1), CrewRole::Driver));
+        }
+
+        let fired = shell_fired(&step(&world, GUNNER)).unwrap();
+        (fired.shell, penetrating, killing)
+    }
+
+    #[test]
+    fn gunner_fires_killing_shell_on_infantry() {
+        let (fired, _, killing) = shell_fired_on(false);
+        assert_eq!(fired, killing);
+    }
+
+    #[test]
+    fn gunner_fires_penetrating_shell_on_vehicle() {
+        let (fired, penetrating, _) = shell_fired_on(true);
+        assert_eq!(fired, penetrating);
     }
 
     #[test]

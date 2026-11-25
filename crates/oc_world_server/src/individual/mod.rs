@@ -171,10 +171,8 @@ impl<'a> Processor<'a> {
             .enumerate()
             .filter(|&(_i, v)| v.visible)
             .filter(|&(i, _v)| {
-                self.world
-                    .individual(IndividualIndex::from(i))
-                    .status
-                    .is_target()
+                let target = self.world.individual(IndividualIndex::from(i));
+                target.status.is_target() && individual.can_target(target)
             })
             .map(|(i, v)| {
                 let target = IndividualIndex::from(i);

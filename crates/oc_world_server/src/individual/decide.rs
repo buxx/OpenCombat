@@ -292,7 +292,10 @@ impl Processor<'_> {
                     .filter(|&(_, v)| v.visible)
                     .map(|(i, _)| IndividualIndex::from(i))
             })
-            .filter(|target| self.world.individual(*target).status.is_target())
+            .filter(|target| {
+                let target = self.world.individual(*target);
+                target.status.is_target() && individual.can_target(target)
+            })
             .map(|target| {
                 let target_ = self.world.individual(target);
                 (target, individual.position.distance(target_.position))

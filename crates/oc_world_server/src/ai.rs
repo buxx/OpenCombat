@@ -294,7 +294,15 @@ fn covers(
                     None,
                 ),
             };
-            let covers = squad_covers(world, indexes, perception, squad.index, threat, enemy, walls);
+            let covers = squad_covers(
+                world,
+                indexes,
+                perception,
+                squad.index,
+                threat,
+                enemy,
+                walls,
+            );
             Some(covers.into_iter().map(|c| (squad.index, c)))
         })
         .flatten()
@@ -392,7 +400,11 @@ fn can_fire(
 ) -> bool {
     let w = &world.w;
     // Enemy own vehicle (when embarked) doesn't block the view
-    let ignore: Vec<_> = enemy.embarked.map(|(vehicle, _)| vehicle).into_iter().collect();
+    let ignore: Vec<_> = enemy
+        .embarked
+        .map(|(vehicle, _)| vehicle)
+        .into_iter()
+        .collect();
     let at = |xy, z| path_objects_at(w, &world.mod_, world, indexes, &ignore, xy, z);
     let weapon_z = BodyGesture::Crawling(Default::default())
         .weapon_z()

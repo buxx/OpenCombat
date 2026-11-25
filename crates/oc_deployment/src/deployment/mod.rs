@@ -206,15 +206,29 @@ impl Deployments {
             individual.region = WorldRegionIndex::from_(tile, w);
         }
 
-        snapshot.vehicles.push(oc_vehicle::Vehicle::new(
-            side,
-            type_,
-            illustration,
-            position,
-            vec![],
-            oc_utils::d2::Direction::NORTH,
-            Some(oc_utils::d2::Direction::NORTH),
-        ));
+        let shells = vehicle
+            .shells
+            .iter()
+            .map(|shells| {
+                let shell = mod_
+                    .shell_from_name(&shells.name)
+                    .context(format!("Use shell '{}'", shells.name))?;
+                Ok((shell.index(), shells.count))
+            })
+            .collect::<Result<Vec<_>, anyhow::Error>>()?;
+
+        snapshot.vehicles.push(
+            oc_vehicle::Vehicle::new(
+                side,
+                type_,
+                illustration,
+                position,
+                vec![],
+                oc_utils::d2::Direction::NORTH,
+                Some(oc_utils::d2::Direction::NORTH),
+            )
+            .with_shells(shells),
+        );
 
         Ok(())
     }

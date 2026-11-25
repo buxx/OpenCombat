@@ -12,7 +12,7 @@
     reload_duration: Seconds(6.0),
     aim_duration: Seconds(2.0),
     penetration_resistance: 1.5,
-    compatible_shell: ["5/38 shell"],
+    compatible_shell: ["5/38 shell", "Kill & Stun only (no shrapnel & 0.1 destruction force)"],
   ),
   // Same as Tank1, but its chassis is penetrated by "5/38 shell" (penetration force 1.0)
   (

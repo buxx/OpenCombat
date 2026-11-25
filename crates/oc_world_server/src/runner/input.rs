@@ -326,10 +326,25 @@ pub fn set_leader_position(
     let set_position = oc_individual::squad::Update::SetPosition(position);
     let mut updates = vec![Update::UpdateSquad(squad, set_position)];
 
+    // Squad vehicle (the leader one) is moved at leader position. Its crew stays inside it.
+    let vehicle = world.individual(squad_.leader()).embarked.map(|(i, _)| i);
+    let tile_i = WorldTileIndex::from_(position, &world.w);
+    let vehicle_position = position.extend(world.tile_z(&world.w, tile_i));
+    if let Some(vehicle) = vehicle {
+        let set_position = oc_vehicle::Update::SetPosition(vehicle_position);
+        updates.push(Update::UpdateVehicle(vehicle, set_position));
+    }
+
     for (member, place) in squad_.members.iter().zip(places) {
-        let tile_i = WorldTileIndex::from_(place, &world.w);
-        let z = world.tile_z(&world.w, tile_i);
-        let set_position = oc_individual::Update::SetPosition(place.extend(z));
+        let embarked = world.individual(*member).embarked.map(|(i, _)| i);
+        let position = match embarked {
+            Some(embarked) if Some(embarked) == vehicle => vehicle_position,
+            _ => {
+                let tile_i = WorldTileIndex::from_(place, &world.w);
+                place.extend(world.tile_z(&world.w, tile_i))
+            }
+        };
+        let set_position = oc_individual::Update::SetPosition(position);
         updates.push(Update::UpdateIndividual(*member, set_position));
     }
     updates

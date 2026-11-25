@@ -6,6 +6,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+// TODO: fill vehicle example
 fn example() -> Profile {
     Profile {
         squads: vec![Squad {
@@ -26,6 +27,7 @@ fn example() -> Profile {
                 }],
             }],
             vehicle: None,
+            shells: vec![],
         }],
     }
 }

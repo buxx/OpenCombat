@@ -104,6 +104,66 @@ impl Vehicle {
         self.reload_progress >= LOADED
     }
 
+    /// Total count of stored shells
+    pub fn shells_count(&self) -> u32 {
+        self.shells.iter().map(|(_, count)| *count).sum()
+    }
+
+    /// Label (for HUD) of what a crew member having `role` is doing in this vehicle. `gunner_loads`
+    /// must be true when there is no loader (gunner loads the gun himself).
+    pub fn crew_hud_label(
+        &self,
+        role: oc_mod::vehicle::CrewRole,
+        gunner_loads: bool,
+    ) -> &'static str {
+        use oc_mod::vehicle::CrewRole;
+
+        /// Tolerance (radians) to consider a rotation as finished
+        const ROTATED: f32 = 0.01;
+        let rotating = |current: Direction, target: Option<Direction>| {
+            target.is_some_and(|target| current.angle_to(&target).abs() > ROTATED)
+        };
+
+        if self.destroyed {
+            return "Disabled";
+        }
+
+        match role {
+            CrewRole::Driver => {
+                if self.destination.is_some() {
+                    "Driving"
+                } else if rotating(self.chassis_direction, self.chassis_target) {
+                    "Turning"
+                } else {
+                    "Idle"
+                }
+            }
+            CrewRole::Gunner => {
+                if self.aim_progress > 0. {
+                    "Aiming"
+                } else if gunner_loads && !self.loaded() {
+                    "Reloading"
+                } else if self
+                    .turret_direction
+                    .is_some_and(|turret| rotating(turret, self.turret_target))
+                {
+                    "Rotating"
+                } else if self.shells_count() == 0 {
+                    "No ammo"
+                } else {
+                    "Idle"
+                }
+            }
+            CrewRole::Loader => match self.loaded() {
+                true => "Idle",
+                false => "Loading",
+            },
+            CrewRole::Commander => "Commanding",
+            CrewRole::Operator => "Operating",
+            CrewRole::Passenger => "Passenger",
+        }
+    }
+
     pub fn apply(&mut self, update: &Update) {
         match update {
             Update::SetPosition(position) => self.position = *position,

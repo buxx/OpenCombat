@@ -404,8 +404,7 @@ impl<E: Client> Runner<E> {
                     Event::Connected(endpoint) => {
                         state.listeners_mut().push(endpoint.clone());
 
-                        let config =
-                            GameConfig::new(
+                        let config = GameConfig::new(
                             w.clone(),
                             mod_.clone(),
                             meta.clone(),
