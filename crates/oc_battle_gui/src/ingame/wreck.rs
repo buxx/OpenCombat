@@ -6,7 +6,11 @@ use oc_utils::let_some;
 use oc_world::wreck::Wreck;
 
 use crate::{
-    ingame::{draw::Z_WRECK, region::ForgottenRegion, vehicle::DESTROYED_COLOR},
+    ingame::{
+        draw::Z_WRECK,
+        region::ForgottenRegion,
+        vehicle::{DESTROYED_COLOR, chassis_shadow},
+    },
     sprites::vehicle::VehicleSprites,
     states::GameConfig,
     world::{InsertWrecks, InsertedTiles},
@@ -51,15 +55,17 @@ fn on_insert_wrecks(
                 position,
                 chassis_direction,
             } => {
-                let mut sprite = sprites.chassis(g.mod_.vehicle(*type_).row);
+                let row = g.mod_.vehicle(*type_).row;
+                let mut sprite = sprites.chassis(row);
                 sprite.color = DESTROYED_COLOR;
                 let screen = ScreenVec2::from_(*position, &g.w);
+                let rotation = chassis_direction.bquat(V::Gui);
                 commands.spawn((
                     WreckSprite,
                     Region(insert.0),
                     sprite,
-                    Transform::from_xyz(screen.x, screen.y, Z_WRECK)
-                        .with_rotation(chassis_direction.bquat(V::Gui)),
+                    Transform::from_xyz(screen.x, screen.y, Z_WRECK).with_rotation(rotation),
+                    children![chassis_shadow(&sprites, row, rotation)],
                 ));
             }
         }

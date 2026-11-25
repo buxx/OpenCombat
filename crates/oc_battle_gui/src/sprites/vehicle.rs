@@ -6,7 +6,9 @@ use oc_root::files::AssetDir;
 pub const VEHICLES_PNG: &str = "vehicles.png";
 const COLUMNS: u32 = 4;
 const CHASSIS_COLUMN: u32 = 0;
+const CHASSIS_SHADOW_COLUMN: u32 = 1;
 const TURRET_COLUMN: u32 = 2;
+const TURRET_SHADOW_COLUMN: u32 = 3;
 
 #[derive(Debug, Resource)]
 pub struct VehicleSprites {
@@ -48,6 +50,14 @@ impl VehicleSprites {
 
     pub fn turret(&self, row: u8) -> Sprite {
         self.sprite(row, TURRET_COLUMN)
+    }
+
+    pub fn chassis_shadow(&self, row: u8) -> Sprite {
+        self.sprite(row, CHASSIS_SHADOW_COLUMN)
+    }
+
+    pub fn turret_shadow(&self, row: u8) -> Sprite {
+        self.sprite(row, TURRET_SHADOW_COLUMN)
     }
 
     fn sprite(&self, row: u8, column: u32) -> Sprite {

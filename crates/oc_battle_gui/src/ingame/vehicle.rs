@@ -61,7 +61,33 @@ pub struct VehicleIndex(pub oc_vehicle::VehicleIndex);
 #[derive(Debug, Component)]
 pub struct VehicleTurret;
 
+/// Vehicle child sprite following the turret rotation (turret and its shadow)
+#[derive(Debug, Component)]
+pub struct TurretPart;
+
+/// Vehicle child sprite drawn as a shadow, with given z relative to chassis
+#[derive(Debug, Component)]
+pub struct Shadow(f32);
+
 pub const DESTROYED_COLOR: Color = Color::srgb(0.45, 0.45, 0.45);
+const SHADOW_OFFSET: Vec2 = Vec2::new(3., -3.);
+/// Z of shadows relative to the chassis
+const Z_CHASSIS_SHADOW: f32 = -0.005;
+const Z_TURRET_SHADOW: f32 = 0.005;
+const Z_TURRET: f32 = 0.01;
+
+pub fn shadow_translation(chassis_rotation: Quat, z: f32) -> Vec3 {
+    let offset = chassis_rotation.inverse() * SHADOW_OFFSET.extend(0.);
+    Vec3::new(offset.x, offset.y, z)
+}
+
+pub fn chassis_shadow(sprites: &VehicleSprites, row: u8, chassis_rotation: Quat) -> impl Bundle {
+    (
+        Shadow(Z_CHASSIS_SHADOW),
+        sprites.chassis_shadow(row),
+        Transform::from_translation(shadow_translation(chassis_rotation, Z_CHASSIS_SHADOW)),
+    )
+}
 
 /// Chassis sprite of `vehicle`: darkened when destroyed
 fn chassis_sprite(sprites: &VehicleSprites, row: u8, vehicle: &oc_vehicle::Vehicle) -> Sprite {
@@ -124,6 +150,7 @@ fn on_insert_vehicle(
             chassis_sprite(&sprites, mod_vehicle.row, vehicle),
             Transform::from_xyz(position.x, position.y, Z_VEHICLE).with_rotation(chassis_rotation),
         ))
+        .with_child(chassis_shadow(&sprites, mod_vehicle.row, chassis_rotation))
         .id();
 
     // Own side vehicles can be clicked (to select their squad) and dragged during deployment
@@ -159,11 +186,21 @@ fn on_insert_vehicle(
     if let (Some(turret), false) = (vehicle.turret_direction, vehicle.destroyed) {
         // Turret is a child: its rotation is relative to chassis one
         let rotation = chassis_rotation.inverse() * turret.bquat(V::Gui);
-        commands.entity(entity).with_child((
-            VehicleTurret,
-            sprites.turret(mod_vehicle.row),
-            Transform::from_xyz(0., 0., 0.01).with_rotation(rotation),
-        ));
+        commands.entity(entity).with_children(|parent| {
+            parent.spawn((
+                TurretPart,
+                Shadow(Z_TURRET_SHADOW),
+                sprites.turret_shadow(mod_vehicle.row),
+                Transform::from_translation(shadow_translation(chassis_rotation, Z_TURRET_SHADOW))
+                    .with_rotation(rotation),
+            ));
+            parent.spawn((
+                VehicleTurret,
+                TurretPart,
+                sprites.turret(mod_vehicle.row),
+                Transform::from_xyz(0., 0., Z_TURRET).with_rotation(rotation),
+            ));
+        });
     }
 
     state.insert(i, entity);
@@ -178,9 +215,9 @@ fn on_update_vehicle(
     state: Res<EntityMapping<oc_vehicle::VehicleIndex>>,
     mut chassis: Query<
         (&mut Sprite, &mut Transform, &mut Region, Option<&Children>),
-        Without<VehicleTurret>,
+        With<VehicleIndex>,
     >,
-    turrets: Query<(), With<VehicleTurret>>,
+    turrets: Query<(), With<TurretPart>>,
 ) {
     let_some!(entity = state.get(&update.0), return);
     let_some!(
@@ -252,13 +289,19 @@ fn on_visibilities_updated(
     }
 }
 
+type VehicleChildren = (
+    &'static mut Transform,
+    Has<TurretPart>,
+    Option<&'static Shadow>,
+);
+
 /// Animate vehicles between server updates (rotations toward targets and translation by forces).
 fn animate_vehicles(
     g: Res<GameConfig>,
     time: Res<Time>,
     mut world: ResMut<World>,
-    mut vehicles: Query<(&VehicleIndex, &mut Transform, Option<&Children>), Without<VehicleTurret>>,
-    mut turrets: Query<&mut Transform, With<VehicleTurret>>,
+    mut vehicles: Query<(&VehicleIndex, &mut Transform, Option<&Children>)>,
+    mut children_: Query<VehicleChildren, Without<VehicleIndex>>,
 ) {
     let_some!(g = &g.0, return);
     let delta = time.delta_secs() * g.w.speed();
@@ -289,13 +332,19 @@ fn animate_vehicles(
         transform.translation.y = screen.y;
         transform.rotation = chassis_rotation;
 
-        let (Some(turret), Some(children)) = (turret, children) else {
-            continue;
-        };
+        let_some!(children = children, continue);
+        // Turret rotation is relative to chassis one
+        let turret_rotation = turret.map(|t| chassis_rotation.inverse() * t.bquat(V::Gui));
         for child in children.iter() {
-            if let Ok(mut transform) = turrets.get_mut(child) {
-                // Turret rotation is relative to chassis one
-                transform.rotation = chassis_rotation.inverse() * turret.bquat(V::Gui);
+            let_ok!(
+                (mut transform, turret_part, shadow) = children_.get_mut(child),
+                continue
+            );
+            if let Some(shadow) = shadow {
+                transform.translation = shadow_translation(chassis_rotation, shadow.0);
+            }
+            if let (Some(rotation), true) = (turret_rotation, turret_part) {
+                transform.rotation = rotation;
             }
         }
     }
