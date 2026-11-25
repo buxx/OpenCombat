@@ -75,7 +75,6 @@ pub fn start(ctx: &PageContext) -> Result<Child, String> {
         } else {
             let deployment = load_deployment(&dir, side)?;
             let (count, defaults) = side_defaults(scenario, side);
-            // FIXME BS NOW: defaults can don't match with available squads: must fill with random
             default_slots(&deployment, defaults, count)
         };
 

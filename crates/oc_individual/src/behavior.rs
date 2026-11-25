@@ -96,6 +96,23 @@ impl Behavior {
             Behavior::Crawl(_) => w.crawl_nominal_speed(),
         }
     }
+
+    #[cfg(feature = "bevy")]
+    pub fn color(&self, alpha: f32) -> bevy::color::Color {
+        let (r, g, b) = match self {
+            Behavior::Idle(_) => (0.5, 0.5, 0.5),
+            Behavior::Walk(_) => (0.0, 0.0, 1.0),
+            Behavior::Run(_) => (0.0, 0.0, 0.55),
+            Behavior::Crawl(_) => (0.0, 1.0, 0.0),
+            Behavior::Engage(_) => (1.0, 0.0, 0.0),
+            Behavior::Suppress(_) => (0.55, 0.0, 0.0),
+            Behavior::Defend(_) => (1.0, 0.65, 0.0),
+            Behavior::Hide(_) => (1.0, 1.0, 0.0),
+            Behavior::Grenade(_) => (1.0, 0.2, 0.0),
+            Behavior::Smoke(_) => (1.0, 0.5, 0.0),
+        };
+        bevy::color::Color::srgba(r, g, b, alpha)
+    }
 }
 
 #[oc_derive::archivable]

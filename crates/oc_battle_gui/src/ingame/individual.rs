@@ -189,29 +189,13 @@ fn positions(
 
     for (i, position, behavior) in individuals {
         let_some!((_, squad) = world.individual_squad(i.0), continue);
-
-        // FIXME BS NOW: move colors in behavior or somewhere else
-        let (r, gg, b) = match behavior.0 {
-            oc_individual::behavior::Behavior::Idle(_) => (0.5, 0.5, 0.5),
-            oc_individual::behavior::Behavior::Walk(_) => (0.0, 0.0, 1.0),
-            oc_individual::behavior::Behavior::Run(_) => (0.0, 0.0, 0.55),
-            oc_individual::behavior::Behavior::Crawl(_) => (0.0, 1.0, 0.0),
-            oc_individual::behavior::Behavior::Engage(_) => (1.0, 0.0, 0.0),
-            oc_individual::behavior::Behavior::Suppress(_) => (0.55, 0.0, 0.0),
-            oc_individual::behavior::Behavior::Defend(_) => (1.0, 0.65, 0.0),
-            oc_individual::behavior::Behavior::Hide(_) => (1.0, 1.0, 0.0),
-            oc_individual::behavior::Behavior::Grenade(_) => (1.0, 0.2, 0.0),
-            oc_individual::behavior::Behavior::Smoke(_) => (1.0, 0.5, 0.0),
-        };
-        // FIXME BS NOW: move alpha in behavior or somewhere else
         let alpha = match squad.leader() == i.0 {
             true => 0.6,
             false => 0.4,
         };
-        let color = Color::srgba(r, gg, b, alpha);
+        let color = behavior.0.color(alpha);
         let position = ScreenVec2::from_(position.0, &g.w);
         let position = Vec2::new(position.x, position.y);
-        // tracing::trace!(name="spawn-individual-circle", i=?i, position=?position);
         gizmos.circle_2d(position, 3., color);
     }
 }
