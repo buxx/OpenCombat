@@ -305,14 +305,14 @@ fn crew_label(world: &World, vehicle: oc_vehicle::VehicleIndex, role: CrewRole) 
     vehicle_.crew_hud_label(role, gunner_loads)
 }
 
-/// Primary weapon rounds or, when embarked, shells stored in the vehicle
+/// Primary weapon rounds or, when embarked as gunner, shells stored in the vehicle
 fn rounds_label(mod_: &Mod, world: &World, individual: &Individual) -> String {
     match individual.embarked {
-        Some((vehicle, _)) => world
+        Some((vehicle, CrewRole::Gunner)) => world
             .vehicle(vehicle)
             .map(|v| format!("{} shells", v.shells_count()))
             .unwrap_or_default(),
-        None => format!("{} rnds.", primary_rounds(mod_, individual)),
+        _ => format!("{} rnds.", primary_rounds(mod_, individual)),
     }
 }
 
