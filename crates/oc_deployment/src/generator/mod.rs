@@ -47,10 +47,12 @@ impl Generator {
 
                         for magazine in &individual.magazines {
                             for _ in 0..magazine.count {
-                                let _ = mod_.magazine_from_name(&magazine.name)?;
                                 let magazine_ = Magazine {
                                     name: magazine.name.clone(),
+                                    ammunition: magazine.ammunition.clone(),
                                 };
+                                magazine_
+                                    .ammunition(mod_, mod_.magazine_from_name(&magazine.name)?)?;
                                 individual_.magazines.push(magazine_);
                             }
                         }

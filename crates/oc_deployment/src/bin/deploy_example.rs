@@ -24,6 +24,7 @@ fn example() -> Profile {
                 magazines: vec![Magazine {
                     count: 10,
                     name: "MosinNagant5x".to_string(),
+                    ammunition: None,
                 }],
             }],
             vehicle: None,

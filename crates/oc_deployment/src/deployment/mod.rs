@@ -383,12 +383,18 @@ impl Deployments {
             individual.weapons.grenades.push(grenade.index());
         }
 
-        for magazine in &individual_.magazines {
-            let magazine = mod_.magazine_from_name(&magazine.name).context(format!(
-                "Fill magazine for individual {individual_index} and magazine {} and mod {}",
-                magazine.name,
-                mod_.name()
-            ))?;
+        for magazine_ in &individual_.magazines {
+            let context = || {
+                format!(
+                    "Fill magazine for individual {individual_index} and magazine {} and mod {}",
+                    magazine_.name,
+                    mod_.name()
+                )
+            };
+            let magazine = mod_
+                .magazine_from_name(&magazine_.name)
+                .with_context(context)?;
+            magazine_.ammunition(mod_, magazine).with_context(context)?;
 
             if inserted == Some(magazine.index()) {
                 inserted = None;
@@ -417,11 +423,27 @@ impl Deployments {
         ),
         anyhow::Error,
     > {
-        for magazine in &deployment_individual.magazines {
+        for deployment_magazine in &deployment_individual.magazines {
             // If it is an accepted magazine by this weapon
-            if weapon.magazines().iter().any(|m| m.name() == magazine.name) {
+            if weapon
+                .magazines()
+                .iter()
+                .any(|m| m.name() == deployment_magazine.name)
+            {
                 // Read real magazine from mod
-                let magazine = mod_.magazine_from_name(&magazine.name)?;
+                let magazine = mod_.magazine_from_name(&deployment_magazine.name)?;
+
+                // Precised ammunition must be accepted by magazine and weapon, else this
+                // magazine is not insertable in weapon
+                if let Some(ammunition) = deployment_magazine.ammunition(mod_, magazine)? {
+                    if weapon.ammunitions().contains(ammunition) {
+                        return Ok((
+                            Some((magazine.index(), ammunition.index())),
+                            magazine.capacity(),
+                        ));
+                    }
+                    continue;
+                }
 
                 // This magazine must accept ammunition model which is compatible with weapon
                 let magazine_ammunitions = mod_.ammunitions_from_model_names(magazine.accept());
@@ -455,6 +477,54 @@ mod tests {
     fn mod_() -> Mod {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../mods/tests1");
         Mod::load(&path, None).unwrap()
+    }
+
+    fn individual_with_magazine(magazine: magazine::Magazine) -> individual::Individual {
+        let mut individual = individual::Individual::new();
+        individual.weapons.main = Some("Weapon1".to_string());
+        individual.magazines = vec![magazine];
+        individual
+    }
+
+    #[test]
+    fn fill_weapon_with_precised_ammunition() {
+        // Given
+        let mod_ = mod_();
+        let deployments = Deployments::default();
+        let weapon = mod_.weapon_from_name("Weapon1").unwrap();
+        let individual = individual_with_magazine(
+            magazine::Magazine::new("Magazine1".to_string()).with_ammunition("Ammo1".to_string()),
+        );
+
+        // When
+        let (filled, count) = deployments.fill_weapon(&mod_, &individual, weapon).unwrap();
+
+        // Then
+        assert_eq!(
+            filled,
+            Some((
+                mod_.magazine_from_name("Magazine1").unwrap().index(),
+                mod_.ammunition_from_name("Ammo1").unwrap().index()
+            ))
+        );
+        assert_eq!(count, 5);
+    }
+
+    #[test]
+    fn fill_weapon_with_unknown_ammunition_fails() {
+        // Given
+        let mod_ = mod_();
+        let deployments = Deployments::default();
+        let weapon = mod_.weapon_from_name("Weapon1").unwrap();
+        let individual = individual_with_magazine(
+            magazine::Magazine::new("Magazine1".to_string()).with_ammunition("Unknown".to_string()),
+        );
+
+        // When
+        let result = deployments.fill_weapon(&mod_, &individual, weapon);
+
+        // Then
+        assert!(result.is_err());
     }
 
     #[test]

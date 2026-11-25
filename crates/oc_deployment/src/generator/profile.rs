@@ -49,6 +49,8 @@ pub struct Magazine {
     #[serde(default = "default_count")]
     pub count: usize,
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ammunition: Option<String>,
 }
 
 fn default_count() -> usize {
