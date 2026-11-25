@@ -7,6 +7,7 @@ use oc_ai::{
     perception::{Candidate, CandidateKind, EnemyView, centroid},
 };
 use oc_deployment::deployment::Deployments as Deployment;
+use oc_deployment::deployment::place::PlacementPolicy;
 use oc_geo::tile::WorldTileIndex;
 use oc_individual::{BodyGesture, Individual, IndividualIndex, squad::SquadIndex};
 use oc_root::material::MaterialKind;
@@ -655,6 +656,7 @@ fn squad_fits(world: &World, side: Side, position: WorldVec2, angle: Angle, coun
         position,
         angle,
         count,
+        &PlacementPolicy::Squad,
     )
     .into_iter()
     .all(|p| zones.iter().any(|z| z.contains(p)))

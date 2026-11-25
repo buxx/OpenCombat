@@ -2,6 +2,7 @@ use std::sync::{Arc, mpsc::Sender};
 
 use derive_more::Constructor;
 use oc_deployment::deployment::Deployments as Deployment;
+use oc_deployment::deployment::place::PlacementPolicy;
 use oc_geo::region::WorldRegionIndex;
 use oc_geo::tile::WorldTileIndex;
 use oc_individual::squad::SquadIndex;
@@ -314,10 +315,23 @@ pub fn set_leader_position(
     let count = squad_.members.len();
     // Leader and all members must stay in zones owned by the squad side
     let zones = world.spawn_zones(squad_.side);
-    let places =
-        Deployment::members_positions(&world.w, &world.mod_, tiles, zones, position, angle, count);
+    // Squad vehicle (the leader one) is moved at leader position. Its crew stays inside it.
+    let vehicle = world.individual(squad_.leader()).embarked.map(|(i, _)| i);
+    let policy = vehicle
+        .map(|vehicle| PlacementPolicy::from(world.vehicle(vehicle)))
+        .unwrap_or(PlacementPolicy::Squad);
+    let places = Deployment::members_positions(
+        &world.w,
+        &world.mod_,
+        tiles,
+        zones,
+        position,
+        angle,
+        count,
+        &policy,
+    );
     let inside = |p: WorldVec2| zones.iter().any(|z| z.contains(p));
-    if !inside(position) || !places.iter().all(|p| inside(*p)) {
+    if !policy.fits(&world.w, &world.mod_, tiles, zones, position) || !places.iter().all(|p| inside(*p)) {
         tracing::debug!(name="runner-input-set-leader-position-outside-spawn", squad=?squad, position=?position);
         return vec![];
     }
@@ -326,8 +340,6 @@ pub fn set_leader_position(
     let set_position = oc_individual::squad::Update::SetPosition(position);
     let mut updates = vec![Update::UpdateSquad(squad, set_position)];
 
-    // Squad vehicle (the leader one) is moved at leader position. Its crew stays inside it.
-    let vehicle = world.individual(squad_.leader()).embarked.map(|(i, _)| i);
     let tile_i = WorldTileIndex::from_(position, &world.w);
     let vehicle_position = position.extend(world.tile_z(&world.w, tile_i));
     if let Some(vehicle) = vehicle {

@@ -27,7 +27,10 @@ use oc_utils::{
 use oc_world::{snapshot::Snapshot, spawn::SpawnZone, tile::Tile};
 use serde::{Deserialize, Serialize};
 
-use crate::deployment::place::Placer;
+use crate::deployment::place::{PlacementPolicy, Placer};
+
+/// Chassis (and turret) orientation of deployed vehicles
+pub const VEHICLE_DEPLOYMENT_DIRECTION: oc_utils::d2::Direction = oc_utils::d2::Direction::NORTH;
 
 pub mod individual;
 pub mod magazine;
@@ -117,10 +120,17 @@ impl Deployments {
                 .context(format!("Validate vehicle of squad {}", squad.uuid))?;
         }
 
+        let policy = match &squad.vehicle {
+            Some(vehicle) => PlacementPolicy::Vehicle {
+                type_: mod_.vehicle_from_name(&vehicle.name)?.index(),
+                direction: VEHICLE_DEPLOYMENT_DIRECTION,
+            },
+            None => PlacementPolicy::Squad,
+        };
         let mut individuals = vec![];
         let spawns = &self[side].spawns;
         let occupied: Vec<WorldVec2> = snapshot.squads.iter().map(|s| s.position).collect();
-        let position = placer.place(spawns, squad.uuid, &occupied);
+        let position = placer.place(w, mod_, tiles, spawns, squad.uuid, &occupied, &policy);
         let places = Self::members_positions(
             w,
             mod_,
@@ -129,6 +139,7 @@ impl Deployments {
             position,
             Angle::zero(),
             squad.individuals.len(),
+            &policy,
         );
 
         for (indiv, position_) in squad.individuals.iter().zip(places) {
@@ -224,8 +235,8 @@ impl Deployments {
                 illustration,
                 position,
                 vec![],
-                oc_utils::d2::Direction::NORTH,
-                Some(oc_utils::d2::Direction::NORTH),
+                VEHICLE_DEPLOYMENT_DIRECTION,
+                Some(VEHICLE_DEPLOYMENT_DIRECTION),
             )
             .with_shells(shells),
         );
@@ -233,8 +244,10 @@ impl Deployments {
         Ok(())
     }
 
-    /// Members are placed on the best opacity tile near their formation place. Formation is a
-    /// line along `angle` (0.0 for horizontal), leader at `position`.
+    /// With `PlacementPolicy::Squad`, members are placed on the best opacity tile near their
+    /// formation place. Formation is a line along `angle` (0.0 for horizontal), leader at
+    /// `position`. With `PlacementPolicy::Vehicle`, members are embarked at `position`.
+    #[allow(clippy::too_many_arguments)]
     pub fn members_positions(
         w: &WorldConfig,
         mod_: &Mod,
@@ -243,7 +256,12 @@ impl Deployments {
         position: WorldVec2,
         angle: Angle,
         count: usize,
+        policy: &PlacementPolicy,
     ) -> Vec<WorldVec2> {
+        if matches!(policy, PlacementPolicy::Vehicle { .. }) {
+            return vec![position; count];
+        }
+
         let reference = Vec2::new(position.x, position.y);
         let places = SquadFormation::Line.positions(w, V::Server, reference, angle, count);
         let mut taken: HashSet<WorldTileIndex> = HashSet::new();
