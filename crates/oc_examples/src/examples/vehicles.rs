@@ -285,7 +285,7 @@ pub fn main() -> Result<(), anyhow::Error> {
     {
         let tracker = example.build().run()?;
         if args.test {
-            test::check_tracker(&args, &obstacles, &tracker.take());
+            test::check_tracker(&args, &obstacles, &tracker.take(), w.speed());
         }
     }
     #[cfg(not(feature = "test"))]
@@ -294,22 +294,7 @@ pub fn main() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-// FIXME BS NOW: mesure stun server side to permit speed test
-/// Max speed (OC_SPEED) for crew stun cases: stun duration is measured client side in real time,
-/// a higher speed makes the tolerance (3 game seconds) shorter than client update latency.
-#[cfg(feature = "debug")]
-const VH_STUN_MAX_SPEED: f32 = 5.;
-
 fn world_config(w: WorldConfig, args: &Args) -> WorldConfig {
-    #[cfg(feature = "debug")]
-    if matches!(
-        args.case,
-        TestCase::TankCrewStunnedByExplosion | TestCase::TankCrewStunnedByTank
-    ) && w.speed() > VH_STUN_MAX_SPEED
-    {
-        WorldConfig::set_speed((VH_STUN_MAX_SPEED * 10.) as u32);
-    }
-
     match args.case {
         // Target tank crew is the whole side A: once stunned, side A morale is zero. Prevent battle
         // end by morale, else the battle ends before the stun ends.
@@ -696,8 +681,8 @@ mod test {
     use bevy::prelude::*;
     use oc_battle_gui::{states::Game, world::World};
     use oc_individual::{IndividualIndex, squad::SquadIndex};
+    use oc_root::Wcfg;
     use oc_root::geo::WorldVec2;
-    use oc_root::{Wcfg, WorldConfig};
     use oc_utils::d2::Direction;
     use oc_utils::let_some;
     use oc_vehicle::VehicleIndex;
@@ -744,12 +729,14 @@ mod test {
 
     /// Exit with success code when case expectation is reached (and kept during one
     /// second), with error code when timeout is reached.
+    #[allow(clippy::too_many_arguments)]
     pub fn end_when_success_or_timeout(
         mut commands: Commands,
         game: Res<Game>,
         args: Res<Args_>,
         w: Res<Wcfg>,
         world: Res<World>,
+        tracker: Res<crate::run::TrackerRes>,
         vehicles: Query<(&oc_battle_gui::ingame::vehicle::VehicleIndex, &Visibility)>,
         individuals: Query<(
             &oc_battle_gui::entity::individual::IndividualIndex,
@@ -782,7 +769,15 @@ mod test {
             TestCase::TankCrewStunnedByTank => Duration::from_secs(80),
             TestCase::DrawTanks => Duration::from_secs(5),
         };
-        let timeout = timeout.div_f32(speed).max(Duration::from_secs(5));
+        // Real time floor: client startup and update latency don't scale with speed. Stun cases
+        // wait for the whole stun (see `VH_STUN_DURATION`) to end.
+        let min_timeout = match args.0.case {
+            TestCase::TankCrewStunnedByExplosion | TestCase::TankCrewStunnedByTank => {
+                Duration::from_secs(15)
+            }
+            _ => Duration::from_secs(5),
+        };
+        let timeout = timeout.div_f32(speed).max(min_timeout);
 
         let success = match args.0.case {
             TestCase::TankMoveForward => move_accomplished(&world, TMF_TARGET),
@@ -843,20 +838,12 @@ mod test {
                     commands.write_message(bevy::app::AppExit::from_code(1));
                     return;
                 }
-                match crew_stun_duration(&world, w, speed) {
+                // Stun duration is checked after app exit, from server tracker (see
+                // `check_tracker`)
+                let stun = crew_stun(&tracker.0.take());
+                match stun {
                     CrewStun::Pending => false,
-                    CrewStun::Recovered(duration) => {
-                        let ok = (duration - VH_STUN_DURATION).abs() <= VH_STUN_TOLERANCE;
-                        if !ok {
-                            eprintln!(
-                                "❌ FAILED ! Crew stunned during {duration}s, expected {VH_STUN_DURATION}s ({:?})",
-                                args.0.case
-                            );
-                            commands.write_message(bevy::app::AppExit::from_code(1));
-                            return;
-                        }
-                        true
-                    }
+                    CrewStun::Recovered => true,
                     CrewStun::Dead => {
                         eprintln!("❌ FAILED ! Crew is dead ({:?})", args.0.case);
                         commands.write_message(bevy::app::AppExit::from_code(1));
@@ -892,72 +879,69 @@ mod test {
     enum CrewStun {
         /// Crew not yet stunned, or still stunned
         Pending,
-        /// Whole crew was stunned, then recovered after this duration (game seconds)
-        Recovered(f32),
+        /// Whole crew was stunned, then recovered
+        Recovered,
         /// A crew member is dead
         Dead,
     }
 
-    /// Follow target tank crew status: record when the whole crew is stunned, then when it is
-    /// operational again
-    fn crew_stun_duration(world: &World, w: &WorldConfig, speed: f32) -> CrewStun {
+    /// Follow target tank crew status from server tracker: stun can be shorter than a client
+    /// frame (at high speed), so it may never be observed client side.
+    fn crew_stun(tracker: &Tracker_) -> CrewStun {
         use oc_individual::Status;
 
-        static STUNNED_SINCE: Mutex<Option<Instant>> = Mutex::new(None);
-        static RECOVERED: Mutex<Option<f32>> = Mutex::new(None);
+        let mut recovered = true;
+        for i in VH_CREW {
+            let mut stunned = false;
+            let mut recovered_ = false;
+            for (_, _, status) in tracker
+                .statuses
+                .iter()
+                .filter(|(_, i_, _)| *i_ == IndividualIndex(i))
+            {
+                match status {
+                    Status::Dead => return CrewStun::Dead,
+                    Status::Stunned(_) => stunned = true,
+                    Status::Operational if stunned => recovered_ = true,
+                    _ => {}
+                }
+            }
+            recovered &= recovered_;
+        }
 
-        let statuses: Vec<Status> = VH_CREW
-            .iter()
-            .filter_map(|i| world.individual(IndividualIndex(*i)))
-            .map(|individual| individual.status)
-            .collect();
-        if statuses.len() != VH_CREW.len() {
-            return CrewStun::Pending;
+        match recovered {
+            true => CrewStun::Recovered,
+            false => CrewStun::Pending,
         }
-        if statuses.iter().any(|status| status.is_dead()) {
-            return CrewStun::Dead;
-        }
-        if let Some(duration) = *RECOVERED.lock().unwrap() {
-            return CrewStun::Recovered(duration);
-        }
+    }
 
-        let mut since = STUNNED_SINCE.lock().unwrap();
-        let stunned = statuses
+    /// Crew stun duration (game seconds) per crew member, measured server side: from the first
+    /// `Stunned` status to the following `Operational` one. `None` if member never recovered.
+    fn crew_stun_durations(tracker: &Tracker_, speed: f32) -> Vec<(u64, Option<f32>)> {
+        use oc_individual::Status;
+
+        VH_CREW
             .iter()
-            .all(|status| matches!(status, Status::Stunned(_)));
-        let operational = statuses
-            .iter()
-            .all(|status| matches!(status, Status::Operational));
-        match (*since, stunned, operational) {
-            (None, true, _) => {
-                // Stun may already be decreased when first seen (client update latency, mainly
-                // at game start): take into account the already elapsed stun (one decrease per
-                // game second)
-                let stun = statuses
+            .map(|i| {
+                let statuses = tracker
+                    .statuses
                     .iter()
-                    .filter_map(|status| match status {
-                        Status::Stunned(stun) => Some(stun.0),
-                        _ => None,
-                    })
-                    .max()
-                    .unwrap_or_default();
-                let consumed = w.vehicle_crew_stunned_value().0.saturating_sub(stun) as f32
-                    / w.individual_tick_decrease_stunned().0.max(1) as f32;
-                let now = Instant::now();
-                *since = Some(
-                    now.checked_sub(Duration::from_secs_f32(consumed / speed))
-                        .unwrap_or(now),
-                );
-            }
-            (Some(since), _, true) => {
-                let duration = since.elapsed().as_secs_f32() * speed;
-                *RECOVERED.lock().unwrap() = Some(duration);
-                return CrewStun::Recovered(duration);
-            }
-            _ => {}
-        }
-
-        CrewStun::Pending
+                    .filter(|(_, i_, _)| *i_ == IndividualIndex(*i));
+                let stunned = statuses
+                    .clone()
+                    .find(|(_, _, status)| matches!(status, Status::Stunned(_)))
+                    .map(|(instant, _, _)| *instant);
+                let duration = stunned.and_then(|stunned| {
+                    statuses
+                        .filter(|(instant, _, status)| {
+                            *instant >= stunned && matches!(status, Status::Operational)
+                        })
+                        .map(|(instant, _, _)| (*instant - stunned).as_secs_f32() * speed)
+                        .next()
+                });
+                (*i, duration)
+            })
+            .collect()
     }
 
     /// Tank reached `target` and its move order is finished: squad and crew have no more orders
@@ -980,7 +964,12 @@ mod test {
     }
 
     /// Check, after app exit, expectations based on server tracker. Panic if not satisfied.
-    pub fn check_tracker(args: &Args, obstacles: &[WorldTileIndex], tracker: &Tracker_) {
+    pub fn check_tracker(
+        args: &Args,
+        obstacles: &[WorldTileIndex],
+        tracker: &Tracker_,
+        speed: f32,
+    ) {
         match args.case {
             TestCase::TankProjectiles => {
                 let collided = |projectile: ProjectileId| {
@@ -1036,6 +1025,25 @@ mod test {
                 }
                 println!("✅ SUCCESS ! Shell hit obstacle ({:?})", args.case);
             }
+            TestCase::TankCrewStunnedByExplosion | TestCase::TankCrewStunnedByTank => {
+                let mut success = true;
+                for (i, duration) in crew_stun_durations(tracker, speed) {
+                    let ok = duration.is_some_and(|duration| {
+                        (duration - VH_STUN_DURATION).abs() <= VH_STUN_TOLERANCE
+                    });
+                    success &= ok;
+                    println!(
+                        "{} crew member {i} stunned during {duration:?}s, expected {VH_STUN_DURATION}s",
+                        if ok { "✅" } else { "❌" }
+                    );
+                }
+
+                if !success {
+                    eprintln!("❌ FAILED ! Crew stun duration ({:?})", args.case);
+                    std::process::exit(1);
+                }
+                println!("✅ SUCCESS ! Crew stun duration ({:?})", args.case);
+            }
             TestCase::TankMoveForward
             | TestCase::TankMoveRotation
             | TestCase::TankMoveDuringTarget
@@ -1043,9 +1051,7 @@ mod test {
             | TestCase::TankFire
             | TestCase::TankChassisVisible
             | TestCase::TankLov
-            | TestCase::TankCrewStunnedByExplosion
             | TestCase::TankCrewKilledByExplosion
-            | TestCase::TankCrewStunnedByTank
             | TestCase::TankCrewKilledByTank
             | TestCase::DrawTanks => {}
         }

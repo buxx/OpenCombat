@@ -119,7 +119,7 @@ fn write_world<E: Client>(ctx: &Context<E>, run: Vec<Update>) {
             .flat_map(|update| match update {
                 Update::UpdateIndividual(i, update) => {
                     #[cfg(feature = "tracker")]
-                    ctx.tracker.take().individuals.push((i, update.clone()));
+                    ctx.tracker.take().push_individual(i, &update);
                     let (outputs, effects_) =
                         crate::individual::update::write(&mut world, update, i);
                     effects.extend(effects_);
@@ -152,10 +152,7 @@ pub fn update<E: Client>(ctx: &Context<E>, update: Update) {
         Update::RemoveProjectile(i) => state.remove_projectile(i),
         Update::UpdateIndividual(i, update) => {
             #[cfg(feature = "tracker")]
-            {
-                let mut tracker = ctx.tracker.take();
-                tracker.individuals.push((i, update.clone()));
-            }
+            ctx.tracker.take().push_individual(i, &update);
             state.update_individual(i, update)
         }
         Update::UpdateVisibilities(individuals, vehicles) => {

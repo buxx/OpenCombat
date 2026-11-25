@@ -25,6 +25,11 @@ type Result_ = Result<(), anyhow::Error>;
 
 type InstallFn = Box<dyn Fn(&mut bevy::app::App)>;
 
+/// Server tracker, available to the gui app (tests can follow server events while running)
+#[cfg(feature = "test")]
+#[derive(bevy::prelude::Resource, Clone)]
+pub struct TrackerRes(pub Tracker);
+
 #[derive(Builder)]
 pub struct Example {
     mod_: PathBuf,
@@ -139,9 +144,23 @@ impl Example {
             .see_all_enemies(self.see_all_enemies);
         let config = config.build();
 
+        #[cfg(feature = "test")]
+        let install: Option<InstallFn> = {
+            let tracker = tracker.clone();
+            let install = self.install;
+            Some(Box::new(move |app: &mut bevy::app::App| {
+                app.insert_resource(TrackerRes(tracker.clone()));
+                if let Some(install) = &install {
+                    install(app);
+                }
+            }))
+        };
+        #[cfg(not(feature = "test"))]
+        let install = self.install;
+
         let app_exit = oc_battle_gui::run::run()
             .config(config)
-            .maybe_install(self.install)
+            .maybe_install(install)
             .logging(false)
             .call();
 

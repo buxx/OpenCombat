@@ -22,10 +22,10 @@ impl<'x, E: Client> Processor<'x, E> {
         if !individual.status.is_dead() {
             #[cfg(feature = "tracker")]
             {
-                self.ctx.tracker.take().individuals.push((
+                self.ctx.tracker.take().push_individual(
                     i,
-                    oc_individual::Update::SetStatus(oc_individual::Status::Dead),
-                ));
+                    &oc_individual::Update::SetStatus(oc_individual::Status::Dead),
+                );
             }
             #[cfg(feature = "battle_instrument")]
             {
