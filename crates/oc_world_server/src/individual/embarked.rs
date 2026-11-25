@@ -303,18 +303,16 @@ impl Processor<'_> {
 
     /// Turret direction to reach the current target. When the vehicle moves, the direction is
     /// computed from the position the vehicle will reach at the next tick: so turret is still on
-    /// the target when gunner checks it again.
+    /// the target when gunner checks it again. Without fire target (ex. no visible enemy), turret
+    /// returns to the chassis axis (the chassis target when the chassis is rotating).
     fn turret_target(&self, individual: &Individual, vehicle: &Vehicle) -> Option<Direction> {
         let from: Vec2 = self.next_tick_position(vehicle).into();
         let toward = |to: WorldVec2| Direction::from_points2d(from, to.into());
-        match individual.orders.first() {
-            Some(Order::Hide(direction)) => Some(*direction),
-            Some(Order::Defend(direction)) => Some(
-                self.fire_target(individual, vehicle)
-                    .map_or(*direction, toward),
-            ),
-            _ => self.fire_target(individual, vehicle).map(toward),
-        }
+        let chassis_axis = vehicle.chassis_target.unwrap_or(vehicle.chassis_direction);
+        Some(
+            self.fire_target(individual, vehicle)
+                .map_or(chassis_axis, toward),
+        )
     }
 
     /// Vehicle position at the next individual tick, according to its translation forces
@@ -1156,8 +1154,8 @@ mod tests {
             // When
             let updates = step(&world, GUNNER);
 
-            // Then
-            assert_eq!(turret_target(&updates), None);
+            // Then: turret stays on the chassis axis (est)
+            assert_eq!(turret_target(&updates), Some(Some(Direction::EST)));
             assert_eq!(shell_fired(&updates), None);
         }
     }
@@ -1261,8 +1259,43 @@ mod tests {
         // When
         let updates = step(&world, GUNNER);
 
+        // Then: turret on the chassis axis (south), no fire
+        assert_eq!(turret_target(&updates), Some(Some(Direction::SOUTH)));
+        assert_eq!(shell_fired(&updates), None);
+    }
+
+    #[test]
+    fn gunner_keeps_turret_on_chassis_axis_without_visible_enemy() {
+        // Given: turret facing west, chassis north, enemy not visible, initial hide or defend
+        // order toward est
+        let w = w();
+        let enemy = WorldVec3::new(400., 250., 0.);
+        for order in [Order::Hide(Direction::EST), Order::Defend(Direction::EST)] {
+            let mut vehicle = tank(&w, Direction::NORTH);
+            vehicle.turret_direction = Some(Direction::WEST);
+            let world = natural_target_world(&w, vehicle, vec![order], enemy, false);
+
+            // When
+            let updates = step(&world, GUNNER);
+
+            // Then: turret returns to chassis axis
+            assert_eq!(turret_target(&updates), Some(Some(Direction::NORTH)));
+        }
+    }
+
+    #[test]
+    fn gunner_follows_chassis_target_without_visible_enemy() {
+        // Given: chassis rotating from north to est, enemy not visible
+        let w = w();
+        let mut vehicle = tank(&w, Direction::NORTH);
+        vehicle.chassis_target = Some(Direction::EST);
+        let enemy = WorldVec3::new(250., 400., 0.);
+        let world = natural_target_world(&w, vehicle, vec![], enemy, false);
+
+        // When
+        let updates = step(&world, GUNNER);
+
         // Then
         assert_eq!(turret_target(&updates), Some(Some(Direction::EST)));
-        assert_eq!(shell_fired(&updates), None);
     }
 }
