@@ -83,10 +83,11 @@ On your computer:
 
 ### Vehicles
 
-- [ ] Basic vehicle (one tank, one light vehicle)
-- [ ] Enhanced vehicle (realistic blindage and AT penetration, more vehicles types)
+- [x] Basic vehicle (one tank, one light vehicle)
+- [ ] Enhanced vehicle (realistic blindage and AT penetration, multiple weapons, more vehicles types)
 - [ ] Vehicle damage states (immobilized, gun damaged, crew bail out, abandoned)
 - [ ] Vehicle crew (crew members as soldiers, re-crew abandoned vehicles)
+- [ ] Vehicle crew mount/dismount
 - [ ] Transport (infantry mount/dismount)
 - [ ] Hull down, flank and rear armor
 - [ ] Towable guns
