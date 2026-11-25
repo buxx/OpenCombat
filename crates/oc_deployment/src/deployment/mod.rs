@@ -338,7 +338,6 @@ impl Deployments {
         squad_position: WorldVec2,
         tiles: &[Tile],
     ) -> Result<Individual, anyhow::Error> {
-        // FIXME BS NOW: z; and according to formation (and according to best opacity tile)
         let tile = WorldTileIndex::from_(squad_position, w);
         let tile = tiles.at(tile);
         let z = tile.z_pixels(w);

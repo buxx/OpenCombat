@@ -75,8 +75,6 @@ impl Args {
     }
 }
 
-// FIXME BS NOW: seems target not correct pixel (top left instead center ?)
-// il faut changer le système pour considérer le pixel de position d'un individual comme son centre et plus son to left
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum TestCase {
     Direct,
@@ -90,7 +88,6 @@ enum TestCase {
     MoveToHidingThenDiscover,
 }
 
-// FIXME BS NOW: set random precision (fire) and permit set precise at 100% for test
 pub fn main() -> Result<(), anyhow::Error> {
     logging::setup_logging()?;
 
@@ -496,8 +493,6 @@ fn tracking(
             .map(|s| s.elapsed().as_secs_f32() > 5. / speed)
             .unwrap_or_default(),
         TestCase::MoveToHidingThenDiscover => {
-            // FIXME BS NOW: all individuals visible during some milliseconds
-            // default enemy visibility should be hidden
             state
                 .start
                 .is_some_and(|s| s.elapsed().as_secs_f32() > 2. / speed)
