@@ -187,6 +187,7 @@ impl Processor<'_> {
             z: individual.position.z + plus_z,
         };
 
+        let distance = Meters::from_pixels(from.distance(target), &self.world.w);
         let direction = (target - from).normalize_or_zero();
         let direction = Vec3::new(direction.x, direction.y, direction.z);
         let directions = (0..(repeat * shot.rounds()))
@@ -196,10 +197,10 @@ impl Processor<'_> {
                 #[cfg(feature = "debug")]
                 let spread = match WorldConfig::inaccuracy_spread_enabled() {
                     true => WorldConfig::inaccuracy_spread(),
-                    false => self.inaccuracy(individual, weapon, opacity),
+                    false => self.inaccuracy(individual, weapon, opacity, distance),
                 };
                 #[cfg(not(feature = "debug"))]
-                let spread = self.inaccuracy(individual, weapon, opacity);
+                let spread = self.inaccuracy(individual, weapon, opacity, distance);
                 let direction = direction_with_inaccuracy_down(
                     direction,
                     spread,
@@ -238,6 +239,7 @@ impl Processor<'_> {
         individual: &Individual,
         weapon: &oc_mod::weapons::IndexedWeapon,
         opacity: CumulatedOpacity,
+        distance: Meters,
     ) -> f32 {
         // TODO: Add time to aim factor ?
         let w = &self.world.w;
@@ -245,13 +247,15 @@ impl Processor<'_> {
         let individual_gesture_inaccuracy = individual.gesture.inaccuracy(w);
         let weapon_inaccuracy = weapon.inaccuracy(w);
         let individual_suppress_inaccuracy = individual.suppress_inaccuracy(w);
-        let opacity_inaccuracy = opacity.inaccuracy(w);
+        let opacity_inaccuracy = opacity.inaccuracy(w, distance);
 
         tracing::trace!(name="individual-processor-inaccuracy", i=?self.i,
             individual_xp_inaccuracy=individual_xp_inaccuracy,
             individual_gesture_inaccuracy=individual_gesture_inaccuracy,
             weapon_inaccuracy=weapon_inaccuracy,
             individual_suppress_inaccuracy=individual_suppress_inaccuracy,
+            opacity=opacity.0,
+            distance=distance.0,
             opacity_inaccuracy=opacity_inaccuracy,
         );
 

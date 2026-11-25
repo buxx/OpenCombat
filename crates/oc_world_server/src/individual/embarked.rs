@@ -15,6 +15,7 @@ use oc_root::{
     WcfgFrom,
     geo::{WorldVec2, WorldVec3},
     opacity::CumulatedOpacity,
+    physics::Meters,
 };
 use oc_utils::{d2::Direction, random::direction_with_inaccuracy_down};
 use oc_vehicle::{AIMED, LOADED, Vehicle, VehicleIndex};
@@ -503,13 +504,14 @@ impl Processor<'_> {
         let target = target.extend(ground);
         let direction = Vec3::from(target - from).normalize_or_zero();
         let opacity = self.fire_opacity(from, target);
+        let distance = Meters::from_pixels(from.distance(target), w);
         #[cfg(feature = "debug")]
         let spread = match WorldConfig::inaccuracy_spread_enabled() {
             true => WorldConfig::inaccuracy_spread(),
-            false => self.shell_inaccuracy(individual, vehicle, opacity),
+            false => self.shell_inaccuracy(individual, vehicle, opacity, distance),
         };
         #[cfg(not(feature = "debug"))]
-        let spread = self.shell_inaccuracy(individual, vehicle, opacity);
+        let spread = self.shell_inaccuracy(individual, vehicle, opacity, distance);
         let direction =
             direction_with_inaccuracy_down(direction, spread, w.inaccuracy_down_factor());
         let direction = WorldVec3::new(direction.x, direction.y, direction.z);
@@ -551,12 +553,14 @@ impl Processor<'_> {
     }
 
     /// Shell fire inaccuracy (degrees), like individual fire: base inaccuracy plus gunner
-    /// experience and suppression, vehicle gun, vehicle movement and target opacity.
+    /// experience and suppression, vehicle gun, vehicle movement and target opacity (scaled by
+    /// fire `distance`).
     pub fn shell_inaccuracy(
         &self,
         gunner: &Individual,
         vehicle: &Vehicle,
         opacity: CumulatedOpacity,
+        distance: Meters,
     ) -> f32 {
         let w = &self.world.w;
         let type_ = self.world.mod_.vehicle(vehicle.type_);
@@ -567,13 +571,15 @@ impl Processor<'_> {
             true => 0.,
             false => w.vehicle_moving_inaccuracy(),
         };
-        let opacity_inaccuracy = opacity.inaccuracy(w);
+        let opacity_inaccuracy = opacity.inaccuracy(w, distance);
 
         tracing::trace!(name="individual-processor-shell-inaccuracy", i=?self.i,
             gunner_xp_inaccuracy=gunner_xp_inaccuracy,
             gunner_suppress_inaccuracy=gunner_suppress_inaccuracy,
             gun_inaccuracy=gun_inaccuracy,
             moving_inaccuracy=moving_inaccuracy,
+            opacity=opacity.0,
+            distance=distance.0,
             opacity_inaccuracy=opacity_inaccuracy,
         );
 
@@ -605,7 +611,12 @@ mod tests {
     use ::tests::{individual::TestIndividual, squad::TestSquad, world::TestWorld};
     use oc_individual::{Individual, squad::Squad};
     use oc_mod::illustration::IllustrationIndex;
-    use oc_root::{WorldConfig, opacity::CumulatedOpacity, physics::MetersSeconds, side::Side};
+    use oc_root::{
+        WorldConfig,
+        opacity::CumulatedOpacity,
+        physics::{Meters, MetersSeconds},
+        side::Side,
+    };
     use oc_world::{World, visibility::Visibility};
 
     use super::*;
@@ -1380,10 +1391,14 @@ mod tests {
     }
 
     fn shell_inaccuracy(world: &World, opacity: CumulatedOpacity) -> f32 {
+        shell_inaccuracy_at(world, opacity, world.w.opacity_inaccuracy_reference_distance())
+    }
+
+    fn shell_inaccuracy_at(world: &World, opacity: CumulatedOpacity, distance: Meters) -> f32 {
         let indexes = Indexes::new(world, &world.w);
         let processor = Processor::new(world, &indexes, IndividualIndex(1));
         let gunner = world.individual(IndividualIndex(1));
-        processor.shell_inaccuracy(gunner, world.vehicle(VEHICLE), opacity)
+        processor.shell_inaccuracy(gunner, world.vehicle(VEHICLE), opacity, distance)
     }
 
     #[test]
@@ -1434,6 +1449,29 @@ mod tests {
     }
 
     #[test]
+    fn shell_opacity_inaccuracy_increased_by_distance() {
+        let w = inaccurate_w();
+        let world = firing_world(&w, |vehicle| vehicle);
+        let reference = w.opacity_inaccuracy_reference_distance();
+
+        let near = shell_inaccuracy_at(&world, CumulatedOpacity(0.5), reference);
+        let far = shell_inaccuracy_at(&world, CumulatedOpacity(0.5), reference * 2.);
+
+        let expected = 0.5 * w.opacity_inaccuracy();
+        assert!((far - near - expected).abs() < 1e-6);
+    }
+
+    #[test]
+    fn shell_inaccuracy_without_opacity_ignores_distance() {
+        let w = inaccurate_w();
+        let world = firing_world(&w, |vehicle| vehicle);
+
+        let inaccuracy = shell_inaccuracy_at(&world, CumulatedOpacity(0.), Meters(1000.));
+
+        assert!((inaccuracy - w.base_inaccuracy()).abs() < 1e-6);
+    }
+
+    #[test]
     fn fired_shell_deviates_inside_inaccuracy_cone() {
         // Given: moving tank (high inaccuracy), turret on target
         let w = inaccurate_w();
@@ -1441,8 +1479,11 @@ mod tests {
             vehicle.forces = vec![Force::Translation(WorldVec3::new(0., 1., 0.), TANK_SPEED)];
             vehicle
         });
-        let spread = shell_inaccuracy(&world, CumulatedOpacity(1.)).to_radians();
         let from = world.vehicle(VEHICLE).position;
+        let distance = Meters::from_pixels(Vec2::new(250. - from.x, 400. - from.y).length(), &w);
+        // Fire distance is 3d (target on the ground, gun above): use a generous bound
+        let distance = Meters(distance.0 * 2.);
+        let spread = shell_inaccuracy_at(&world, CumulatedOpacity(1.), distance).to_radians();
         let expected = Vec2::new(250. - from.x, 400. - from.y).normalize();
 
         // When: fire several times

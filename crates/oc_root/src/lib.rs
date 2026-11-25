@@ -148,6 +148,17 @@ pub struct WorldConfig {
     /// Inaccuracy value for 100% opacity (50% opacity will by 50% of this value)
     #[getset(get_copy = "pub", set_with = "pub")]
     opacity_inaccuracy: f32,
+    /// Fire distance at which opacity inaccuracy is exactly [`Self::opacity_inaccuracy`]. Opacity
+    /// inaccuracy is scaled by `distance / reference` (bounded by min/max factors below), so bad
+    /// visibility matters more on far targets.
+    #[getset(get_copy = "pub", set_with = "pub")]
+    opacity_inaccuracy_reference_distance: Meters,
+    /// Minimum distance factor applied to opacity inaccuracy (close targets)
+    #[getset(get_copy = "pub", set_with = "pub")]
+    opacity_inaccuracy_min_distance_factor: f32,
+    /// Maximum distance factor applied to opacity inaccuracy (far targets)
+    #[getset(get_copy = "pub", set_with = "pub")]
+    opacity_inaccuracy_max_distance_factor: f32,
     /// Factor applied to the downward part of the shot deviation (0.0..=1.0)
     #[getset(get_copy = "pub", set_with = "pub")]
     inaccuracy_down_factor: f32,
@@ -265,6 +276,9 @@ impl WorldConfig {
         let prone_inaccuracy = 0.0;
         let vehicle_moving_inaccuracy = 3.0;
         let opacity_inaccuracy = 2.0;
+        let opacity_inaccuracy_reference_distance = Meters(100.);
+        let opacity_inaccuracy_min_distance_factor = 0.25;
+        let opacity_inaccuracy_max_distance_factor = 3.0;
         let inaccuracy_down_factor = 0.25;
         let ignore_firsts_lov_tiles = 2;
         let ignore_firsts_physics_pixels = (geo_pixels_per_tile * 13).clamp(0, 255) as u8;
@@ -327,6 +341,9 @@ impl WorldConfig {
             prone_inaccuracy,
             vehicle_moving_inaccuracy,
             opacity_inaccuracy,
+            opacity_inaccuracy_reference_distance,
+            opacity_inaccuracy_min_distance_factor,
+            opacity_inaccuracy_max_distance_factor,
             inaccuracy_down_factor,
             ignore_firsts_lov_tiles,
             ignore_firsts_physics_pixels,

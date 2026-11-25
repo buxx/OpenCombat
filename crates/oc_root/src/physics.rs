@@ -40,6 +40,10 @@ impl Meters {
     pub const fn pixels(&self, w: &WorldConfig) -> f32 {
         self.0 * w.geo_pixels_per_meters
     }
+
+    pub const fn from_pixels(pixels: f32, w: &WorldConfig) -> Self {
+        Self(pixels / w.geo_pixels_per_meters)
+    }
 }
 
 impl std::ops::Mul<f32> for Meters {
