@@ -212,16 +212,16 @@ impl Ai {
     }
 
     /// World updates of given commands
-    pub fn updates(&self, world: &World, commands: Vec<Command>) -> Vec<Update> {
+    pub fn updates(&self, world: &World, indexes: &Indexes, commands: Vec<Command>) -> Vec<Update> {
         commands
             .into_iter()
-            .flat_map(|command| self.command_updates(world, command))
+            .flat_map(|command| self.command_updates(world, indexes, command))
             .collect()
     }
 
     /// World updates of one command. Commands not allowed for this AI (foreign squad, leader
     /// position out of deployment phase) produce no update.
-    fn command_updates(&self, world: &World, command: Command) -> Vec<Update> {
+    fn command_updates(&self, world: &World, indexes: &Indexes, command: Command) -> Vec<Update> {
         tracing::debug!(name="ai-command", side=?self.side, command=?command);
 
         match command {
@@ -234,7 +234,7 @@ impl Ai {
             Command::SetLeaderPosition(squad, position, angle)
                 if self.owns(world, squad) && matches!(world.phase, BattlePhase::Deployment) =>
             {
-                set_leader_position(world, squad, position, angle)
+                set_leader_position(world, indexes, squad, position, angle)
             }
             Command::RequestSupport(type_, position) => {
                 request_support(world, self.side, type_, position)

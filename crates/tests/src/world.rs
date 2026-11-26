@@ -3,16 +3,15 @@ use oc_geo::tile::WorldTileIndex;
 use oc_individual::{Individual, IndividualIndex, squad::Squad};
 use oc_mod::{Mod, nature::NatureIndex};
 use oc_projectile::{Projectile, ProjectileId};
-use oc_root::{WorldConfig, battle::BattlePhase, side::BySide};
+use oc_root::{WorldConfig, battle::BattlePhase, ids::Ids};
 use oc_utils::index::AtIndex;
 use oc_utils::percent::Percent;
 use oc_world::{
     World,
     decor::Decor,
     meta::Meta,
-    navmesh::{Walls, navmesh},
+    snapshot::Snapshot,
     tile::{AlteredTile, Tile},
-    visibility::Visibilities,
 };
 use rustc_hash::FxHashMap;
 
@@ -53,7 +52,7 @@ pub struct TestWorld {
 
 impl TestWorld {
     pub fn make(self, w: &WorldConfig) -> World {
-        let mut tiles = self.tiles.unwrap_or_else(|| {
+        let tiles = self.tiles.unwrap_or_else(|| {
             (0..w.tiles_count())
                 .map(|i| {
                     let nature = NatureIndex(0);
@@ -63,11 +62,9 @@ impl TestWorld {
                 .collect()
         });
 
-        // Same as world loading: altered nature replaces tile nature
         let mut altered_tiles = vec![None; tiles.len()];
         for altered in self.altered_tiles.unwrap_or_default() {
             let i = altered.i.0 as usize;
-            tiles[i].alter(&altered, &self.mod_);
             altered_tiles[i] = Some(altered);
         }
 
@@ -76,8 +73,6 @@ impl TestWorld {
         for (i, opacity) in self.smoke.unwrap_or_default() {
             *smoke.at_mut(i) = opacity;
         }
-        let walls = tiles.as_walls(&self.mod_);
-        let navmesh = navmesh(w, &walls);
         let squads = self.squads.unwrap_or_else(|| {
             self.individuals
                 .iter()
@@ -91,37 +86,25 @@ impl TestWorld {
                 })
                 .collect()
         });
-        let individuals_count = self.individuals.len();
-
-        World {
-            w: w.clone(),
-            mod_: self.mod_,
-            meta: self.meta,
+        let snapshot = Snapshot {
             tiles,
             altered_tiles,
             decor,
-            craters: vec![],
-            wrecks: self.wrecks,
-            side_spawn_zones: BySide::default(),
-            spawn_zones: vec![],
             smoke,
-            smoke_clouds: vec![],
-            navmesh,
             individuals: self.individuals,
-            visibilities: Visibilities::empty(individuals_count),
             squads,
             vehicles: self.vehicles,
-            projectiles: self.projectiles,
+            wrecks: self.wrecks,
             phase: self.phase,
             duration: self.duration,
+            ..Snapshot::empty(w.clone())
+        };
+
+        World {
             start: self.start,
-            flags: Default::default(),
-            supports: Default::default(),
-            pending_supports: vec![],
-            support_realized: Default::default(),
+            projectiles: self.projectiles,
             interiors: self.interiors,
-            places: vec![],
-            uuids: Default::default(),
+            ..World::from_snapshot(self.mod_, self.meta, &Ids::default(), snapshot)
         }
     }
 }

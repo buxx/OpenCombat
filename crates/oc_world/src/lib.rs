@@ -5,7 +5,6 @@ use oc_utils::index::AtIndex;
 use oc_utils::percent::Percent;
 use std::time::{Duration, Instant};
 
-use derive_more::Constructor;
 use oc_geo::{
     region::{RegionXy, WorldRegionIndex},
     tile::{TileXy, WorldTileIndex},
@@ -70,8 +69,6 @@ pub mod utils;
 pub mod visibility;
 pub mod wreck;
 
-#[derive(Constructor)]
-#[allow(clippy::too_many_arguments)]
 pub struct World {
     pub w: WorldConfig,
     pub mod_: Mod, // Maybe its place is not in world (when want to access, need to read lock World, but Mod never change)
@@ -366,79 +363,24 @@ impl World {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
-    use oc_mod::{
-        illustration::IndexedIllustrations,
-        nature::{NatureIndex, Traversability},
-    };
-    use oc_root::DEFAULT_FIGHT_DURATION;
+    use oc_mod::nature::{NatureIndex, Traversability};
 
     use super::*;
+    use crate::snapshot::Snapshot;
 
     // TODO: this test is not very good ... To make precise things, we must drop constant usage
     #[test]
     fn test_region_tiles() {
         // Given
         let w = WorldConfig::new(1000, 1000);
-        let mod_ = Mod::new(
-            "MyMod".to_string(),
-            1,
-            "A".to_string(),
-            "B".to_string(),
-            [0, 0, 0],
-            [0, 0, 0],
-            vec![],
-            Default::default(),
-            vec![],
-            Default::default(),
-            Default::default(),
-            vec![],
-            vec![],
-            vec![],
-            IndexedIllustrations::default(),
-            vec![],
-            vec![],
-            Default::default(),
-            vec![],
-            1.5,
-        );
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../mods/tests1");
+        let mod_ = Mod::load(&root, None).unwrap();
         let meta = Meta::new("MyWorld".to_string(), 0, w.geo_meters_per_z().0, None);
         let tiles: Vec<Tile> = (0..w.tiles_count())
             .map(|i| Tile::new(WorldTileIndex(i), NatureIndex(0), 0, Traversability::all()))
             .collect();
-        let altered_tiles = vec![None; tiles.len()];
-        let decor = vec![None; tiles.len()];
-        let world = World::new(
-            w.clone(),
-            mod_,
-            meta,
-            BattlePhase::Fight,
-            DEFAULT_FIGHT_DURATION,
-            Some(Instant::now()),
-            BySide::default(),
-            vec![],
-            Flags::default(),
-            Supports::default(),
-            vec![],
-            FxHashMap::default(),
-            tiles,
-            altered_tiles,
-            decor,
-            vec![],
-            vec![],
-            vec![Percent::ZERO; w.tiles_count() as usize],
-            vec![],
-            polyanya::Mesh::default(),
-            Visibilities::empty(0),
-            vec![],
-            vec![],
-            vec![],
-            HashMap::default(),
-            vec![],
-            vec![],
-            Uuids::default(),
-        );
+        let snapshot = Snapshot::empty(w.clone()).with_tiles(tiles);
+        let world = World::from_snapshot(mod_, meta, &Default::default(), snapshot);
 
         // When
         let tiles = world.region_tiles(WorldRegionIndex(0));
@@ -470,39 +412,8 @@ mod tests {
         let tiles: Vec<Tile> = (0..w.tiles_count())
             .map(|i| Tile::new(WorldTileIndex(i), grass, 0, allow.clone()))
             .collect();
-        let altered_tiles = vec![None; tiles.len()];
-        let decor = vec![None; tiles.len()];
-        let navmesh = navmesh::navmesh(&w, &tiles.as_walls(&mod_));
-        let mut world = World::new(
-            w.clone(),
-            mod_,
-            meta,
-            BattlePhase::Fight,
-            DEFAULT_FIGHT_DURATION,
-            Some(Instant::now()),
-            BySide::default(),
-            vec![],
-            Flags::default(),
-            Supports::default(),
-            vec![],
-            FxHashMap::default(),
-            tiles,
-            altered_tiles,
-            decor,
-            vec![],
-            vec![],
-            vec![Percent::ZERO; w.tiles_count() as usize],
-            vec![],
-            navmesh,
-            Visibilities::empty(0),
-            vec![],
-            vec![],
-            vec![],
-            HashMap::default(),
-            vec![],
-            vec![],
-            Uuids::default(),
-        );
+        let snapshot = Snapshot::empty(w.clone()).with_tiles(tiles);
+        let mut world = World::from_snapshot(mod_, meta, &Default::default(), snapshot);
         let wall = WorldTileIndex(0);
         let other = WorldTileIndex(w.tiles_count() - 1);
         let center = |i: WorldTileIndex| {

@@ -6,8 +6,10 @@ use oc_deployment::deployment::{
     Deployments,
     place::{OrderPolicy, Placer},
 };
+use oc_individual::IndividualIndex;
 use oc_mod::Mod;
 use oc_root::format::RkyvFile;
+use oc_root::ids::Ids;
 use oc_root::uuids::SquadUuid;
 use oc_root::{
     WorldConfig,
@@ -17,6 +19,7 @@ use oc_root::{
     side::{BySide, Side},
 };
 use oc_world::{
+    World,
     load::WorldPath,
     meta::Meta,
     reader::MapReader,
@@ -24,6 +27,8 @@ use oc_world::{
     spawn::SpawnZone,
     support::Supports,
 };
+
+use crate::{index::Indexes, individual, runner::update::Update};
 
 #[derive(Debug, Clone)]
 pub enum SnapshotSource {
@@ -202,6 +207,43 @@ pub fn apply_persisted_map(snapshot: &mut Snapshot, state: State) -> anyhow::Res
     snapshot.wrecks = state.wrecks;
 
     Ok(())
+}
+
+/// Apply squads orders on snapshot individuals like server does.
+/// Goal is to have soldier already applying orders instead idle before.
+pub fn apply_orders(snapshot: &mut Snapshot, mod_: &Mod) {
+    let mut world = orders_world(snapshot, mod_);
+
+    // First step distributes squads orders to members, second one makes them act according to
+    for _ in 0..2 {
+        let indexes = Indexes::new(&world, &world.w);
+        let updates = (0..world.individuals.len())
+            .flat_map(|i| {
+                individual::Processor::new(&world, &indexes, IndividualIndex(i as u64)).step()
+            })
+            .collect::<Vec<_>>();
+
+        for update in updates {
+            match update {
+                Update::UpdateIndividual(i, update) => {
+                    individual::update::write(&mut world, update, i);
+                }
+                Update::UpdateSquad(i, update) => world.squad_mut(i).apply(&update),
+                update => {
+                    tracing::trace!(name = "generate-apply-orders-ignore", update = ?update)
+                }
+            }
+        }
+    }
+
+    snapshot.individuals = world.individuals;
+    snapshot.squads = world.squads;
+}
+
+/// Minimal world (no map files: spawn zones, flags, interiors, places) able to step individuals
+fn orders_world(snapshot: &Snapshot, mod_: &Mod) -> World {
+    let meta = Meta::new(String::new(), 0, snapshot.w.geo_meters_per_z().0, None);
+    World::from_snapshot(mod_.clone(), meta, &Ids::default(), snapshot.clone())
 }
 
 #[cfg(test)]

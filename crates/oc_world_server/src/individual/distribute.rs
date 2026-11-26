@@ -70,18 +70,13 @@ impl Processor<'_> {
             updates.push(update);
         }
 
-        let gesture = &leader.gesture;
         let count = squad.actives as usize;
-        let direction = gesture.direction();
-        let angle = direction.angle(V::Server);
-
-        let individual_position = |i| self.world.individual(i).position.into();
 
         // Members receive orders according to this order when leader accept it.
         match order {
             Order::Idle => {
-                let reference = leader.position.into();
-                let places = self.places(squad_i, squad, reference, count, direction, angle, None);
+                let places = self.formation_places(leader.position);
+                let_some!(places = places, return updates);
 
                 for (member, position) in places {
                     let individual = self.world.individual(member);
@@ -156,20 +151,8 @@ impl Processor<'_> {
             | Order::Engage(_)
             | Order::Suppress(_)
             | Order::Grenade(_) => {
-                let reference: Vec2 = leader.position.into();
-                let direction = order.direction(reference, individual_position);
-                let_some!(direction = direction, return updates);
-                // Formation faces the order direction instead leader gesture (turns a lot when firing)
-                let angle = direction.angle(V::Server);
-                let places = self.places(
-                    squad_i,
-                    squad,
-                    reference,
-                    count,
-                    direction,
-                    angle,
-                    Some(direction),
-                );
+                let places = self.formation_places(leader.position);
+                let_some!(places = places, return updates);
                 let hold = FORMATION_HOLD_TOLERANCE.pixels(&self.world.w);
 
                 for (member, position) in places {
@@ -223,6 +206,37 @@ impl Processor<'_> {
         updates
     }
 
+    /// Formation places of squad members (leader excluded) when leader stands at `reference`, for
+    /// squad idle or holding order (as distributed to members). `None` for other orders (members places
+    /// are not around leader) or when order has no direction.
+    pub fn formation_places(
+        &self,
+        reference: WorldVec3,
+    ) -> Option<Vec<(IndividualIndex, WorldVec2)>> {
+        let squad_i = self.index.individual_squad(self.i);
+        let squad = self.world.squad(squad_i);
+        let leader = self.world.individual(squad.leader());
+        let count = squad.actives as usize;
+        let xy: Vec2 = reference.into();
+        let individual_position = |i| self.world.individual(i).position.into();
+
+        match squad.orders.first().unwrap_or(&Order::Idle) {
+            Order::Idle => {
+                let direction = leader.gesture.direction();
+                let angle = direction.angle(V::Server);
+                Some(self.places(squad_i, squad, xy, count, direction, angle, None))
+            }
+            order if order.holds() => {
+                let direction = order.direction(xy, individual_position)?;
+                // Formation faces the order direction instead leader gesture (turns a lot when firing)
+                let angle = direction.angle(V::Server);
+                let fire = Some((direction, reference.z));
+                Some(self.places(squad_i, squad, xy, count, direction, angle, fire))
+            }
+            _ => None,
+        }
+    }
+
     /// True if `member` is suppressed (projectiles flew near it) or sees an enemy: it must not
     /// stand up to move to its formation place
     fn threatened(&self, member: IndividualIndex) -> bool {
@@ -241,8 +255,8 @@ impl Processor<'_> {
                 })
     }
 
-    /// Find places according to formation and position. When `fire_direction` is given, places
-    /// individual which can't fire in this direction to the nearest tile which can.
+    /// Find places according to formation and position. When `fire` (direction, height) is given,
+    /// places individual which can't fire in this direction to the nearest tile which can.
     #[allow(clippy::too_many_arguments)]
     fn places(
         &self,
@@ -252,7 +266,7 @@ impl Processor<'_> {
         count: usize,
         direction: Direction,
         angle: oc_utils::d2::Angle,
-        fire: Option<Direction>,
+        fire: Option<(Direction, f32)>,
     ) -> Vec<(IndividualIndex, WorldVec2)> {
         let mut available: Vec<WorldVec2> = squad
             .formation
@@ -262,9 +276,8 @@ impl Processor<'_> {
             .skip(1) // drop leader's own slot
             .map(|p| WorldVec2::new(p.x, p.y))
             .collect();
-        if let Some(fire) = fire {
-            let leader = self.world.individual(squad.leader());
-            available = self.fireable_positions(leader.position.z, available, fire);
+        if let Some((fire, z)) = fire {
+            available = self.fireable_positions(z, available, fire);
         }
         tracing::trace!(name="individual-step-distribute-formation", i=?self.i, squad_i=?squad_i, reference=?reference, direction=?direction, angle=?angle, available_positions=?available);
 

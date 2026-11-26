@@ -21,7 +21,8 @@ use oc_world::{
 };
 
 use crate::{
-    network::IntoNetworkInsert, runner::update::Update, state::State, utils::subject::IntoSubject,
+    index::Indexes, individual, network::IntoNetworkInsert, runner::update::Update, state::State,
+    utils::subject::IntoSubject,
 };
 
 #[derive(Constructor)]
@@ -260,7 +261,13 @@ impl<'a, E: Client> Dealer<'a, E> {
     }
 
     fn set_leader_position(&self, squad: SquadIndex, position: WorldVec2) -> Vec<Update> {
-        set_leader_position(&self.state.world(), squad, position, Angle::zero())
+        set_leader_position(
+            &self.state.world(),
+            &self.state.indexes(),
+            squad,
+            position,
+            Angle::zero(),
+        )
     }
 }
 
@@ -306,6 +313,7 @@ pub fn request_support(
 
 pub fn set_leader_position(
     world: &oc_world::World,
+    indexes: &Indexes,
     squad: SquadIndex,
     position: WorldVec2,
     angle: Angle,
@@ -320,7 +328,7 @@ pub fn set_leader_position(
     let policy = vehicle
         .map(|vehicle| PlacementPolicy::from(world.vehicle(vehicle)))
         .unwrap_or(PlacementPolicy::Squad);
-    let places = Deployment::members_positions(
+    let mut places = Deployment::members_positions(
         &world.w,
         &world.mod_,
         tiles,
@@ -344,6 +352,29 @@ pub fn set_leader_position(
 
     let tile_i = WorldTileIndex::from_(position, &world.w);
     let vehicle_position = position.extend(world.tile_z(&world.w, tile_i));
+
+    // Members (out of vehicle) take places of squad order formation (as leader distributes them), so
+    // they don't have to move there once dropped. When these places leave spawn zones, keep
+    // deployment places.
+    let held = squad_.orders.first().filter(|order| order.holds());
+    let leader_place = places.first().copied();
+    let formation = match (vehicle, leader_place) {
+        (None, Some(leader_place)) => {
+            let tile_i = WorldTileIndex::from_(leader_place, &world.w);
+            let reference = leader_place.extend(world.tile_z(&world.w, tile_i));
+            individual::Processor::new(world, indexes, squad_.leader())
+                .formation_places(reference)
+                .filter(|formation| formation.iter().all(|(_, p)| inside(*p)))
+        }
+        _ => None,
+    };
+    if let Some(formation) = &formation {
+        for (member, place) in formation {
+            if let Some(k) = squad_.members.iter().position(|m| m == member) {
+                places[k] = *place;
+            }
+        }
+    }
     if let Some(vehicle) = vehicle {
         let set_position = oc_vehicle::Update::SetPosition(vehicle_position);
         updates.push(Update::UpdateVehicle(vehicle, set_position));
@@ -360,6 +391,117 @@ pub fn set_leader_position(
         };
         let set_position = oc_individual::Update::SetPosition(position);
         updates.push(Update::UpdateIndividual(*member, set_position));
+
+        // Already on their place: directly hold squad order (instead finish a previous move)
+        let target = world.individual(*member).status.is_target();
+        if let (true, Some(_), Some(order)) = (target, &formation, held) {
+            let set_orders = oc_individual::Update::SetOrders(vec![order.clone()]);
+            updates.push(Update::UpdateIndividual(*member, set_orders));
+        }
     }
     updates
+}
+
+#[cfg(test)]
+mod tests {
+    use ::tests::{individual::TestIndividual, squad::TestSquad, world::TestWorld};
+    use oc_individual::{IndividualIndex, order::Order};
+    use oc_root::{
+        WorldConfig,
+        battle::BattlePhase,
+        geo::{WorldVec2, WorldVec3},
+    };
+    use oc_utils::d2::{AlmostEqual, Angle, Direction};
+    use oc_world::spawn::{SpawnZone, SpawnZoneName};
+
+    use super::*;
+
+    const TOLERANCE: f32 = 1.0;
+
+    fn apply(world: &mut oc_world::World, updates: Vec<Update>) {
+        for update in updates {
+            match update {
+                Update::UpdateIndividual(i, update) => {
+                    individual::update::write(world, update, i);
+                }
+                Update::UpdateSquad(i, update) => world.squad_mut(i).apply(&update),
+                update => panic!("Unexpected update {update:?}"),
+            }
+        }
+    }
+
+    // Hiding squad dropped during deployment: members are directly placed on their order formation
+    // places, holding the order, so leader distributes them no move.
+    #[test]
+    fn test_set_leader_position_places_members_on_order_formation() {
+        // Given
+        let w = WorldConfig::new(100, 100);
+        let order = Order::Hide(Direction::EST);
+        let positions = [(100., 100.), (110., 100.), (120., 100.), (130., 100.)];
+        let individuals = positions
+            .iter()
+            .map(|(x, y)| {
+                let position = WorldVec3::new(*x, *y, 0.);
+                TestIndividual::builder()
+                    .position(position)
+                    .build()
+                    .make(&w)
+            })
+            .collect::<Vec<_>>();
+        let squad = TestSquad::builder()
+            .members((0..individuals.len()).map(IndividualIndex::from).collect())
+            .position(WorldVec2::new(100., 100.))
+            .orders(vec![order.clone()])
+            .build()
+            .make();
+        let mut world = TestWorld::builder()
+            .phase(BattlePhase::Deployment)
+            .individuals(individuals)
+            .squads(vec![squad])
+            .build()
+            .make(&w);
+        world.side_spawn_zones.a = vec![SpawnZone {
+            name: SpawnZoneName::new("A"),
+            start: WorldVec2::new(10., 10.),
+            points: vec![
+                WorldVec2::new(0., 0.),
+                WorldVec2::new(1600., 0.),
+                WorldVec2::new(1600., 1600.),
+                WorldVec2::new(0., 1600.),
+            ],
+        }];
+        let squad = SquadIndex(0);
+
+        // When
+        let indexes = Indexes::new(&world, &w);
+        let drop = WorldVec2::new(400., 400.);
+        let updates = set_leader_position(&world, &indexes, squad, drop, Angle::zero());
+        assert!(!updates.is_empty());
+        apply(&mut world, updates);
+
+        // Then: members stand on their formation places and hold squad order
+        let indexes = Indexes::new(&world, &w);
+        let leader = world.squad(squad).leader();
+        let processor = individual::Processor::new(&world, &indexes, leader);
+        let formation = processor
+            .formation_places(world.individual(leader).position)
+            .unwrap();
+        assert_eq!(formation.len(), 3);
+        for (member, place) in formation {
+            let individual = world.individual(member);
+            assert!(
+                place.almost_equal(individual.position, TOLERANCE),
+                "{member:?} at {:?} instead {place:?}",
+                individual.position
+            );
+            assert_eq!(individual.orders, vec![order.clone()]);
+        }
+
+        // Then: leader distributes no move
+        for update in processor.distribute() {
+            if let Update::UpdateIndividual(i, oc_individual::Update::SetOrders(orders)) = update {
+                assert_eq!(orders, vec![order.clone()], "{i:?}");
+            }
+        }
+    }
 }

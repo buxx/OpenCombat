@@ -148,8 +148,6 @@ impl Material for Wreck {
 
 #[cfg(test)]
 mod tests {
-    use rustc_hash::FxHashMap;
-
     use super::*;
 
     fn mod_() -> Mod {
@@ -168,6 +166,7 @@ mod tests {
                 oc_root::side::Side::A,
                 oc_mod::vehicle::VehicleIndex(0),
                 oc_mod::illustration::IllustrationIndex(0),
+                // FIXME BS NOW: 25.5 ?!
                 WorldVec3::new(x * ppt, 25.5 * ppt, 0.),
                 vec![],
                 Direction::EST,
@@ -176,37 +175,20 @@ mod tests {
             vehicle.destroyed = destroyed;
             vehicle
         };
+        // FIXME BS NOW: 10.5 ?!
         let destroyed = vehicle(10.5, true);
-        let mut world = crate::World::new(
-            w.clone(),
-            mod_,
-            crate::meta::Meta::default(),
-            oc_root::battle::BattlePhase::Fight,
-            oc_root::DEFAULT_FIGHT_DURATION,
-            None,
-            Default::default(),
-            vec![],
-            Default::default(),
-            Default::default(),
-            vec![],
-            FxHashMap::default(),
-            vec![],
-            vec![],
-            vec![],
-            vec![],
-            vec![],
-            vec![],
-            vec![],
-            polyanya::Mesh::default(),
-            crate::visibility::Visibilities::empty(0),
-            vec![],
-            vec![],
-            vec![destroyed.clone(), vehicle(40.5, false)],
-            FxHashMap::default(),
-            vec![],
-            vec![],
-            Default::default(),
-        );
+        let nature = oc_mod::nature::NatureIndex(0);
+        let allow = mod_.nature(nature).traversability.clone();
+        let tiles = (0..w.tiles_count())
+            .map(|i| crate::tile::Tile::new(WorldTileIndex(i), nature, 0, allow.clone()))
+            .collect();
+        let snapshot = crate::snapshot::Snapshot::empty(w.clone())
+            .with_tiles(tiles)
+            .with_phase(oc_root::battle::BattlePhase::Fight)
+            // FIXME BS NOW: 40.5 ?!
+            .with_vehicles(vec![destroyed.clone(), vehicle(40.5, false)]);
+        let meta = crate::meta::Meta::default();
+        let mut world = crate::World::from_snapshot(mod_, meta, &Default::default(), snapshot);
 
         // When
         world.wreck_destroyed_vehicles();

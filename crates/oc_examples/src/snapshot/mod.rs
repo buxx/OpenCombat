@@ -136,6 +136,7 @@ where
             oc_world_server::generate::apply_persisted_map(&mut snapshot, state)
                 .map_err(|e| Error::Persist(path.clone(), e))?;
         }
+        oc_world_server::generate::apply_orders(&mut snapshot, mod_);
         snapshot.save(&snapshot_path)?;
 
         Ok(snapshot_path)

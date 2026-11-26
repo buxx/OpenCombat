@@ -349,7 +349,7 @@ impl<E: Client> Runner<E> {
             let perception = ai.perceive(&ctx.state.world(), &ctx.state.indexes());
             let commands = ai.decide(&perception);
             true_!(!commands.is_empty(), return);
-            let updates = ai.updates(&ctx.state.world(), commands);
+            let updates = ai.updates(&ctx.state.world(), &ctx.state.indexes(), commands);
             update::update_all(ctx, updates);
         })
     }

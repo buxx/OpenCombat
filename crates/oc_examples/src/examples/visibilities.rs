@@ -71,7 +71,6 @@ impl Args {
     }
 }
 
-// FIXME BS NOW: ennemy hiding at start is visible one milli seconds
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum TestCase {
     Direct,
@@ -258,14 +257,13 @@ fn order_suppress(
     mut commands: Commands,
     mut since: Local<Option<std::time::Instant>>,
     w: Res<oc_root::Wcfg>,
-    mut ordered: Local<bool>,
 ) {
     use oc_battle_gui::network::output::ToServerEvent;
     use oc_individual::squad::SquadIndex;
     use oc_network::{SquadMessage, ToServer};
 
     let Some(w) = &w.0 else { return };
-    if *ordered {
+    if SUPPRESS_ORDERED.load(Ordering::Relaxed) {
         return;
     }
 
@@ -274,7 +272,7 @@ fn order_suppress(
         return;
     }
 
-    *ordered = true;
+    SUPPRESS_ORDERED.store(true, Ordering::Relaxed);
     commands.trigger(ToServerEvent(ToServer::Squad(
         SquadIndex(1),
         SquadMessage::SetOrders(vec![Order::Suppress(ENNEMY_SUPPRESS_TARGET.into())]),

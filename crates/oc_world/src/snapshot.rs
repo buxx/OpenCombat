@@ -17,16 +17,22 @@ use crate::World;
 use crate::crater::Crater;
 use crate::decor::Decor;
 use crate::flag::Flags;
+use crate::meta::Meta;
+use crate::navmesh::{Walls, navmesh};
 use crate::smoke::SmokeCloud;
 use crate::spawn::{SpawnZoneName, owned_spawn_zones};
 use crate::support::{PendingSupport, SupportType, Supports};
 use crate::tile::{AlteredTile, Tile};
+use crate::visibility::Visibilities;
 use crate::wreck::Wreck;
 use oc_geo::tile::WorldTileIndex;
+use oc_mod::Mod;
+use oc_projectile::NextProjectileId;
 use oc_root::DEFAULT_FIGHT_DURATION;
+use oc_root::ids::Ids;
 
 #[oc_derive::archivable(bare)]
-#[derive(Debug, Constructor)]
+#[derive(Debug, Clone, Constructor)]
 #[allow(clippy::too_many_arguments)]
 pub struct Snapshot {
     pub w: WorldConfig,
@@ -137,12 +143,7 @@ impl From<&PendingSupport> for SnapshotPendingSupport {
 
 impl From<SnapshotPendingSupport> for PendingSupport {
     fn from(value: SnapshotPendingSupport) -> Self {
-        let start = value.start.map(|start| {
-            let elapsed = start.elapsed().unwrap_or_default();
-            Instant::now()
-                .checked_sub(elapsed)
-                .unwrap_or_else(Instant::now)
-        });
+        let start = value.start.map(instant);
         Self {
             type_: value.type_,
             side: value.side,
@@ -221,6 +222,76 @@ impl Snapshot {
         self.supports = value;
         self
     }
+}
+
+impl World {
+    pub fn from_snapshot(mod_: Mod, meta: Meta, ids: &Ids, snapshot: Snapshot) -> Self {
+        let w = snapshot.w;
+        let mut tiles = snapshot.tiles;
+        // Altered tiles update matching tiles
+        for altered in snapshot.altered_tiles.iter().flatten() {
+            if let Some(tile) = tiles.get_mut(altered.i.0 as usize) {
+                tile.alter(altered, &mod_);
+            }
+        }
+
+        tracing::debug!("Build navmesh (from grid with len {})", tiles.len());
+        let navmesh = navmesh(&w, &tiles.as_walls(&mod_));
+        let projectiles = snapshot
+            .projectiles
+            .into_iter()
+            .map(|projectile| (ids.next_projectile_id(), projectile))
+            .collect();
+        let support_realized = snapshot
+            .support_realized
+            .into_iter()
+            .map(|r| ((r.side, r.type_), instant(r.at)))
+            .collect();
+        let pending_supports = snapshot
+            .pending_supports
+            .into_iter()
+            .map(Into::into)
+            .collect();
+
+        Self {
+            w,
+            mod_,
+            meta,
+            phase: snapshot.phase,
+            duration: snapshot.duration,
+            start: snapshot.start.map(instant),
+            side_spawn_zones: BySide::default(),
+            spawn_zones: vec![],
+            flags: Flags::default(),
+            supports: snapshot.supports,
+            pending_supports,
+            support_realized,
+            tiles,
+            altered_tiles: snapshot.altered_tiles,
+            decor: snapshot.decor,
+            craters: snapshot.craters,
+            wrecks: snapshot.wrecks,
+            smoke: snapshot.smoke,
+            smoke_clouds: snapshot.smoke_clouds.into_iter().map(Into::into).collect(),
+            navmesh,
+            visibilities: Visibilities::empty(snapshot.individuals.len()),
+            individuals: snapshot.individuals,
+            squads: snapshot.squads,
+            vehicles: snapshot.vehicles,
+            projectiles,
+            interiors: vec![],
+            places: vec![],
+            uuids: snapshot.uuids,
+        }
+    }
+}
+
+/// Instant matching given (persisted) system time
+fn instant(at: SystemTime) -> Instant {
+    let elapsed = at.elapsed().unwrap_or_default();
+    Instant::now()
+        .checked_sub(elapsed)
+        .unwrap_or_else(Instant::now)
 }
 
 #[oc_derive::archivable(bare)]

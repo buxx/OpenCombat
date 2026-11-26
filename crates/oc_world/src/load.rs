@@ -2,13 +2,11 @@ use std::{
     io,
     path::PathBuf,
     sync::{Arc, atomic::AtomicU32},
-    time::Instant,
 };
 
 use derive_more::Constructor;
 use oc_geo::region::WorldRegionIndex;
 use oc_mod::Mod;
-use oc_projectile::NextProjectileId;
 use oc_root::{WorldConfig, files, ids::Ids, side::BySide};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use thiserror::Error;
@@ -18,12 +16,10 @@ use crate::{
     cache::{self, CacheRegionBackgroundError},
     flag::Flags,
     meta::Meta,
-    navmesh::{Walls, navmesh},
     reader::{MapReader, MapReaderError},
     snapshot::Snapshot,
     spawn::SpawnZone,
     utils::image::crop::crop_polygon,
-    visibility::Visibilities,
 };
 
 pub const MINIMAP_FILE: &str = "minimap.png";
@@ -49,61 +45,12 @@ impl WorldLoader {
         self.cache(&meta, self.w.region_width(), self.w.region_height(), map)?;
         tracing::debug!("Cache finished");
 
-        let w = self.w.clone();
-        let mod_ = self.mod_.clone();
-        let altered_tiles = snapshot.altered_tiles;
-        let mut tiles = snapshot.tiles;
-        // Altered tiles update matching tiles
-        for altered in altered_tiles.iter().flatten() {
-            if let Some(tile) = tiles.get_mut(altered.i.0 as usize) {
-                tile.alter(altered, &mod_);
-            }
-        }
-        let decor = snapshot.decor;
-        let craters = snapshot.craters;
-        let wrecks = snapshot.wrecks;
-        let smoke = snapshot.smoke;
-        let smoke_clouds = snapshot.smoke_clouds.into_iter().map(Into::into).collect();
-        let individuals = snapshot.individuals;
-        let visibilities = Visibilities::empty(individuals.len());
-        let squads = snapshot.squads;
-        let vehicles = snapshot.vehicles;
-        let uuids = snapshot.uuids;
-        tracing::debug!("Build projectile ids");
-        let projectiles = snapshot
-            .projectiles
-            .into_iter()
-            .map(|projectile| (ids.next_projectile_id(), projectile))
-            .collect();
-        let phase = snapshot.phase;
-        let duration = snapshot.duration;
-        let start = snapshot.start.map(|start| {
-            let elapsed = start.elapsed().unwrap_or_default();
-            Instant::now()
-                .checked_sub(elapsed)
-                .unwrap_or_else(Instant::now)
-        });
-        let spawns = snapshot.spawns;
-        let supports = snapshot.supports;
-        let pending_supports = snapshot
-            .pending_supports
-            .into_iter()
-            .map(Into::into)
-            .collect();
-        let support_realized = snapshot
-            .support_realized
-            .into_iter()
-            .map(|r| {
-                let at = r.at.elapsed().unwrap_or_default();
-                let at = Instant::now().checked_sub(at).unwrap_or_else(Instant::now);
-                ((r.side, r.type_), at)
-            })
-            .collect();
-        tracing::debug!("Build navmesh grid");
-        let walls = tiles.as_walls(&mod_);
-
-        tracing::debug!("Build navmesh (from grid with len {})", walls.len());
-        let navmesh = navmesh(&w, &walls);
+        let mut snapshot = Snapshot {
+            w: self.w.clone(),
+            ..snapshot
+        };
+        let spawns = std::mem::take(&mut snapshot.spawns);
+        let world = World::from_snapshot(self.mod_.clone(), meta, ids, snapshot);
 
         let flags = map.flags()?;
         let interiors = map.interiors()?;
@@ -119,36 +66,14 @@ impl WorldLoader {
         let flags = Flags::from_control(flags, &side_spawn_zones.a, &side_spawn_zones.b);
 
         tracing::debug!("World built");
-        Ok(World::new(
-            w,
-            mod_,
-            meta,
-            phase,
-            duration,
-            start,
+        Ok(World {
             side_spawn_zones,
             spawn_zones,
             flags,
-            supports,
-            pending_supports,
-            support_realized,
-            tiles,
-            altered_tiles,
-            decor,
-            craters,
-            wrecks,
-            smoke,
-            smoke_clouds,
-            navmesh,
-            visibilities,
-            individuals,
-            squads,
-            vehicles,
-            projectiles,
             interiors,
             places,
-            uuids,
-        ))
+            ..world
+        })
     }
 
     // TODO: add checks
