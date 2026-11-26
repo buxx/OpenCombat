@@ -80,12 +80,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     if let Some((placer, phase)) = placed {
         deployments
-            // FIXME BS NOW: 1/ Début de partie ne doit pas impliquer mouvement de membres pour se place.
-            //                  Le placer doit placer les individus a leur place directement.
-            //               2/ Les soldats ne doivent pas tirer dès le début car hide. Là il y a des tirs.
-            //                  Maybe individual n'ont pas encore reçu order (placer doit donner order)
-            //                  Sinon c'est du tuning de behavior.
-            // Sinon, créer les mécanique de la phase "deployment"
             .mobilize(w, &loaded.mod_, &mut snapshot, &placer, &tiles)
             .context("Generate snapshot from deployment files")?;
         snapshot.phase = phase;

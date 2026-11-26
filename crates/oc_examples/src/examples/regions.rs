@@ -101,7 +101,6 @@ pub fn main() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-// FIXME BS NOW: in IndividualMoveOut case, two individuals are displayed. Its abnormal
 fn individuals(w: &WorldConfig, args: &Args) -> Vec<oc_individual::Individual> {
     let position = match args.case {
         TestCase::ProjectileMoveIn | TestCase::ProjectileMoveOut => return vec![],
