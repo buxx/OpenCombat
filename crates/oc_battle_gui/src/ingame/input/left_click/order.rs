@@ -1,3 +1,5 @@
+use bevy::picking::hover::HoverMap;
+use bevy::picking::pointer::PointerId;
 use bevy::prelude::*;
 use oc_geo::tile::TileXy;
 use oc_geo::tile::WorldTileIndex;
@@ -32,6 +34,7 @@ use crate::ingame::lov::SpawnLovProfile;
 use crate::ingame::path::ComputeDisplayPaths;
 use crate::ingame::path::SpawnPathProfile;
 use crate::ingame::path::SpawnPathProfileKey;
+use crate::ingame::vehicle::VehicleIndex;
 use crate::network::output::ToServerEvent;
 use crate::states::GameConfig;
 use crate::utils::drag::Phantom;
@@ -308,15 +311,20 @@ pub fn on_click(
     left_click: Res<LeftClick>,
     world: Res<crate::world::World>,
     individuals: Query<&IndividualIndex>,
+    vehicles: Query<&VehicleIndex>,
     network: Res<crate::network::state::State>,
 ) {
     let_some!(g = &g.0, return);
     let_some!(identity = &network.identity, return);
     let point = click.pointer.position;
     let point = cursor_to!(point, camera, &g.w, WorldVec2);
-    let individual = individuals.get(click.event_target()).ok();
-    let individual = individual.map(|i| i.0);
-    let target = individual.filter(|&i| world.engageable(i, identity.side.opposite()));
+    let target = engage_target(
+        click.event_target(),
+        &world,
+        identity.side.opposite(),
+        &individuals,
+        &vehicles,
+    );
 
     match click.button {
         PointerButton::Primary => {
@@ -372,6 +380,22 @@ pub fn on_click(
     };
 
     click.propagate(false);
+}
+
+/// Individual to engage when cursor is over `entity`: an opposite (`side`) engageable individual,
+/// or a crew member of an opposite vehicle (its chassis act as its crew squad).
+fn engage_target(
+    entity: Entity,
+    world: &crate::world::World,
+    side: oc_root::side::Side,
+    individuals: &Query<&IndividualIndex>,
+    vehicles: &Query<&VehicleIndex>,
+) -> Option<oc_individual::IndividualIndex> {
+    if let Ok(individual) = individuals.get(entity) {
+        return Some(individual.0).filter(|&i| world.engageable(i, side));
+    }
+    let vehicle = vehicles.get(entity).ok()?;
+    world.vehicle_engageable(vehicle.0, side)
 }
 
 fn give_orders(
@@ -476,6 +500,8 @@ pub fn cursor_sprite(
     world: Res<crate::world::World>,
     network: Res<crate::network::state::State>,
     individuals: Query<(&IndividualIndex, &Hovered)>,
+    vehicles: Query<&VehicleIndex>,
+    hover_map: Res<HoverMap>,
     mut cursors: Query<(Entity, &mut Sprite, &mut Transform), With<OrderCursor>>,
 ) {
     use crate::sprites::{SpriteRect, order::SquadOrderSprite};
@@ -502,13 +528,13 @@ pub fn cursor_sprite(
     let_some!(cursor = window.cursor_position(), return);
     let point = cursor_to!(cursor, camera, &g.w, WorldVec2);
 
-    let opposite_hovered = individuals
-        .iter()
-        .any(|(i, hovered)| **hovered && world.engageable(i.0, identity.side.opposite()));
+    let opposite = identity.side.opposite();
     let rect = match order {
         OrderType::Grenade => SquadOrderSprite::Grenade,
         OrderType::Smoke => SquadOrderSprite::Smoke,
-        _ if opposite_hovered => SquadOrderSprite::Engage,
+        _ if opposite_hovered(&world, opposite, &individuals, &vehicles, &hover_map) => {
+            SquadOrderSprite::Engage
+        }
         _ => SquadOrderSprite::Suppress,
     }
     .rect();
@@ -539,6 +565,39 @@ pub fn cursor_sprite(
             ));
         }
     }
+}
+
+fn opposite_hovered(
+    world: &crate::world::World,
+    side: oc_root::side::Side,
+    individuals: &Query<(&IndividualIndex, &Hovered)>,
+    vehicles: &Query<&VehicleIndex>,
+    hover_map: &HoverMap,
+) -> bool {
+    individual_hovered(world, side, individuals)
+        || vehicle_hovered(world, side, vehicles, hover_map)
+}
+
+fn individual_hovered(
+    world: &crate::world::World,
+    side: oc_root::side::Side,
+    individuals: &Query<(&IndividualIndex, &Hovered)>,
+) -> bool {
+    individuals
+        .iter()
+        .any(|(i, hovered)| **hovered && world.engageable(i.0, side))
+}
+
+fn vehicle_hovered(
+    world: &crate::world::World,
+    side: oc_root::side::Side,
+    vehicles: &Query<&VehicleIndex>,
+    hover_map: &HoverMap,
+) -> bool {
+    let_some!(hits = hover_map.get(&PointerId::Mouse), return false);
+    hits.keys()
+        .filter_map(|entity| vehicles.get(*entity).ok())
+        .any(|vehicle| world.vehicle_engageable(vehicle.0, side).is_some())
 }
 
 /// Cursor sprite must not remain when leaving order mode

@@ -379,6 +379,30 @@ impl World {
             && self.individual_visible(i)
     }
 
+    /// Crew member of vehicle `i` to engage when targeting this vehicle (its chassis act as its
+    /// crew squad): vehicle must be of the given `side` and visible.
+    pub fn vehicle_engageable(
+        &self,
+        i: VehicleIndex,
+        side: oc_root::side::Side,
+    ) -> Option<IndividualIndex> {
+        let vehicle = self.vehicle(i)?;
+        if vehicle.side != side || !self.vehicle_visible(i) {
+            return None;
+        }
+
+        let crew: Vec<IndividualIndex> = self
+            .vehicle_crew(i)
+            .into_iter()
+            .filter(|c| self.individual(*c).is_some_and(|c| c.status.is_target()))
+            .collect();
+        // Prefer a crew member already known as visible
+        crew.iter()
+            .find(|c| self.individual_visible(**c))
+            .or(crew.first())
+            .copied()
+    }
+
     /// Closest engageable individual of `side` within `radius` of `point`
     pub fn individual_nearest(
         &self,

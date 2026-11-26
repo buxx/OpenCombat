@@ -153,15 +153,18 @@ fn on_insert_vehicle(
         .with_child(chassis_shadow(&sprites, mod_vehicle.row, chassis_rotation))
         .id();
 
+    // All vehicles are pickable: opposite side ones to be targeted by fire orders
+    let (width, height) = mod_vehicle.size;
+    let radius = (width.pixels(&g.w) + height.pixels(&g.w)) / 4.;
+    commands
+        .entity(entity)
+        .insert((Pickable::default(), PickRadius(radius)));
+
     // Own side vehicles can be clicked (to select their squad) and dragged during deployment
     if identity.side == vehicle.side {
-        let (width, height) = mod_vehicle.size;
-        let radius = (width.pixels(&g.w) + height.pixels(&g.w)) / 4.;
         commands
             .entity(entity)
             .insert((
-                Pickable::default(),
-                PickRadius(radius),
                 Selected::default(),
                 Dragged::<VehicleIndex>::default(),
             ))
