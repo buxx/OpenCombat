@@ -1,6 +1,9 @@
 use crate::states::GuiFiles;
 use crate::{
-    ingame::hud::{GAP, HUD_HEIGHT},
+    ingame::{
+        camera::GoToPoint,
+        hud::{GAP, HUD_HEIGHT},
+    },
     network,
     states::GameConfig,
 };
@@ -36,6 +39,8 @@ pub fn minimap() -> impl Scene {
             flex_shrink: 0.,
         }
         BackgroundColor(Color::BLACK)
+        on(on_press)
+        on(on_drag)
         Children [
             MinimapViewport
             Node {
@@ -46,6 +51,46 @@ pub fn minimap() -> impl Scene {
             Pickable::IGNORE
         ]
     }
+}
+
+fn on_press(
+    e: On<PointerPress>,
+    mut commands: Commands,
+    minimap: Single<(&ComputedNode, &UiGlobalTransform), With<Minimap>>,
+    g: Res<GameConfig>,
+) {
+    if e.button == PointerButton::Primary {
+        go_to(&mut commands, e.pointer.position, *minimap, &g);
+    }
+}
+
+fn on_drag(
+    e: On<PointerDrag>,
+    mut commands: Commands,
+    minimap: Single<(&ComputedNode, &UiGlobalTransform), With<Minimap>>,
+    g: Res<GameConfig>,
+) {
+    if e.button == PointerButton::Primary {
+        go_to(&mut commands, e.pointer.position, *minimap, &g);
+    }
+}
+
+fn go_to(
+    commands: &mut Commands,
+    cursor: Vec2,
+    (node, transform): (&ComputedNode, &UiGlobalTransform),
+    g: &GameConfig,
+) {
+    let_some!(g = &g.0, return);
+    let physical = cursor / node.inverse_scale_factor();
+    let normalized = node.normalize_point(*transform, physical);
+    let_some!(normalized = normalized, return);
+    let relative = (normalized + 0.5).clamp(Vec2::ZERO, Vec2::ONE);
+    let point = WorldVec2::new(
+        relative.x * g.w.world_width_pixels() as f32,
+        relative.y * g.w.world_height_pixels() as f32,
+    );
+    commands.trigger(GoToPoint(point));
 }
 
 pub fn load_image(
