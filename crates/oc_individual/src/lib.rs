@@ -70,7 +70,8 @@ oc_utils::index_type! {
     pub struct IndividualIndex(pub u64);
 }
 
-#[oc_derive::archivable]
+// No archived comparison: `shoot` is not persisted (rkyv skip)
+#[oc_derive::archivable(no_compare)]
 #[derive(Debug, PartialEq, Constructor, Clone, WithSetters)]
 #[allow(clippy::too_many_arguments)]
 pub struct Individual {
@@ -99,9 +100,10 @@ pub struct Individual {
     /// Vehicle (and crew role in it) this individual is embarked in
     #[getset(set_with = "pub")]
     pub embarked: Option<(VehicleIndex, CrewRole)>,
-    /// True if individual fired since last visibilities computing
+    /// Last time individual fired (not persisted)
     #[getset(set_with = "pub")]
-    pub shoot: bool,
+    #[rkyv(with = rkyv::with::Skip)]
+    pub shoot: Option<std::time::Instant>,
 }
 
 #[oc_derive::archivable]
@@ -138,6 +140,12 @@ impl From<i32> for IndividualIndex {
 }
 
 impl Individual {
+    /// True if individual fired since less than `shoot_visibility_duration` (world time)
+    pub fn shot_recently(&self, w: &WorldConfig) -> bool {
+        self.shoot
+            .is_some_and(|at| at.elapsed() < w.shoot_visibility_duration().div_f32(w.speed()))
+    }
+
     /// Apply an update (as emitted by server) on this individual.
     pub fn apply(&mut self, w: &WorldConfig, update: &Update) -> Vec<Effect> {
         match update {
@@ -212,7 +220,7 @@ impl Individual {
             Weapons::default(),
             vec![],
             None,
-            false,
+            None,
         )
     }
 

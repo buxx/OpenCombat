@@ -331,13 +331,6 @@ impl<E: Client> super::State<E> {
             let count = world.individuals().len();
             world.visibilities = Visibilities::empty(count);
 
-            // Shoot bonus has been considered by this computing
-            // Note: some fire can be missed in interval. But we accept that.
-            world
-                .individuals
-                .iter_mut()
-                .for_each(|individual| individual.shoot = false);
-
             for (i1, i2, visibility) in individuals.clone() {
                 *world.visibilities.at_mut(i1).at_mut(i2) = visibility;
             }
@@ -437,9 +430,9 @@ impl<E: Client> super::State<E> {
             projectile::Builder::new(&self.w, mod_, spawn.clone()).build()
         };
 
-        // Shooter is easier to see until next visibilities computing
+        // Shooter is easier to see during `shoot_visibility_duration`
         if let Some(shooter) = spawn.shooter {
-            self.world_mut().individual_mut(shooter).shoot = true;
+            self.world_mut().individual_mut(shooter).shoot = Some(std::time::Instant::now());
         }
 
         let sound = fx.then(|| self._mod().pick_sound((spawn.weapon, spawn.shot)));
@@ -579,25 +572,25 @@ mod tests {
             side: Side::A,
             shooter: Some(SHOOTER),
         };
-        assert!(!state.world().individual(SHOOTER).shoot);
+        assert!(state.world().individual(SHOOTER).shoot.is_none());
 
         // When
         state.spawn_projectile(spawn, false);
 
         // Then
-        assert!(state.world().individual(SHOOTER).shoot);
+        let w = state.w.clone();
+        assert!(state.world().individual(SHOOTER).shot_recently(&w));
     }
 
     #[test]
-    fn test_visibilities_update_reset_shoot() {
+    fn test_shot_recently_expires() {
         // Given
         let state = state();
-        state.world_mut().individual_mut(SHOOTER).shoot = true;
-
-        // When
-        state.update_visibilities(vec![], vec![]);
+        let w = state.w.clone();
+        let old = std::time::Instant::now() - w.shoot_visibility_duration().div_f32(w.speed()) * 2;
+        state.world_mut().individual_mut(SHOOTER).shoot = Some(old);
 
         // Then
-        assert!(!state.world().individual(SHOOTER).shoot);
+        assert!(!state.world().individual(SHOOTER).shot_recently(&w));
     }
 }

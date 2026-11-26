@@ -3,8 +3,9 @@ use crate::{
     squad::{self, SquadIndex},
 };
 
-#[oc_derive::archivable]
+#[oc_derive::archivable(no_compare)]
 #[derive(Debug, Clone, PartialEq)]
+#[allow(clippy::large_enum_variant)] // Insert is rare compared to updates: not worth boxing
 pub enum Individual {
     Insert(IndividualIndex, Individual_),
     Update(IndividualIndex, Update),

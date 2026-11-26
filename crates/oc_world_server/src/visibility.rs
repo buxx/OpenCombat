@@ -114,7 +114,7 @@ impl<'a> Processor<'a> {
                 .map(|(vehicle, _)| vehicle)
                 .collect();
             let at = |xy, z| path_objects_at(w, mod_, self.world, self.index, &ignore, xy, z);
-            let bonus = match individual2.shoot {
+            let bonus = match individual2.shot_recently(w) {
                 true => w.shoot_visibility_bonus(),
                 false => CumulatedOpacity(0.0),
             };
@@ -442,7 +442,7 @@ mod tests {
     }
 
     /// Side A watcher at (10, 10) and side B target at (50, 50), with given smoke on every tile.
-    /// Target fired since last visibilities computing if `shoot`.
+    /// Target just fired if `shoot`.
     fn smoked_target_visibility(smoke: u8, shoot: bool) -> Visibility {
         let w = WorldConfig::new(100, 100);
         let individuals = vec![
@@ -456,7 +456,7 @@ mod tests {
                 .position(WorldVec3::new(50., 50., 0.))
                 .build()
                 .make(&w)
-                .with_shoot(shoot),
+                .with_shoot(shoot.then(std::time::Instant::now)),
         ];
         let mut world = TestWorld::builder()
             .individuals(individuals)

@@ -126,9 +126,12 @@ pub struct WorldConfig {
     formation_tiles_radius_placement: u64,
     #[getset(get_copy = "pub", set_with = "pub")]
     individual_visibility_until: CumulatedOpacity,
-    /// Opacity removed when individual shoot since last visibility test
+    /// Opacity removed when individual shot recently (see `shoot_visibility_duration`)
     #[getset(get_copy = "pub", set_with = "pub")]
     shoot_visibility_bonus: CumulatedOpacity,
+    /// Duration (world time) after a shot during which `shoot_visibility_bonus` applies
+    #[getset(get_copy = "pub", set_with = "pub")]
+    shoot_visibility_duration: Duration,
     /// Inaccuracy start value
     #[getset(get_copy = "pub", set_with = "pub")]
     base_inaccuracy: f32,
@@ -271,6 +274,7 @@ impl WorldConfig {
         let formation_tiles_radius_placement = 2;
         let individual_visibility_until = CumulatedOpacity(0.6);
         let shoot_visibility_bonus = CumulatedOpacity(0.3);
+        let shoot_visibility_duration = Duration::from_secs(5);
         let base_inaccuracy = 0.05;
         let suppress_inaccuracy = 2.0;
         let standup_inaccuracy = 0.1;
@@ -337,6 +341,7 @@ impl WorldConfig {
             formation_tiles_radius_placement,
             individual_visibility_until,
             shoot_visibility_bonus,
+            shoot_visibility_duration,
             base_inaccuracy,
             suppress_inaccuracy,
             standup_inaccuracy,

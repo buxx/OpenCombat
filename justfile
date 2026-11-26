@@ -132,6 +132,7 @@ test-e2e speed="" jobs="4":
         test-visibilities-discover
         test-visibilities-move-then-enemy-visible
         test-visibilities-altered-wall
+        test-visibilities-ennemy-visible-after-shot
         test-engaging-direct
         test-engaging-direct2
         test-engaging-far-machine-gun
@@ -315,6 +316,9 @@ test-visibilities-move-then-enemy-visible:
 
 test-visibilities-altered-wall:
     RUST_LOG=ERROR cargo run --bin oc_example --features test -- visibilities altered-wall --test
+
+test-visibilities-ennemy-visible-after-shot:
+    RUST_LOG=ERROR cargo run --bin oc_example --features test -- visibilities ennemy-visible-after-shot --test
 
 test-engaging-direct:
     RUST_LOG=ERROR cargo run --bin oc_example --features test,debug -- engaging direct --test
