@@ -1,0 +1,27 @@
+[package]
+name = "osm_extractor"
+version.workspace = true
+edition = "2024"
+description = "Extract OpenStreetMap data (roads, buildings, water, forest) and elevation for a GPS area, and render map backgrounds"
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "extract"
+path = "src/bin/extract.rs"
+
+[[bin]]
+name = "build_map"
+path = "src/bin/build_map.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+reqwest = { workspace = true, features = ["blocking", "form"] }
+image = { workspace = true, default-features = false, features = ["png"] }
+tiny-skia = "0.11"
+tracing.workspace = true
+tracing-subscriber.workspace = true

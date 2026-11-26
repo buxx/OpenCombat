@@ -7198,6 +7198,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "osm_extractor"
+version = "0.6.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "image 0.25.10",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tiny-skia",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "owned_ttf_parser"
 version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8238,6 +8253,8 @@ dependencies = [
  "rustls",
  "rustls-pki-types",
  "rustls-platform-verifier",
+ "serde",
+ "serde_urlencoded",
  "sync_wrapper",
  "tokio",
  "tokio-rustls",
@@ -9339,6 +9356,7 @@ dependencies = [
  "bytemuck",
  "cfg-if",
  "log",
+ "png 0.17.16",
  "tiny-skia-path",
 ]
 
