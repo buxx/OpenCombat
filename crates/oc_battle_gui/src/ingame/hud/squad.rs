@@ -1,5 +1,5 @@
 use crate::{
-    ingame::{hud::GAP, state::SelectionUpdated},
+    ingame::{camera::GoToPoint, hud::GAP, state::SelectionUpdated},
     sprites::SpriteRect,
     states::GameConfig,
     world::World,
@@ -89,6 +89,7 @@ fn row(
         BackgroundColor(ROW_BG)
         on(on_hover)
         on(on_out)
+        on(on_click)
         Children [
             // Icon
             Node { width: px(INDIVIDUAL_ICON_WIDTH), height: px(INDIVIDUAL_ICON_HEIGHT), flex_shrink: 0. }
@@ -266,6 +267,20 @@ fn on_hover(
     let_some!(entity = individuals.get(&row.0), return);
     let_ok!(mut h = hovered.get_mut(*entity), return);
     **h = true;
+}
+
+fn on_click(
+    e: On<PointerClick>,
+    mut commands: Commands,
+    rows: Query<&IndividualRow>,
+    world: Res<World>,
+) {
+    if e.button != PointerButton::Primary {
+        return;
+    }
+    let_ok!(row = rows.get(e.entity), return);
+    let_some!(individual = world.individual(row.0), return);
+    commands.trigger(GoToPoint(individual.position.into()));
 }
 
 fn on_out(
