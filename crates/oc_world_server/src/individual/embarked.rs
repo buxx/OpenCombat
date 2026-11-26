@@ -218,7 +218,8 @@ impl Processor<'_> {
         runner::update::Update::UpdateIndividual(self.i, update)
     }
 
-    /// Move orders: rotate chassis to the destination, then translate the vehicle to it
+    /// Move orders: rotate chassis to the destination, then translate the vehicle to it.
+    /// Without move order, rotate chassis to the squad defend/hide direction (if any).
     fn drive(&self, individual: &Individual, vehicle: &Vehicle) -> Vec<oc_vehicle::Update> {
         let type_ = self.world.mod_.vehicle(vehicle.type_);
         let (destination, factor) = match individual.orders.first() {
@@ -229,7 +230,7 @@ impl Processor<'_> {
         };
 
         let (chassis_target, forces, destination) = match destination {
-            None => (None, vec![], None),
+            None => (self.facing(), vec![], None),
             Some(destination) => {
                 let from: Vec2 = WorldVec2::from(vehicle.position).into();
                 let direction = Direction::from_points2d(from, destination.into());
@@ -260,6 +261,16 @@ impl Processor<'_> {
         }
 
         updates
+    }
+
+    /// Direction the vehicle chassis must face according to the squad current order (defend or
+    /// hide orders are held by the gunner, but the driver orients the chassis to them).
+    fn facing(&self) -> Option<Direction> {
+        let squad = self.world.squad(self.index.individual_squad(self.i));
+        match squad.orders.first() {
+            Some(Order::Defend(direction) | Order::Hide(direction)) => Some(*direction),
+            _ => None,
+        }
     }
 
     /// Fire orders: rotate the turret to the target, aim when turret is on it, then fire.
@@ -828,6 +839,37 @@ mod tests {
             u,
             runner::update::Update::UpdateIndividual(_, Update::SetForces(f)) if !f.is_empty()
         )));
+    }
+
+    #[test]
+    fn driver_rotates_chassis_to_squad_defend_or_hide_direction() {
+        // Given: tank facing est, squad ordered to defend/hide to south (held by the gunner)
+        let w = w();
+        for order in [
+            Order::Defend(Direction::SOUTH),
+            Order::Hide(Direction::SOUTH),
+        ] {
+            let crew = [
+                (CrewRole::Commander, vec![]),
+                (CrewRole::Driver, vec![]),
+                (CrewRole::Gunner, vec![order.clone()]),
+            ];
+            let world = tank_world(&w, tank(&w, Direction::EST), &crew, vec![order], vec![]);
+
+            // When
+            let updates = step(&world, 1);
+
+            // Then: chassis rotate to south, without translation
+            assert!(
+                updates.contains(&vehicle_update(oc_vehicle::Update::SetChassisTarget(Some(
+                    Direction::SOUTH
+                ))))
+            );
+            assert!(!updates.iter().any(|u| matches!(
+                u,
+                runner::update::Update::UpdateVehicle(_, oc_vehicle::Update::SetForces(f)) if !f.is_empty()
+            )));
+        }
     }
 
     #[test]
