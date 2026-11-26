@@ -275,7 +275,7 @@ impl WorldConfig {
         let individual_visibility_until = CumulatedOpacity(0.6);
         let shoot_visibility_bonus = CumulatedOpacity(0.3);
         let shoot_visibility_duration = Duration::from_secs(5);
-        let base_inaccuracy = 0.05;
+        let base_inaccuracy = 0.10;
         let suppress_inaccuracy = 2.0;
         let standup_inaccuracy = 0.1;
         let walking_inaccuracy = 1.5;
