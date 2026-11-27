@@ -4,3 +4,4 @@
     Peut-être revoir les r-gles qui s'appliquent pour la précision des chars
 - Bug de lov quand vehicle ou unité en déplacement (ne supprime pas les anciens traits)
 - tir en avance de position sur soldat qui court
+- hud squad detail: scroll roulette quand trop de soldats

@@ -1,22 +1,14 @@
+// Axis squads sized after 1944 tables: German Gruppe 9 (2 MP 40, MG 42, Kar98k),
+// Volksgrenadier assault squad 8 (StG 44), HMG crew 6, Italian squad 10, Japanese squad 13.
 (
   squads: [
     (
       count: 6,
       label: "German Rifle",
-      illustration: "default",
+      illustration: "Mg34Squad",
       individuals: [
         (
-          count: 3,
-          illustration: "default",
-          xp: (149, 40),
-          weapons: (
-            main: Some("Karabiner 98k"),
-            grenades: ["Frag grenade", "Frag grenade"],
-          ),
-          magazines: [(count: 12, name: "Mauser5x")],
-        ),
-        (
-          count: 1,
+          count: 2,
           illustration: "default",
           xp: (160, 30),
           weapons: (
@@ -24,50 +16,6 @@
             grenades: ["Frag grenade", "Frag grenade"],
           ),
           magazines: [(count: 6, name: "MP40_32x")],
-        ),
-      ],
-    ),
-    (
-      count: 4,
-      label: "German Assault",
-      illustration: "default",
-      individuals: [
-        (
-          count: 3,
-          illustration: "default",
-          xp: (150, 35),
-          weapons: (
-            main: Some("StG 44"),
-            grenades: ["Frag grenade", "Frag grenade"],
-          ),
-          magazines: [(count: 6, name: "StG44_30x")],
-        ),
-        (
-          count: 1,
-          illustration: "default",
-          xp: (155, 30),
-          weapons: (
-            main: Some("Gewehr 43"),
-            grenades: ["Frag grenade", "Frag grenade"],
-          ),
-          magazines: [(count: 8, name: "G43_10x")],
-        ),
-      ],
-    ),
-    (
-      count: 3,
-      label: "Mg42",
-      illustration: "Mg34Squad",
-      individuals: [
-        (
-          count: 3,
-          illustration: "default",
-          xp: (140, 30),
-          weapons: (
-            main: Some("Karabiner 98k"),
-            grenades: ["Frag grenade", "Frag grenade"],
-          ),
-          magazines: [(count: 12, name: "Mauser5x")],
         ),
         (
           count: 1,
@@ -79,6 +27,60 @@
           ),
           magazines: [(count: 8, name: "Mg42_50x")],
         ),
+        (
+          count: 3,
+          illustration: "default",
+          xp: (149, 40),
+          weapons: (
+            main: Some("Karabiner 98k"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 12, name: "Mauser5x")],
+        ),
+      ],
+    ),
+    (
+      count: 4,
+      label: "German Assault",
+      illustration: "default",
+      individuals: [
+        (
+          count: 6,
+          illustration: "default",
+          xp: (150, 35),
+          weapons: (
+            main: Some("StG 44"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 6, name: "StG44_30x")],
+        ),
+      ],
+    ),
+    (
+      count: 3,
+      label: "Mg42",
+      illustration: "Mg34Squad",
+      individuals: [
+        (
+          count: 1,
+          illustration: "Mg34",
+          xp: (169, 20),
+          weapons: (
+            main: Some("Mg42"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 8, name: "Mg42_50x")],
+        ),
+        (
+          count: 5,
+          illustration: "default",
+          xp: (140, 30),
+          weapons: (
+            main: Some("Karabiner 98k"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 12, name: "Mauser5x")],
+        ),
       ],
     ),
     (
@@ -86,16 +88,6 @@
       label: "Italian Rifle",
       illustration: "default",
       individuals: [
-        (
-          count: 3,
-          illustration: "default",
-          xp: (130, 35),
-          weapons: (
-            main: Some("Carcano M91/38"),
-            grenades: ["Frag grenade", "Frag grenade"],
-          ),
-          magazines: [(count: 10, name: "Carcano6x")],
-        ),
         (
           count: 1,
           illustration: "default",
@@ -106,6 +98,16 @@
           ),
           magazines: [(count: 6, name: "MAB38_30x")],
         ),
+        (
+          count: 5,
+          illustration: "default",
+          xp: (130, 35),
+          weapons: (
+            main: Some("Carcano M91/38"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 10, name: "Carcano6x")],
+        ),
       ],
     ),
     (
@@ -113,16 +115,6 @@
       label: "Japanese LMG",
       illustration: "Mg34Squad",
       individuals: [
-        (
-          count: 3,
-          illustration: "default",
-          xp: (140, 30),
-          weapons: (
-            main: Some("Arisaka Type 99"),
-            grenades: ["Frag grenade", "Frag grenade"],
-          ),
-          magazines: [(count: 12, name: "Arisaka5x")],
-        ),
         (
           count: 1,
           illustration: "Mg34",
@@ -132,6 +124,16 @@
             grenades: ["Frag grenade", "Frag grenade"],
           ),
           magazines: [(count: 10, name: "Type99LMG_30x")],
+        ),
+        (
+          count: 6,
+          illustration: "default",
+          xp: (140, 30),
+          weapons: (
+            main: Some("Arisaka Type 99"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 12, name: "Arisaka5x")],
         ),
       ],
     ),

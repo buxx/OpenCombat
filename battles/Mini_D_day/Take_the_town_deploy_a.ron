@@ -1,36 +1,22 @@
+// British/Canadian rifle section, Normandy 1944 (10 men):
+// section commander (Cpl, Sten), gun group (L/Cpl 2IC, Bren No.1, Bren No.2)
+// and rifle group (6 riflemen). Riflemen and Bren No.2 carry Lee-Enfield No.4.
 (
   squads: [
     (
       count: 15,
-      label: "Riffle",
-      illustration: "default",
-      individuals: [
-        (
-          count: 4,
-          illustration: "default",
-          xp: (149, 40),
-          weapons: (
-            main: Some("Mosin Nagant M1924"),
-            grenades: ["Frag grenade", "Frag grenade", "Smoke grenade"],
-          ),
-          magazines: [(count: 10, name: "MosinNagant5x")],
-        ),
-      ],
-    ),
-    (
-      count: 5,
-      label: "Bren",
+      label: "Rifle section",
       illustration: "BrenMark2Squad",
       individuals: [
         (
-          count: 3,
+          count: 1,
           illustration: "default",
-          xp: (121, 30),
+          xp: (160, 30),
           weapons: (
-            main: Some("Mosin Nagant M1924"),
-            grenades: ["Frag grenade", "Frag grenade"],
+            main: Some("Sten Mk II"),
+            grenades: ["Frag grenade", "Frag grenade", "Smoke grenade"],
           ),
-          magazines: [(count: 12, name: "MosinNagant5x")],
+          magazines: [(count: 5, name: "Sten32x")],
         ),
         (
           count: 1,
@@ -38,9 +24,19 @@
           xp: (169, 20),
           weapons: (
             main: Some("Bren Mark2"),
-            grenades: ["Frag grenade", "Frag grenade"],
+            grenades: ["Frag grenade"],
           ),
           magazines: [(count: 10, name: "BrenMark2_30x")],
+        ),
+        (
+          count: 4,
+          illustration: "default",
+          xp: (149, 40),
+          weapons: (
+            main: Some("Lee-Enfield No.4 Mk I"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 5, name: "LeeEnfield10x")],
         ),
       ],
     ),

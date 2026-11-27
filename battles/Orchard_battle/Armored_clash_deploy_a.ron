@@ -1,14 +1,16 @@
+// Allied squads sized after 1944 tables: US rifle squad 12 (BAR + M1, NCO Thompson),
+// US LMG squad 5, British section 10 (Sten, Bren, 8 rifles), Soviet squad 9 (no DP LMG available in mod).
 (
   squads: [
     (
       count: 6,
       label: "US Rifle",
-      illustration: "default",
+      illustration: "BrenMark2Squad",
       individuals: [
         (
-          count: 3,
+          count: 1,
           illustration: "default",
-          xp: (149, 40),
+          xp: (160, 30),
           weapons: (
             main: Some("M1 Garand"),
             grenades: ["Frag grenade", "Frag grenade", "Smoke grenade"],
@@ -25,23 +27,6 @@
           ),
           magazines: [(count: 6, name: "Thompson30x")],
         ),
-      ],
-    ),
-    (
-      count: 4,
-      label: "US BAR",
-      illustration: "BrenMark2Squad",
-      individuals: [
-        (
-          count: 3,
-          illustration: "default",
-          xp: (140, 30),
-          weapons: (
-            main: Some("M1 Carbine"),
-            grenades: ["Frag grenade", "Frag grenade"],
-          ),
-          magazines: [(count: 6, name: "M1Carbine15x")],
-        ),
         (
           count: 1,
           illustration: "BrenMark2",
@@ -50,7 +35,17 @@
             main: Some("BAR M1918A2"),
             grenades: ["Frag grenade", "Frag grenade"],
           ),
-          magazines: [(count: 10, name: "BAR20x")],
+          magazines: [(count: 12, name: "BAR20x")],
+        ),
+        (
+          count: 4,
+          illustration: "default",
+          xp: (149, 40),
+          weapons: (
+            main: Some("M1 Garand"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 10, name: "Garand8x")],
         ),
       ],
     ),
@@ -60,7 +55,7 @@
       illustration: "BrenMark2Squad",
       individuals: [
         (
-          count: 3,
+          count: 4,
           illustration: "default",
           xp: (121, 30),
           weapons: (
@@ -87,16 +82,6 @@
       illustration: "BrenMark2Squad",
       individuals: [
         (
-          count: 2,
-          illustration: "default",
-          xp: (149, 40),
-          weapons: (
-            main: Some("Lee-Enfield No.4 Mk I"),
-            grenades: ["Frag grenade", "Frag grenade"],
-          ),
-          magazines: [(count: 8, name: "LeeEnfield10x")],
-        ),
-        (
           count: 1,
           illustration: "default",
           xp: (140, 30),
@@ -116,6 +101,16 @@
           ),
           magazines: [(count: 10, name: "BrenMark2_30x")],
         ),
+        (
+          count: 4,
+          illustration: "default",
+          xp: (149, 40),
+          weapons: (
+            main: Some("Lee-Enfield No.4 Mk I"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 8, name: "LeeEnfield10x")],
+        ),
       ],
     ),
     (
@@ -126,22 +121,22 @@
         (
           count: 2,
           illustration: "default",
-          xp: (149, 40),
-          weapons: (
-            main: Some("Mosin-Nagant M1891/30"),
-            grenades: ["Frag grenade", "Frag grenade"],
-          ),
-          magazines: [(count: 12, name: "MosinNagant5x")],
-        ),
-        (
-          count: 2,
-          illustration: "default",
           xp: (140, 30),
           weapons: (
             main: Some("PPSh-41"),
             grenades: ["Frag grenade", "Frag grenade"],
           ),
           magazines: [(count: 4, name: "PPSh71x")],
+        ),
+        (
+          count: 4,
+          illustration: "default",
+          xp: (149, 40),
+          weapons: (
+            main: Some("Mosin-Nagant M1891/30"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 12, name: "MosinNagant5x")],
         ),
       ],
     ),
