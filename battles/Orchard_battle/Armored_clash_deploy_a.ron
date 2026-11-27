@@ -5,11 +5,11 @@
     (
       count: 6,
       label: "US Rifle",
-      illustration: "BrenMark2Squad",
+      illustration: "UsRifleSquad",
       individuals: [
         (
           count: 1,
-          illustration: "default",
+          illustration: "M1Garand",
           xp: (160, 30),
           weapons: (
             main: Some("M1 Garand"),
@@ -19,7 +19,7 @@
         ),
         (
           count: 1,
-          illustration: "default",
+          illustration: "ThompsonM1A1",
           xp: (160, 30),
           weapons: (
             main: Some("Thompson M1A1"),
@@ -29,7 +29,7 @@
         ),
         (
           count: 1,
-          illustration: "BrenMark2",
+          illustration: "BarM1918A2",
           xp: (169, 20),
           weapons: (
             main: Some("BAR M1918A2"),
@@ -39,7 +39,7 @@
         ),
         (
           count: 4,
-          illustration: "default",
+          illustration: "M1Garand",
           xp: (149, 40),
           weapons: (
             main: Some("M1 Garand"),
@@ -52,11 +52,11 @@
     (
       count: 3,
       label: "US MG",
-      illustration: "BrenMark2Squad",
+      illustration: "UsMgSquad",
       individuals: [
         (
           count: 4,
-          illustration: "default",
+          illustration: "M1Carbine",
           xp: (121, 30),
           weapons: (
             main: Some("M1 Carbine"),
@@ -66,7 +66,7 @@
         ),
         (
           count: 1,
-          illustration: "BrenMark2",
+          illustration: "BrowningM1919A4",
           xp: (169, 20),
           weapons: (
             main: Some("Browning M1919A4"),
@@ -83,7 +83,7 @@
       individuals: [
         (
           count: 1,
-          illustration: "default",
+          illustration: "StenMkII",
           xp: (140, 30),
           weapons: (
             main: Some("Sten Mk II"),
@@ -103,7 +103,7 @@
         ),
         (
           count: 4,
-          illustration: "default",
+          illustration: "LeeEnfieldNo4",
           xp: (149, 40),
           weapons: (
             main: Some("Lee-Enfield No.4 Mk I"),
@@ -116,11 +116,11 @@
     (
       count: 4,
       label: "Soviet Rifle",
-      illustration: "default",
+      illustration: "SovietRifleSquad",
       individuals: [
         (
           count: 2,
-          illustration: "default",
+          illustration: "PPSh41",
           xp: (140, 30),
           weapons: (
             main: Some("PPSh-41"),
@@ -130,7 +130,7 @@
         ),
         (
           count: 4,
-          illustration: "default",
+          illustration: "MosinNagantM1891_30",
           xp: (149, 40),
           weapons: (
             main: Some("Mosin-Nagant M1891/30"),
@@ -143,7 +143,7 @@
     (
       count: 1,
       label: "M4 Sherman",
-      illustration: "default",
+      illustration: "M4Sherman",
       vehicle: Some("M4 Sherman"),
       shells: [
         (name: "AP 75mm", count: 30),
@@ -164,7 +164,7 @@
     (
       count: 1,
       label: "T-34-85",
-      illustration: "default",
+      illustration: "T3485",
       vehicle: Some("T-34-85"),
       shells: [
         (name: "AP 85mm BR-365", count: 25),
@@ -185,7 +185,7 @@
     (
       count: 1,
       label: "Cromwell",
-      illustration: "default",
+      illustration: "CromwellMkIV",
       vehicle: Some("Cromwell Mk IV"),
       shells: [
         (name: "AP 75mm", count: 30),

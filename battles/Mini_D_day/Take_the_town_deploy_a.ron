@@ -10,7 +10,7 @@
       individuals: [
         (
           count: 1,
-          illustration: "default",
+          illustration: "StenMkII",
           xp: (160, 30),
           weapons: (
             main: Some("Sten Mk II"),
@@ -30,7 +30,7 @@
         ),
         (
           count: 4,
-          illustration: "default",
+          illustration: "LeeEnfieldNo4",
           xp: (149, 40),
           weapons: (
             main: Some("Lee-Enfield No.4 Mk I"),

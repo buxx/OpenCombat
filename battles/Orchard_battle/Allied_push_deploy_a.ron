@@ -8,11 +8,11 @@
     (
       count: 15,
       label: "Rifle squad",
-      illustration: "BrenMark2Squad",
+      illustration: "UsRifleSquad",
       individuals: [
         (
           count: 1,
-          illustration: "default",
+          illustration: "M1Garand",
           xp: (160, 30),
           weapons: (
             main: Some("M1 Garand"),
@@ -22,7 +22,7 @@
         ),
         (
           count: 1,
-          illustration: "BrenMark2",
+          illustration: "BarM1918A2",
           xp: (169, 20),
           weapons: (
             main: Some("BAR M1918A2"),
@@ -32,7 +32,7 @@
         ),
         (
           count: 4,
-          illustration: "default",
+          illustration: "M1Garand",
           xp: (149, 40),
           weapons: (
             main: Some("M1 Garand"),
@@ -45,11 +45,11 @@
     (
       count: 4,
       label: "LMG squad",
-      illustration: "BrenMark2Squad",
+      illustration: "UsMgSquad",
       individuals: [
         (
           count: 1,
-          illustration: "default",
+          illustration: "M1Carbine",
           xp: (150, 30),
           weapons: (
             main: Some("M1 Carbine"),
@@ -59,7 +59,7 @@
         ),
         (
           count: 1,
-          illustration: "BrenMark2",
+          illustration: "BrowningM1919A4",
           xp: (169, 20),
           weapons: (
             main: Some("Browning M1919A4"),
@@ -69,7 +69,7 @@
         ),
         (
           count: 3,
-          illustration: "default",
+          illustration: "M1Carbine",
           xp: (121, 30),
           weapons: (
             main: Some("M1 Carbine"),
@@ -82,7 +82,7 @@
     (
       count: 2,
       label: "M4 Sherman",
-      illustration: "default",
+      illustration: "M4Sherman",
       vehicle: Some("M4 Sherman"),
       shells: [
         (name: "AP 75mm", count: 30),

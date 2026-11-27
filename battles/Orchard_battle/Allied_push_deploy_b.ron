@@ -7,11 +7,11 @@
     (
       count: 12,
       label: "Rifle squad",
-      illustration: "Mg34Squad",
+      illustration: "GermanRifleSquad",
       individuals: [
         (
           count: 2,
-          illustration: "default",
+          illustration: "Mp40",
           xp: (159, 30),
           weapons: (
             main: Some("MP 40"),
@@ -21,7 +21,7 @@
         ),
         (
           count: 1,
-          illustration: "Mg34",
+          illustration: "Mg42",
           xp: (115, 40),
           weapons: (
             main: Some("Mg42"),
@@ -31,7 +31,7 @@
         ),
         (
           count: 1,
-          illustration: "default",
+          illustration: "Gewehr43",
           xp: (165, 30),
           weapons: (
             main: Some("Gewehr 43"),
@@ -41,7 +41,7 @@
         ),
         (
           count: 2,
-          illustration: "default",
+          illustration: "Kar98k",
           xp: (140, 40),
           weapons: (
             main: Some("Karabiner 98k"),
@@ -54,11 +54,11 @@
     (
       count: 5,
       label: "HMG squad",
-      illustration: "Mg34Squad",
+      illustration: "Mg42Squad",
       individuals: [
         (
           count: 1,
-          illustration: "default",
+          illustration: "Mp40",
           xp: (159, 30),
           weapons: (
             main: Some("MP 40"),
@@ -68,7 +68,7 @@
         ),
         (
           count: 1,
-          illustration: "Mg34",
+          illustration: "Mg42",
           xp: (130, 30),
           weapons: (
             main: Some("Mg42"),
@@ -78,7 +78,7 @@
         ),
         (
           count: 3,
-          illustration: "default",
+          illustration: "Kar98k",
           xp: (120, 40),
           weapons: (
             main: Some("Karabiner 98k"),
@@ -91,7 +91,7 @@
     (
       count: 1,
       label: "Tiger 2",
-      illustration: "default",
+      illustration: "TigerII",
       vehicle: Some("Tiger II Ausf. B"),
       shells: [
         (name: "AP 75mm", count: 30),

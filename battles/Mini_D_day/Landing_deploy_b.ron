@@ -7,11 +7,11 @@
     (
       count: 12,
       label: "Rifle squad",
-      illustration: "Mg34Squad",
+      illustration: "GermanRifleSquad",
       individuals: [
         (
           count: 1,
-          illustration: "default",
+          illustration: "Mp40",
           xp: (159, 30),
           weapons: (
             main: Some("MP 40"),
@@ -31,7 +31,7 @@
         ),
         (
           count: 4,
-          illustration: "default",
+          illustration: "Kar98k",
           xp: (140, 40),
           weapons: (
             main: Some("Karabiner 98k"),
@@ -48,7 +48,7 @@
       individuals: [
         (
           count: 1,
-          illustration: "default",
+          illustration: "Mp40",
           xp: (159, 30),
           weapons: (
             main: Some("MP 40"),
@@ -68,7 +68,7 @@
         ),
         (
           count: 3,
-          illustration: "default",
+          illustration: "Kar98k",
           xp: (120, 40),
           weapons: (
             main: Some("Karabiner 98k"),

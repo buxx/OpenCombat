@@ -5,11 +5,11 @@
     (
       count: 6,
       label: "German Rifle",
-      illustration: "Mg34Squad",
+      illustration: "GermanRifleSquad",
       individuals: [
         (
           count: 2,
-          illustration: "default",
+          illustration: "Mp40",
           xp: (160, 30),
           weapons: (
             main: Some("MP 40"),
@@ -19,7 +19,7 @@
         ),
         (
           count: 1,
-          illustration: "Mg34",
+          illustration: "Mg42",
           xp: (169, 20),
           weapons: (
             main: Some("Mg42"),
@@ -29,7 +29,7 @@
         ),
         (
           count: 3,
-          illustration: "default",
+          illustration: "Kar98k",
           xp: (149, 40),
           weapons: (
             main: Some("Karabiner 98k"),
@@ -42,11 +42,11 @@
     (
       count: 4,
       label: "German Assault",
-      illustration: "default",
+      illustration: "GermanAssaultSquad",
       individuals: [
         (
           count: 6,
-          illustration: "default",
+          illustration: "StG44",
           xp: (150, 35),
           weapons: (
             main: Some("StG 44"),
@@ -59,11 +59,11 @@
     (
       count: 3,
       label: "Mg42",
-      illustration: "Mg34Squad",
+      illustration: "Mg42Squad",
       individuals: [
         (
           count: 1,
-          illustration: "Mg34",
+          illustration: "Mg42",
           xp: (169, 20),
           weapons: (
             main: Some("Mg42"),
@@ -73,7 +73,7 @@
         ),
         (
           count: 5,
-          illustration: "default",
+          illustration: "Kar98k",
           xp: (140, 30),
           weapons: (
             main: Some("Karabiner 98k"),
@@ -86,11 +86,11 @@
     (
       count: 3,
       label: "Italian Rifle",
-      illustration: "default",
+      illustration: "ItalianRifleSquad",
       individuals: [
         (
           count: 1,
-          illustration: "default",
+          illustration: "BerettaMab38A",
           xp: (140, 30),
           weapons: (
             main: Some("Beretta MAB 38A"),
@@ -100,7 +100,7 @@
         ),
         (
           count: 5,
-          illustration: "default",
+          illustration: "CarcanoM9138",
           xp: (130, 35),
           weapons: (
             main: Some("Carcano M91/38"),
@@ -113,11 +113,11 @@
     (
       count: 2,
       label: "Japanese LMG",
-      illustration: "Mg34Squad",
+      illustration: "JapaneseLmgSquad",
       individuals: [
         (
           count: 1,
-          illustration: "Mg34",
+          illustration: "Type99Lmg",
           xp: (160, 20),
           weapons: (
             main: Some("Type 99 LMG"),
@@ -127,7 +127,7 @@
         ),
         (
           count: 6,
-          illustration: "default",
+          illustration: "ArisakaType99",
           xp: (140, 30),
           weapons: (
             main: Some("Arisaka Type 99"),
@@ -140,7 +140,7 @@
     (
       count: 1,
       label: "Panzer IV",
-      illustration: "default",
+      illustration: "PanzerIVH",
       vehicle: Some("Panzer IV Ausf. H"),
       shells: [
         (name: "AP 75mm Pzgr.39", count: 35),
@@ -161,7 +161,7 @@
     (
       count: 1,
       label: "Panther",
-      illustration: "default",
+      illustration: "PantherG",
       vehicle: Some("Panther Ausf. G"),
       shells: [
         (name: "AP 75mm Pzgr.39/42", count: 40),
@@ -182,7 +182,7 @@
     (
       count: 1,
       label: "Tiger I",
-      illustration: "default",
+      illustration: "TigerI",
       vehicle: Some("Tiger I"),
       shells: [
         (name: "AP 88mm Pzgr.39", count: 45),

@@ -18,8 +18,6 @@
 - BulletGroundImpact1 : https://freesound.org/people/toxicwafflezz/sounds/150839/
 - Bren : Clean Machine Gun Burst by qubodup -- https://freesound.org/s/482122/
 - ReloadGeneric1 : Chambering 1 by magnuswaker -- https://freesound.org/s/523058/
-- Bren photo: https://en.wikipedia.org/wiki/File:8th_Royal_Scots_halted_27-10-1944.jpg
-- mg34 photo: https://en.wikipedia.org/wiki/File:Walki_uliczne_we_wsi_na_froncie_wschodnim_(2-1008).jpg
 - Explosion1.ogg : https://opengameart.org/content/q009s-weapon-sounds
 - Grenade1.ogg : https://opengameart.org/content/q009s-weapon-sounds
 - Grenade2.ogg : https://opengameart.org/content/q009s-weapon-sounds
@@ -31,6 +29,51 @@
 - debris : CC0 https://www.patreon.com/WhiteFoxWorks
 - Tire gauge pin ringing and clicks : https://freesound.org/people/AnthonyChan0/sounds/209645/
 
-Map sources : 
-  - Grass : p0ss https://opengameart.org/node/9717
-  - Trees : https://opengameart.org/content/top-down-foliage-collection
+Illustrations (Wikimedia Commons, cropped and resized):
+
+- Individuals:
+  - MosinNagantM1924 : [P. Myllymäki (SA-kuva), colorized, CC BY 2.0](https://commons.wikimedia.org/wiki/File:Corporal_Onni_Ryypp%C3%B6_of_the_44th_Border_J%C3%A4ger_Company,_posing_with_his_sniper_rifle_for_the_cameraman_in_the_frontlines_at_Valkeasaari_(Beloostrov),_Karelian_isthmus,_15_April_1942._(50258242472).jpg)
+  - MosinNagantM1891_30 : [Vladimir Grebnev, Public domain](https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BD%D0%B0%D0%B9%D0%BF%D0%B5%D1%80_%D1%81%D1%82%D0%B0%D1%80%D1%88%D0%B8%D0%BD%D0%B0_%D0%98%D0%B1%D1%80%D0%B0%D0%B3%D0%B8%D0%BC_%D0%A1%D1%83%D0%BB%D0%B5%D0%B9%D0%BC%D0%B0%D0%BD%D0%BE%D0%B2_%D0%BD%D0%B0_%D0%BE%D0%B3%D0%BD%D0%B5%D0%B2%D0%BE%D0%B9_%D0%BF%D0%BE%D0%B7%D0%B8%D1%86%D0%B8%D0%B8.jpeg)
+  - MauserG41 : [Springfield Armory NHS, Public domain](https://commons.wikimedia.org/wiki/File:Soldier_using_G41(w).jpg)
+  - M1Garand : [U.S. Army, Public domain](https://commons.wikimedia.org/wiki/File:American_soldier_near_St._Lo,_France,_July_1944.jpg)
+  - LeeEnfieldNo4 : [IWM, Public domain](https://commons.wikimedia.org/wiki/File:British_soldier,_armed_with_a_Lee-Enfield_rifle_caliber_.303,_looks_out_for_German_snipers_during_the_Battle_of_Caen_on_July_9,_1944.jpg)
+  - M1Carbine : [U.S. Army, Public domain](https://commons.wikimedia.org/wiki/File:442nd_US_Army_RCT_squad_leader_in_france.jpg)
+  - ThompsonM1A1 : [Julius Jääskeläinen, colorized, CC BY 2.0](https://commons.wikimedia.org/wiki/File:A_Canadian_soldier_fires_his_Thompson_submachine_gun_at_the_enemy_during_a_street_battle_in_Capua,_Italy_1943._(31872560607).jpg)
+  - StenMkII : [U.S. Army, colorized, Public domain](https://commons.wikimedia.org/wiki/File:Sten_gun_France_ww2-102-colourised.jpg)
+  - PPSh41 : [Vladimir Grebnev, Public domain](https://commons.wikimedia.org/wiki/File:%D0%9A%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D0%B8%D1%80_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B8%D0%B8_%D1%81%D1%82%D0%B0%D1%80%D1%88%D0%B8%D0%B9_%D1%81%D0%B5%D1%80%D0%B6%D0%B0%D0%BD%D1%82_%D0%9C%D0%B5%D0%BB%D1%8C%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2_%D0%93.%D0%9F.jpg)
+  - BarM1918A2 : [U.S. Marine Corps, Public domain](https://commons.wikimedia.org/wiki/File:With_his_Browning_Automatic_Rifle_ready_for_action,_a_Marine_moves_forward_cautiously_during_a_drive_against_Jap_pillboxes_and_snipers_on_Cape_Gloucester._(49671515902).jpg)
+  - BrowningM1919A4 : [U.S. Army, Public domain](https://commons.wikimedia.org/wiki/File:GI_machine_gun_crew_in_Aachen_(Correct_orientation).jpg)
+  - BrenMark2 : [IWM, Public domain](https://commons.wikimedia.org/wiki/File:Bren_gunner_of_the_Royal_Scots_06-11-1944.jpg)
+  - Mg34 : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-274-0498-15,_Russland,_Soldat_mit_MG_34.jpg)
+  - Gewehr43 : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-090-3912-07A,_Russland,_Soldaten_in_Winterausr%C3%BCstung.jpg)
+  - Kar98k : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-695-0403-30,_Warschauer_Aufstand,_Soldat_mit_Gewehr_schie%C3%9Fend.jpg)
+  - Mp40 : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-278-0899-26,_Russland,_Soldat_mit_MP_40_im_Schnee.jpg)
+  - StG44 : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-676-7996-13,_Infanterist_mit_Sturmgewehr_44.jpg)
+  - Mg42 : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_146-1983-109-14A,_Frankreich,_MG-Sch%C3%BCtze.jpg)
+  - ArisakaType99 : [Unknown, Public domain](https://commons.wikimedia.org/wiki/File:Japanese_soldier_of_the_Imperial_Japanese_Army.jpg)
+  - CarcanoM9138 : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-316-1198-11,_Italien,_italienischer_Soldat_beim_Waffenreinigen.jpg)
+  - BerettaMab38A : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-307-0768-20A,_Italien,_italienischer_Soldat.jpg)
+  - Type99Lmg : [Djawa Baroe, Public domain](https://commons.wikimedia.org/wiki/File:Japanese_soldiers_with_unidentified_machine_gun,_Djawa_Baroe,_Vol._1,_Iss._10_(1943-05-15),_p14.jpg)
+- Squads and vehicles:
+  - BrenMark2Squad : [IWM, Public domain](https://commons.wikimedia.org/wiki/File:8th_Royal_Scots_halted_27-10-1944.jpg)
+  - Mg34Squad : [Narodowe Archiwum Cyfrowe, Public domain](https://commons.wikimedia.org/wiki/File:Walki_uliczne_we_wsi_na_froncie_wschodnim_(2-1008).jpg)
+  - UsRifleSquad : [U.S. Army, Public domain](https://commons.wikimedia.org/wiki/File:111-SC-197682_-_SC_197682_-_An_American_infantryman_keeps_firing_while_two_of_his_comrades_insert_fresh_ammunition_in_their_rifles,_as_steady_fire_from_this_sheltered_infantry_covers_advance_near_Rosteig,_France._December_5,_1944.jpg)
+  - UsMgSquad : [U.S. Army, Public domain](https://commons.wikimedia.org/wiki/File:GI_machine_gun_crew_in_Aachen_(Correct_orientation).jpg)
+  - SovietRifleSquad : [RIA Novosti, CC BY-SA 3.0](https://commons.wikimedia.org/wiki/File:RIAN_archive_66025_Before_Attack.jpg)
+  - GermanRifleSquad : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-732-0123-26,_Russland,_Soldaten_der_%C2%BBDiv._Gro%C3%9Fdeutschland%C2%AB,_MG_42.jpg)
+  - Mg42Squad : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-587-2253-15,_Normandie,_Fallschirmj%C3%A4ger_mit_MG_42.jpg)
+  - GermanAssaultSquad : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-676-7996-13,_Infanterist_mit_Sturmgewehr_44.jpg)
+  - ItalianRifleSquad : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-316-1196-27,_Italien,_italienische_Soldaten_in_MG-Stellung.jpg)
+  - JapaneseLmgSquad : [Cassowary Colorizations, colorized, CC BY 2.0](https://commons.wikimedia.org/wiki/File:Japanese_Special_Naval_Landing_Forces_holding_a_position_behind_the_corner_of_a_building_with_a_Type_11_light_machine_gun,_equipped_with_Type_99_gas_masks,_in_Shanghai,_China,_August-November_1937._(37598977682).png)
+  - M4Sherman : [IWM, Public domain](https://commons.wikimedia.org/wiki/File:Sherman_tanks_advancing_towards_Vire,_Normandy,_2_August_1944._B8484.jpg)
+  - T3485 : [Georgy Ugrinovich, Public domain](https://commons.wikimedia.org/wiki/File:%D0%A2%D0%B0%D0%BD%D0%BA%D0%B8_%D0%A2-34-85_7-%D0%B3%D0%BE_%D0%B3%D0%B2%D0%B0%D1%80%D0%B4%D0%B5%D0%B9%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_%D1%82%D0%B0%D0%BD%D0%BA%D0%BE%D0%B2%D0%BE%D0%B3%D0%BE_%D0%BA%D0%BE%D1%80%D0%BF%D1%83%D1%81%D0%B0_%D0%B2_%D0%BF%D1%80%D0%B8%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D0%B5_%D0%91%D0%B5%D1%80%D0%BB%D0%B8%D0%BD%D0%B0.jpg)
+  - CromwellMkIV : [IWM, Public domain](https://commons.wikimedia.org/wiki/File:A_Cromwell_tank_of_7th_Armoured_Division,_Normandy,_30_July_1944._B8183.jpg)
+  - PanzerIVH : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-695-0406-03,_Russland,_Panzer_IV_am_Waldrand.jpg)
+  - PantherG : [Alf van Beem, Public domain](https://commons.wikimedia.org/wiki/File:SdKfz_171_Panther_Ausf_G_in_the_Mus%C3%A9e_des_Blind%C3%A9s_pic1.jpg)
+  - TigerI : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-299-1805-16,_Nordfrankreich,_Panzer_VI_(Tiger_I).jpg)
+  - TigerII : [Bundesarchiv, CC BY-SA 3.0 DE](https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-721-0398-21A,_Frankreich,_Panzer_VI_(Tiger_II,_K%C3%B6nigstiger).jpg)
+
+Map sources:
+
+- Grass: [p0ss](https://opengameart.org/node/9717)
+- Trees: [Top-down foliage collection](https://opengameart.org/content/top-down-foliage-collection)
