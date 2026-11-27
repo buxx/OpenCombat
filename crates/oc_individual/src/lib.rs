@@ -63,6 +63,8 @@ pub const INDIVIDUAL_PRONE_VOLUME_WIDTH: Meters = Meters(0.8);
 pub const INDIVIDUAL_PRONE_VOLUME_HEIGHT: Meters = Meters(1.8);
 pub const INDIVIDUAL_PRONE_VOLUME_DEPTH: Meters = Meters(0.8);
 
+/// Maximum relative error of moving target anticipation for an individual without experience
+pub const ANTICIPATION_ERROR: f32 = 1.0;
 // Must stay under the navmesh agent radius (2.5px), or individuals cut corners and enter walls.
 pub const WANT_STOP_TOLERANCE: f32 = 1.0;
 
@@ -376,6 +378,13 @@ impl Individual {
     // FIXME: add other factors like suppress
     pub fn reload_factor(&self) -> f32 {
         1.0 + (1.0 - self.xp.f32())
+    }
+
+    /// Maximum relative error when anticipating a moving target displacement: anticipated
+    /// displacement is randomly in `[1 - error, 1 + error]` times the real one.
+    /// [`ANTICIPATION_ERROR`] without experience, zero (perfect anticipation) with max experience.
+    pub fn anticipation_error(&self) -> f32 {
+        (1.0 - self.xp.f32()) * ANTICIPATION_ERROR
     }
 }
 
@@ -698,5 +707,26 @@ mod test {
     #[test]
     fn aim_factor_decreases_as_xp_increases() {
         assert!(individual_with_xp(200).aim_factor() < individual_with_xp(50).aim_factor());
+    }
+
+    #[test]
+    fn anticipation_error_is_max_without_xp() {
+        assert_eq!(
+            individual_with_xp(0).anticipation_error(),
+            ANTICIPATION_ERROR
+        );
+    }
+
+    #[test]
+    fn anticipation_is_perfect_with_max_xp() {
+        assert_eq!(individual_with_xp(255).anticipation_error(), 0.0);
+    }
+
+    #[test]
+    fn anticipation_error_decreases_as_xp_increases() {
+        assert!(
+            individual_with_xp(200).anticipation_error()
+                < individual_with_xp(50).anticipation_error()
+        );
     }
 }

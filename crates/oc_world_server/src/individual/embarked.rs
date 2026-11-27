@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use glam::{Vec2, Vec3};
 use oc_geo::tile::{TileXy, WorldTileIndex};
 use oc_individual::{
@@ -513,6 +515,15 @@ impl Processor<'_> {
         let tile = WorldTileIndex::from_(TileXy::from_(target, w), w);
         let ground = self.world.tile(tile).map_or(0., |tile| tile.z_pixels(w));
         let target = target.extend(ground);
+        let velocity = self.world.mod_.shell(shell).inner().velocity;
+        let target = match self.fire_target_individual(individual, vehicle) {
+            Some(target_) => {
+                let target_ = self.world.individual(target_);
+                // Anticipate movement if any
+                self.anticipate(individual, target_, from, target, velocity, Duration::ZERO)
+            }
+            None => target,
+        };
         let direction = Vec3::from(target - from).normalize_or_zero();
         let opacity = self.fire_opacity(from, target);
         let distance = Meters::from_pixels(from.distance(target), w);
@@ -526,7 +537,6 @@ impl Processor<'_> {
         let direction =
             direction_with_inaccuracy_down(direction, spread, w.inaccuracy_down_factor());
         let direction = WorldVec3::new(direction.x, direction.y, direction.z);
-        let velocity = self.world.mod_.shell(shell).inner().velocity;
         let forces = vec![Force::Translation(direction, velocity)];
         let projectile = Projectile::Shell(oc_projectile::shell::Shell::new(
             shell,
@@ -1358,6 +1368,7 @@ mod tests {
         let enemy = WorldVec3::new(250., 400., 0.);
         let mut world = natural_target_world(&w, vehicle, vec![], enemy, true);
         if embarked {
+            world.vehicles.push(tank(&w, Direction::NORTH));
             world.individual_mut(ENEMY).embarked = Some((VehicleIndex(1), CrewRole::Driver));
         }
 

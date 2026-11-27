@@ -90,6 +90,15 @@ impl Processor<'_> {
                         target_.position.z + plus_z,
                     );
                     let opacity = visible.visibility.opacity;
+                    let from = self.weapon_position(individual);
+                    let target = self.anticipate(
+                        individual,
+                        target_,
+                        from,
+                        target,
+                        weapon.velocity(),
+                        lag,
+                    );
                     self.spawn_projectile(
                         individual, weapon, ammunition, kind, target, opacity, lag,
                     )

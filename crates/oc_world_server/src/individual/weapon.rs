@@ -3,6 +3,7 @@ use std::time::Duration;
 use glam::Vec3;
 use oc_individual::{Individual, WeaponKind, order::Order};
 use oc_mod::grenade::{GrenadeNature, IndexedGrenade};
+use oc_physics::Force;
 use oc_projectile::spawn::SpawnProjectiles;
 #[cfg(feature = "debug")]
 use oc_root::WorldConfig;
@@ -10,7 +11,7 @@ use oc_root::{
     WcfgFrom,
     geo::{WorldVec2, WorldVec3},
     opacity::CumulatedOpacity,
-    physics::Meters,
+    physics::{Meters, MetersSeconds},
 };
 use oc_utils::{if_true, let_some, random::direction_with_inaccuracy_down};
 
@@ -23,6 +24,46 @@ const THROW_SCATTER_METERS: Meters = Meters(5.0);
 const THROW_SCATTER_OPACITY_METERS: Meters = Meters(5.0);
 
 impl Processor<'_> {
+    /// Target velocity
+    pub fn velocity(&self, target: &Individual) -> Vec3 {
+        let forces = match target.embarked {
+            Some((vehicle, _)) => &self.world.vehicle(vehicle).forces,
+            None => &target.forces,
+        };
+        let pixels_per_meters = self.world.w.geo_pixels_per_meters();
+        forces
+            .iter()
+            .fold(Vec3::ZERO, |velocity, force| match force {
+                Force::Translation(direction, speed) => {
+                    velocity + Vec3::from(*direction) * speed.0 * pixels_per_meters
+                }
+            })
+    }
+
+    /// Position where `shooter` aims to hit the moving `target`.
+    pub fn anticipate(
+        &self,
+        shooter: &Individual,
+        target: &Individual,
+        from: WorldVec3,
+        aim: WorldVec3,
+        speed: MetersSeconds,
+        lag: Duration,
+    ) -> WorldVec3 {
+        let velocity = self.velocity(target);
+        if velocity == Vec3::ZERO {
+            return aim;
+        }
+
+        let w = &self.world.w;
+        let error = shooter.anticipation_error();
+        let factor = 1.0 + (fastrand::f32() * 2.0 - 1.0) * error;
+        let speed = speed.0 * w.geo_pixels_per_meters();
+        let lag = lag.as_secs_f32() * w.speed();
+
+        anticipated(from, aim, velocity, speed, lag, factor)
+    }
+
     /// Random position around the order position where the grenade lands. Scatter is reduced by
     /// experience (divided by 1 up to 10 for max experience) and increased by order position opacity.
     pub fn throw_landing(&self, individual: &Individual, target: WorldVec2) -> WorldVec2 {
@@ -180,12 +221,7 @@ impl Processor<'_> {
             }
         }
 
-        let plus_z = individual.gesture.body.weapon_z().pixels(&self.world.w);
-        let from = WorldVec3 {
-            x: individual.position.x,
-            y: individual.position.y,
-            z: individual.position.z + plus_z,
-        };
+        let from = self.weapon_position(individual);
 
         let distance = Meters::from_pixels(from.distance(target), &self.world.w);
         let direction = (target - from).normalize_or_zero();
@@ -231,6 +267,16 @@ impl Processor<'_> {
                 oc_individual::Update::SetWeapons(weapons),
             ),
         ]
+    }
+
+    /// Position from where the individual weapon fires
+    pub fn weapon_position(&self, individual: &Individual) -> WorldVec3 {
+        let plus_z = individual.gesture.body.weapon_z().pixels(&self.world.w);
+        WorldVec3 {
+            x: individual.position.x,
+            y: individual.position.y,
+            z: individual.position.z + plus_z,
+        }
     }
 
     // TODO: introduce inaccuracy with recoil ?
@@ -287,5 +333,77 @@ impl Processor<'_> {
         _target: WorldVec2,
     ) -> Option<&'w oc_individual::Weapon> {
         individual.weapons.primary.as_ref()
+    }
+}
+
+/// Position of a target (currently at `aim`, moving at `velocity`) when a projectile fired from
+/// `from` at `speed` after `lag` (world seconds) reaches it; displacement multiplied by `factor`
+/// (anticipation error).
+fn anticipated(
+    from: WorldVec3,
+    aim: WorldVec3,
+    velocity: Vec3,
+    speed: f32,
+    lag: f32,
+    factor: f32,
+) -> WorldVec3 {
+    if speed <= 0.0 {
+        return aim;
+    }
+    let aim_ = Vec3::from(aim);
+    let from_ = Vec3::from(from);
+
+    // Projectile flight time depends on the anticipated position: refine it a few times
+    let mut target = aim_;
+    for _ in 0..3 {
+        let time = lag + from_.distance(target) / speed;
+        target = aim_ + velocity * time;
+    }
+    let anticipated = aim_ + (target - aim_) * factor;
+
+    WorldVec3::new(anticipated.x, anticipated.y, anticipated.z)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn anticipated_static_target_is_target() {
+        let from = WorldVec3::new(0., 0., 0.);
+        let aim = WorldVec3::new(100., 0., 0.);
+        assert_eq!(anticipated(from, aim, Vec3::ZERO, 50., 0., 1.), aim);
+    }
+
+    #[test]
+    fn anticipated_moving_target_leads_by_flight_time() {
+        let from = WorldVec3::new(0., 0., 0.);
+        let aim = WorldVec3::new(100., 0., 0.);
+        // Flight is 1 second (100px at 100px/s), target moves 10px/s on y
+        let result = anticipated(from, aim, Vec3::new(0., 10., 0.), 100., 0., 1.);
+        assert_eq!(result.x, 100.);
+        // Refined flight time is a bit longer than 1 second as target moves away
+        assert!(result.y > 10. && result.y < 10.1, "got {}", result.y);
+    }
+
+    #[test]
+    fn anticipated_includes_lag() {
+        let from = WorldVec3::new(0., 0., 0.);
+        let aim = WorldVec3::new(100., 0., 0.);
+        let result = anticipated(from, aim, Vec3::new(-10., 0., 0.), 1000., 1.0, 1.);
+        // ~1 second lag + ~0.09 second flight
+        assert!(result.x < 90. && result.x > 88., "got {}", result.x);
+    }
+
+    #[test]
+    fn anticipated_displacement_scaled_by_error_factor() {
+        let from = WorldVec3::new(0., 0., 0.);
+        let aim = WorldVec3::new(100., 0., 0.);
+        let velocity = Vec3::new(0., 10., 0.);
+        let exact = anticipated(from, aim, velocity, 100., 0., 1.);
+        let over = anticipated(from, aim, velocity, 100., 0., 2.);
+        let none = anticipated(from, aim, velocity, 100., 0., 0.);
+        assert!((over.y - exact.y * 2.).abs() < 0.001);
+        assert_eq!(none, aim);
     }
 }
