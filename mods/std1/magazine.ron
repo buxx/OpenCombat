@@ -19,4 +19,86 @@
         capacity: 50,
         accept: ["7,92x57"]
     )),
+    // Allied
+    Cartridge((
+        name: "Garand8x",
+        capacity: 8,
+        accept: ["7,62x63"]
+    )),
+    Cartridge((
+        name: "LeeEnfield10x",
+        capacity: 10,
+        accept: ["7,7x56"]
+    )),
+    Cartridge((
+        name: "M1Carbine15x",
+        capacity: 15,
+        accept: ["7,62x33"]
+    )),
+    Cartridge((
+        name: "Thompson30x",
+        capacity: 30,
+        accept: ["11,43x23"]
+    )),
+    Cartridge((
+        name: "Sten32x",
+        capacity: 32,
+        accept: ["9x19"]
+    )),
+    Cartridge((
+        name: "PPSh71x",
+        capacity: 71,
+        accept: ["7,62x25"]
+    )),
+    Cartridge((
+        name: "BAR20x",
+        capacity: 20,
+        accept: ["7,62x63"]
+    )),
+    Cartridge((
+        name: "M1919_250x",
+        capacity: 250,
+        accept: ["7,62x63"]
+    )),
+    // Axis
+    Cartridge((
+        name: "G43_10x",
+        capacity: 10,
+        accept: ["7,92x57"]
+    )),
+    Cartridge((
+        name: "MP40_32x",
+        capacity: 32,
+        accept: ["9x19"]
+    )),
+    Cartridge((
+        name: "StG44_30x",
+        capacity: 30,
+        accept: ["7,92x33"]
+    )),
+    Cartridge((
+        name: "Mg42_50x",
+        capacity: 50,
+        accept: ["7,92x57"]
+    )),
+    Cartridge((
+        name: "Arisaka5x",
+        capacity: 5,
+        accept: ["7,7x58"]
+    )),
+    Cartridge((
+        name: "Carcano6x",
+        capacity: 6,
+        accept: ["6,5x52"]
+    )),
+    Cartridge((
+        name: "MAB38_30x",
+        capacity: 30,
+        accept: ["9x19"]
+    )),
+    Cartridge((
+        name: "Type99LMG_30x",
+        capacity: 30,
+        accept: ["7,7x58"]
+    )),
 ]

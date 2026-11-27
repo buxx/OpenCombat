@@ -1,0 +1,202 @@
+(
+  squads: [
+    (
+      count: 6,
+      label: "German Rifle",
+      illustration: "default",
+      individuals: [
+        (
+          count: 3,
+          illustration: "default",
+          xp: (149, 40),
+          weapons: (
+            main: Some("Karabiner 98k"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 12, name: "Mauser5x")],
+        ),
+        (
+          count: 1,
+          illustration: "default",
+          xp: (160, 30),
+          weapons: (
+            main: Some("MP 40"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 6, name: "MP40_32x")],
+        ),
+      ],
+    ),
+    (
+      count: 4,
+      label: "German Assault",
+      illustration: "default",
+      individuals: [
+        (
+          count: 3,
+          illustration: "default",
+          xp: (150, 35),
+          weapons: (
+            main: Some("StG 44"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 6, name: "StG44_30x")],
+        ),
+        (
+          count: 1,
+          illustration: "default",
+          xp: (155, 30),
+          weapons: (
+            main: Some("Gewehr 43"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 8, name: "G43_10x")],
+        ),
+      ],
+    ),
+    (
+      count: 3,
+      label: "Mg42",
+      illustration: "Mg34Squad",
+      individuals: [
+        (
+          count: 3,
+          illustration: "default",
+          xp: (140, 30),
+          weapons: (
+            main: Some("Karabiner 98k"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 12, name: "Mauser5x")],
+        ),
+        (
+          count: 1,
+          illustration: "Mg34",
+          xp: (169, 20),
+          weapons: (
+            main: Some("Mg42"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 8, name: "Mg42_50x")],
+        ),
+      ],
+    ),
+    (
+      count: 3,
+      label: "Italian Rifle",
+      illustration: "default",
+      individuals: [
+        (
+          count: 3,
+          illustration: "default",
+          xp: (130, 35),
+          weapons: (
+            main: Some("Carcano M91/38"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 10, name: "Carcano6x")],
+        ),
+        (
+          count: 1,
+          illustration: "default",
+          xp: (140, 30),
+          weapons: (
+            main: Some("Beretta MAB 38A"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 6, name: "MAB38_30x")],
+        ),
+      ],
+    ),
+    (
+      count: 2,
+      label: "Japanese LMG",
+      illustration: "Mg34Squad",
+      individuals: [
+        (
+          count: 3,
+          illustration: "default",
+          xp: (140, 30),
+          weapons: (
+            main: Some("Arisaka Type 99"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 12, name: "Arisaka5x")],
+        ),
+        (
+          count: 1,
+          illustration: "Mg34",
+          xp: (160, 20),
+          weapons: (
+            main: Some("Type 99 LMG"),
+            grenades: ["Frag grenade", "Frag grenade"],
+          ),
+          magazines: [(count: 10, name: "Type99LMG_30x")],
+        ),
+      ],
+    ),
+    (
+      count: 1,
+      label: "Panzer IV",
+      illustration: "default",
+      vehicle: Some("Panzer IV Ausf. H"),
+      shells: [
+        (name: "AP 75mm Pzgr.39", count: 35),
+        (name: "HE 75mm Sprgr.34", count: 40),
+      ],
+      individuals: [
+        (
+          count: 5,
+          illustration: "default",
+          xp: (140, 30),
+          weapons: (
+            main: None,
+          ),
+          magazines: [],
+        ),
+      ],
+    ),
+    (
+      count: 1,
+      label: "Panther",
+      illustration: "default",
+      vehicle: Some("Panther Ausf. G"),
+      shells: [
+        (name: "AP 75mm Pzgr.39/42", count: 40),
+        (name: "HE 75mm Sprgr.42", count: 39),
+      ],
+      individuals: [
+        (
+          count: 5,
+          illustration: "default",
+          xp: (140, 30),
+          weapons: (
+            main: None,
+          ),
+          magazines: [],
+        ),
+      ],
+    ),
+    (
+      count: 1,
+      label: "Tiger I",
+      illustration: "default",
+      vehicle: Some("Tiger I"),
+      shells: [
+        (name: "AP 88mm Pzgr.39", count: 45),
+        (name: "HE 88mm Sprgr. L/4.5", count: 47),
+      ],
+      individuals: [
+        (
+          count: 5,
+          illustration: "default",
+          xp: (140, 30),
+          weapons: (
+            main: None,
+          ),
+          magazines: [],
+        ),
+      ],
+    ),
+  ],
+)

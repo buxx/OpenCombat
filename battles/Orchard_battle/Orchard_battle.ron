@@ -2,5 +2,5 @@
   name: "Orchad battle",
   description: "German troops stationed in a sparsely populated region must hold their ground against an advance by the Allied army.",
   map: "demo2",
-  scenarios: ["Allied_push.ron"],
+  scenarios: ["Allied_push.ron", "Armored_clash.ron"],
 )

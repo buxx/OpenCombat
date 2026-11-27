@@ -11,4 +11,38 @@
         name: "303British",
         model: "7,7x56",
     )),
+    // Allied
+    Cartridge((
+        name: "30-06Springfield",
+        model: "7,62x63",
+    )),
+    Cartridge((
+        name: "30Carbine",
+        model: "7,62x33",
+    )),
+    Cartridge((
+        name: "45ACP",
+        model: "11,43x23",
+    )),
+    Cartridge((
+        name: "9x19Parabellum",
+        model: "9x19",
+    )),
+    Cartridge((
+        name: "762x25Tokarev",
+        model: "7,62x25",
+    )),
+    // Axis
+    Cartridge((
+        name: "792x33Kurz",
+        model: "7,92x33",
+    )),
+    Cartridge((
+        name: "77x58Arisaka",
+        model: "7,7x58",
+    )),
+    Cartridge((
+        name: "65x52Carcano",
+        model: "6,5x52",
+    )),
 ]
