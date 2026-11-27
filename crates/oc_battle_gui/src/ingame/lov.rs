@@ -22,6 +22,9 @@ pub struct SpawnBeginningLov(pub SpawnLovProfile);
 #[derive(Debug, Event, Deref)]
 pub struct SpawnLov(pub Lov);
 
+#[derive(Debug, Event, Deref)]
+pub struct SetBeginningLovs(pub Vec<SpawnLovProfile>);
+
 #[derive(Debug, Event)]
 pub struct UpdateLovFor(pub Entity, pub WorldVec2);
 
@@ -89,6 +92,7 @@ impl Plugin for LovPlugin {
             .add_systems(Startup, setup)
             .add_observer(on_spawn_beginning_lov)
             .add_observer(on_spawn_lov)
+            .add_observer(on_set_beginning_lovs)
             .add_observer(on_update_lov_for)
             .add_observer(on_despawn_lov)
             .add_systems(
@@ -123,6 +127,45 @@ fn on_spawn_beginning_lov(
         sections: vec![],
         max: spawn.max,
     });
+}
+
+fn on_set_beginning_lovs(
+    set: On<SetBeginningLovs>,
+    w: Res<Wcfg>,
+    mut commands: Commands,
+    world: Res<World>,
+    mut lovs: Query<(Entity, &mut Lov)>,
+) {
+    tracing::trace!(name = "lov-set-beginning", count = set.len());
+    let_some!(w = &w.0, return);
+    let mut existing = lovs.iter_mut();
+
+    for profile in set.iter() {
+        let_some!(tile = world.tile_at(w, profile.start), continue);
+        let z = tile.z_pixels(w) + profile.start_plus_z.0 * w.geo_pixels_per_meters();
+        let start = profile.start.extend(z);
+
+        match existing.next() {
+            Some((_, mut lov)) => {
+                lov.start = start;
+                lov.stop_plus_z = profile.stop_plus_z;
+                lov.max = profile.max;
+            }
+            None => {
+                commands.spawn(Lov {
+                    start,
+                    stop: start,
+                    stop_plus_z: profile.stop_plus_z,
+                    sections: vec![],
+                    max: profile.max,
+                });
+            }
+        }
+    }
+
+    for (entity, _) in existing {
+        commands.entity(entity).despawn();
+    }
 }
 
 fn on_spawn_lov(spawn: On<SpawnLov>, mut commands: Commands) {

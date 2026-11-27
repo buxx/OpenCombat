@@ -29,7 +29,7 @@ use crate::ingame::input::left_click::LeftClick;
 use crate::ingame::input::left_click::LeftClickMode;
 use crate::ingame::input::left_click::SetLeftClick;
 use crate::ingame::lov::DespawnLov;
-use crate::ingame::lov::SpawnBeginningLov;
+use crate::ingame::lov::SetBeginningLovs;
 use crate::ingame::lov::SpawnLovProfile;
 use crate::ingame::path::ComputeDisplayPaths;
 use crate::ingame::path::SpawnPathProfile;
@@ -109,16 +109,12 @@ fn show(
         }
         OrderType::Engage | OrderType::Suppress => {
             let spawns = lov_profiles(ingame, world, drag, position_markers, None);
-            for spawn in spawns {
-                commands.trigger(SpawnBeginningLov(spawn));
-            }
+            commands.trigger(SetBeginningLovs(spawns));
         }
         OrderType::Grenade | OrderType::Smoke => {
             let max = Some(oc_individual::behavior::THROW_MAX_DISTANCE);
             let spawns = lov_profiles(ingame, world, drag, position_markers, max);
-            for spawn in spawns {
-                commands.trigger(SpawnBeginningLov(spawn));
-            }
+            commands.trigger(SetBeginningLovs(spawns));
         }
     }
 }
