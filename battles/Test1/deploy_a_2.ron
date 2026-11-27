@@ -1,6 +1,6 @@
 (
   squads: [
-    (
+    Custom(
       count: 1,
       label: "Riffle",
       illustration: "default",
@@ -17,7 +17,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 1,
       label: "Assault",
       illustration: "default",

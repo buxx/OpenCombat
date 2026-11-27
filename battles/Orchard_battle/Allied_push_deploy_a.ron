@@ -1,11 +1,6 @@
-// US Army infantry, Normandy bocage 1944 (T/O&E 7-17, Feb 1944).
-// Rifle squad (12 men): squad leader, assistant squad leader, BAR man,
-// assistant BAR man, ammo bearer and 7 riflemen, all with M1 Garand except BAR man.
-// LMG squad (5 men, weapons platoon): squad leader, gunner (M1919A4),
-// assistant gunner and 2 ammo bearers (M1 Carbine).
 (
   squads: [
-    (
+    Custom(
       count: 15,
       label: "Rifle squad",
       illustration: "UsRifleSquad",
@@ -42,7 +37,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 4,
       label: "LMG squad",
       illustration: "UsMgSquad",
@@ -79,7 +74,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 2,
       label: "M4 Sherman",
       illustration: "M4Sherman",

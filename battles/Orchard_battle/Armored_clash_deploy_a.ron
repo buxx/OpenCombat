@@ -1,8 +1,6 @@
-// Allied squads sized after 1944 tables: US rifle squad 12 (BAR + M1, NCO Thompson),
-// US LMG squad 5, British section 10 (Sten, Bren, 8 rifles), Soviet squad 9 (no DP LMG available in mod).
 (
   squads: [
-    (
+    Custom(
       count: 6,
       label: "US Rifle",
       illustration: "UsRifleSquad",
@@ -49,7 +47,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 3,
       label: "US MG",
       illustration: "UsMgSquad",
@@ -76,7 +74,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 4,
       label: "British Rifle",
       illustration: "BrenMark2Squad",
@@ -113,7 +111,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 4,
       label: "Soviet Rifle",
       illustration: "SovietRifleSquad",
@@ -140,7 +138,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 1,
       label: "M4 Sherman",
       illustration: "M4Sherman",
@@ -161,7 +159,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 1,
       label: "T-34-85",
       illustration: "T3485",
@@ -182,7 +180,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 1,
       label: "Cromwell",
       illustration: "CromwellMkIV",

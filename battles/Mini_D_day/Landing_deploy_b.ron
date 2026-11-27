@@ -1,10 +1,6 @@
-// German coastal defence infantry (static division), Normandy June 1944.
-// Rifle squad (Gruppe, 9 men): Gruppenfuhrer (MP 40), MG 34 gunner,
-// assistant gunner, ammo bearer and riflemen (Kar98k).
-// HMG squad (6 men): heavy MG 34 crew with extra belts.
 (
   squads: [
-    (
+    Custom(
       count: 12,
       label: "Rifle squad",
       illustration: "GermanRifleSquad",
@@ -41,42 +37,6 @@
         ),
       ],
     ),
-    (
-      count: 5,
-      label: "HMG squad",
-      illustration: "Mg34Squad",
-      individuals: [
-        (
-          count: 1,
-          illustration: "Mp40",
-          xp: (159, 30),
-          weapons: (
-            main: Some("MP 40"),
-            grenades: ["Frag grenade", "Frag grenade"],
-          ),
-          magazines: [(count: 6, name: "MP40_32x")],
-        ),
-        (
-          count: 1,
-          illustration: "Mg34",
-          xp: (130, 30),
-          weapons: (
-            main: Some("Mg34"),
-            grenades: ["Frag grenade"],
-          ),
-          magazines: [(count: 14, name: "Mg34_50x")],
-        ),
-        (
-          count: 3,
-          illustration: "Kar98k",
-          xp: (120, 40),
-          weapons: (
-            main: Some("Karabiner 98k"),
-            grenades: ["Frag grenade"],
-          ),
-          magazines: [(count: 12, name: "Mauser5x")],
-        ),
-      ],
-    ),
+    Preset(label: "HMG squad", count: 5),
   ],
 )

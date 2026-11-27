@@ -1,8 +1,6 @@
-// Axis squads sized after 1944 tables: German Gruppe 9 (2 MP 40, MG 42, Kar98k),
-// Volksgrenadier assault squad 8 (StG 44), HMG crew 6, Italian squad 10, Japanese squad 13.
 (
   squads: [
-    (
+    Custom(
       count: 6,
       label: "German Rifle",
       illustration: "GermanRifleSquad",
@@ -39,7 +37,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 4,
       label: "German Assault",
       illustration: "GermanAssaultSquad",
@@ -56,7 +54,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 3,
       label: "Mg42",
       illustration: "Mg42Squad",
@@ -83,7 +81,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 3,
       label: "Italian Rifle",
       illustration: "ItalianRifleSquad",
@@ -110,7 +108,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 2,
       label: "Japanese LMG",
       illustration: "JapaneseLmgSquad",
@@ -137,7 +135,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 1,
       label: "Panzer IV",
       illustration: "PanzerIVH",
@@ -158,7 +156,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 1,
       label: "Panther",
       illustration: "PantherG",
@@ -179,7 +177,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 1,
       label: "Tiger I",
       illustration: "TigerI",

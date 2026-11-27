@@ -1,10 +1,6 @@
-// German infantry division, Normandy summer 1944 (KStN 1944 Grenadier company).
-// Rifle squad (Gruppe, 9 men): Gruppenfuhrer and deputy (MP 40), MG 42 gunner,
-// one marksman (G 43) and riflemen (Kar98k, including assistant gunner).
-// HMG squad (6 men): heavy MG 42 crew with extra belts.
 (
   squads: [
-    (
+    Custom(
       count: 12,
       label: "Rifle squad",
       illustration: "GermanRifleSquad",
@@ -51,7 +47,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 5,
       label: "HMG squad",
       illustration: "Mg42Squad",
@@ -88,7 +84,7 @@
         ),
       ],
     ),
-    (
+    Custom(
       count: 1,
       label: "Tiger 2",
       illustration: "TigerII",

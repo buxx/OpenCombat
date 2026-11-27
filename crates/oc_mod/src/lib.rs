@@ -40,6 +40,7 @@ pub mod magazine;
 pub mod nature;
 pub mod shell;
 pub mod sound;
+pub mod squad;
 pub mod support;
 pub mod vehicle;
 pub mod weapons;
@@ -85,6 +86,8 @@ pub struct Mod {
     pub supports: Vec<support::Support>,
     #[serde(skip, default)]
     pub vehicles: Vec<vehicle::IndexedVehicle>,
+    #[serde(skip, default)]
+    pub squads: Vec<squad::SquadPreset>,
     // Below game specs
     #[serde(default = "default_human_default_stand_up_fire_meters")]
     pub human_default_stand_up_fire_meters: f32,
@@ -114,6 +117,7 @@ impl Mod {
                 .map(|raw| mod_.resolve_vehicle(raw))
                 .collect::<Result<Vec<_>, _>>()?,
         );
+        mod_.squads = squad::load(path)?;
 
         // TODO: centralize caching at server startup
         if let Some(cache_) = cache_ {
@@ -253,6 +257,13 @@ impl Mod {
             inaccuracy: raw.inaccuracy,
             penetration_resistance: raw.penetration_resistance,
         })
+    }
+
+    pub fn squad_preset(&self, label: &str) -> Result<&squad::SquadPreset, Error> {
+        self.squads
+            .iter()
+            .find(|s| s.label == label)
+            .ok_or(Error::UnknownSquadPreset(label.to_string()))
     }
 
     pub fn support(&self, name: &str) -> Option<&support::Support> {
@@ -486,6 +497,10 @@ pub enum Error {
     Shells(#[from] shell::Error),
     #[error("Support: {0}")]
     Support(#[from] support::Error),
+    #[error("Squads: {0}")]
+    Squads(#[from] squad::Error),
+    #[error("Unknown squad preset: {0}")]
+    UnknownSquadPreset(String),
     #[error("Unknown vehicle name: {0}")]
     UnknownVehicleName(String),
     #[error("Vehicles: {0}")]

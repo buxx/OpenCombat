@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 // TODO: fill vehicle example
 fn example() -> Profile {
     Profile {
-        squads: vec![Squad {
+        squads: vec![Squad::Custom {
             count: 2,
             label: "MySquad1".to_string(),
             illustration: "default".to_string(),
