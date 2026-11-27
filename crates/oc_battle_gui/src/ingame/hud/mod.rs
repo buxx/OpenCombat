@@ -1,4 +1,8 @@
-use bevy::prelude::*;
+use bevy::{
+    input::mouse::{MouseScrollUnit, MouseWheel},
+    prelude::*,
+};
+use oc_utils::let_some;
 
 use crate::{ingame::BattlePhase, states::AppState};
 
@@ -28,7 +32,8 @@ impl Plugin for HudPlugin {
                 (
                     squads::spawn_squad_cells,
                     supports::spawn_support_buttons,
-                    squads::scroll_squad_grid,
+                    scroll_under_cursor::<squads::SquadGrid>,
+                    scroll_under_cursor::<squad::SquadDetails>,
                     squads::update_squad_behaviors,
                     squads::update_squad_status_colors,
                     squad::update_rows,
@@ -83,5 +88,29 @@ fn hud(world: &crate::world::World, phase: &BattlePhase) -> impl Scene {
             --
             @{ minimap::minimap() }
         ]
+    }
+}
+
+fn scroll_under_cursor<T: Component>(
+    mut wheel: MessageReader<MouseWheel>,
+    mut node: Query<(&mut ScrollPosition, &ComputedNode, &UiGlobalTransform), With<T>>,
+    window: Single<&Window>,
+) {
+    let_some!(cursor = window.physical_cursor_position(), return);
+    let Ok((mut scroll, computed, transform)) = node.single_mut() else {
+        return;
+    };
+    if !computed.contains_point(*transform, cursor) {
+        return;
+    }
+
+    for event in wheel.read() {
+        let dy = match event.unit {
+            MouseScrollUnit::Line => event.y * SCROLL_LINE_PX,
+            MouseScrollUnit::Pixel => event.y,
+        };
+        let max = (computed.content_size().y - computed.size().y).max(0.)
+            * computed.inverse_scale_factor();
+        scroll.y = (scroll.y - dy).clamp(0., max);
     }
 }

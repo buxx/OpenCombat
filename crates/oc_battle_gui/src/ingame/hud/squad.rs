@@ -146,7 +146,7 @@ pub fn spawn_rows(
     selection: On<SelectionUpdated>,
     mut commands: Commands,
     world: Res<World>,
-    details: Query<Entity, With<SquadDetails>>,
+    mut details: Query<(Entity, &mut ScrollPosition), With<SquadDetails>>,
     rows: Query<Entity, With<IndividualRow>>,
     g: Res<GameConfig>,
     files: Res<crate::states::GuiFiles>,
@@ -158,7 +158,8 @@ pub fn spawn_rows(
         commands.entity(row).despawn();
     }
 
-    let_ok!(details = details.single(), return);
+    let_ok!((details, mut scroll) = details.single_mut(), return);
+    scroll.y = 0.;
     let_some!(squad = selection.selected_squads.first().copied(), return);
     let_some!(squad = world.squad(squad), return);
 

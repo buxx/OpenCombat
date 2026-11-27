@@ -1,6 +1,6 @@
 use crate::utils::selected::Selected;
 use crate::{
-    ingame::{self, camera::GoToPoint, hud::SCROLL_LINE_PX},
+    ingame::{self, camera::GoToPoint},
     network,
     sprites::SpriteRect,
     states::GameConfig,
@@ -10,10 +10,7 @@ use crate::{
     world::World,
 };
 
-use bevy::{
-    input::mouse::{MouseScrollUnit, MouseWheel},
-    prelude::*,
-};
+use bevy::prelude::*;
 use oc_individual::squad::{Squad, SquadIndex, SquadStatus};
 use oc_mod::illustration::IllustrationKind;
 use oc_root::files::Files;
@@ -268,26 +265,3 @@ pub fn update_squad_status_colors(
     }
 }
 
-pub fn scroll_squad_grid(
-    mut wheel: MessageReader<MouseWheel>,
-    mut grid: Query<(&mut ScrollPosition, &ComputedNode, &UiGlobalTransform), With<SquadGrid>>,
-    window: Single<&Window>,
-) {
-    let_some!(cursor = window.physical_cursor_position(), return);
-    let Ok((mut scroll, computed, transform)) = grid.single_mut() else {
-        return;
-    };
-    if !computed.contains_point(*transform, cursor) {
-        return;
-    }
-
-    for event in wheel.read() {
-        let dy = match event.unit {
-            MouseScrollUnit::Line => event.y * SCROLL_LINE_PX,
-            MouseScrollUnit::Pixel => event.y,
-        };
-        let max = (computed.content_size().y - computed.size().y).max(0.)
-            * computed.inverse_scale_factor();
-        scroll.y = (scroll.y - dy).clamp(0., max);
-    }
-}
